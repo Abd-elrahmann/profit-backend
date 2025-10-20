@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,4 +6,274 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+// 🔐 USERS, ROLES, & PERMISSIONS
+model User {
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  password       String
+  phone          String          @unique
+  isActive       Boolean         @default(true)
+  roleId         Int?
+  role           Role?           @relation(fields: [roleId], references: [id])
+  auditLogs      AuditLog[]
+  postedJournals JournalHeader[]
+  ResetToken     ResetPasswordToken[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  users       User[]
+  permissions RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model RolePermission {
+  id        Int      @id @default(autoincrement())
+  roleId    Int
+  module    String
+  canView   Boolean  @default(false)
+  canAdd    Boolean  @default(false)
+  canUpdate Boolean  @default(false)
+  canDelete Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role Role @relation(fields: [roleId], references: [id])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model ResetPasswordToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// 👥 CLIENTS, PARTNERS, LOANS, REPAYMENTS
+model Client {
+  id         Int          @id @default(autoincrement())
+  name       String
+  nationalId String?
+  phone      String?
+  address    String?
+  status     ClientStatus @default(ACTIVE)
+  documents  Json?
+  loans      Loan[]
+  createdAt  DateTime     @default(now())
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  DELINQUENT
+  CLOSED
+}
+
+model Loan {
+  id             Int            @id @default(autoincrement())
+  clientId       Int
+  amount         Float
+  interestRate   Float
+  durationMonths Int
+  type           LoanType
+  status         LoanStatus     @default(PENDING)
+  startDate      DateTime
+  endDate        DateTime?
+  repayments     Repayment[]
+  investors      LoanInvestor[]
+  createdAt      DateTime       @default(now())
+  client         Client         @relation(fields: [clientId], references: [id])
+}
+
+enum LoanType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum LoanStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+}
+
+model Repayment {
+  id          Int           @id @default(autoincrement())
+  loanId      Int
+  dueDate     DateTime
+  amount      Float
+  paidAmount  Float         @default(0)
+  status      PaymentStatus @default(PENDING)
+  paymentDate DateTime?
+  attachments Json?
+  createdAt   DateTime      @default(now())
+  loan        Loan          @relation(fields: [loanId], references: [id])
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+model Partner {
+  id           Int                  @id @default(autoincrement())
+  name         String
+  sharePercent Float
+  capital      Float                @default(0)
+  isActive     Boolean              @default(true)
+  investments  LoanInvestor[]
+  transactions PartnerTransaction[]
+  profits      ProfitDistribution[]
+  createdAt    DateTime             @default(now())
+}
+
+model LoanInvestor {
+  id           Int     @id @default(autoincrement())
+  loanId       Int
+  partnerId    Int
+  sharePercent Float
+  loan         Loan    @relation(fields: [loanId], references: [id])
+  partner      Partner @relation(fields: [partnerId], references: [id])
+}
+
+model PartnerTransaction {
+  id        Int             @id @default(autoincrement())
+  partnerId Int
+  type      TransactionType
+  amount    Float
+  date      DateTime        @default(now())
+  note      String?
+  partner   Partner         @relation(fields: [partnerId], references: [id])
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+model ProfitDistribution {
+  id          Int      @id @default(autoincrement())
+  partnerId   Int
+  amount      Float
+  period      String
+  distributed Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  partner     Partner  @relation(fields: [partnerId], references: [id])
+}
+
+// 💰 ACCOUNTING CORE
+model Account {
+  id        Int              @id @default(autoincrement())
+  name      String
+  code      String           @unique
+  parentId  Int?
+  type      AccountType
+  level     Int              @default(1)
+  isActive  Boolean          @default(true)
+  parent    Account?         @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children  Account[]        @relation("AccountHierarchy")
+  balances  AccountBalance[]
+  entries   JournalLine[]
+  createdAt DateTime         @default(now())
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model AccountingPeriod {
+  id               Int      @id @default(autoincrement())
+  name             String
+  startDate        DateTime
+  endDate          DateTime
+  isClosed         Boolean  @default(false)
+  openingJournalId Int?     @unique
+  closingJournalId Int?     @unique
+  createdAt        DateTime @default(now())
+
+  openingJournal JournalHeader?   @relation("OpeningEntry", fields: [openingJournalId], references: [id])
+  closingJournal JournalHeader?   @relation("ClosingEntry", fields: [closingJournalId], references: [id])
+  balances       AccountBalance[]
+  journals       JournalHeader[]
+}
+
+model AccountBalance {
+  id            Int               @id @default(autoincrement())
+  accountId     Int
+  periodId      Int?
+  openingDebit  Float             @default(0)
+  openingCredit Float             @default(0)
+  currentDebit  Float             @default(0)
+  currentCredit Float             @default(0)
+  closingDebit  Float             @default(0)
+  closingCredit Float             @default(0)
+  lastUpdated   DateTime          @default(now())
+  account       Account           @relation(fields: [accountId], references: [id])
+  period        AccountingPeriod? @relation(fields: [periodId], references: [id])
+}
+
+model JournalHeader {
+  id          Int               @id @default(autoincrement())
+  reference   String?           @unique
+  description String?
+  date        DateTime          @default(now())
+  type        JournalType       @default(GENERAL)
+  status      JournalStatus     @default(DRAFT)
+  sourceType  String?
+  sourceId    Int?
+  postedById  Int?
+  postedBy    User?             @relation(fields: [postedById], references: [id])
+  lines       JournalLine[]
+  periodId    Int?
+  period      AccountingPeriod? @relation(fields: [periodId], references: [id])
+  createdAt   DateTime          @default(now())
+  openingFor  AccountingPeriod? @relation("OpeningEntry")
+  closingFor  AccountingPeriod? @relation("ClosingEntry")
+}
+
+model JournalLine {
+  id          Int           @id @default(autoincrement())
+  journalId   Int
+  accountId   Int
+  debit       Float         @default(0)
+  credit      Float         @default(0)
+  description String?
+  journal     JournalHeader @relation(fields: [journalId], references: [id])
+  account     Account       @relation(fields: [accountId], references: [id])
+}
+
+enum JournalType {
+  GENERAL
+  OPENING
+  CLOSING
+  ADJUSTMENT
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  CANCELLED
 }
