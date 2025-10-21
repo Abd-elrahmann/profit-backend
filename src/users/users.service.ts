@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // Add new user
   async addUser(data: { name: string; email: string; password: string; phone: string; roleId?: number }) {
@@ -31,7 +31,7 @@ export class UsersService {
   }
 
   // Update user
-  async updateUser(id: number, data: { name?: string; phone?: string; roleId?: number; isActive?: boolean }) {
+  async updateUser(id: number, data: { name?: string; phone?: string; isActive?: boolean }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -45,10 +45,9 @@ export class UsersService {
       data: {
         name: data.name ?? user.name,
         phone: data.phone ?? user.phone,
-        roleId: data.roleId ?? user.roleId,
         isActive: data.isActive ?? user.isActive,
       },
-      select: { id: true, name: true, email: true, phone: true, roleId: true, isActive: true, updatedAt: true },
+      select: { id: true, name: true, email: true, phone: true, isActive: true, updatedAt: true },
     });
 
     return { message: 'User updated successfully', user: updated };
@@ -105,5 +104,13 @@ export class UsersService {
       currentPage: page,
       users,
     };
+  }
+
+  // Assign role to user
+  async assignRole(userId: number, roleId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    await this.prisma.user.update({ where: { id: userId }, data: { roleId } });
+    return { message: 'Role assigned successfully' };
   }
 }

@@ -24,6 +24,15 @@ export class UsersController {
     return this.usersService.updateUser(id, body);
   }
 
+  @Patch(':id/role')
+  @Permissions('users', 'canUpdate')
+  assignRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('roleId') roleId: number,
+  ) {
+    return this.usersService.assignRole(id, roleId);
+  }
+
   @Delete(':id')
   @Permissions('users', 'canDelete')
   deleteUser(@Param('id', ParseIntPipe) id: number) {

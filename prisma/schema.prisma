@@ -43,6 +43,7 @@ model RolePermission {
   canAdd    Boolean  @default(false)
   canUpdate Boolean  @default(false)
   canDelete Boolean  @default(false)
+  canPost   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -68,22 +69,62 @@ model ResetPasswordToken {
 
 // 👥 CLIENTS, PARTNERS, LOANS, REPAYMENTS
 model Client {
-  id         Int          @id @default(autoincrement())
-  name       String
-  nationalId String?
-  phone      String?
-  address    String?
-  status     ClientStatus @default(ACTIVE)
-  documents  Json?
-  loans      Loan[]
-  createdAt  DateTime     @default(now())
+  id               Int                @id @default(autoincrement())
+  name             String
+  email            String?
+  phone            String
+  birthDate        DateTime
+  address          String
+  nationalId       String
+  city             String
+  district         String
+  employer         String
+  salary           Float
+  obligations      Float
+  creationReason   String
+  status           ClientStatus       @default(ملتزم)
+  kafeel           Kafeel?            @relation(fields: [kafeelId], references: [id])
+  kafeelId         Int?
+  documents        ClientDocument[]
+  loans            Loan[]
+  notes            String?
+  createdAt        DateTime           @default(now())
+}
+
+model Kafeel {
+  id             Int              @id @default(autoincrement())
+  name           String
+  nationalId     String
+  birthDate      DateTime
+  city           String
+  district       String
+  employer       String
+  salary         Float
+  obligations    Float
+  phone          String
+  email          String?
+  client         Client[]
+  createdAt      DateTime         @default(now())
+}
+
+model ClientDocument {
+  id               Int      @id @default(autoincrement())
+  clientId         Int
+  clientIdImage    String
+  clientWorkCard   String?
+  salaryReport     String?
+  simaReport       String?
+  kafeelIdImage    String?
+  kafeelWorkCard   String?
+  createdAt        DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
 }
 
 enum ClientStatus {
-  ACTIVE
-  INACTIVE
-  DELINQUENT
-  CLOSED
+  ملتزم
+  متأخر
+  متعثر
 }
 
 model Loan {
