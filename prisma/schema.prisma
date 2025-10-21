@@ -10,19 +10,19 @@ datasource db {
 
 // 🔐 USERS, ROLES, & PERMISSIONS
 model User {
-  id             Int             @id @default(autoincrement())
+  id             Int                  @id @default(autoincrement())
   name           String
-  email          String          @unique
+  email          String               @unique
   password       String
-  phone          String          @unique
-  isActive       Boolean         @default(true)
+  phone          String               @unique
+  isActive       Boolean              @default(true)
   roleId         Int?
-  role           Role?           @relation(fields: [roleId], references: [id])
+  role           Role?                @relation(fields: [roleId], references: [id])
   auditLogs      AuditLog[]
   postedJournals JournalHeader[]
   ResetToken     ResetPasswordToken[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 }
 
 model Role {
@@ -69,54 +69,59 @@ model ResetPasswordToken {
 
 // 👥 CLIENTS, PARTNERS, LOANS, REPAYMENTS
 model Client {
-  id               Int                @id @default(autoincrement())
-  name             String
-  email            String?
-  phone            String
-  birthDate        DateTime
-  address          String
-  nationalId       String
-  city             String
-  district         String
-  employer         String
-  salary           Float
-  obligations      Float
-  creationReason   String
-  status           ClientStatus       @default(ملتزم)
-  kafeel           Kafeel?            @relation(fields: [kafeelId], references: [id])
-  kafeelId         Int?
-  documents        ClientDocument[]
-  loans            Loan[]
-  notes            String?
-  createdAt        DateTime           @default(now())
-}
-
-model Kafeel {
   id             Int              @id @default(autoincrement())
   name           String
-  nationalId     String
+  email          String?
+  phone          String
   birthDate      DateTime
+  address        String
+  nationalId     String
   city           String
   district       String
   employer       String
   salary         Float
   obligations    Float
-  phone          String
-  email          String?
-  client         Client[]
+  creationReason String
+  debit          Float            @default(0)
+  credit         Float            @default(0)
+  balance        Float            @default(0)
+  status         ClientStatus     @default(ملتزم)
+  kafeel         Kafeel?          @relation(fields: [kafeelId], references: [id])
+  kafeelId       Int?
+  documents      ClientDocument[]
+  loans          Loan[]
+  notes          String?
   createdAt      DateTime         @default(now())
+  JournalLine    JournalLine[]
+  clientsClosing clientsClosing[]
+}
+
+model Kafeel {
+  id          Int      @id @default(autoincrement())
+  name        String
+  nationalId  String
+  birthDate   DateTime
+  city        String
+  district    String
+  employer    String
+  salary      Float
+  obligations Float
+  phone       String
+  email       String?
+  client      Client[]
+  createdAt   DateTime @default(now())
 }
 
 model ClientDocument {
-  id               Int      @id @default(autoincrement())
-  clientId         Int
-  clientIdImage    String
-  clientWorkCard   String?
-  salaryReport     String?
-  simaReport       String?
-  kafeelIdImage    String?
-  kafeelWorkCard   String?
-  createdAt        DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  clientId       Int
+  clientIdImage  String
+  clientWorkCard String?
+  salaryReport   String?
+  simaReport     String?
+  kafeelIdImage  String?
+  kafeelWorkCard String?
+  createdAt      DateTime @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
 }
@@ -128,19 +133,18 @@ enum ClientStatus {
 }
 
 model Loan {
-  id             Int            @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   clientId       Int
   amount         Float
   interestRate   Float
   durationMonths Int
   type           LoanType
-  status         LoanStatus     @default(PENDING)
+  status         LoanStatus  @default(PENDING)
   startDate      DateTime
   endDate        DateTime?
   repayments     Repayment[]
-  investors      LoanInvestor[]
-  createdAt      DateTime       @default(now())
-  client         Client         @relation(fields: [clientId], references: [id])
+  createdAt      DateTime    @default(now())
+  client         Client      @relation(fields: [clientId], references: [id])
 }
 
 enum LoanType {
@@ -176,34 +180,17 @@ enum PaymentStatus {
 }
 
 model Partner {
-  id           Int                  @id @default(autoincrement())
-  name         String
-  sharePercent Float
-  capital      Float                @default(0)
-  isActive     Boolean              @default(true)
-  investments  LoanInvestor[]
-  transactions PartnerTransaction[]
-  profits      ProfitDistribution[]
-  createdAt    DateTime             @default(now())
-}
+  id               Int     @id @default(autoincrement())
+  name             String
+  orgProfitPercent Float
+  isActive         Boolean @default(true)
+  accountPayableId Int     @unique
+  accountEquityId  Int     @unique
 
-model LoanInvestor {
-  id           Int     @id @default(autoincrement())
-  loanId       Int
-  partnerId    Int
-  sharePercent Float
-  loan         Loan    @relation(fields: [loanId], references: [id])
-  partner      Partner @relation(fields: [partnerId], references: [id])
-}
+  AccountPayable Account @relation(name: "account_payable", references: [id], fields: [accountPayableId])
+  AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
 
-model PartnerTransaction {
-  id        Int             @id @default(autoincrement())
-  partnerId Int
-  type      TransactionType
-  amount    Float
-  date      DateTime        @default(now())
-  note      String?
-  partner   Partner         @relation(fields: [partnerId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 enum TransactionType {
@@ -211,30 +198,46 @@ enum TransactionType {
   WITHDRAWAL
 }
 
-model ProfitDistribution {
-  id          Int      @id @default(autoincrement())
-  partnerId   Int
-  amount      Float
-  period      String
-  distributed Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  partner     Partner  @relation(fields: [partnerId], references: [id])
-}
-
 // 💰 ACCOUNTING CORE
 model Account {
-  id        Int              @id @default(autoincrement())
-  name      String
-  code      String           @unique
-  parentId  Int?
-  type      AccountType
-  level     Int              @default(1)
-  isActive  Boolean          @default(true)
-  parent    Account?         @relation("AccountHierarchy", fields: [parentId], references: [id])
-  children  Account[]        @relation("AccountHierarchy")
-  balances  AccountBalance[]
-  entries   JournalLine[]
-  createdAt DateTime         @default(now())
+  id               Int               @id @default(autoincrement())
+  name             String
+  code             String            @unique
+  parentId         Int?
+  type             AccountType
+  level            Int               @default(1)
+  isActive         Boolean           @default(true)
+  credit           Float             @default(0)
+  debit            Float             @default(0)
+  balance          Float             @default(0)
+  nature           AccountNature     @default(DEBIT)
+  accountBasicType AccountBasicType
+  parent           Account?          @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children         Account[]         @relation("AccountHierarchy")
+  entries          JournalLine[]
+  createdAt        DateTime          @default(now())
+  partnerPayable   Partner?          @relation("account_payable")
+  partnerEquity    Partner?          @relation("account_equity")
+  accountsClosing  accountsClosing[]
+
+  @@index([accountBasicType, code])
+}
+
+enum AccountBasicType {
+  BANK
+  CASH
+  LOANS_RECEIVABLE
+  PARTNER_PAYABLE
+  PARTNER_EQUITY
+  LOAN_INCOME
+  COMPANY_SHARES
+  PARTNER_SHARES_EXPENSES
+  OTHER
+}
+
+enum AccountNature {
+  DEBIT
+  CREDIT
 }
 
 enum AccountType {
@@ -245,63 +248,78 @@ enum AccountType {
   EXPENSE
 }
 
-model AccountingPeriod {
-  id               Int      @id @default(autoincrement())
+model PeriodHeader {
+  id               Int               @id @default(autoincrement())
   name             String
   startDate        DateTime
   endDate          DateTime
-  isClosed         Boolean  @default(false)
-  openingJournalId Int?     @unique
-  closingJournalId Int?     @unique
-  createdAt        DateTime @default(now())
-
-  openingJournal JournalHeader?   @relation("OpeningEntry", fields: [openingJournalId], references: [id])
-  closingJournal JournalHeader?   @relation("ClosingEntry", fields: [closingJournalId], references: [id])
-  balances       AccountBalance[]
-  journals       JournalHeader[]
+  createdAt        DateTime          @default(now())
+  openingJournalId Int?              @unique
+  closingJournalId Int?              @unique
+  accountsClosing  accountsClosing[]
+  clientsClosing   clientsClosing[]
 }
 
-model AccountBalance {
-  id            Int               @id @default(autoincrement())
-  accountId     Int
-  periodId      Int?
-  openingDebit  Float             @default(0)
-  openingCredit Float             @default(0)
-  currentDebit  Float             @default(0)
-  currentCredit Float             @default(0)
-  closingDebit  Float             @default(0)
-  closingCredit Float             @default(0)
-  lastUpdated   DateTime          @default(now())
-  account       Account           @relation(fields: [accountId], references: [id])
-  period        AccountingPeriod? @relation(fields: [periodId], references: [id])
+model accountsClosing {
+  id        Int @id @default(autoincrement())
+  accountId Int
+  periodId  Int
+
+  openingDebit   Float    @default(0)
+  openingCredit  Float    @default(0)
+  openingBalance Float    @default(0)
+  closingDebit   Float    @default(0)
+  closingCredit  Float    @default(0)
+  closingBalance Float    @default(0)
+  lastUpdated    DateTime @default(now())
+
+  account Account      @relation(fields: [accountId], references: [id])
+  period  PeriodHeader @relation(fields: [periodId], references: [id])
+}
+
+model clientsClosing {
+  id             Int      @id @default(autoincrement())
+  clientId       Int
+  periodId       Int
+  openingDebit   Float    @default(0)
+  openingCredit  Float    @default(0)
+  openingBalance Float    @default(0)
+  closingDebit   Float    @default(0)
+  closingCredit  Float    @default(0)
+  closingBalance Float    @default(0)
+  lastUpdated    DateTime @default(now())
+
+  period PeriodHeader @relation(fields: [periodId], references: [id])
+  client Client       @relation(fields: [clientId], references: [id])
 }
 
 model JournalHeader {
-  id          Int               @id @default(autoincrement())
-  reference   String?           @unique
+  id          Int           @id @default(autoincrement())
+  reference   String?       @unique
   description String?
-  date        DateTime          @default(now())
-  type        JournalType       @default(GENERAL)
-  status      JournalStatus     @default(DRAFT)
+  date        DateTime      @default(now())
+  type        JournalType   @default(GENERAL)
+  status      JournalStatus @default(DRAFT)
   sourceType  String?
   sourceId    Int?
   postedById  Int?
-  postedBy    User?             @relation(fields: [postedById], references: [id])
+  postedBy    User?         @relation(fields: [postedById], references: [id])
   lines       JournalLine[]
   periodId    Int?
-  period      AccountingPeriod? @relation(fields: [periodId], references: [id])
-  createdAt   DateTime          @default(now())
-  openingFor  AccountingPeriod? @relation("OpeningEntry")
-  closingFor  AccountingPeriod? @relation("ClosingEntry")
+  createdAt   DateTime      @default(now())
 }
 
 model JournalLine {
-  id          Int           @id @default(autoincrement())
-  journalId   Int
-  accountId   Int
-  debit       Float         @default(0)
-  credit      Float         @default(0)
+  id        Int   @id @default(autoincrement())
+  journalId Int
+  accountId Int
+  debit     Float @default(0)
+  credit    Float @default(0)
+  balance   Float @default(0)
+  clientId  Int?
+
   description String?
+  client      Client?       @relation(fields: [clientId], references: [id])
   journal     JournalHeader @relation(fields: [journalId], references: [id])
   account     Account       @relation(fields: [accountId], references: [id])
 }
