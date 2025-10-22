@@ -24,7 +24,19 @@ export class UsersService {
         password: hashed,
         roleId: data.roleId,
       },
-      select: { id: true, name: true, email: true, phone: true, roleId: true, createdAt: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        phone: true, 
+        roleId: true, 
+        role: {
+          select: {
+            name: true
+          }
+        },
+        createdAt: true 
+      },
     });
 
     return { message: 'User created successfully', user };
@@ -47,7 +59,19 @@ export class UsersService {
         phone: data.phone ?? user.phone,
         isActive: data.isActive ?? user.isActive,
       },
-      select: { id: true, name: true, email: true, phone: true, isActive: true, updatedAt: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        phone: true, 
+        isActive: true, 
+        role: {
+          select: {
+            name: true
+          }
+        },
+        updatedAt: true 
+      },
     });
 
     return { message: 'User updated successfully', user: updated };
@@ -95,7 +119,20 @@ export class UsersService {
       skip,
       take: limit,
       orderBy: { id: 'asc' },
-      select: { id: true, name: true, email: true, phone: true, roleId: true, isActive: true, createdAt: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        phone: true, 
+        roleId: true,
+        role: {
+          select: {
+            name: true
+          }
+        }, 
+        isActive: true, 
+        createdAt: true 
+      },
     });
 
     return {
