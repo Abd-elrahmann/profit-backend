@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 
-@UseGuards(JwtAuthGuard,PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('roles')
 export class RolesController {
     constructor(private readonly rolesService: RolesService) { }
@@ -23,6 +23,7 @@ export class RolesController {
                 canAdd?: boolean;
                 canUpdate?: boolean;
                 canDelete?: boolean;
+                canPost?: boolean;
             }[];
         },
     ) {
@@ -63,6 +64,7 @@ export class RolesController {
                 canAdd?: boolean;
                 canUpdate?: boolean;
                 canDelete?: boolean;
+                canPost?: boolean;
             }[];
         },
     ) {

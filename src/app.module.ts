@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { ClientModule } from './client/client.module';
+import { AccountsModule } from './accounts/accounts.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ClientModule } from './client/client.module';
     UsersModule,
     RolesModule,
     ClientModule,
+    AccountsModule,
     
   ],
   controllers: [AppController],
