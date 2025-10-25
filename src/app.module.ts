@@ -8,6 +8,8 @@ import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { ClientModule } from './client/client.module';
 import { AccountsModule } from './accounts/accounts.module';
+import { TemplatesModule } from './templates/templates.module';
+import { PartnerModule } from './partner/partner.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { AccountsModule } from './accounts/accounts.module';
     RolesModule,
     ClientModule,
     AccountsModule,
+    TemplatesModule,
+    PartnerModule,
     
   ],
   controllers: [AppController],

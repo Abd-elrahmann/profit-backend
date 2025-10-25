@@ -182,7 +182,14 @@ enum PaymentStatus {
 model Partner {
   id               Int     @id @default(autoincrement())
   name             String
+  nationalId       String   
+  address          String   
+  phone            String?   
+  email            String?  
   orgProfitPercent Float
+  capitalAmount      Float   
+  contractSignedAt   DateTime? 
+  mudarabahFileUrl      String?
   isActive         Boolean @default(true)
   accountPayableId Int     @unique
   accountEquityId  Int     @unique
@@ -335,4 +342,21 @@ enum JournalStatus {
   DRAFT
   POSTED
   CANCELLED
+}
+
+model Template {
+  id          Int        @id @default(autoincrement())
+  name        TemplateType @unique
+  description String?
+  content     String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum TemplateType {
+  MUDARABAH
+  PROMISSORY_NOTE
+  DEBT_ACKNOWLEDGMENT
+  RECEIPT_VOUCHER
+  PAYMENT_VOUCHER
 }
