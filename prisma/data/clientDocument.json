@@ -1,0 +1,13 @@
+[
+  {
+    "id": 3,
+    "clientId": 1,
+    "clientIdImage": "http://localhost:3000/uploads/clients/30301090200415/clientIdImage.png",
+    "clientWorkCard": "http://localhost:3000/uploads/clients/30301090200415/clientWorkCard.pdf",
+    "salaryReport": null,
+    "simaReport": null,
+    "kafeelIdImage": "http://localhost:3000/uploads/clients/30301090200415/kafeelIdImage.png",
+    "kafeelWorkCard": null,
+    "createdAt": "2025-10-27T18:31:51.957Z"
+  }
+]

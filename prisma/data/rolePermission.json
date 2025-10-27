@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "roleId": 1,
+    "module": "users",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "createdAt": "2025-10-27T18:28:55.519Z",
+    "updatedAt": "2025-10-27T18:28:55.519Z"
+  },
+  {
+    "id": 2,
+    "roleId": 1,
+    "module": "roles",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "createdAt": "2025-10-27T18:28:55.519Z",
+    "updatedAt": "2025-10-27T18:28:55.519Z"
+  },
+  {
+    "id": 3,
+    "roleId": 1,
+    "module": "clients",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "createdAt": "2025-10-27T18:28:55.519Z",
+    "updatedAt": "2025-10-27T18:28:55.519Z"
+  },
+  {
+    "id": 4,
+    "roleId": 1,
+    "module": "templates",
+    "canView": true,
+    "canAdd": false,
+    "canUpdate": true,
+    "canDelete": false,
+    "canPost": false,
+    "createdAt": "2025-10-27T18:28:55.519Z",
+    "updatedAt": "2025-10-27T18:28:55.519Z"
+  },
+  {
+    "id": 5,
+    "roleId": 1,
+    "module": "partners",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "createdAt": "2025-10-27T18:28:55.519Z",
+    "updatedAt": "2025-10-27T18:28:55.519Z"
+  },
+  {
+    "id": 6,
+    "roleId": 1,
+    "module": "journals",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "createdAt": "2025-10-27T18:28:55.519Z",
+    "updatedAt": "2025-10-27T18:28:55.519Z"
+  }
+]

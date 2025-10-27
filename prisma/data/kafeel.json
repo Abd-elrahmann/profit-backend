@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "Mohamed Hassan",
+    "nationalId": "2098765432",
+    "birthDate": "1980-01-10T00:00:00.000Z",
+    "city": "Riyadh",
+    "district": "Malaz",
+    "employer": "Saudi Aramco",
+    "salary": 12000,
+    "obligations": 2000,
+    "phone": "0555555555",
+    "email": "mohamed@gmail.com",
+    "createdAt": "2025-10-27T18:28:55.631Z"
+  }
+]

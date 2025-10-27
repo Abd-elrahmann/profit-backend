@@ -3,25 +3,32 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartnerDto, UpdatePartnerDto } from './dto/partner.dto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { JournalService } from '../journal/journal.service';
+import { JournalType } from '@prisma/client';
+
 
 @Injectable()
 export class PartnerService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private readonly journalService: JournalService,
+    ) { }
 
     // CREATE PARTNER
-    async createPartner(dto: CreatePartnerDto) {
-        const existing = await this.prisma.partner.findFirst({ where: { nationalId: dto.nationalId } });
+    async createPartner(dto: CreatePartnerDto, userId?: number) {
+        const existing = await this.prisma.partner.findFirst({
+            where: { nationalId: dto.nationalId },
+        });
         if (existing) throw new BadRequestException('Partner with this national ID already exists');
 
-        // Get Parent Accounts
         const liabilities = await this.prisma.account.findUnique({ where: { code: '20000' } });
         const equity = await this.prisma.account.findUnique({ where: { code: '30000' } });
+        const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
 
-        if (!liabilities || !equity) {
-            throw new BadRequestException('Base accounts (20000 & 30000) must exist first');
+        if (!liabilities || !equity || !bank) {
+            throw new BadRequestException('Base accounts (11000, 20000, 30000) must exist first');
         }
 
-        // Create Payable Account
         const payableAccount = await this.prisma.account.create({
             data: {
                 name: `مستحق - ${dto.name}`,
@@ -34,7 +41,6 @@ export class PartnerService {
             },
         });
 
-        // Create Equity Account
         const equityAccount = await this.prisma.account.create({
             data: {
                 name: `رأس مال - ${dto.name}`,
@@ -47,7 +53,6 @@ export class PartnerService {
             },
         });
 
-        // Create Partner Record
         const partner = await this.prisma.partner.create({
             data: {
                 name: dto.name,
@@ -69,7 +74,29 @@ export class PartnerService {
             },
         });
 
-        return { message: 'Partner created successfully', partner };
+        const journalDto = {
+            reference: `CAP-${partner.id}`,
+            description: `إيداع رأس مال الشريك ${partner.name}`,
+            type: JournalType.GENERAL,
+            lines: [
+                {
+                    accountId: bank.id,
+                    debit: dto.capitalAmount,
+                    credit: 0,
+                    description: 'إيداع نقدي لرأس المال',
+                },
+                {
+                    accountId: equityAccount.id,
+                    debit: 0,
+                    credit: dto.capitalAmount,
+                    description: `رأس مال ${partner.name}`,
+                },
+            ],
+        };
+
+        await this.journalService.createJournal(journalDto, userId);
+
+        return { message: 'Partner created successfully with capital journal', partner };
     }
 
     // UPDATE PARTNER

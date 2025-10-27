@@ -10,6 +10,7 @@ import { ClientModule } from './client/client.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { TemplatesModule } from './templates/templates.module';
 import { PartnerModule } from './partner/partner.module';
+import { JournalModule } from './journal/journal.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PartnerModule } from './partner/partner.module';
     AccountsModule,
     TemplatesModule,
     PartnerModule,
+    JournalModule,
     
   ],
   controllers: [AppController],

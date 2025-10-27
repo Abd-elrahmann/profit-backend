@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "name": "ادمن",
+    "email": "admin@gmail.com",
+    "password": "$2b$10$m9E44lK8kR7rmEcZxDStOuXtgL5RNYYvkQ6AbUDipJbG.RHmmE3Ry",
+    "phone": "0123456789",
+    "isActive": true,
+    "roleId": 1,
+    "createdAt": "2025-10-27T18:31:51.832Z",
+    "updatedAt": "2025-10-27T18:31:51.832Z"
+  },
+  {
+    "id": 2,
+    "name": "يوسف خالد",
+    "email": "youssef.khaled8666@gmail.com",
+    "password": "$2b$10$z8S.6nvOKuXQ6VrvU6JnTuLYtTqdYOEshYWLrloT4mc5xMHSBT7V.",
+    "phone": "01223563376",
+    "isActive": true,
+    "roleId": 1,
+    "createdAt": "2025-10-27T18:31:51.832Z",
+    "updatedAt": "2025-10-27T18:31:51.832Z"
+  }
+]

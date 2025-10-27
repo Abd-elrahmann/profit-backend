@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "name": "youssef khaled",
+    "email": "youssef.khaled@gmail.com",
+    "phone": "012235633",
+    "birthDate": "2003-09-01T00:00:00.000Z",
+    "address": "Riyadh, King Fahd Road",
+    "nationalId": "30301090200415",
+    "city": "Riyadh",
+    "district": "Olaya",
+    "employer": "Al-Rajhi Bank",
+    "salary": 8000,
+    "obligations": 1500,
+    "creationReason": "New loan request",
+    "debit": 0,
+    "credit": 0,
+    "balance": 0,
+    "status": "ملتزم",
+    "kafeelId": 1,
+    "notes": "High salary, low obligations",
+    "createdAt": "2025-10-27T18:31:51.944Z"
+  }
+]
