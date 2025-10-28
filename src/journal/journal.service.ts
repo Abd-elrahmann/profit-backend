@@ -135,7 +135,7 @@ export class JournalService {
         const [journals, total] = await Promise.all([
             this.prisma.journalHeader.findMany({
                 where,
-                include: { postedBy: { select: { id: true, name: true , email: true} } },
+                include: { postedBy: { select: { id: true, name: true, email: true } } },
                 skip,
                 take: limit,
                 orderBy: { date: 'desc' },
@@ -175,7 +175,7 @@ export class JournalService {
         await this.prisma.$transaction(async (tx) => {
             for (const line of journal.lines) {
                 // Apply posting effect recursively (account + parents)
-                await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'POST');
+                await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'POST', line.clientId || undefined);
             }
 
             // Update journal status
@@ -201,7 +201,7 @@ export class JournalService {
         await this.prisma.$transaction(async (tx) => {
             for (const line of journal.lines) {
                 // Apply reverse effect recursively (account + parents)
-                await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'UNPOST');
+                await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'UNPOST', line.clientId || undefined);
             }
 
             // Revert journal status
@@ -220,16 +220,16 @@ export class JournalService {
         accountId: number,
         debitChange: number,
         creditChange: number,
-        action: 'POST' | 'UNPOST'
+        action: 'POST' | 'UNPOST',
+        clientId?: number
     ) {
         const account = await tx.account.findUnique({
             where: { id: accountId },
             select: { id: true, parentId: true, debit: true, credit: true, nature: true },
         });
-
         if (!account) throw new NotFoundException(`Account ${accountId} not found`);
 
-        // Adjust based on action type
+        // Account calculations
         const newDebit = action === 'POST'
             ? account.debit + debitChange
             : account.debit - debitChange;
@@ -243,13 +243,37 @@ export class JournalService {
                 ? newDebit - newCredit
                 : newCredit - newDebit;
 
-        // Update this account
         await tx.account.update({
             where: { id: account.id },
             data: { debit: newDebit, credit: newCredit, balance: newBalance },
         });
 
-        // Recursively update parent if exists
+        if (clientId) {
+            const client = await tx.client.findUnique({
+                where: { id: clientId },
+                select: { debit: true, credit: true, balance: true },
+            });
+            if (client) {
+                const updatedDebit = action === 'POST'
+                    ? client.debit + debitChange
+                    : client.debit - debitChange;
+                const updatedCredit = action === 'POST'
+                    ? client.credit + creditChange
+                    : client.credit - creditChange;
+                const updatedBalance = updatedDebit - updatedCredit;
+
+                await tx.client.update({
+                    where: { id: clientId },
+                    data: {
+                        debit: updatedDebit,
+                        credit: updatedCredit,
+                        balance: updatedBalance,
+                    },
+                });
+            }
+        }
+
+        // Recursive parent update
         if (account.parentId) {
             await this.updateAccountHierarchy(tx, account.parentId, debitChange, creditChange, action);
         }

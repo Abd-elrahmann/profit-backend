@@ -1,5 +1,80 @@
 [
   {
+    "id": 46,
+    "name": "حسابات القبض - قروض للعملاء",
+    "code": "12000",
+    "parentId": 1,
+    "type": "ASSET",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "DEBIT",
+    "accountBasicType": "LOANS_RECEIVABLE",
+    "createdAt": "2025-10-28T12:36:29.413Z"
+  },
+  {
+    "id": 47,
+    "name": "إيرادات فوائد القروض",
+    "code": "41000",
+    "parentId": 4,
+    "type": "REVENUE",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "CREDIT",
+    "accountBasicType": "LOAN_INCOME",
+    "createdAt": "2025-10-28T12:36:47.784Z"
+  },
+  {
+    "id": 48,
+    "name": "إيراد الشركة من نسب المساهمين",
+    "code": "42000",
+    "parentId": 4,
+    "type": "REVENUE",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "CREDIT",
+    "accountBasicType": "COMPANY_SHARES",
+    "createdAt": "2025-10-28T12:36:55.726Z"
+  },
+  {
+    "id": 49,
+    "name": "مصروفات توزيع الأرباح",
+    "code": "51000",
+    "parentId": 5,
+    "type": "EXPENSE",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "DEBIT",
+    "accountBasicType": "PARTNER_SHARES_EXPENSES",
+    "createdAt": "2025-10-28T12:37:03.370Z"
+  },
+  {
+    "id": 30,
+    "name": "النقد في البنك",
+    "code": "11000",
+    "parentId": 1,
+    "type": "ASSET",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "DEBIT",
+    "accountBasicType": "BANK",
+    "createdAt": "2025-10-27T18:38:07.619Z"
+  },
+  {
     "id": 1,
     "name": "الأصول",
     "code": "10000",
@@ -13,6 +88,21 @@
     "nature": "DEBIT",
     "accountBasicType": "OTHER",
     "createdAt": "2025-10-27T18:28:55.794Z"
+  },
+  {
+    "id": 45,
+    "name": "رأس مال - youssef khaled",
+    "code": "30020",
+    "parentId": 3,
+    "type": "EQUITY",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "CREDIT",
+    "accountBasicType": "PARTNER_EQUITY",
+    "createdAt": "2025-10-27T19:42:55.300Z"
   },
   {
     "id": 3,
@@ -43,21 +133,6 @@
     "nature": "DEBIT",
     "accountBasicType": "OTHER",
     "createdAt": "2025-10-27T18:28:55.794Z"
-  },
-  {
-    "id": 30,
-    "name": "النقد في البنك",
-    "code": "11000",
-    "parentId": 1,
-    "type": "ASSET",
-    "level": 2,
-    "isActive": true,
-    "credit": 0,
-    "debit": 0,
-    "balance": 0,
-    "nature": "DEBIT",
-    "accountBasicType": "BANK",
-    "createdAt": "2025-10-27T18:38:07.619Z"
   },
   {
     "id": 33,
@@ -118,5 +193,20 @@
     "nature": "CREDIT",
     "accountBasicType": "OTHER",
     "createdAt": "2025-10-27T18:28:55.794Z"
+  },
+  {
+    "id": 44,
+    "name": "مستحق - youssef khaled",
+    "code": "20020",
+    "parentId": 2,
+    "type": "LIABILITY",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "CREDIT",
+    "accountBasicType": "PARTNER_PAYABLE",
+    "createdAt": "2025-10-27T19:42:55.256Z"
   }
 ]

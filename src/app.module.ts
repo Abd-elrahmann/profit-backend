@@ -11,6 +11,7 @@ import { AccountsModule } from './accounts/accounts.module';
 import { TemplatesModule } from './templates/templates.module';
 import { PartnerModule } from './partner/partner.module';
 import { JournalModule } from './journal/journal.module';
+import { LoansModule } from './loans/loans.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JournalModule } from './journal/journal.module';
     TemplatesModule,
     PartnerModule,
     JournalModule,
+    LoansModule,
     
   ],
   controllers: [AppController],

@@ -135,6 +135,13 @@ export class PartnerService {
 
         await this.prisma.$transaction(async (tx) => {
             await tx.partner.delete({ where: { id } });
+            await tx.journalLine.deleteMany({ where: { accountId: partner.accountPayableId } });
+            await tx.journalLine.deleteMany({ where: { accountId: partner.accountEquityId } });
+            await tx.journalHeader.deleteMany({
+                where: {
+                    lines: { some: { accountId: { in: [partner.accountPayableId, partner.accountEquityId] } } },
+                },
+            });
             await tx.account.delete({ where: { id: partner.accountPayableId } });
             await tx.account.delete({ where: { id: partner.accountEquityId } });
         });
