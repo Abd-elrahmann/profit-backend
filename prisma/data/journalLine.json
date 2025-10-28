@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "journalId": 1,
+    "accountId": 30,
+    "debit": 10000,
+    "credit": 0,
+    "balance": 10000,
+    "clientId": null,
+    "description": "إيداع نقدي لرأس المال"
+  },
+  {
+    "id": 2,
+    "journalId": 1,
+    "accountId": 45,
+    "debit": 0,
+    "credit": 10000,
+    "balance": 10000,
+    "clientId": null,
+    "description": "رأس مال youssef khaled"
+  }
+]

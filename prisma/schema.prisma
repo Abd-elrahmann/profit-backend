@@ -142,6 +142,7 @@ model Loan {
   status         LoanStatus  @default(PENDING)
   startDate      DateTime
   endDate        DateTime?
+  repaymentDay   Int?
   repayments     Repayment[]
   createdAt      DateTime    @default(now())
   client         Client      @relation(fields: [clientId], references: [id])

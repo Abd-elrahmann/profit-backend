@@ -14,5 +14,21 @@
     "accountPayableId": 33,
     "accountEquityId": 34,
     "createdAt": "2025-10-27T18:39:54.535Z"
+  },
+  {
+    "id": 8,
+    "name": "youssef khaled",
+    "nationalId": "30301090200444",
+    "address": "alexandria",
+    "phone": "0122356337",
+    "email": "youssef.khaled@gmail.com",
+    "orgProfitPercent": 10,
+    "capitalAmount": 10000,
+    "contractSignedAt": null,
+    "mudarabahFileUrl": "http://localhost:3000/uploads/partners/30301090200444/contract_youssef%20khaled_1761594190851.pdf",
+    "isActive": true,
+    "accountPayableId": 44,
+    "accountEquityId": 45,
+    "createdAt": "2025-10-27T19:42:55.302Z"
   }
 ]
