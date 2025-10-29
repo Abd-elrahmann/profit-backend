@@ -121,6 +121,8 @@ model ClientDocument {
   simaReport     String?
   kafeelIdImage  String?
   kafeelWorkCard String?
+  DEBT_ACKNOWLEDGMENT String?
+  PROMISSORY_NOTE     String?
   createdAt      DateTime @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
@@ -134,9 +136,12 @@ enum ClientStatus {
 
 model Loan {
   id             Int         @id @default(autoincrement())
+  code           String
   clientId       Int
   amount         Float
   interestRate   Float
+  interestAmount Float
+  totalAmount    Float
   durationMonths Int
   type           LoanType
   status         LoanStatus  @default(PENDING)
@@ -146,6 +151,11 @@ model Loan {
   repayments     Repayment[]
   createdAt      DateTime    @default(now())
   client         Client      @relation(fields: [clientId], references: [id])
+  bankAccountId  Int?
+  bankAccount    BANK_accounts? @relation(fields: [bankAccountId], references: [id])
+  partnerId      Int?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+
 }
 
 enum LoanType {
@@ -197,6 +207,7 @@ model Partner {
 
   AccountPayable Account @relation(name: "account_payable", references: [id], fields: [accountPayableId])
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
+  loans Loan[]
 
   createdAt DateTime @default(now())
 }
@@ -204,6 +215,13 @@ model Partner {
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
+}
+
+model BANK_accounts {
+  id             Int       @id @default(autoincrement())
+  name           String
+  accountNumber  Int
+  loans          Loan[]   
 }
 
 // 💰 ACCOUNTING CORE

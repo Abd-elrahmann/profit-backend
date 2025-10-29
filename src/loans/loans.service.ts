@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
 import { LoanStatus, LoanType, Prisma } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class LoansService {
@@ -20,16 +22,27 @@ export class LoansService {
         const profit = dto.amount * (dto.interestRate / 100);
         const total = dto.amount + profit;
 
+        const now = new Date();
+        const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // "20251029"
+        const clientId = String(client.id).padStart(3, '0'); // "001"
+        const code = `LN-${datePart}-${clientId}`;
+
         // Create loan record
         const loan = await this.prisma.loan.create({
             data: {
+                code,
                 clientId: dto.clientId,
                 amount: dto.amount,
                 interestRate: dto.interestRate,
+                interestAmount: profit,
+                totalAmount: total,
                 durationMonths: dto.durationMonths,
                 type: dto.type,
                 startDate: new Date(dto.startDate),
                 status: LoanStatus.PENDING,
+                repaymentDay: dto.repaymentDay,
+                bankAccountId: dto.bankAccountId,
+                partnerId: dto.partnerId,
             },
         });
 
@@ -113,6 +126,7 @@ export class LoansService {
         const where: any = {};
 
         if (filters?.status) where.status = filters.status;
+        if (filters?.code) where.code = { contains: filters.code, mode: 'insensitive' };
         if (filters?.clientName)
             where.client = { name: { contains: filters.clientName, mode: 'insensitive' } };
 
@@ -152,11 +166,19 @@ export class LoansService {
         });
 
         // If financial fields changed, regenerate repayments
-        if (dto.amount || dto.interestRate || dto.durationMonths || dto.type , dto.repaymentDay) {
+        if (dto.amount || dto.interestRate || dto.durationMonths || dto.type, dto.repaymentDay) {
             await this.prisma.repayment.deleteMany({ where: { loanId: id } });
 
             const profit = updated.amount * (updated.interestRate / 100);
             const total = updated.amount + profit;
+
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    interestAmount: profit,
+                    totalAmount: total,
+                },
+            });
 
             const repaymentCount =
                 updated.type === LoanType.DAILY
@@ -205,5 +227,73 @@ export class LoansService {
         await this.prisma.loan.delete({ where: { id } });
 
         return { message: 'Loan deleted successfully' };
+    }
+
+    async uploadDebtAcknowledgmentFile(clientId: number, file: Express.Multer.File) {
+        const client = await this.prisma.client.findUnique({
+            where: { id: clientId },
+            include: { documents: true },
+        });
+        if (!client) throw new NotFoundException('Client not found');
+        if (!file) throw new BadRequestException('No file uploaded');
+
+        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        const ext = path.extname(file.originalname);
+        const fileName = `إقرار الدين${ext}`;
+        const filePath = path.join(uploadDir, fileName);
+
+        fs.writeFileSync(filePath, file.buffer);
+
+        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+
+        const existingDoc = await this.prisma.clientDocument.findFirst({
+            where: { clientId },
+        });
+
+        if (existingDoc) {
+            await this.prisma.clientDocument.update({
+                where: { id: existingDoc.id },
+                data: { DEBT_ACKNOWLEDGMENT: publicUrl },
+            });
+        } else { return console.log('No existing document found'); }
+
+        return { message: 'إقرار الدين uploaded successfully', path: publicUrl };
+    }
+
+    async uploadPromissoryNoteFile(clientId: number, file: Express.Multer.File) {
+        const client = await this.prisma.client.findUnique({
+            where: { id: clientId },
+            include: { documents: true },
+        });
+        if (!client) throw new NotFoundException('Client not found');
+        if (!file) throw new BadRequestException('No file uploaded');
+
+        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        const ext = path.extname(file.originalname);
+        const fileName = `سند لأمر${ext}`;
+        const filePath = path.join(uploadDir, fileName);
+
+        fs.writeFileSync(filePath, file.buffer);
+
+        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+
+        const existingDoc = await this.prisma.clientDocument.findFirst({
+            where: { clientId },
+        });
+
+        if (existingDoc) {
+            await this.prisma.clientDocument.update({
+                where: { id: existingDoc.id },
+                data: { PROMISSORY_NOTE: publicUrl },
+            });
+        } else { return console.log('No existing document found'); }
+
+        return { message: 'سند لأمر uploaded successfully', path: publicUrl };
     }
 }

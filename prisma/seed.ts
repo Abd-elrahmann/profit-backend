@@ -29,10 +29,9 @@ async function main() {
             console.log(`⚠️ Failed to clear ${model}: ${e.message}`)
         }
     }
-
     console.log('✅ Database cleared!')
 
-    // Step 2: Restore data in multiple passes
+    // Step 2: Restore data
     const MAX_PASSES = 5
     for (let pass = 1; pass <= MAX_PASSES; pass++) {
         console.log(`\n🔁 Restore pass ${pass}/${MAX_PASSES}`)
@@ -52,18 +51,38 @@ async function main() {
                     await clientModel.create({ data: record })
                     inserted++
                 } catch (e: any) {
-                    // Skip for now, try again in next pass
-                    continue
+                    continue // skip on conflict, try later
                 }
             }
         }
 
         console.log(`✅ Pass ${pass} completed. Inserted ${inserted} records.`)
-        if (inserted === 0) break // stop if nothing new inserted
+        if (inserted === 0) break
+    }
+
+    // ✅ Step 3: Reset ID sequences (Fix 1)
+    console.log('\n🔧 Resetting PostgreSQL ID sequences...')
+    const tables = await prisma.$queryRawUnsafe<
+        { relname: string }[]
+    >(`SELECT c.relname FROM pg_class c WHERE c.relkind = 'r' AND c.relname NOT LIKE 'pg_%' AND c.relname NOT LIKE 'sql_%';`)
+
+    for (const { relname } of tables) {
+        try {
+            await prisma.$executeRawUnsafe(`
+                SELECT setval(
+                    pg_get_serial_sequence('"${relname}"', 'id'),
+                    COALESCE((SELECT MAX(id) + 1 FROM "${relname}"), 1),
+                    false
+                )
+            `)
+            console.log(`🔄 Sequence reset for table: ${relname}`)
+        } catch (e: any) {
+            // skip tables without "id" column
+        }
     }
 
     await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;')
-    console.log('\n🎉 Database fully restored from export!')
+    console.log('\n🎉 Database fully restored and sequences reset!')
 }
 
 main()
