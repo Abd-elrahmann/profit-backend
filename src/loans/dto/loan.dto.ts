@@ -23,6 +23,12 @@ export class CreateLoanDto {
     @IsOptional()
     @IsNumber()
     repaymentDay?: number;
+
+    @IsOptional()
+    bankAccountId?: number;
+
+    @IsOptional()
+    partnerId?: number;
 }
 
 export class UpdateLoanDto {
@@ -49,4 +55,10 @@ export class UpdateLoanDto {
     @IsOptional()
     @IsNumber()
     repaymentDay?: number;
+
+    @IsOptional()
+    bankAccountId?: number;
+
+    @IsOptional()
+    partnerId?: number;
 }

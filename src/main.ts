@@ -6,8 +6,13 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
 import * as path from 'path';
 import { join } from 'path';
+import { resolve } from 'path';
 
 async function bootstrap() {
+
+  console.log('Static uploads path:', join(__dirname, '..', 'uploads'));
+  console.log('File absolute path:', path.join(process.cwd(), 'uploads/partners/30301090200415/3.png'));
+
   dotenv.config();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
@@ -28,7 +33,7 @@ async function bootstrap() {
     prefix: '/api/public',
   });
 
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(resolve('./uploads'), {
     prefix: '/uploads',
   });
 

@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString, IsEnum, IsNumber, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { JournalType, JournalStatus } from '@prisma/client';
+import { JournalType, JournalStatus , JournalSourceType } from '@prisma/client';
 
 export class JournalLineDto {
     @IsNumber()
@@ -37,8 +37,8 @@ export class CreateJournalDto {
     type?: JournalType;
 
     @IsOptional()
-    @IsString()
-    sourceType?: string;
+    @IsEnum(JournalSourceType)
+    sourceType?: JournalSourceType;
 
     @IsOptional()
     @IsNumber()
