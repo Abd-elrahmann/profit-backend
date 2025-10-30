@@ -182,7 +182,7 @@ model Repayment {
   paidAmount  Float         @default(0)
   status      PaymentStatus @default(PENDING)
   paymentDate DateTime?
-  attachments  Json?
+  attachments  String?
   reviewStatus String?
   notes        String?  
   postponeApproved  Boolean?   
@@ -203,7 +203,6 @@ model Notification {
   repaymentId Int?
   channel   String?
   sentAt    DateTime?
-  read      Boolean  @default(false)
   createdAt DateTime @default(now())
   client   Client?   @relation(fields: [clientId], references: [id])
   loan     Loan?     @relation(fields: [loanId], references: [id])
@@ -422,4 +421,9 @@ enum TemplateType {
   DEBT_ACKNOWLEDGMENT
   RECEIPT_VOUCHER
   PAYMENT_VOUCHER
+  REPAYMENT_DUE
+  REPAYMENT_LATE
+  PAYMENT_APPROVED
+  PAYMENT_REJECTED
+  GENERAL_NOTIFICATION
 }

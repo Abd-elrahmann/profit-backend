@@ -13,6 +13,7 @@ import { PartnerModule } from './partner/partner.module';
 import { JournalModule } from './journal/journal.module';
 import { LoansModule } from './loans/loans.module';
 import { BankModule } from './bankAccounts/bank.module';
+import { RepaymentModule } from './repayments/repayment.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { BankModule } from './bankAccounts/bank.module';
     JournalModule,
     LoansModule,
     BankModule,
+    RepaymentModule,
     
   ],
   controllers: [AppController],
