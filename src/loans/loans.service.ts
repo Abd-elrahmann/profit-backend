@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
-import { LoanStatus, LoanType, Prisma } from '@prisma/client';
+import { JournalSourceType, LoanStatus, LoanType, Prisma } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -100,11 +100,13 @@ export class LoansService {
             throw new BadRequestException('Loan receivable and bank accounts must exist');
 
         // Create Journal Entry
-        await this.journalService.createJournal(
+        const journal = await this.journalService.createJournal(
             {
                 reference: `LN-${loan.id}`,
                 description: `Loan disbursement for client ${loan.clientId}`,
                 type: 'GENERAL',
+                sourceType: JournalSourceType.LOAN,
+                sourceId: loan.id,
                 lines: [
                     { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'Loan receivable', clientId: loan.clientId },
                     { accountId: bank.id, debit: 0, credit: loan.amount, description: 'bank disbursed' },
@@ -115,7 +117,10 @@ export class LoansService {
 
         await this.prisma.loan.update({
             where: { id },
-            data: { status: LoanStatus.ACTIVE },
+            data: {
+                status: LoanStatus.ACTIVE,
+                disbursementJournalId: journal.journal.id,
+            },
         });
 
         return { message: 'Loan activated and journal created', loanId: id };

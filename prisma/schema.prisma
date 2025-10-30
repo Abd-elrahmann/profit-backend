@@ -94,6 +94,7 @@ model Client {
   createdAt      DateTime         @default(now())
   JournalLine    JournalLine[]
   clientsClosing clientsClosing[]
+  Notification   Notification[]
 }
 
 model Kafeel {
@@ -149,13 +150,15 @@ model Loan {
   endDate        DateTime?
   repaymentDay   Int?
   repayments     Repayment[]
+  Notification   Notification[]
   createdAt      DateTime    @default(now())
   client         Client      @relation(fields: [clientId], references: [id])
   bankAccountId  Int?
   bankAccount    BANK_accounts? @relation(fields: [bankAccountId], references: [id])
   partnerId      Int?
   partner   Partner? @relation(fields: [partnerId], references: [id])
-
+  disbursementJournalId Int?   
+  settlementJournalId   Int? 
 }
 
 enum LoanType {
@@ -179,13 +182,46 @@ model Repayment {
   paidAmount  Float         @default(0)
   status      PaymentStatus @default(PENDING)
   paymentDate DateTime?
-  attachments Json?
-  createdAt   DateTime      @default(now())
-  loan        Loan          @relation(fields: [loanId], references: [id])
+  attachments  Json?
+  reviewStatus String?
+  notes        String?  
+  postponeApproved  Boolean?   
+  postponeReason    String?   
+  newDueDate        DateTime?
+  createdAt    DateTime      @default(now())
+  loan         Loan          @relation(fields: [loanId], references: [id])
+  Notification Notification[]
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String
+  type      NotificationType
+  clientId  Int?
+  loanId    Int?
+  repaymentId Int?
+  channel   String?
+  sentAt    DateTime?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  client   Client?   @relation(fields: [clientId], references: [id])
+  loan     Loan?     @relation(fields: [loanId], references: [id])
+  repayment Repayment? @relation(fields: [repaymentId], references: [id])
+}
+
+enum NotificationType {
+  LOAN_REMINDER
+  REPAYMENT_DUE
+  REPAYMENT_LATE
+  PAYMENT_APPROVED
+  PAYMENT_REJECTED
+  GENERAL
 }
 
 enum PaymentStatus {
   PENDING
+  PENDING_REVIEW
   PAID
   OVERDUE
 }
@@ -220,7 +256,7 @@ enum TransactionType {
 model BANK_accounts {
   id             Int       @id @default(autoincrement())
   name           String
-  accountNumber  Int
+  accountNumber  String
   loans          Loan[]   
 }
 
@@ -326,8 +362,8 @@ model JournalHeader {
   date        DateTime      @default(now())
   type        JournalType   @default(GENERAL)
   status      JournalStatus @default(DRAFT)
-  sourceType  String?
   sourceId    Int?
+  sourceType  JournalSourceType?
   postedById  Int?
   postedBy    User?         @relation(fields: [postedById], references: [id])
   lines       JournalLine[]
@@ -355,6 +391,14 @@ enum JournalType {
   OPENING
   CLOSING
   ADJUSTMENT
+}
+
+enum JournalSourceType {
+  LOAN
+  REPAYMENT
+  PARTNER
+  PERIOD_CLOSING
+  OTHER
 }
 
 enum JournalStatus {

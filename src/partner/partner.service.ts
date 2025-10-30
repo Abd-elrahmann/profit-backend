@@ -4,7 +4,7 @@ import { CreatePartnerDto, UpdatePartnerDto } from './dto/partner.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { JournalService } from '../journal/journal.service';
-import { JournalType } from '@prisma/client';
+import { JournalSourceType, JournalType } from '@prisma/client';
 
 
 @Injectable()
@@ -78,6 +78,8 @@ export class PartnerService {
             reference: `CAP-${partner.id}`,
             description: `إيداع رأس مال الشريك ${partner.name}`,
             type: JournalType.GENERAL,
+            sourceType: JournalSourceType.PARTNER,
+            sourceId: partner.id,
             lines: [
                 {
                     accountId: bank.id,
