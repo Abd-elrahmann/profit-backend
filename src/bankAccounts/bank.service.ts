@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BankService {
     constructor(private prisma: PrismaService) { }
 
-    async createBankAccount(data: { name: string; accountNumber: string }) {
+    async createBankAccount(data: { name: string; accountNumber: string , IBAN: string }) {
         const existing = await this.prisma.bANK_accounts.findFirst({
             where: { accountNumber: data.accountNumber },
         });
@@ -64,7 +64,7 @@ export class BankService {
 
     async updateBankAccount(
         id: number,
-        data: { name?: string; accountNumber?: string },
+        data: { name?: string; accountNumber?: string , IBAN?: string },
     ) {
         const existing = await this.prisma.bANK_accounts.findUnique({ where: { id } });
         if (!existing) throw new NotFoundException('Bank account not found.');

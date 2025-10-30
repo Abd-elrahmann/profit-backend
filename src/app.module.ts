@@ -14,12 +14,15 @@ import { JournalModule } from './journal/journal.module';
 import { LoansModule } from './loans/loans.module';
 import { BankModule } from './bankAccounts/bank.module';
 import { RepaymentModule } from './repayments/repayment.module';
+import { NotificationModule } from './notification/notification.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -32,6 +35,7 @@ import { RepaymentModule } from './repayments/repayment.module';
     LoansModule,
     BankModule,
     RepaymentModule,
+    NotificationModule,
     
   ],
   controllers: [AppController],
