@@ -18,6 +18,10 @@ export class LoansService {
         const client = await this.prisma.client.findUnique({ where: { id: dto.clientId } });
         if (!client) throw new NotFoundException('Client not found');
 
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
+        if (!bankAccount) throw new NotFoundException('Bank account not found');
+        if (bankAccount.limit <= 0) throw new BadRequestException('Bank account limit exceeded');
+
         // Calculate total profit
         const profit = dto.amount * (dto.interestRate / 100);
         const total = dto.amount + profit;
@@ -45,6 +49,19 @@ export class LoansService {
                 partnerId: dto.partnerId,
             },
         });
+
+        const account = await this.prisma.bANK_accounts.update({
+            where: { id: dto.bankAccountId },
+            data: { limit: { decrement: 1 } },
+            select: { limit: true },
+        });
+
+        if (account.limit <= 0) {
+            await this.prisma.bANK_accounts.update({
+                where: { id: dto.bankAccountId },
+                data: { status: 'Expired' },
+            });
+        }
 
         // Generate repayments
         const repaymentCount =
