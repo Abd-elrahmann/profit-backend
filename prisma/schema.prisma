@@ -181,19 +181,19 @@ enum PaymentStatus {
 }
 
 model Partner {
-  id               Int     @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   name             String
-  nationalId       String   
-  address          String   
-  phone            String?   
-  email            String?  
+  nationalId       String
+  address          String
+  phone            String?
+  email            String?
   orgProfitPercent Float
-  capitalAmount      Float   
-  contractSignedAt   DateTime? 
-  mudarabahFileUrl      String?
-  isActive         Boolean @default(true)
-  accountPayableId Int     @unique
-  accountEquityId  Int     @unique
+  capitalAmount    Float
+  contractSignedAt DateTime?
+  mudarabahFileUrl String?
+  isActive         Boolean   @default(true)
+  accountPayableId Int       @unique
+  accountEquityId  Int       @unique
 
   AccountPayable Account @relation(name: "account_payable", references: [id], fields: [accountPayableId])
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
@@ -346,12 +346,12 @@ enum JournalStatus {
 }
 
 model Template {
-  id          Int        @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   name        TemplateType @unique
   description String?
   content     String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 enum TemplateType {
