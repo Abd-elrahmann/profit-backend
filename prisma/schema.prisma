@@ -73,6 +73,7 @@ model Client {
   name           String
   email          String?
   phone          String
+  telegramChatId String?
   birthDate      DateTime
   address        String
   nationalId     String
@@ -256,6 +257,7 @@ model BANK_accounts {
   id             Int       @id @default(autoincrement())
   name           String
   accountNumber  String
+  IBAN           String
   loans          Loan[]   
 }
 
