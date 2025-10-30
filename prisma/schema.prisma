@@ -258,7 +258,14 @@ model BANK_accounts {
   name           String
   accountNumber  String
   IBAN           String
-  loans          Loan[]   
+  limit          Int
+  status         AccountStatus @default(Active)
+  loans          Loan[]
+}
+
+enum AccountStatus {
+  Active
+  Expired
 }
 
 // 💰 ACCOUNTING CORE
