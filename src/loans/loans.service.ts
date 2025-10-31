@@ -151,10 +151,14 @@ export class LoansService {
         if (filters?.code) where.code = { contains: filters.code, mode: 'insensitive' };
         if (filters?.clientName)
             where.client = { name: { contains: filters.clientName, mode: 'insensitive' } };
+        if (filters?.bankAccountName)
+            where.bankAccount = { name: { contains: filters.bankAccountName, mode: 'insensitive' } };
+        if (filters?.partnerName)
+            where.partner = { name: { contains: filters.partnerName, mode: 'insensitive' } };
 
         const loans = await this.prisma.loan.findMany({
             where,
-            include: { client: true },
+            include: { client: true, bankAccount: true, partner: true },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
@@ -168,7 +172,7 @@ export class LoansService {
     async getLoanById(id: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
-            include: { repayments: true, client: true },
+            include: { repayments: true, client: true, bankAccount: true, partner: true },
         });
         if (!loan) throw new NotFoundException('Loan not found');
         return loan;
