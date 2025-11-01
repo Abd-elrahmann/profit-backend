@@ -74,6 +74,7 @@ export class LoansService {
         const installmentAmount = total / repaymentCount;
         const repayments: Prisma.RepaymentCreateManyInput[] = [];
         const startDate = new Date(dto.startDate);
+        let remainingAmount = total;
 
         for (let i = 1; i <= repaymentCount; i++) {
             const dueDate = new Date(startDate);
@@ -86,12 +87,16 @@ export class LoansService {
                 }
             }
 
+            remainingAmount -= installmentAmount;
+            if (remainingAmount < 0) remainingAmount = 0;
+
             repayments.push({
                 loanId: loan.id,
                 clientId: dto.clientId,
                 dueDate,
                 amount: installmentAmount,
-                status: 'PENDING'
+                remaining: remainingAmount,
+                status: 'PENDING',
             });
         }
 
@@ -275,19 +280,21 @@ export class LoansService {
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('Only pending loans can be updated');
 
-        // Update loan
+        // Update loan basic fields
         const updated = await this.prisma.loan.update({
             where: { id },
             data: dto,
         });
 
         // If financial fields changed, regenerate repayments
-        if (dto.amount || dto.interestRate || dto.durationMonths || dto.type, dto.repaymentDay) {
+        if (dto.amount || dto.interestRate || dto.durationMonths || dto.type || dto.repaymentDay) {
+            // Delete existing repayments
             await this.prisma.repayment.deleteMany({ where: { loanId: id } });
 
             const profit = updated.amount * (updated.interestRate / 100);
             const total = updated.amount + profit;
 
+            // Update loan financials
             await this.prisma.loan.update({
                 where: { id },
                 data: {
@@ -306,6 +313,7 @@ export class LoansService {
             const installmentAmount = total / repaymentCount;
             const startDate = new Date(updated.startDate);
             const repayments: Prisma.RepaymentCreateManyInput[] = [];
+            let remainingAmount = total;
 
             for (let i = 1; i <= repaymentCount; i++) {
                 const dueDate = new Date(startDate);
@@ -318,11 +326,15 @@ export class LoansService {
                     }
                 }
 
+                remainingAmount -= installmentAmount;
+                if (remainingAmount < 0) remainingAmount = 0;
+
                 repayments.push({
                     loanId: updated.id,
                     clientId: dto.clientId || loan.clientId,
                     dueDate,
                     amount: installmentAmount,
+                    remaining: remainingAmount,
                     status: 'PENDING',
                 });
             }

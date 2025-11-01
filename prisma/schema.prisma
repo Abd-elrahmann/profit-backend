@@ -182,6 +182,7 @@ model Repayment {
   clientId    Int
   dueDate     DateTime
   amount      Float
+  remaining   Float
   paidAmount  Float         @default(0)
   status      PaymentStatus @default(PENDING)
   paymentDate DateTime?
