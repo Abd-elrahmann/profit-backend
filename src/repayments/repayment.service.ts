@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RepaymentDto } from './dto/repayment.dto';
-import { PaymentStatus, JournalSourceType } from '@prisma/client';
+import { PaymentStatus, JournalSourceType, TemplateType } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
+import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -11,6 +12,7 @@ export class RepaymentService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
+        private readonly notificationService: NotificationService,
     ) { }
 
     // Get all repayments for a specific loan
@@ -147,6 +149,32 @@ export class RepaymentService {
                 });
             }
 
+            // Send notification via WhatsApp
+            try {
+                await this.notificationService.sendNotification({
+                    templateType: TemplateType.PAYMENT_APPROVED,
+                    clientId: loan.clientId,
+                    loanId: loan.id,
+                    repaymentId: repayment.id,
+                    channel: 'WHATSAPP',
+                });
+            } catch (error) {
+                console.error('❌ Failed to send WhatsApp notification:', error.message);
+            }
+
+            // Send notification via Telegram
+            try {
+                await this.notificationService.sendNotification({
+                    templateType: TemplateType.PAYMENT_APPROVED,
+                    clientId: loan.clientId,
+                    loanId: loan.id,
+                    repaymentId: repayment.id,
+                    channel: 'TELEGRAM',
+                });
+            } catch (error) {
+                console.error('❌ Failed to send Telegram notification:', error.message);
+            }
+
             return {
                 message: 'Repayment approved successfully',
                 repaymentId: id,
@@ -168,6 +196,32 @@ export class RepaymentService {
                 notes: dto.notes,
             },
         });
+
+        // Send notification via WhatsApp
+        try {
+            await this.notificationService.sendNotification({
+                templateType: TemplateType.PAYMENT_REJECTED,
+                clientId: repayment.clientId,
+                loanId: repayment.loanId,
+                repaymentId: repayment.id,
+                channel: 'WHATSAPP',
+            });
+        } catch (error) {
+            console.error('❌ Failed to send WhatsApp notification:', error.message);
+        }
+
+        // Send notification via Telegram
+        try {
+            await this.notificationService.sendNotification({
+                templateType: TemplateType.PAYMENT_REJECTED,
+                clientId: repayment.clientId,
+                loanId: repayment.loanId,
+                repaymentId: repayment.id,
+                channel: 'TELEGRAM',
+            });
+        } catch (error) {
+            console.error('❌ Failed to send Telegram notification:', error.message);
+        }
 
         return { message: 'Repayment rejected', repaymentId: id };
     }

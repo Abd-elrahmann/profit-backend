@@ -9,7 +9,7 @@ import { TelegramController } from './api/telegram.controller';
 
 @Module({
   controllers: [NotificationController , TelegramController],
-  providers: [NotificationService, PrismaService, NotificationScheduler, WhatsappService, TelegramService],
-  exports: [NotificationService],
+  providers: [NotificationService, PrismaService, NotificationScheduler , WhatsappService, TelegramService],
+  exports: [NotificationService , WhatsappService, TelegramService],
 })
 export class NotificationModule { }

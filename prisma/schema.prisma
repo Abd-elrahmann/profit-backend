@@ -208,6 +208,7 @@ model Notification {
   repaymentId Int?
   channel   String?
   sentAt    DateTime?
+  scheduledAt  DateTime?
   createdAt DateTime @default(now())
   client   Client?   @relation(fields: [clientId], references: [id])
   loan     Loan?     @relation(fields: [loanId], references: [id])

@@ -2,142 +2,190 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from './notification.service';
-import { PaymentStatus, TemplateType } from '@prisma/client';
+import { PaymentStatus, TemplateType, NotificationType } from '@prisma/client';
 
 @Injectable()
 export class NotificationScheduler {
-  private readonly logger = new Logger(NotificationScheduler.name);
+    private readonly logger = new Logger(NotificationScheduler.name);
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly notificationService: NotificationService,
-  ) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly notificationService: NotificationService,
+    ) { }
 
-   
-   // Run daily at 9AM:
-   // Send repayment due reminders (3 days before due)
-   // Send late repayment alerts
- 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
-  async handleDailyNotifications() {
-    this.logger.log('📅 Starting daily notification scheduler...');
+    private async createScheduledTelegramNotification(
+        repaymentId: number,
+        templateType: TemplateType,
+        sendDate: Date,
+    ) {
+        const repayment = await this.prisma.repayment.findUnique({
+            where: { id: repaymentId },
+            include: { loan: { include: { client: true } } },
+        });
+        if (!repayment || !repayment.loan?.client) return;
 
-    const today = new Date();
-    const threeDaysFromNow = new Date();
-    threeDaysFromNow.setDate(today.getDate() + 3);
+        await this.prisma.notification.create({
+            data: {
+                title:
+                    templateType === TemplateType.REPAYMENT_LATE
+                        ? 'Repayment Overdue Reminder'
+                        : 'Upcoming Repayment Reminder',
+                message:
+                    templateType === TemplateType.REPAYMENT_LATE
+                        ? 'You have overdue repayments pending. Please take action immediately.'
+                        : 'Your loan repayment is due soon.',
+                type:
+                    templateType === TemplateType.REPAYMENT_LATE
+                        ? NotificationType.REPAYMENT_LATE
+                        : NotificationType.REPAYMENT_DUE,
+                clientId: repayment.loan.client.id,
+                loanId: repayment.loanId,
+                repaymentId: repayment.id,
+                channel: 'TELEGRAM',
+                scheduledAt: sendDate,
+            },
+        });
 
-    // ----------------------------------------
-    // 1️⃣ Repayments due within 3 days
-    // ----------------------------------------
-    const upcomingRepayments = await this.prisma.repayment.findMany({
-      where: {
-        dueDate: {
-          gte: today,
-          lte: threeDaysFromNow,
-        },
-        status: PaymentStatus.PENDING,
-      },
-      include: {
-        loan: { include: { client: true } },
-      },
-    });
-
-    for (const repayment of upcomingRepayments) {
-      await this.notificationService.sendNotification({
-        templateType: TemplateType.REPAYMENT_DUE,
-        clientId: repayment.loan.clientId,
-        loanId: repayment.loanId,
-        repaymentId: repayment.id,
-        channel: 'WHATSAPP',
-      });
-      this.logger.log(
-        `📨 Sent REPAYMENT_DUE to client ${repayment.loan.client.name}`,
-      );
+        this.logger.log(
+            `🕓 Telegram notification scheduled for repayment ${repaymentId} at ${sendDate.toISOString()}`,
+        );
     }
 
-    // ----------------------------------------
-    // 2️⃣ Overdue repayments
-    // ----------------------------------------
-    const overdueRepayments = await this.prisma.repayment.findMany({
-      where: {
-        dueDate: { lt: today },
-        status: PaymentStatus.PENDING,
-      },
-      include: {
-        loan: { include: { client: true } },
-      },
-    });
+    @Cron(CronExpression.EVERY_DAY_AT_9AM)
+    async handleDailyNotifications() {
+        this.logger.log('📅 Starting daily notification scheduler...');
 
-    for (const repayment of overdueRepayments) {
-      await this.notificationService.sendNotification({
-        templateType: TemplateType.REPAYMENT_LATE,
-        clientId: repayment.loan.clientId,
-        loanId: repayment.loanId,
-        repaymentId: repayment.id,
-        channel: 'WHATSAPP',
-      });
-      this.logger.log(
-        `📨 Sent REPAYMENT_LATE to client ${repayment.loan.client.name}`,
-      );
+        const today = new Date();
+        const threeDaysFromNow = new Date(today);
+        threeDaysFromNow.setDate(today.getDate() + 3);
+
+        // Upcoming repayments in next 3 days
+        const upcomingRepayments = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: { gte: today, lte: threeDaysFromNow },
+                status: PaymentStatus.PENDING,
+            },
+            include: { loan: { include: { client: true } } },
+        });
+
+        for (const repayment of upcomingRepayments) {
+            // Send WhatsApp immediately
+            await this.notificationService.sendNotification({
+                templateType: TemplateType.REPAYMENT_DUE,
+                clientId: repayment.loan.clientId,
+                loanId: repayment.loanId,
+                repaymentId: repayment.id,
+                channel: 'WHATSAPP',
+            });
+
+            // Schedule Telegram message 2 days later
+            const telegramDate = new Date();
+            telegramDate.setDate(today.getDate() + 2);
+            await this.createScheduledTelegramNotification(
+                repayment.id,
+                TemplateType.REPAYMENT_DUE,
+                telegramDate,
+            );
+        }
+
+        // Repayments due today
+        const dueToday = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: {
+                    gte: new Date(today.setHours(0, 0, 0, 0)),
+                    lte: new Date(today.setHours(23, 59, 59, 999)),
+                },
+                status: PaymentStatus.PENDING,
+            },
+            include: { loan: { include: { client: true } } },
+        });
+
+        for (const repayment of dueToday) {
+            await this.notificationService.sendNotification({
+                templateType: TemplateType.REPAYMENT_DUE,
+                clientId: repayment.loan.clientId,
+                loanId: repayment.loanId,
+                repaymentId: repayment.id,
+                channel: 'WHATSAPP',
+            });
+
+            const telegramDate = new Date();
+            telegramDate.setDate(today.getDate() + 2);
+            await this.createScheduledTelegramNotification(
+                repayment.id,
+                TemplateType.REPAYMENT_DUE,
+                telegramDate,
+            );
+        }
+
+        // Overdue repayments
+        const overdueRepayments = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: { lt: new Date() },
+                status: PaymentStatus.PENDING,
+            },
+            include: { loan: { include: { client: true } } },
+        });
+
+        for (const repayment of overdueRepayments) {
+            await this.prisma.repayment.update({
+                where: { id: repayment.id },
+                data: { status: PaymentStatus.OVERDUE },
+            });
+
+            await this.notificationService.sendNotification({
+                templateType: TemplateType.REPAYMENT_LATE,
+                clientId: repayment.loan.clientId,
+                loanId: repayment.loanId,
+                repaymentId: repayment.id,
+                channel: 'WHATSAPP',
+            });
+
+            const telegramDate = new Date();
+            telegramDate.setDate(new Date().getDate() + 2);
+            await this.createScheduledTelegramNotification(
+                repayment.id,
+                TemplateType.REPAYMENT_LATE,
+                telegramDate,
+            );
+        }
+
+        this.logger.log('✅ Daily notification scheduler finished.');
     }
 
-    // ----------------------------------------
-    // 3️⃣ Payments approved (status = PAID)
-    // ----------------------------------------
-    const approvedPayments = await this.prisma.repayment.findMany({
-      where: {
-        status: PaymentStatus.PAID,
-        reviewStatus: 'APPROVED',
-        paymentDate: {
-          gte: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1),
-        },
-      },
-      include: {
-        loan: { include: { client: true } },
-      },
-    });
+    @Cron(CronExpression.EVERY_5_MINUTES)
+    async sendScheduledTelegramMessages() {
+        const now = new Date();
+        this.logger.log('⏰ Checking for due Telegram notifications...');
 
-    for (const repayment of approvedPayments) {
-      await this.notificationService.sendNotification({
-        templateType: TemplateType.PAYMENT_APPROVED,
-        clientId: repayment.loan.clientId,
-        loanId: repayment.loanId,
-        repaymentId: repayment.id,
-        channel: 'WHATSAPP',
-      });
-      this.logger.log(
-        `✅ Sent PAYMENT_APPROVED to client ${repayment.loan.client.name}`,
-      );
+        const dueNotifications = await this.prisma.notification.findMany({
+            where: {
+                channel: 'TELEGRAM',
+                sentAt: null,
+                scheduledAt: { lte: now },
+            },
+            include: { client: true },
+        });
+
+        for (const notif of dueNotifications) {
+            if (!notif.client?.telegramChatId) continue;
+
+            await this.notificationService.sendNotification({
+                templateType:
+                    notif.type === NotificationType.REPAYMENT_LATE
+                        ? TemplateType.REPAYMENT_LATE
+                        : TemplateType.REPAYMENT_DUE,
+                clientId: notif.clientId!,
+                loanId: notif.loanId!,
+                repaymentId: notif.repaymentId!,
+                channel: 'TELEGRAM',
+            });
+
+            await this.prisma.notification.delete({
+                where: { id: notif.id },
+            });
+
+            this.logger.log(`✅ Telegram notification sent & scheduled record deleted for client ${notif.clientId}`);
+        }
     }
-
-    // ----------------------------------------
-    // 4️⃣ Payments rejected
-    // ----------------------------------------
-    const rejectedPayments = await this.prisma.repayment.findMany({
-      where: {
-        reviewStatus: 'REJECTED',
-        paymentDate: {
-          gte: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1),
-        },
-      },
-      include: {
-        loan: { include: { client: true } },
-      },
-    });
-
-    for (const repayment of rejectedPayments) {
-      await this.notificationService.sendNotification({
-        templateType: TemplateType.PAYMENT_REJECTED,
-        clientId: repayment.loan.clientId,
-        loanId: repayment.loanId,
-        repaymentId: repayment.id,
-        channel: 'WHATSAPP',
-      });
-      this.logger.log(
-        `❌ Sent PAYMENT_REJECTED to client ${repayment.loan.client.name}`,
-      );
-    }
-
-    this.logger.log('✅ Daily notification scheduler finished.');
-  }
 }
