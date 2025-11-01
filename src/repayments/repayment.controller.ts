@@ -69,4 +69,15 @@ export class RepaymentController {
     ) {
         return this.repaymentService.postponeRepayment(id, dto);
     }
+
+    // Upload receipt image
+    @Post('PaymentProof/:id')
+    @Permissions('repayments', 'canPost')
+    @UseInterceptors(FileInterceptor('file'))
+    uploadPaymentProof(
+        @Param('id', ParseIntPipe) id: number,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        return this.repaymentService.uploadPaymentProof(id, file);
+    }
 }

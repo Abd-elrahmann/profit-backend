@@ -11,6 +11,7 @@ import {
     UseGuards,
     UploadedFile,
     UseInterceptors,
+    Req,
 } from '@nestjs/common';
 import { LoansService } from './loans.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
@@ -32,8 +33,15 @@ export class LoansController {
 
     @Patch(':id/activate')
     @Permissions('loans', 'canUpdate')
-    activate(@Param('id', ParseIntPipe) id: number) {
-        return this.loansService.activateLoan(id);
+    activate(@Req() req, @Param('id', ParseIntPipe) id: number) {
+
+        return this.loansService.activateLoan(id, req.user.id);
+    }
+
+    @Patch(':id/deactivate')
+    @Permissions('loans', 'canUpdate')
+    deactivateLoan(@Param('id', ParseIntPipe) id: number) {
+        return this.loansService.deactivateLoan(id);
     }
 
     @Get('all/:page')

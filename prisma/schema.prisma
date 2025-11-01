@@ -90,6 +90,7 @@ model Client {
   kafeel         Kafeel?          @relation(fields: [kafeelId], references: [id])
   kafeelId       Int?
   documents      ClientDocument[]
+  repayment      Repayment[]
   loans          Loan[]
   notes          String?
   createdAt      DateTime         @default(now())
@@ -178,12 +179,14 @@ enum LoanStatus {
 model Repayment {
   id          Int           @id @default(autoincrement())
   loanId      Int
+  clientId    Int
   dueDate     DateTime
   amount      Float
   paidAmount  Float         @default(0)
   status      PaymentStatus @default(PENDING)
   paymentDate DateTime?
   attachments  String?
+  PaymentProof String?
   reviewStatus String?
   notes        String?  
   postponeApproved  Boolean?   
@@ -191,6 +194,7 @@ model Repayment {
   newDueDate        DateTime?
   createdAt    DateTime      @default(now())
   loan         Loan          @relation(fields: [loanId], references: [id])
+  client         Client      @relation(fields: [clientId], references: [id])
   Notification Notification[]
 }
 
@@ -431,6 +435,7 @@ enum TemplateType {
   DEBT_ACKNOWLEDGMENT
   RECEIPT_VOUCHER
   PAYMENT_VOUCHER
+  PAYMENT_PROOF
   REPAYMENT_DUE
   REPAYMENT_LATE
   PAYMENT_APPROVED
