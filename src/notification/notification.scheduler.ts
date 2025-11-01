@@ -13,7 +13,6 @@ export class NotificationScheduler {
         private readonly notificationService: NotificationService,
     ) { }
 
-    // ⏰ يشتغل كل يوم الساعة 9 صباحًا
     @Cron(CronExpression.EVERY_DAY_AT_9AM)
     async handleDailyReminders() {
         this.logger.log('Running daily repayment reminders...');
@@ -22,7 +21,7 @@ export class NotificationScheduler {
         const threeDaysFromNow = new Date();
         threeDaysFromNow.setDate(today.getDate() + 3);
 
-        // الأقساط اللي قرب ميعادها (قبلها بـ 3 أيام)
+        // reminders for upcoming repayments within the next 3 days
         const upcomingRepayments = await this.prisma.repayment.findMany({
             where: {
                 dueDate: {

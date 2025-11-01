@@ -8,7 +8,7 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// 🔐 USERS, ROLES, & PERMISSIONS
+// USERS, ROLES, & PERMISSIONS
 model User {
   id             Int                  @id @default(autoincrement())
   name           String
@@ -67,7 +67,7 @@ model ResetPasswordToken {
   user      User     @relation(fields: [userId], references: [id])
 }
 
-// 👥 CLIENTS, PARTNERS, LOANS, REPAYMENTS
+// CLIENTS, PARTNERS, LOANS, REPAYMENTS
 model Client {
   id             Int              @id @default(autoincrement())
   name           String
@@ -256,6 +256,7 @@ enum TransactionType {
 model BANK_accounts {
   id             Int       @id @default(autoincrement())
   name           String
+  owner          String
   accountNumber  String
   IBAN           String
   limit          Int
@@ -268,7 +269,7 @@ enum AccountStatus {
   Expired
 }
 
-// 💰 ACCOUNTING CORE
+// ACCOUNTING CORE
 model Account {
   id               Int               @id @default(autoincrement())
   name             String

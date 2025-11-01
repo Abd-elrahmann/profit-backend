@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BankService {
     constructor(private prisma: PrismaService) { }
 
-    async createBankAccount(data: { name: string; accountNumber: string , IBAN: string , limit: number}) {
+    async createBankAccount(data: { name: string; owner: string;  accountNumber: string , IBAN: string , limit: number}) {
         const existing = await this.prisma.bANK_accounts.findFirst({
             where: { accountNumber: data.accountNumber },
         });
@@ -25,6 +25,7 @@ export class BankService {
             where.OR = [
                 { name : { contains: search, mode: 'insensitive' } },
                 { IBAN : { contains: search, mode: 'insensitive' } },
+                { owner: { contains: search, mode: 'insensitive' } },
                 {
                     accountNumber: {
                         equals: isNaN(Number(search)) ? undefined : Number(search),
@@ -65,7 +66,7 @@ export class BankService {
 
     async updateBankAccount(
         id: number,
-        data: { name?: string; accountNumber?: string , IBAN?: string , limit?: number  },
+        data: { name?: string; owner: string; accountNumber?: string , IBAN?: string , limit?: number  },
     ) {
         const existing = await this.prisma.bANK_accounts.findUnique({ where: { id } });
         if (!existing) throw new NotFoundException('Bank account not found.');
