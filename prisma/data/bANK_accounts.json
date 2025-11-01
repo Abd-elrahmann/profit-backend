@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "name": "bank misr",
+    "owner": "الاحول",
+    "accountNumber": "24242457574757",
+    "IBAN": "121204141417747141414141",
+    "limit": 18,
+    "status": "Active"
+  }
+]

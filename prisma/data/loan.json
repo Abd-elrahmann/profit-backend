@@ -1,0 +1,22 @@
+[
+  {
+    "id": 2,
+    "code": "LN-20251101-001",
+    "clientId": 1,
+    "amount": 100000,
+    "interestRate": 5,
+    "interestAmount": 5000,
+    "totalAmount": 105000,
+    "durationMonths": 12,
+    "type": "MONTHLY",
+    "status": "PENDING",
+    "startDate": "2025-11-01T00:00:00.000Z",
+    "endDate": null,
+    "repaymentDay": 10,
+    "createdAt": "2025-11-01T10:56:01.754Z",
+    "bankAccountId": 1,
+    "partnerId": 4,
+    "disbursementJournalId": null,
+    "settlementJournalId": null
+  }
+]
