@@ -30,6 +30,13 @@ export class RepaymentController {
         return this.repaymentService.getRepaymentsByLoan(loanId);
     }
 
+    // Get specific repayment by ID
+    @Get('repayment/:id')
+    @Permissions('repayments', 'canView')
+    getRepaymentById(@Param('id', ParseIntPipe) id: number) {
+        return this.repaymentService.getRepaymentById(id);
+    }
+
     // Upload receipt image
     @Post('upload/:id')
     @UseInterceptors(FileInterceptor('file'))

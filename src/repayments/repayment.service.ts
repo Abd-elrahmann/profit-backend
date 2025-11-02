@@ -26,6 +26,22 @@ export class RepaymentService {
         return loan.repayments;
     }
 
+    // Get specific repayment by ID
+    async getRepaymentById(id: number) {
+        const repayment = await this.prisma.repayment.findUnique({
+            where: { id },
+            include: {
+                loan: {
+                    include: {
+                        client: true
+                    }
+                }
+            }
+        });
+        if (!repayment) throw new NotFoundException('Repayment not found');
+        return repayment;
+    }
+
     // Upload receipt for repayment
     async uploadReceipt(id: number, file: Express.Multer.File) {
         const repayment = await this.prisma.repayment.findUnique({ where: { id } });
