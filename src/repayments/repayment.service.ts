@@ -208,8 +208,12 @@ export class RepaymentService {
             where: { id },
             data: {
                 status: PaymentStatus.PENDING,
+                paidAmount: 0,
+                paymentDate: null,
                 reviewStatus: 'REJECTED',
                 notes: dto.notes,
+                attachments: null,
+                PaymentProof: null,
             },
         });
 
