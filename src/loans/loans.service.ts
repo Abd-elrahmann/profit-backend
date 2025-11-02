@@ -74,6 +74,7 @@ export class LoansService {
         const installmentAmount = total / repaymentCount;
         const repayments: Prisma.RepaymentCreateManyInput[] = [];
         const startDate = new Date(dto.startDate);
+        let remainingAmount = total;
 
         for (let i = 1; i <= repaymentCount; i++) {
             const dueDate = new Date(startDate);
@@ -86,11 +87,16 @@ export class LoansService {
                 }
             }
 
+            remainingAmount -= installmentAmount;
+            if (remainingAmount < 0) remainingAmount = 0;
+
             repayments.push({
                 loanId: loan.id,
+                clientId: dto.clientId,
                 dueDate,
                 amount: installmentAmount,
-                status: 'PENDING'
+                remaining: remainingAmount,
+                status: 'PENDING',
             });
         }
 
@@ -113,11 +119,12 @@ export class LoansService {
         const bank = await this.prisma.account.findFirst({
             where: { accountBasicType: 'BANK' },
         });
+
         if (!receivable || !bank)
             throw new BadRequestException('Loan receivable and bank accounts must exist');
 
-        // Create Journal Entry
-        const journal = await this.journalService.createJournal(
+        // Create Journal Entry (using JournalService)
+        const { journal } = await this.journalService.createJournal(
             {
                 reference: `LN-${loan.id}`,
                 description: `Loan disbursement for client ${loan.clientId}`,
@@ -125,22 +132,110 @@ export class LoansService {
                 sourceType: JournalSourceType.LOAN,
                 sourceId: loan.id,
                 lines: [
-                    { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'Loan receivable', clientId: loan.clientId },
-                    { accountId: bank.id, debit: 0, credit: loan.amount, description: 'bank disbursed' },
+                    {
+                        accountId: receivable.id,
+                        debit: loan.amount,
+                        credit: 0,
+                        description: 'Loan receivable',
+                        clientId: loan.clientId,
+                    },
+                    {
+                        accountId: bank.id,
+                        debit: 0,
+                        credit: loan.amount,
+                        description: 'Bank disbursement',
+                    },
                 ],
             },
             userId,
         );
 
+        // Immediately post the journal (so balances update)
+        await this.journalService.postJournal(journal.id, userId);
+
+        // Update loan status and link to journal
         await this.prisma.loan.update({
             where: { id },
             data: {
                 status: LoanStatus.ACTIVE,
-                disbursementJournalId: journal.journal.id,
+                disbursementJournalId: journal.id,
             },
         });
 
-        return { message: 'Loan activated and journal created', loanId: id };
+        return {
+            message: '✅ Loan activated, journal created and posted successfully',
+            loanId: id,
+            journalId: journal.id,
+        };
+    }
+
+    // Deactivate Loan and remove all related journals
+    async deactivateLoan(id: number) {
+        const loan = await this.prisma.loan.findUnique({
+            where: { id },
+            include: {
+                repayments: true,
+            },
+        });
+
+        if (!loan) throw new NotFoundException('Loan not found');
+        if (loan.status !== LoanStatus.ACTIVE)
+            throw new BadRequestException('Only active loans can be deactivated');
+
+        return await this.prisma.$transaction(async (tx) => {
+            // Collect all repayment IDs
+            const repaymentIds = loan.repayments.map(r => r.id);
+
+            // Find all repayment journals
+            const repaymentJournalIds = (
+                await tx.journalHeader.findMany({
+                    where: {
+                        sourceType: JournalSourceType.REPAYMENT,
+                        sourceId: { in: repaymentIds.length > 0 ? repaymentIds : undefined },
+                    },
+                    select: { id: true },
+                })
+            ).map(j => j.id);
+
+            // Collect loan journals (disbursement + settlement)
+            const loanJournalIds = [loan.disbursementJournalId, loan.settlementJournalId].filter(Boolean) as number[];
+
+            // Combine all journal IDs to handle
+            const allJournalIds = [...loanJournalIds, ...repaymentJournalIds];
+
+            if (allJournalIds.length > 0) {
+                // Unpost all before deletion
+                for (const journalId of allJournalIds) {
+                    try {
+                        await this.journalService.unpostJournal(journalId);
+                    } catch (e) {
+                        console.warn(`⚠️ Skipped unposting journal ${journalId}:`, e.message);
+                    }
+                }
+
+                await tx.journalLine.deleteMany({
+                    where: { journalId: { in: allJournalIds } },
+                });
+                await tx.journalHeader.deleteMany({
+                    where: { id: { in: allJournalIds } },
+                });
+            }
+
+            await tx.loan.update({
+                where: { id },
+                data: {
+                    status: LoanStatus.PENDING,
+                    disbursementJournalId: null,
+                    settlementJournalId: null,
+                },
+            });
+
+            return {
+                message: '✅ Loan deactivated, all related journals unposted and deleted successfully',
+                loanId: id,
+                deletedJournalsCount: allJournalIds.length,
+            };
+        });
     }
 
     // Get all loans
@@ -185,19 +280,21 @@ export class LoansService {
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('Only pending loans can be updated');
 
-        // Update loan
+        // Update loan basic fields
         const updated = await this.prisma.loan.update({
             where: { id },
             data: dto,
         });
 
         // If financial fields changed, regenerate repayments
-        if (dto.amount || dto.interestRate || dto.durationMonths || dto.type, dto.repaymentDay) {
+        if (dto.amount || dto.interestRate || dto.durationMonths || dto.type || dto.repaymentDay) {
+            // Delete existing repayments
             await this.prisma.repayment.deleteMany({ where: { loanId: id } });
 
             const profit = updated.amount * (updated.interestRate / 100);
             const total = updated.amount + profit;
 
+            // Update loan financials
             await this.prisma.loan.update({
                 where: { id },
                 data: {
@@ -216,6 +313,7 @@ export class LoansService {
             const installmentAmount = total / repaymentCount;
             const startDate = new Date(updated.startDate);
             const repayments: Prisma.RepaymentCreateManyInput[] = [];
+            let remainingAmount = total;
 
             for (let i = 1; i <= repaymentCount; i++) {
                 const dueDate = new Date(startDate);
@@ -228,10 +326,15 @@ export class LoansService {
                     }
                 }
 
+                remainingAmount -= installmentAmount;
+                if (remainingAmount < 0) remainingAmount = 0;
+
                 repayments.push({
                     loanId: updated.id,
+                    clientId: dto.clientId || loan.clientId,
                     dueDate,
                     amount: installmentAmount,
+                    remaining: remainingAmount,
                     status: 'PENDING',
                 });
             }
@@ -244,15 +347,33 @@ export class LoansService {
 
     // Delete Loan
     async deleteLoan(id: number) {
-        const loan = await this.prisma.loan.findUnique({ where: { id } });
+        const loan = await this.prisma.loan.findUnique({
+            where: { id },
+            include: { repayments: true },
+        });
+
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('Only pending loans can be deleted');
 
-        await this.prisma.repayment.deleteMany({ where: { loanId: id } });
-        await this.prisma.loan.delete({ where: { id } });
+        return await this.prisma.$transaction(async (tx) => {
+            const repaymentIds = loan.repayments.map((r) => r.id);
 
-        return { message: 'Loan deleted successfully' };
+            await tx.notification.deleteMany({
+                where: {
+                    OR: [
+                        { loanId: id },
+                        { repaymentId: { in: repaymentIds.length > 0 ? repaymentIds : undefined } },
+                    ],
+                },
+            });
+
+            await tx.repayment.deleteMany({ where: { loanId: id } });
+
+            await tx.loan.delete({ where: { id } });
+
+            return { message: 'Loan and related data deleted successfully' };
+        });
     }
 
     async uploadDebtAcknowledgmentFile(clientId: number, file: Express.Multer.File) {

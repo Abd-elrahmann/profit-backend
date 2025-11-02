@@ -57,8 +57,14 @@ export class UpdateLoanDto {
     repaymentDay?: number;
 
     @IsOptional()
+    @IsNumber()
     bankAccountId?: number;
 
     @IsOptional()
+    @IsNumber()
     partnerId?: number;
+
+    @IsOptional()
+    @IsNumber()
+    clientId?: number;
 }
