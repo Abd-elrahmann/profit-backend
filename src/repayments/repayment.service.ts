@@ -201,49 +201,70 @@ export class RepaymentService {
 
     // Reject repayment
     async rejectRepayment(id: number, dto: RepaymentDto) {
-        const repayment = await this.prisma.repayment.findUnique({ where: { id } });
+        const repayment = await this.prisma.repayment.findUnique({
+            where: { id },
+            include: { loan: { include: { client: true } } },
+        });
         if (!repayment) throw new NotFoundException('Repayment not found');
 
-        await this.prisma.repayment.update({
-            where: { id },
-            data: {
-                status: PaymentStatus.PENDING,
-                paidAmount: 0,
-                paymentDate: null,
-                reviewStatus: 'REJECTED',
-                notes: dto.notes,
-                attachments: null,
-                PaymentProof: null,
-            },
+        // Start transaction to keep data consistent
+        return await this.prisma.$transaction(async (tx) => {
+            // Find any journal created for this repayment
+            const journal = await tx.journalHeader.findFirst({
+                where: {
+                    sourceType: JournalSourceType.REPAYMENT,
+                    sourceId: repayment.id,
+                },
+                include: { lines: true },
+            });
+
+            if (journal) {
+                await tx.journalLine.deleteMany({ where: { journalId: journal.id } });
+                await tx.journalHeader.delete({ where: { id: journal.id } });
+            }
+
+            // Reset repayment fields
+            const updatedRepayment = await tx.repayment.update({
+                where: { id },
+                data: {
+                    status: PaymentStatus.PENDING,
+                    paidAmount: 0,
+                    paymentDate: null,
+                    reviewStatus: 'REJECTED',
+                    notes: dto.notes,
+                    attachments: null,
+                    PaymentProof: null,
+                },
+            });
+
+            // Send notification via WhatsApp
+            try {
+                await this.notificationService.sendNotification({
+                    templateType: TemplateType.PAYMENT_REJECTED,
+                    clientId: repayment.loan.clientId,
+                    loanId: repayment.loan.id,
+                    repaymentId: repayment.id,
+                    channel: 'WHATSAPP',
+                });
+            } catch (error) {
+                console.error('❌ Failed to send WhatsApp notification:', error.message);
+            }
+
+            // Send notification via Telegram
+            try {
+                await this.notificationService.sendNotification({
+                    templateType: TemplateType.PAYMENT_REJECTED,
+                    clientId: repayment.loan.clientId,
+                    loanId: repayment.loan.id,
+                    repaymentId: repayment.id,
+                    channel: 'TELEGRAM',
+                });
+            } catch (error) {
+                console.error('❌ Failed to send Telegram notification:', error.message);
+            }
+
+            return { message: 'Repayment rejected and journal removed', repaymentId: id };
         });
-
-        // Send notification via WhatsApp
-        try {
-            await this.notificationService.sendNotification({
-                templateType: TemplateType.PAYMENT_REJECTED,
-                clientId: repayment.clientId,
-                loanId: repayment.loanId,
-                repaymentId: repayment.id,
-                channel: 'WHATSAPP',
-            });
-        } catch (error) {
-            console.error('❌ Failed to send WhatsApp notification:', error.message);
-        }
-
-        // Send notification via Telegram
-        try {
-            await this.notificationService.sendNotification({
-                templateType: TemplateType.PAYMENT_REJECTED,
-                clientId: repayment.clientId,
-                loanId: repayment.loanId,
-                repaymentId: repayment.id,
-                channel: 'TELEGRAM',
-            });
-        } catch (error) {
-            console.error('❌ Failed to send Telegram notification:', error.message);
-        }
-
-        return { message: 'Repayment rejected', repaymentId: id };
     }
 
     // Postpone repayment
