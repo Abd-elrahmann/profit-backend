@@ -42,41 +42,56 @@ export class RepaymentService {
         return repayment;
     }
 
-    // Upload receipt for repayment
-    async uploadReceipt(id: number, file: Express.Multer.File) {
+    // Upload multiple receipts for a repayment
+    async uploadReceipts(id: number, files: Express.Multer.File[]) {
         const repayment = await this.prisma.repayment.findUnique({ where: { id } });
         if (!repayment) throw new NotFoundException('Repayment not found');
-        if (!file) throw new BadRequestException('No file uploaded');
+        if (!files || files.length === 0) throw new BadRequestException('No files uploaded');
+
         const uploadsDir = path.join(process.cwd(), 'uploads', 'repayments');
         if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-        const filename = `${id}-${file.originalname}`;
-        const filePath = path.join(uploadsDir, filename);
-        fs.writeFileSync(filePath, file.buffer);
-
-        const prevFileUrl = typeof repayment.attachments === 'string' ? repayment.attachments : undefined;
-        if (prevFileUrl) {
+        // Delete old files if exist (optional)
+        if (Array.isArray(repayment.attachments)) {
+            for (const fileUrl of repayment.attachments) {
+                try {
+                    const urlPath = new URL(fileUrl).pathname;
+                    const prevLocal = path.join(process.cwd(), urlPath.replace(/^\//, ''));
+                    if (fs.existsSync(prevLocal)) fs.unlinkSync(prevLocal);
+                } catch { }
+            }
+        } else if (typeof repayment.attachments === 'string') {
             try {
-                const urlPath = new URL(prevFileUrl).pathname;
+                const urlPath = new URL(repayment.attachments).pathname;
                 const prevLocal = path.join(process.cwd(), urlPath.replace(/^\//, ''));
                 if (fs.existsSync(prevLocal)) fs.unlinkSync(prevLocal);
-            } catch {
-            }
+            } catch { }
         }
 
-        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+        // Save all new files
+        const fileUrls: string[] = [];
 
+        for (const file of files) {
+            const filename = `${id}-${Date.now()}-${file.originalname}`;
+            const filePath = path.join(uploadsDir, filename);
+            fs.writeFileSync(filePath, file.buffer);
+
+            const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+            const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+            fileUrls.push(publicUrl);
+        }
+
+        // Update repayment record
         await this.prisma.repayment.update({
             where: { id },
             data: {
-                attachments: publicUrl,
+                attachments: fileUrls, // array of URLs
                 status: PaymentStatus.PENDING,
                 reviewStatus: 'PENDING',
             },
         });
 
-        return { message: 'Receipt uploaded successfully', fileUrl: publicUrl };
+        return { message: 'Receipts uploaded successfully', fileUrls };
     }
 
     // Approve repayment
@@ -232,7 +247,7 @@ export class RepaymentService {
                     paymentDate: null,
                     reviewStatus: 'REJECTED',
                     notes: dto.notes,
-                    attachments: null,
+                    attachments: [],
                     PaymentProof: null,
                 },
             });

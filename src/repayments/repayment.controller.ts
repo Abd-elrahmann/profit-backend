@@ -9,8 +9,9 @@ import {
     UploadedFile,
     UseInterceptors,
     UseGuards,
+    UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { RepaymentService } from './repayment.service';
 import { RepaymentDto } from './dto/repayment.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
@@ -37,14 +38,14 @@ export class RepaymentController {
         return this.repaymentService.getRepaymentById(id);
     }
 
-    // Upload receipt image
+    // Upload multiple receipt images
     @Post('upload/:id')
-    @UseInterceptors(FileInterceptor('file'))
-    uploadReceipt(
+    @UseInterceptors(FilesInterceptor('file'))
+    uploadReceipts(
         @Param('id', ParseIntPipe) id: number,
-        @UploadedFile() file: Express.Multer.File,
+        @UploadedFiles() files: Express.Multer.File[],
     ) {
-        return this.repaymentService.uploadReceipt(id, file);
+        return this.repaymentService.uploadReceipts(id, files);
     }
 
     // Approve repayment

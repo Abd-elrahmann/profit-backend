@@ -47,6 +47,9 @@ export class NotificationService {
             dueDate: repayment?.dueDate?.toISOString().split('T')[0],
             paymentDate: repayment?.paymentDate?.toISOString().split('T')[0],
             repaymentNumber: repayment?.id,
+            paymentLink: repayment
+                ? `http://localhost:3001/payment-receipt/${loan?.id}/${repayment?.id}/${encodeURIComponent(client?.name || '')}`
+                : '',
         };
 
         const message = this.fillTemplate(template.content, context);

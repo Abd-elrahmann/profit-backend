@@ -186,7 +186,7 @@ model Repayment {
   paidAmount  Float         @default(0)
   status      PaymentStatus @default(PENDING)
   paymentDate DateTime?
-  attachments  String?
+  attachments  String[]
   PaymentProof String?
   reviewStatus String?
   notes        String?  
