@@ -178,6 +178,7 @@ enum LoanStatus {
 
 model Repayment {
   id          Int           @id @default(autoincrement())
+  count       Int
   loanId      Int
   clientId    Int
   dueDate     DateTime
