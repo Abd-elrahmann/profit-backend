@@ -339,6 +339,12 @@ export class RepaymentService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
 
+        // Update repayment record with PaymentProof URL
+        await this.prisma.repayment.update({
+            where: { id },
+            data: { PaymentProof: publicUrl }
+        });
+
         return { message: 'Payment proof uploaded successfully', fileUrl: publicUrl };
     }
 }
