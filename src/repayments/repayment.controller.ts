@@ -88,4 +88,13 @@ export class RepaymentController {
     ) {
         return this.repaymentService.uploadPaymentProof(id, file);
     }
+
+    // Mark repayment as partial paid
+    @Patch('partial-paid/:id')
+    async markAsPartialPaid(
+        @Param('id') id: string,
+        @Body('paidAmount') paidAmount: number,
+    ) {
+        return this.repaymentService.markAsPartialPaid(Number(id), Number(paidAmount));
+    }
 }

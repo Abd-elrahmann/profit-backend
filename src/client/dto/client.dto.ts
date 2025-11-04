@@ -10,8 +10,8 @@ import {
 import { Type } from 'class-transformer';
 
 export enum ClientStatus {
-  ملتزم = 'ملتزم',
-  متأخر = 'متأخر',
+  نشط = 'نشط',
+  منتهي = 'منتهي',
   متعثر = 'متعثر',
 }
 

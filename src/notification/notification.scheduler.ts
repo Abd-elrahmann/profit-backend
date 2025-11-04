@@ -51,6 +51,42 @@ export class NotificationScheduler {
         );
     }
 
+    private async updateClientStatus(clientId: number) {
+        const loans = await this.prisma.loan.findMany({
+            where: { clientId },
+            include: { repayments: true },
+        });
+
+        if (loans.length === 0) {
+            await this.prisma.client.update({
+                where: { id: clientId },
+                data: { status: 'منتهي' as any },
+            });
+            return;
+        }
+
+        const allRepayments = loans.flatMap(l => l.repayments);
+        const overdue = allRepayments.filter(
+            r => r.status === 'OVERDUE' || (r.status !== 'PAID' && r.dueDate < new Date()),
+        );
+        const unpaid = allRepayments.filter(r => r.status !== 'PAID');
+
+        let newStatus: any = 'نشط';
+
+        if (overdue.length > 0) {
+            newStatus = 'متعثر';
+        } else if (unpaid.length === 0) {
+            newStatus = 'منتهي';
+        }
+
+        await this.prisma.client.update({
+            where: { id: clientId },
+            data: { status: newStatus },
+        });
+
+        this.logger.log(`👤 Client ${clientId} status updated to: ${newStatus}`);
+    }
+
     // Runs every day at 9 AM local time
     @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: 'Asia/Riyadh' })
     async handleDailyNotifications() {
@@ -173,6 +209,8 @@ export class NotificationScheduler {
                 where: { id: repayment.id },
                 data: { status: PaymentStatus.OVERDUE },
             });
+
+            await this.updateClientStatus(repayment.clientId);
 
             await this.notificationService.sendNotification({
                 templateType: TemplateType.REPAYMENT_LATE,

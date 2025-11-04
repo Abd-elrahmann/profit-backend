@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RepaymentDto } from './dto/repayment.dto';
-import { PaymentStatus, JournalSourceType, TemplateType, LoanStatus } from '@prisma/client';
+import { PaymentStatus, JournalSourceType, TemplateType, LoanStatus, ClientStatus } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
 import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
@@ -14,6 +14,40 @@ export class RepaymentService {
         private readonly journalService: JournalService,
         private readonly notificationService: NotificationService,
     ) { }
+
+    private async updateClientStatus(clientId: number) {
+        const loans = await this.prisma.loan.findMany({
+            where: { clientId },
+            include: { repayments: true },
+        });
+
+        if (loans.length === 0) {
+            await this.prisma.client.update({
+                where: { id: clientId },
+                data: { status: 'منتهي' as any },
+            });
+            return;
+        }
+
+        const allRepayments = loans.flatMap(l => l.repayments);
+        const overdue = allRepayments.filter(
+            r => r.status === 'OVERDUE' || (r.status !== 'PAID' && r.dueDate < new Date()),
+        );
+        const unpaid = allRepayments.filter(r => r.status !== 'PAID');
+
+        let newStatus: any = 'نشط';
+
+        if (overdue.length > 0) {
+            newStatus = 'متعثر';
+        } else if (unpaid.length === 0) {
+            newStatus = 'منتهي';
+        }
+
+        await this.prisma.client.update({
+            where: { id: clientId },
+            data: { status: newStatus },
+        });
+    }
 
     // Get all repayments for a specific loan
     async getRepaymentsByLoan(loanId: number) {
@@ -44,11 +78,14 @@ export class RepaymentService {
 
     // Upload multiple receipts for a repayment
     async uploadReceipts(id: number, files: Express.Multer.File[]) {
-        const repayment = await this.prisma.repayment.findUnique({ where: { id } });
+        const repayment = await this.prisma.repayment.findUnique({
+            where: { id },
+            include: { client: true },
+        });
         if (!repayment) throw new NotFoundException('Repayment not found');
         if (!files || files.length === 0) throw new BadRequestException('No files uploaded');
 
-        const uploadsDir = path.join(process.cwd(), 'uploads', 'repayments');
+        const uploadsDir = path.join(process.cwd(), 'uploads', 'clients', repayment.client?.nationalId || 'unknown', 'repayments');
         if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
         // Delete old files if exist (optional)
@@ -72,7 +109,7 @@ export class RepaymentService {
         const fileUrls: string[] = [];
 
         for (const file of files) {
-            const filename = `${id}-${Date.now()}-${file.originalname}`;
+            const filename = `${id}-${file.originalname}`;
             const filePath = path.join(uploadsDir, filename);
             fs.writeFileSync(filePath, file.buffer);
 
@@ -213,6 +250,8 @@ export class RepaymentService {
                 console.error('❌ Failed to send Telegram notification:', error.message);
             }
 
+            await this.updateClientStatus(loan.clientId);
+
             return {
                 message: 'Repayment approved successfully',
                 repaymentId: id,
@@ -290,6 +329,7 @@ export class RepaymentService {
             } catch (error) {
                 console.error('❌ Failed to send Telegram notification:', error.message);
             }
+            await this.updateClientStatus(loan.clientId);
 
             return { message: 'Repayment rejected and journal removed', repaymentId: id };
         });
@@ -324,6 +364,8 @@ export class RepaymentService {
             },
         });
 
+        await this.updateClientStatus(loan.clientId);
+
         return { message: 'Repayment postponed successfully', repaymentId: id };
     }
 
@@ -337,7 +379,6 @@ export class RepaymentService {
         if (!repayment) throw new NotFoundException('Repayment not found');
         if (!file) throw new BadRequestException('No file uploaded');
 
-        const clientId = repayment.clientId;
         const nationalId = repayment.client?.nationalId;
         if (!nationalId) throw new BadRequestException('Client national ID not found');
 
@@ -368,5 +409,40 @@ export class RepaymentService {
         });
 
         return { message: 'Payment proof uploaded successfully', fileUrl: publicUrl };
+    }
+
+    // Update repayment as partial paid
+    async markAsPartialPaid(id: number, paidAmount: number) {
+        const repayment = await this.prisma.repayment.findUnique({
+            where: { id },
+        });
+        if (!repayment) throw new NotFoundException('Repayment not found');
+
+        if (paidAmount <= 0)
+            throw new BadRequestException('Paid amount must be greater than 0');
+
+        if (paidAmount >= repayment.amount)
+            throw new BadRequestException('Paid amount cannot be equal or greater than full amount — use approveRepayment instead');
+
+        const remaining = repayment.amount - paidAmount;
+
+        const updated = await this.prisma.repayment.update({
+            where: { id },
+            data: {
+                paidAmount,
+                remaining,
+                status: PaymentStatus.PARTIAL_PAID,
+                reviewStatus: 'APPROVED',
+                paymentDate: new Date(),
+            },
+        });
+
+        return {
+            message: 'Repayment marked as partial paid',
+            repaymentId: updated.id,
+            paidAmount: updated.paidAmount,
+            remaining: updated.remaining,
+            status: updated.status,
+        };
     }
 }

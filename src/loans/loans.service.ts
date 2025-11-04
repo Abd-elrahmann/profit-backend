@@ -13,6 +13,40 @@ export class LoansService {
         private readonly journalService: JournalService,
     ) { }
 
+    private async updateClientStatus(clientId: number) {
+        const loans = await this.prisma.loan.findMany({
+            where: { clientId, status: LoanStatus.ACTIVE },
+            include: { repayments: true },
+        });
+
+        if (loans.length === 0) {
+            await this.prisma.client.update({
+                where: { id: clientId },
+                data: { status: 'منتهي' as any },
+            });
+            return;
+        }
+
+        const allRepayments = loans.flatMap(l => l.repayments);
+        const overdue = allRepayments.filter(
+            r => r.status === 'OVERDUE' || (r.status !== 'PAID' && r.dueDate < new Date()),
+        );
+        const unpaid = allRepayments.filter(r => r.status !== 'PAID');
+
+        let newStatus: any = 'نشط';
+
+        if (overdue.length > 0) {
+            newStatus = 'متعثر';
+        } else if (unpaid.length === 0) {
+            newStatus = 'منتهي';
+        }
+
+        await this.prisma.client.update({
+            where: { id: clientId },
+            data: { status: newStatus },
+        });
+    }
+
     // Create Loan
     async createLoan(dto: CreateLoanDto) {
         const client = await this.prisma.client.findUnique({ where: { id: dto.clientId } });
@@ -160,6 +194,8 @@ export class LoansService {
             },
         });
 
+        await this.updateClientStatus(loan.clientId);
+
         return {
             message: '✅ Loan activated, journal created and posted successfully',
             loanId: id,
@@ -227,6 +263,8 @@ export class LoansService {
                     settlementJournalId: null,
                 },
             });
+
+            await this.updateClientStatus(loan.clientId);
 
             return {
                 message: '✅ Loan deactivated, all related journals unposted and deleted successfully',

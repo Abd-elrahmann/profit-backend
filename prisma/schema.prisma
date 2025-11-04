@@ -53,6 +53,7 @@ model RolePermission {
 model AuditLog {
   id          Int      @id @default(autoincrement())
   userId      Int
+  screen      String
   action      String
   description String?
   createdAt   DateTime @default(now())
@@ -86,7 +87,7 @@ model Client {
   debit          Float            @default(0)
   credit         Float            @default(0)
   balance        Float            @default(0)
-  status         ClientStatus     @default(ملتزم)
+  status         ClientStatus     @default(نشط)
   kafeel         Kafeel?          @relation(fields: [kafeelId], references: [id])
   kafeelId       Int?
   documents      ClientDocument[]
@@ -132,8 +133,8 @@ model ClientDocument {
 }
 
 enum ClientStatus {
-  ملتزم
-  متأخر
+  نشط
+  منتهي
   متعثر
 }
 
