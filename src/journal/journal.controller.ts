@@ -18,14 +18,14 @@ export class JournalController {
 
     @Patch(':id')
     @Permissions('journals', 'canUpdate')
-    update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateJournalDto) {
-        return this.journalService.updateJournal(id, dto);
+    update(@Req() req, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateJournalDto) {
+        return this.journalService.updateJournal(req.user.id , id, dto);
     }
 
     @Delete(':id')
     @Permissions('journals', 'canDelete')
-    delete(@Param('id', ParseIntPipe) id: number) {
-        return this.journalService.deleteJournal(id);
+    delete(@Req() req, @Param('id', ParseIntPipe) id: number) {
+        return this.journalService.deleteJournal(req.user.id , id);
     }
 
     @Get('all/:page')
@@ -60,7 +60,7 @@ export class JournalController {
 
     @Post(':id/unpost')
     @Permissions('journals', 'canPost')
-    async unpostJournal(@Param('id', ParseIntPipe) id: number) {
-        return this.journalService.unpostJournal(id);
+    async unpostJournal(@Req() req, @Param('id', ParseIntPipe) id: number) {
+        return this.journalService.unpostJournal(req.user.id , id);
     }
 }

@@ -42,6 +42,16 @@ export class AuthService {
     const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        screen: 'Auth',
+        action: 'login',
+        description: `المستخدم ${user.name} قام بتسجيل الدخول`,
+      },
+    });
+
     return this.generateToken(user);
   }
 
@@ -76,6 +86,16 @@ export class AuthService {
         phone: data.phone ?? user.phone,
       },
       select: { id: true, name: true, email: true, phone: true, updatedAt: true },
+    });
+
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        screen: 'Auth',
+        action: 'UPDATE',
+        description: `المستخدم ${user.name} قام بتحديث ملفه الشخصي`,
+      },
     });
 
     return { message: 'Profile updated successfully', user: updated };

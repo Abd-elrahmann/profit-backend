@@ -11,6 +11,7 @@ import {
     UploadedFiles,
     ParseIntPipe,
     UseGuards,
+    Req,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -49,25 +50,26 @@ export class ClientController {
             },
         ),
     )
-    createClient(@Body() dto: CreateClientDto, @UploadedFiles() files: any) {
-        return this.clientService.createClient(dto, files);
+    createClient(@Req() req, @Body() dto: CreateClientDto, @UploadedFiles() files: any) {
+        return this.clientService.createClient(req.user.id , dto, files);
     }
 
     // UPDATE CLIENT DATA
     @Patch(':id/client-data')
     @Permissions('clients', 'canUpdate')
     updateClientData(
+        @Req() req,
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateClientDto,
     ) {
-        return this.clientService.updateClientData(id, dto);
+        return this.clientService.updateClientData(req.user.id, id, dto);
     }
 
     // UPDATE KAFEEL DATA
     @Patch(':id/kafeel-data')
     @Permissions('clients', 'canUpdate')
-    updateKafeelData(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
-        return this.clientService.updateKafeelData(id, dto);
+    updateKafeelData(@Req() req,@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+        return this.clientService.updateKafeelData(req.user.id, id, dto);
     }
 
     // UPDATE DOCUMENTS
@@ -94,6 +96,7 @@ export class ClientController {
         ),
     )
     async updateClientDocuments(
+        @Req() req,
         @Param('id', ParseIntPipe) id: number,
         @UploadedFiles() files: Record<string, Array<Express.Multer.File>>,
         @Body('deleteFields') deleteFields?: string | string[],
@@ -109,14 +112,14 @@ export class ClientController {
             parsedDeleteFields = deleteFields;
         }
 
-        return this.clientService.updateClientDocuments(id, files, parsedDeleteFields);
+        return this.clientService.updateClientDocuments(req.user.id, id, files, parsedDeleteFields);
     }
 
     // DELETE CLIENT
     @Delete(':id')
     @Permissions('clients', 'canDelete')
-    deleteClient(@Param('id', ParseIntPipe) id: number) {
-        return this.clientService.deleteClient(id);
+    deleteClient(@Req() req, @Param('id', ParseIntPipe) id: number) {
+        return this.clientService.deleteClient(req.user.id, id);
     }
 
     // GET CLIENTS

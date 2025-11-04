@@ -6,7 +6,7 @@ export class RolesService {
     constructor(private prisma: PrismaService) { }
 
     // ✅ Create a new role with permissions
-    async createRole(data: {
+    async createRole(currentUser, data: {
         name: string;
         description?: string;
         permissions: {
@@ -20,6 +20,10 @@ export class RolesService {
     }) {
         const exists = await this.prisma.role.findUnique({ where: { name: data.name } });
         if (exists) throw new BadRequestException('Role name already exists');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const role = await this.prisma.role.create({
             data: {
@@ -37,6 +41,16 @@ export class RolesService {
                 },
             },
             include: { permissions: true },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Roles',
+                action: 'CREATE',
+                description: `المستخدم ${user?.name} أنشأ الدور ${role.name}`,
+            },
         });
 
         return { message: 'Role created successfully', role };
@@ -87,6 +101,7 @@ export class RolesService {
     // ✅ Update role (and its permissions)
     async updateRole(
         id: number,
+        currentUser,
         data: {
             name?: string;
             description?: string;
@@ -102,6 +117,10 @@ export class RolesService {
     ) {
         const role = await this.prisma.role.findUnique({ where: { id } });
         if (!role) throw new NotFoundException('Role not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const updatedRole = await this.prisma.$transaction(async (tx) => {
             // Update role info
@@ -130,18 +149,42 @@ export class RolesService {
             return updated;
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Roles',
+                action: 'UPDATE',
+                description: `المستخدم ${user?.name} حدث الدور ${role.name}`,
+            },
+        });
+
         return { message: 'Role updated successfully', role: updatedRole };
     }
 
     // ✅ Delete role (and permissions)
-    async deleteRole(id: number) {
+    async deleteRole(currentUser, id: number) {
         const role = await this.prisma.role.findUnique({ where: { id } });
         if (!role) throw new NotFoundException('Role not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         await this.prisma.$transaction([
             this.prisma.rolePermission.deleteMany({ where: { roleId: id } }),
             this.prisma.role.delete({ where: { id } }),
         ]);
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Roles',
+                action: 'DELETE',
+                description: `المستخدم ${user?.name} حذف الدور ${role.name}`,
+            },
+        });
 
         return { message: 'Role deleted successfully' };
     }

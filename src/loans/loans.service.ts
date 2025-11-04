@@ -48,9 +48,13 @@ export class LoansService {
     }
 
     // Create Loan
-    async createLoan(dto: CreateLoanDto) {
+    async createLoan(currentUser, dto: CreateLoanDto) {
         const client = await this.prisma.client.findUnique({ where: { id: dto.clientId } });
         if (!client) throw new NotFoundException('Client not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const bankAccount = await this.prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
         if (!bankAccount) throw new NotFoundException('Bank account not found');
@@ -134,6 +138,16 @@ export class LoansService {
 
         await this.prisma.repayment.createMany({ data: repayments });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Loans',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بإنشاء سلفة جديدة للعميل ${client.name} بمبلغ ${dto.amount}`,
+            },
+        });
+
         return { message: 'Loan created successfully', loan };
     }
 
@@ -143,6 +157,10 @@ export class LoansService {
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('Only pending loans can be activated');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
 
         // Get Accounts
         const receivable = await this.prisma.account.findFirst({
@@ -196,6 +214,16 @@ export class LoansService {
 
         await this.updateClientStatus(loan.clientId);
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId || 0,
+                screen: 'Loans',
+                action: 'POST',
+                description: `قام المستخدم ${user?.name} بتفعيل السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+            },
+        });
+
         return {
             message: '✅ Loan activated, journal created and posted successfully',
             loanId: id,
@@ -204,12 +232,16 @@ export class LoansService {
     }
 
     // Deactivate Loan and remove all related journals
-    async deactivateLoan(id: number) {
+    async deactivateLoan(currentUser, id: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
             include: {
                 repayments: true,
             },
+        });
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
         });
 
         if (!loan) throw new NotFoundException('Loan not found');
@@ -241,7 +273,7 @@ export class LoansService {
                 // Unpost all before deletion
                 for (const journalId of allJournalIds) {
                     try {
-                        await this.journalService.unpostJournal(journalId);
+                        await this.journalService.unpostJournal(currentUser, journalId);
                     } catch (e) {
                         console.warn(`⚠️ Skipped unposting journal ${journalId}:`, e.message);
                     }
@@ -265,6 +297,16 @@ export class LoansService {
             });
 
             await this.updateClientStatus(loan.clientId);
+
+            // create audit log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Loans',
+                    action: 'POST',
+                    description: `قام المستخدم ${user?.name} بإلغاء تفعيل السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+                },
+            });
 
             return {
                 message: '✅ Loan deactivated, all related journals unposted and deleted successfully',
@@ -310,11 +352,15 @@ export class LoansService {
     }
 
     // Update Loan
-    async updateLoan(id: number, dto: UpdateLoanDto) {
+    async updateLoan(currentUser, id: number, dto: UpdateLoanDto) {
         const loan = await this.prisma.loan.findUnique({ where: { id } });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('Only pending loans can be updated');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         // Update loan basic fields
         const updated = await this.prisma.loan.update({
@@ -379,11 +425,21 @@ export class LoansService {
             await this.prisma.repayment.createMany({ data: repayments });
         }
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Loans',
+                action: 'UPDATE',
+                description: `قام المستخدم ${user?.name} بتحديث السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+            },
+        });
+
         return { message: 'Loan updated successfully', updated };
     }
 
     // Delete Loan
-    async deleteLoan(id: number) {
+    async deleteLoan(currentUser, id: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
             include: { repayments: true },
@@ -392,6 +448,10 @@ export class LoansService {
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('Only pending loans can be deleted');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         return await this.prisma.$transaction(async (tx) => {
             const repaymentIds = loan.repayments.map((r) => r.id);
@@ -409,17 +469,31 @@ export class LoansService {
 
             await tx.loan.delete({ where: { id } });
 
+            // create audit log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Loans',
+                    action: 'DELETE',
+                    description: `قام المستخدم ${user?.name} بحذف السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+                },
+            });
+
             return { message: 'Loan and related data deleted successfully' };
         });
     }
 
-    async uploadDebtAcknowledgmentFile(clientId: number, file: Express.Multer.File) {
+    async uploadDebtAcknowledgmentFile(currentUser, clientId: number, file: Express.Multer.File) {
         const client = await this.prisma.client.findUnique({
             where: { id: clientId },
             include: { documents: true },
         });
         if (!client) throw new NotFoundException('Client not found');
         if (!file) throw new BadRequestException('No file uploaded');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -444,16 +518,30 @@ export class LoansService {
             });
         } else { return console.log('No existing document found'); }
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Loans',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل إقرار الدين للعميل ${client.name}`,
+            },
+        });
+
         return { message: 'إقرار الدين uploaded successfully', path: publicUrl };
     }
 
-    async uploadPromissoryNoteFile(clientId: number, file: Express.Multer.File) {
+    async uploadPromissoryNoteFile(currentUser, clientId: number, file: Express.Multer.File) {
         const client = await this.prisma.client.findUnique({
             where: { id: clientId },
             include: { documents: true },
         });
         if (!client) throw new NotFoundException('Client not found');
         if (!file) throw new BadRequestException('No file uploaded');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -477,6 +565,16 @@ export class LoansService {
                 data: { PROMISSORY_NOTE: publicUrl },
             });
         } else { return console.log('No existing document found'); }
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Loans',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل سند لأمر للعميل ${client.name}`,
+            },
+        });
 
         return { message: 'سند لأمر uploaded successfully', path: publicUrl };
     }

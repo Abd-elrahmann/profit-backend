@@ -13,6 +13,7 @@ export class RolesController {
     @Post()
     @Permissions('roles', 'canAdd')
     createRole(
+        @Req() req,
         @Body()
         body: {
             name: string;
@@ -27,7 +28,7 @@ export class RolesController {
             }[];
         },
     ) {
-        return this.rolesService.createRole(body);
+        return this.rolesService.createRole(req.user.id , body);
     }
 
     // Get all roles
@@ -53,6 +54,7 @@ export class RolesController {
     @Patch(':id')
     @Permissions('roles', 'canUpdate')
     updateRole(
+        @Req() req,
         @Param('id', ParseIntPipe) id: number,
         @Body()
         body: {
@@ -68,13 +70,13 @@ export class RolesController {
             }[];
         },
     ) {
-        return this.rolesService.updateRole(id, body);
+        return this.rolesService.updateRole(id, req.user.id , body);
     }
 
     // Delete a role
     @Delete(':id')
     @Permissions('roles', 'canDelete')
-    deleteRole(@Param('id', ParseIntPipe) id: number) {
-        return this.rolesService.deleteRole(id);
+    deleteRole(@Req() req, @Param('id', ParseIntPipe) id: number) {
+        return this.rolesService.deleteRole(req.user.id , id);
     }
 }

@@ -10,6 +10,7 @@ import {
     ParseIntPipe,
     Query,
     UseGuards,
+    Req,
 } from '@nestjs/common';
 import { BankService } from './bank.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
@@ -23,8 +24,8 @@ export class BankController {
 
     @Post()
     @Permissions('banks', 'canAdd')
-    createBankAccount(@Body() body: { name: string, owner: string, accountNumber: string , IBAN: string , limit: number}) {
-        return this.bankService.createBankAccount(body);
+    createBankAccount(@Req() req, @Body() body: { name: string, owner: string, accountNumber: string , IBAN: string , limit: number}) {
+        return this.bankService.createBankAccount(req.user.id, body);
     }
 
     @Get('all/:page')
@@ -46,15 +47,16 @@ export class BankController {
     @Patch(':id')
     @Permissions('banks', 'canUpdate')
     updateBankAccount(
+        @Req() req,
         @Param('id') id: string,
         @Body() body: { name?: string, owner: string, accountNumber?: string , IBAN?: string , limit?: number },
     ) {
-        return this.bankService.updateBankAccount(Number(id), body);
+        return this.bankService.updateBankAccount(req.user.id, Number(id), body);
     }
 
     @Delete(':id')
     @Permissions('banks', 'canDelete')
-    deleteBankAccount(@Param('id') id: string) {
-        return this.bankService.deleteBankAccount(Number(id));
+    deleteBankAccount(@Req() req, @Param('id') id: string) {
+        return this.bankService.deleteBankAccount(req.user.id, Number(id));
     }
 }

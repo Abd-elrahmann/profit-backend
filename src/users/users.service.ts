@@ -7,12 +7,16 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) { }
 
   // Add new user
-  async addUser(data: { name: string; email: string; password: string; phone: string; roleId?: number }) {
+  async addUser(currentUser, data: { name: string; email: string; password: string; phone: string; roleId?: number }) {
     const existingEmail = await this.prisma.user.findUnique({ where: { email: data.email } });
     if (existingEmail) throw new BadRequestException('Email already exists');
 
     const existingPhone = await this.prisma.user.findUnique({ where: { phone: data.phone } });
     if (existingPhone) throw new BadRequestException('Phone already exists');
+
+    const current = await this.prisma.user.findUnique({
+      where: { id: currentUser },
+    });
 
     const hashed = await bcrypt.hash(data.password, 10);
 
@@ -24,18 +28,28 @@ export class UsersService {
         password: hashed,
         roleId: data.roleId,
       },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        phone: true, 
-        roleId: true, 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        roleId: true,
         role: {
           select: {
             name: true
           }
         },
-        createdAt: true 
+        createdAt: true
+      },
+    });
+
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: currentUser,
+        screen: 'Users',
+        action: 'CREATE',
+        description: `المستخدم ${current?.name} أضاف مستخدم جديد ${data.name}`,
       },
     });
 
@@ -43,7 +57,7 @@ export class UsersService {
   }
 
   // Update user
-  async updateUser(id: number, data: { name?: string; phone?: string; isActive?: boolean }) {
+  async updateUser(id: number, currentUser, data: { name?: string; phone?: string; isActive?: boolean }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -52,6 +66,10 @@ export class UsersService {
       if (phoneExists) throw new BadRequestException('Phone already in use');
     }
 
+    const current = await this.prisma.user.findUnique({
+      where: { id: currentUser },
+    });
+
     const updated = await this.prisma.user.update({
       where: { id },
       data: {
@@ -59,18 +77,28 @@ export class UsersService {
         phone: data.phone ?? user.phone,
         isActive: data.isActive ?? user.isActive,
       },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        phone: true, 
-        isActive: true, 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        isActive: true,
         role: {
           select: {
             name: true
           }
         },
-        updatedAt: true 
+        updatedAt: true
+      },
+    });
+
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: currentUser,
+        screen: 'Users',
+        action: 'UPDATE',
+        description: `المستخدم ${current?.name} قام بتحديث بيانات المستخدم ${user.name}`,
       },
     });
 
@@ -78,9 +106,13 @@ export class UsersService {
   }
 
   // Delete user and cascade related records
-  async deleteUser(id: number) {
+  async deleteUser(currentUser, id: number) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
+
+    const current = await this.prisma.user.findUnique({
+      where: { id: currentUser },
+    });
 
     // Delete related records
     await this.prisma.auditLog.deleteMany({ where: { userId: id } });
@@ -91,6 +123,16 @@ export class UsersService {
     });
 
     await this.prisma.user.delete({ where: { id } });
+
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: currentUser,
+        screen: 'Users',
+        action: 'DELETE',
+        description: `المستخدم ${current?.name} قام بحذف المستخدم ${user.name}`,
+      },
+    });
 
     return { message: 'User and all related records deleted successfully' };
   }
@@ -119,19 +161,19 @@ export class UsersService {
       skip,
       take: limit,
       orderBy: { id: 'asc' },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        phone: true, 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
         roleId: true,
         role: {
           select: {
             name: true
           }
-        }, 
-        isActive: true, 
-        createdAt: true 
+        },
+        isActive: true,
+        createdAt: true
       },
     });
 
@@ -144,10 +186,26 @@ export class UsersService {
   }
 
   // Assign role to user
-  async assignRole(userId: number, roleId: number) {
+  async assignRole(userId: number, currentUser, roleId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
+
+    const current = await this.prisma.user.findUnique({
+      where: { id: currentUser },
+    });
+
     await this.prisma.user.update({ where: { id: userId }, data: { roleId } });
+
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: currentUser,
+        screen: 'Users',
+        action: 'UPDATE',
+        description: `المستخدم ${current?.name} قام بتعيين دور جديد للمستخدم ${user.name}`,
+      },
+    });
+
     return { message: 'Role assigned successfully' };
   }
 }

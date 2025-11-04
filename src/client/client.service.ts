@@ -16,6 +16,7 @@ export class ClientService {
 
     //  CREATE CLIENT 
     async createClient(
+        currentUser,
         dto: CreateClientDto,
         files?: Record<string, Array<Express.Multer.File>>,
     ) {
@@ -23,6 +24,10 @@ export class ClientService {
             where: { OR: [{ phone: dto.phone }, { nationalId: dto.nationalId }] },
         });
         if (exists) throw new BadRequestException('Client already exists');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const client = await this.prisma.$transaction(async (tx) => {
             // ✅ Create kafeel if provided
@@ -83,13 +88,26 @@ export class ClientService {
             return newClient;
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Clients',
+                action: 'CREATE',
+                description: `المستخدم ${user?.name} أضاف عميل جديد: ${client.name}`,
+            },
+        });
         return { message: 'Client created successfully', client };
     }
 
     //  UPDATE CLIENT DATA 
-    async updateClientData(id: number, dto: UpdateClientDto) {
+    async updateClientData(currentUser, id: number, dto: UpdateClientDto) {
         const client = await this.prisma.client.findUnique({ where: { id } });
         if (!client) throw new NotFoundException('Client not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const updateData: any = { ...dto };
         if (dto.birthDate) updateData.birthDate = new Date(dto.birthDate);
@@ -104,16 +122,30 @@ export class ClientService {
             data: updateData,
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Clients',
+                action: 'UPDATE',
+                description: `المستخدم ${user?.name} حدث بيانات العميل: ${client.name}`,
+            },
+        });
+
         return { message: 'Client data updated successfully' };
     }
 
     //  UPDATE KAFEEL DATA 
-    async updateKafeelData(id: number, dto: any) {
+    async updateKafeelData(currentUser, id: number, dto: any) {
         const client = await this.prisma.client.findUnique({
             where: { id },
             include: { kafeel: true },
         });
         if (!client) throw new NotFoundException('Client not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const kafeelData = {
             name: dto.name ?? client.kafeel?.name ?? 'N/A',
@@ -148,17 +180,32 @@ export class ClientService {
             });
         }
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Clients',
+                action: 'UPDATE',
+                description: `المستخدم ${user?.name} حدث بيانات الكفيل للعميل: ${client.name}`,
+            },
+        });
+
         return { message: 'Kafeel data updated successfully' };
     }
 
     //  UPDATE CLIENT DOCUMENTS 
     async updateClientDocuments(
+        currentUser,
         id: number,
         files?: Record<string, Array<Express.Multer.File>>,
         deleteFields?: string[],
     ) {
         const client = await this.prisma.client.findUnique({ where: { id } });
         if (!client) throw new NotFoundException('Client not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const documents = await this.mapUploadedFiles(files, client.nationalId);
         const docData = this.cleanDocumentData(documents);
@@ -220,16 +267,30 @@ export class ClientService {
             });
         }
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Clients',
+                action: 'UPDATE',
+                description: `المستخدم ${user?.name} حدث مستندات العميل: ${client.name}`,
+            },
+        });
+
         return { message: 'Client documents updated successfully' };
     }
 
     //  DELETE CLIENT  
-    async deleteClient(id: number) {
+    async deleteClient(currentUser, id: number) {
         const client = await this.prisma.client.findUnique({
             where: { id },
             include: { kafeel: true },
         });
         if (!client) throw new NotFoundException('Client not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         await this.prisma.$transaction(async (tx) => {
             await tx.clientDocument.deleteMany({ where: { clientId: id } });
@@ -258,6 +319,16 @@ export class ClientService {
         } catch (err) {
             console.warn('⚠️ Failed to delete client folder:', err.message);
         }
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Clients',
+                action: 'DELETE',
+                description: `المستخدم ${user?.name} حذف العميل: ${client.name}`,
+            },
+        });
 
         return { message: 'Client and related data deleted successfully' };
     }
