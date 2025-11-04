@@ -87,16 +87,13 @@ export class LoansService {
                 }
             }
 
-            remainingAmount -= installmentAmount;
-            if (remainingAmount < 0) remainingAmount = 0;
-
             repayments.push({
                 count: i,
                 loanId: loan.id,
                 clientId: dto.clientId,
                 dueDate,
                 amount: installmentAmount,
-                remaining: remainingAmount,
+                remaining: installmentAmount,
                 status: 'PENDING',
             });
         }

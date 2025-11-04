@@ -11,7 +11,6 @@ export class NotificationController {
     constructor(private readonly notificationService: NotificationService) { }
 
     @Get('all/:page')
-    @Permissions('notifications', 'canView')
     async getAllNotifications(
         @Param('page') page: number,
         @Query('limit') limit: number = 10,
@@ -29,7 +28,7 @@ export class NotificationController {
     }
 
     @Get(':clientId')
-    @Permissions('notifications', 'canView')
+    @Permissions('clients', 'canView')
     getByClient(@Param('clientId') clientId: string) {
         return this.notificationService.getByClient(Number(clientId));
     }

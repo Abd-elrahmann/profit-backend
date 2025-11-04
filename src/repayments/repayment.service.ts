@@ -111,6 +111,9 @@ export class RepaymentService {
         if (repayment.status === PaymentStatus.PAID)
             throw new BadRequestException('Repayment already approved');
 
+        if (dto.paidAmount && dto.paidAmount < repayment.amount)
+            throw new BadRequestException('Paid amount cannot be less than repayment amount');
+
         const totalAmount = dto.paidAmount ?? repayment.amount;
         const interestAmount = loan.interestAmount / loan.durationMonths;
         const principalAmount = totalAmount - interestAmount;
