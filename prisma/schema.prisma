@@ -254,8 +254,22 @@ model Partner {
   AccountPayable Account @relation(name: "account_payable", references: [id], fields: [accountPayableId])
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
   loans Loan[]
+  transactions PartnerTransaction[]
 
   createdAt DateTime @default(now())
+}
+
+model PartnerTransaction {
+  id             Int               @id @default(autoincrement())
+  partnerId      Int
+  type           TransactionType
+  amount         Float
+  date           DateTime          @default(now())
+  reference      String?           @unique
+  description    String?
+  journalId      Int?
+  createdAt      DateTime          @default(now())
+  partner        Partner           @relation(fields: [partnerId], references: [id])
 }
 
 enum TransactionType {
@@ -416,6 +430,7 @@ enum JournalSourceType {
   LOAN
   REPAYMENT
   PARTNER
+  PARTNER_TRANSACTION
   PERIOD_CLOSING
   OTHER
 }

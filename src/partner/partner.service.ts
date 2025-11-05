@@ -4,8 +4,8 @@ import { CreatePartnerDto, UpdatePartnerDto } from './dto/partner.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { JournalService } from '../journal/journal.service';
-import { JournalSourceType, JournalType } from '@prisma/client';
-
+import { JournalSourceType, JournalStatus, JournalType } from '@prisma/client';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class PartnerService {
@@ -247,6 +247,8 @@ export class PartnerService {
             include: {
                 AccountPayable: true,
                 AccountEquity: true,
+                loans: true,
+                transactions: true,
             },
         });
         if (!partner) throw new NotFoundException('Partner not found');
@@ -328,5 +330,272 @@ export class PartnerService {
 
         const nextCode = latest ? (parseInt(latest.code) + 10).toString() : `${prefix}0000`;
         return nextCode;
+    }
+
+    // PARTNER TRANSACTIONS
+    async createPartnerTransaction(
+        currentUser: number,
+        partnerId: number,
+        dto: { type: 'DEPOSIT' | 'WITHDRAWAL'; amount: number; description?: string }
+    ) {
+        const partner = await this.prisma.partner.findUnique({
+            where: { id: partnerId },
+            include: { AccountEquity: true },
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        if (!partner.accountEquityId)
+            throw new BadRequestException('Partner capital account not defined');
+
+        if (dto.amount <= 0) throw new BadRequestException('Amount must be greater than zero');
+
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+
+        if (dto.type === 'WITHDRAWAL') {
+            const monthsSinceCreation = DateTime.now()
+                .diff(DateTime.fromJSDate(partner.createdAt), 'months')
+                .months;
+
+            if (monthsSinceCreation < 15) {
+                throw new BadRequestException('لا يمكن السحب من رأس المال قبل مرور 15 شهرًا على الإيداع.');
+            }
+
+            if (partner.capitalAmount < dto.amount) {
+                throw new BadRequestException('رصيد رأس المال غير كافٍ للسحب.');
+            }
+        }
+
+        const reference = `PT-${partnerId}-${Date.now()}`;
+
+        const transaction = await this.prisma.partnerTransaction.create({
+            data: {
+                partnerId,
+                type: dto.type,
+                amount: dto.amount,
+                description: dto.description,
+                reference,
+            },
+        });
+
+        const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        if (!bank) throw new BadRequestException('Bank account (11000) must exist');
+
+        let journalLines;
+        let journalDescription;
+
+        if (dto.type === 'DEPOSIT') {
+            journalLines = [
+                {
+                    accountId: bank.id,
+                    debit: dto.amount,
+                    credit: 0,
+                    description: `إيداع نقدي من الشريك ${partner.name}`,
+                },
+                {
+                    accountId: partner.accountEquityId,
+                    debit: 0,
+                    credit: dto.amount,
+                    description: `زيادة في رأس مال الشريك ${partner.name}`,
+                },
+            ];
+            journalDescription = `إيداع نقدي من الشريك ${partner.name}`;
+        } else {
+            journalLines = [
+                {
+                    accountId: partner.accountEquityId,
+                    debit: dto.amount,
+                    credit: 0,
+                    description: `سحب من رأس مال الشريك ${partner.name}`,
+                },
+                {
+                    accountId: bank.id,
+                    debit: 0,
+                    credit: dto.amount,
+                    description: `سحب نقدي للشريك ${partner.name}`,
+                },
+            ];
+            journalDescription = `سحب نقدي من رأس مال الشريك ${partner.name}`;
+        }
+
+        const journalDto = {
+            reference,
+            description: journalDescription,
+            type: JournalType.GENERAL,
+            sourceType: JournalSourceType.PARTNER_TRANSACTION,
+            sourceId: transaction.id,
+            lines: journalLines,
+        };
+
+        // Create Journal
+        const journal = await this.journalService.createJournal(journalDto, currentUser);
+
+        // Post the Journal
+        await this.journalService.postJournal(journal.journal.id, currentUser);
+
+        // update partner capitalAmount
+        let newCapitalAmount = partner.capitalAmount;
+        if (dto.type === 'DEPOSIT') {
+            newCapitalAmount += dto.amount;
+        } else {
+            newCapitalAmount -= dto.amount;
+        }
+
+        await this.prisma.partner.update({
+            where: { id: partnerId },
+            data: { capitalAmount: newCapitalAmount },
+        });
+
+        await this.prisma.partnerTransaction.update({
+            where: { id: transaction.id },
+            data: { journalId: journal.journal.id },
+        });
+
+        // Audit Log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Partners',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بإنشاء معاملة ${dto.type === 'DEPOSIT' ? 'إيداع' : 'سحب'} بقيمة ${dto.amount} للشريك ${partner.name} (تم إنشاء وترحيل القيد المحاسبي بنجاح)`,
+            },
+        });
+
+        return {
+            message: 'Transaction and journal created & posted successfully',
+            transaction,
+            journal,
+        };
+    }
+
+    // DELETE PARTNER TRANSACTION
+    async deletePartnerTransaction(currentUser: number, id: number) {
+        const transaction = await this.prisma.partnerTransaction.findUnique({
+            where: { id },
+            include: { partner: true },
+        });
+        if (!transaction) throw new NotFoundException('Transaction not found');
+
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+
+        // Find related journal by reference
+        const journal = await this.prisma.journalHeader.findUnique({
+            where: { reference: transaction.reference || '' },
+            include: { lines: true },
+        });
+
+        if (journal) {
+            if (journal.status === JournalStatus.POSTED) {
+                await this.journalService.unpostJournal(currentUser, journal.id);
+            }
+
+            await this.journalService.deleteJournal(currentUser, journal.id);
+        }
+
+        // update partner capitalAmount
+        const partner = await this.prisma.partner.findUnique({ where: { id: transaction.partnerId } });
+        if (partner) {
+            let newCapitalAmount = partner.capitalAmount;
+            if (transaction.type === 'DEPOSIT') {
+                newCapitalAmount -= transaction.amount;
+            } else {
+                newCapitalAmount += transaction.amount;
+            }
+
+            await this.prisma.partner.update({
+                where: { id: partner.id },
+                data: { capitalAmount: newCapitalAmount },
+            });
+
+            // Delete the partner transaction
+            await this.prisma.partnerTransaction.delete({ where: { id } });
+
+            // Audit Log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Partners',
+                    action: 'DELETE',
+                    description: `قام المستخدم ${user?.name} بحذف معاملة ${transaction.type === 'DEPOSIT' ? 'إيداع' : 'سحب'} بقيمة ${transaction.amount} للشريك ${transaction.partner.name}`,
+                },
+            });
+
+            return { message: 'Transaction and related journal deleted successfully' };
+        }
+    }
+
+    // GET PARTNER TRANSACTIONS
+    async getPartnerTransactions(
+        partnerId: number,
+        page: number,
+        filters?: {
+            limit?: number;
+            type?: 'DEPOSIT' | 'WITHDRAWAL';
+            search?: string;
+            startDate?: string;
+            endDate?: string;
+        },
+    ) {
+        const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
+        const skip = (page - 1) * limit;
+
+        const where: any = { partnerId };
+
+        // Filter by type
+        if (filters?.type) where.type = filters.type;
+
+        // Search in description or reference
+        if (filters?.search)
+            where.OR = [
+                { description: { contains: filters.search, mode: 'insensitive' } },
+                { reference: { contains: filters.search, mode: 'insensitive' } },
+            ];
+
+        // Timezone-based date filtering (Asia/Riyadh)
+        if (filters?.startDate || filters?.endDate) {
+            where.date = {};
+            if (filters.startDate) {
+                const startUtc = DateTime.fromISO(filters.startDate, { zone: 'Asia/Riyadh' })
+                    .startOf('day')
+                    .toUTC()
+                    .toJSDate();
+                where.date.gte = startUtc;
+            }
+            if (filters.endDate) {
+                const endUtc = DateTime.fromISO(filters.endDate, { zone: 'Asia/Riyadh' })
+                    .endOf('day')
+                    .toUTC()
+                    .toJSDate();
+                where.date.lte = endUtc;
+            }
+        }
+
+        // Count total
+        const totalTransactions = await this.prisma.partnerTransaction.count({ where });
+        const totalPages = Math.ceil(totalTransactions / limit);
+
+        // Fetch transactions
+        const transactions = await this.prisma.partnerTransaction.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { date: 'desc' },
+            include: { partner: { select: { name: true } } },
+        });
+
+        // Convert UTC → Riyadh time
+        const convertedTransactions = transactions.map((t) => ({
+            ...t,
+            date: DateTime.fromJSDate(t.date, { zone: 'utc' })
+                .setZone('Asia/Riyadh')
+                .toFormat('yyyy-MM-dd HH:mm:ss'),
+        }));
+
+        return {
+            totalTransactions,
+            totalPages,
+            currentPage: page,
+            limit,
+            transactions: convertedTransactions,
+        };
     }
 }

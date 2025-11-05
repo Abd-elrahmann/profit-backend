@@ -6,6 +6,7 @@ import { JournalService } from '../journal/journal.service';
 import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class RepaymentService {
@@ -49,6 +50,7 @@ export class RepaymentService {
         });
     }
 
+
     // Get all repayments for a specific loan
     async getRepaymentsByLoan(loanId: number) {
         const loan = await this.prisma.loan.findUnique({
@@ -57,8 +59,34 @@ export class RepaymentService {
         });
         if (!loan) throw new NotFoundException('Loan not found');
 
-        return loan.repayments;
+        // Convert repayment date fields to Saudi timezone
+        const repaymentsWithSaudiTime = loan.repayments.map((repayment) => ({
+            ...repayment,
+            dueDate: repayment.dueDate
+                ? DateTime.fromJSDate(repayment.dueDate)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+            paymentDate: repayment.paymentDate
+                ? DateTime.fromJSDate(repayment.paymentDate)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+            newDueDate: repayment.newDueDate
+                ? DateTime.fromJSDate(repayment.newDueDate)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+            createdAt: repayment.createdAt
+                ? DateTime.fromJSDate(repayment.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+        }));
+
+        return repaymentsWithSaudiTime;
     }
+
 
     // Get specific repayment by ID
     async getRepaymentById(id: number) {

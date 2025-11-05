@@ -5,6 +5,7 @@ import { JournalSourceType, LoanStatus, LoanType, Prisma } from '@prisma/client'
 import { JournalService } from '../journal/journal.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class LoansService {
@@ -329,13 +330,32 @@ export class LoansService {
         if (filters?.partnerName)
             where.partner = { name: { contains: filters.partnerName, mode: 'insensitive' } };
 
-        const loans = await this.prisma.loan.findMany({
+        const unformattedLoans = await this.prisma.loan.findMany({
             where,
             include: { client: true, bankAccount: true, partner: true },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
         });
+
+        const loans = unformattedLoans.map((loan) => ({
+            ...loan,
+            createdAt: loan.createdAt
+                ? DateTime.fromJSDate(loan.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+            startDate: loan.startDate
+                ? DateTime.fromJSDate(loan.startDate)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd')
+                : null,
+            endDate: loan.endDate
+                ? DateTime.fromJSDate(loan.endDate)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd')
+                : null,
+        }));
 
         const total = await this.prisma.loan.count({ where });
         return { total, page, limit, data: loans };
@@ -348,7 +368,26 @@ export class LoansService {
             include: { repayments: true, client: true, bankAccount: true, partner: true },
         });
         if (!loan) throw new NotFoundException('Loan not found');
-        return loan;
+
+        const toSaudiTime = (date: Date | null | undefined) =>
+            date
+                ? DateTime.fromJSDate(date)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null;
+
+        const formattedRepayments = loan.repayments.map((repayment) => ({
+            ...repayment,
+            dueDate: toSaudiTime(repayment.dueDate),
+            paymentDate: toSaudiTime(repayment.paymentDate),
+            newDueDate: toSaudiTime(repayment.newDueDate),
+            createdAt: toSaudiTime(repayment.createdAt),
+        }));
+
+        return {
+            ...loan,
+            repayments: formattedRepayments,
+        };
     }
 
     // Update Loan
