@@ -188,9 +188,6 @@ export class RepaymentService {
         if (repayment.status === PaymentStatus.PAID)
             throw new BadRequestException('Repayment already approved');
 
-        if (repayment.paidAmount < repayment.amount)
-            throw new BadRequestException('Paid amount cannot be less than repayment amount');
-
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });

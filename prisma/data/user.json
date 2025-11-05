@@ -20,5 +20,16 @@
     "roleId": 1,
     "createdAt": "2025-10-27T18:31:51.832Z",
     "updatedAt": "2025-10-27T18:31:51.832Z"
+  },
+  {
+    "id": 11,
+    "name": "يوسف",
+    "email": "youssef.khaled86666@gmail.com",
+    "password": "$2b$10$HqAC8.wjc.sGR3wC9Xz89.hhqNMXMxiWqUchEn9cCHH3poUgCO2Oa",
+    "phone": "0122356333376",
+    "isActive": true,
+    "roleId": null,
+    "createdAt": "2025-11-04T17:39:39.062Z",
+    "updatedAt": "2025-11-04T17:39:39.062Z"
   }
 ]

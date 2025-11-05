@@ -14,10 +14,10 @@
     "salary": 8000,
     "obligations": 1500,
     "creationReason": "New loan request",
-    "debit": 0,
+    "debit": 12000,
     "credit": 0,
-    "balance": 0,
-    "status": "ملتزم",
+    "balance": 12000,
+    "status": "نشط",
     "kafeelId": 1,
     "notes": "High salary, low obligations",
     "createdAt": "2025-10-27T18:31:51.944Z"

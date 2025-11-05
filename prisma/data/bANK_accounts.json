@@ -1,11 +1,11 @@
 [
   {
-    "id": 1,
-    "name": "bank misr",
-    "owner": "الاحول",
-    "accountNumber": "24242457574757",
-    "IBAN": "121204141417747141414141",
-    "limit": 13,
+    "id": 3,
+    "name": "bank",
+    "owner": "youssef",
+    "accountNumber": "12345678999",
+    "IBAN": "151562625151",
+    "limit": 45,
     "status": "Active"
   }
 ]

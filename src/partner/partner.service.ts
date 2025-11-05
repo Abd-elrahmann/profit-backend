@@ -421,7 +421,7 @@ export class PartnerService {
             reference,
             description: journalDescription,
             type: JournalType.GENERAL,
-            sourceType: JournalSourceType.PARTNER_TRANSACTION,
+            sourceType: dto.type === 'DEPOSIT' ? JournalSourceType.PARTNER_TRANSACTION_DEPOSIT : JournalSourceType.PARTNER_TRANSACTION_WITHDRAWAL,
             sourceId: transaction.id,
             lines: journalLines,
         };

@@ -1,11 +1,37 @@
 [
   {
+    "id": 17,
+    "reference": "PT-8-1762351421916",
+    "description": "إيداع نقدي من الشريك youssef khaled",
+    "date": "2025-11-05T14:03:42.127Z",
+    "type": "GENERAL",
+    "status": "DRAFT",
+    "sourceId": 1,
+    "sourceType": "LOAN",
+    "postedById": null,
+    "periodId": null,
+    "createdAt": "2025-11-05T14:03:42.127Z"
+  },
+  {
+    "id": 18,
+    "reference": "PT-8-1762351741932",
+    "description": "إيداع نقدي من الشريك youssef khaled",
+    "date": "2025-11-05T14:09:02.111Z",
+    "type": "GENERAL",
+    "status": "DRAFT",
+    "sourceId": 2,
+    "sourceType": "LOAN",
+    "postedById": null,
+    "periodId": null,
+    "createdAt": "2025-11-05T14:09:02.111Z"
+  },
+  {
     "id": 1,
     "reference": "CAP-8",
     "description": "إيداع رأس مال الشريك youssef khaled",
     "date": "2025-10-27T19:42:55.487Z",
     "type": "GENERAL",
-    "status": "DRAFT",
+    "status": "POSTED",
     "sourceId": null,
     "sourceType": null,
     "postedById": 1,
@@ -13,16 +39,55 @@
     "createdAt": "2025-10-27T19:42:55.487Z"
   },
   {
-    "id": 7,
-    "reference": "REP-49",
-    "description": "Repayment approval for loan #LN-20251102-001",
-    "date": "2025-11-02T23:58:44.562Z",
+    "id": 3,
+    "reference": "LN-5",
+    "description": "Loan disbursement for client 1",
+    "date": "2025-10-30T14:53:52.767Z",
     "type": "GENERAL",
     "status": "DRAFT",
-    "sourceId": 49,
+    "sourceId": 5,
+    "sourceType": "LOAN",
+    "postedById": 1,
+    "periodId": null,
+    "createdAt": "2025-10-30T14:53:52.767Z"
+  },
+  {
+    "id": 6,
+    "reference": "REP-43",
+    "description": "Repayment approval for loan #LN-1761735979576-1",
+    "date": "2025-10-30T15:50:02.716Z",
+    "type": "GENERAL",
+    "status": "DRAFT",
+    "sourceId": 43,
+    "sourceType": "REPAYMENT",
+    "postedById": 1,
+    "periodId": null,
+    "createdAt": "2025-10-30T15:50:02.716Z"
+  },
+  {
+    "id": 11,
+    "reference": "REP-67",
+    "description": "Repayment approval for loan #LN-20251101-001",
+    "date": "2025-11-03T12:23:47.873Z",
+    "type": "GENERAL",
+    "status": "DRAFT",
+    "sourceId": 67,
     "sourceType": "REPAYMENT",
     "postedById": null,
     "periodId": null,
-    "createdAt": "2025-11-02T23:58:44.562Z"
+    "createdAt": "2025-11-03T12:23:47.873Z"
+  },
+  {
+    "id": 15,
+    "reference": "LN-11",
+    "description": "Loan disbursement for client 1",
+    "date": "2025-11-05T00:52:25.785Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 11,
+    "sourceType": "LOAN",
+    "postedById": 1,
+    "periodId": null,
+    "createdAt": "2025-11-05T00:52:25.785Z"
   }
 ]

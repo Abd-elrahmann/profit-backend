@@ -1,6 +1,6 @@
 [
   {
-    "id": 17,
+    "id": 146,
     "roleId": 1,
     "module": "users",
     "canView": true,
@@ -8,11 +8,11 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 18,
+    "id": 147,
     "roleId": 1,
     "module": "roles",
     "canView": true,
@@ -20,11 +20,11 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 19,
+    "id": 148,
     "roleId": 1,
     "module": "clients",
     "canView": true,
@@ -32,11 +32,11 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 20,
+    "id": 149,
     "roleId": 1,
     "module": "templates",
     "canView": true,
@@ -44,11 +44,11 @@
     "canUpdate": true,
     "canDelete": false,
     "canPost": false,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 21,
+    "id": 150,
     "roleId": 1,
     "module": "partners",
     "canView": true,
@@ -56,11 +56,11 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 22,
+    "id": 151,
     "roleId": 1,
     "module": "journals",
     "canView": true,
@@ -68,11 +68,11 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 23,
+    "id": 152,
     "roleId": 1,
     "module": "loans",
     "canView": true,
@@ -80,11 +80,11 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 24,
+    "id": 153,
     "roleId": 1,
     "module": "banks",
     "canView": true,
@@ -92,11 +92,11 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 25,
+    "id": 154,
     "roleId": 1,
     "module": "repayments",
     "canView": true,
@@ -104,19 +104,19 @@
     "canUpdate": true,
     "canDelete": true,
     "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   },
   {
-    "id": 26,
+    "id": 155,
     "roleId": 1,
-    "module": "notifications",
+    "module": "logs",
     "canView": true,
-    "canAdd": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "canPost": true,
-    "createdAt": "2025-11-02T01:38:32.059Z",
-    "updatedAt": "2025-11-02T01:38:32.059Z"
+    "canAdd": false,
+    "canUpdate": false,
+    "canDelete": false,
+    "canPost": false,
+    "createdAt": "2025-11-05T00:29:55.330Z",
+    "updatedAt": "2025-11-05T00:29:55.330Z"
   }
 ]
