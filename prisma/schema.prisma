@@ -125,8 +125,6 @@ model ClientDocument {
   simaReport     String?
   kafeelIdImage  String?
   kafeelWorkCard String?
-  DEBT_ACKNOWLEDGMENT String?
-  PROMISSORY_NOTE     String?
   createdAt      DateTime @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
@@ -162,6 +160,9 @@ model Loan {
   partner   Partner? @relation(fields: [partnerId], references: [id])
   disbursementJournalId Int?   
   settlementJournalId   Int? 
+  DEBT_ACKNOWLEDGMENT String?
+  PROMISSORY_NOTE     String?
+  SETTLEMENT          String?
 }
 
 enum LoanType {
@@ -440,6 +441,7 @@ enum TemplateType {
   DEBT_ACKNOWLEDGMENT
   RECEIPT_VOUCHER
   PAYMENT_VOUCHER
+  SETTLEMENT
   PAYMENT_PROOF
   REPAYMENT_DUE
   REPAYMENT_LATE

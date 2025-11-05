@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BankService {
     constructor(private prisma: PrismaService) { }
 
-    async createBankAccount(data: { name: string; owner: string;  accountNumber: string , IBAN: string , limit: number}) {
+    async createBankAccount(currentUser, data: { name: string; owner: string; accountNumber: string, IBAN: string, limit: number }) {
         const existing = await this.prisma.bANK_accounts.findFirst({
             where: { accountNumber: data.accountNumber },
         });
@@ -13,6 +13,20 @@ export class BankService {
         if (existing) {
             throw new BadRequestException('Account number already exists.');
         }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Bank Accounts',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بإنشاء حساب بنكي جديد: ${data.name}`,
+            },
+        });
 
         return this.prisma.bANK_accounts.create({ data });
     }
@@ -23,8 +37,8 @@ export class BankService {
         if (filters?.search) {
             const search = filters.search.trim();
             where.OR = [
-                { name : { contains: search, mode: 'insensitive' } },
-                { IBAN : { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: 'insensitive' } },
+                { IBAN: { contains: search, mode: 'insensitive' } },
                 { owner: { contains: search, mode: 'insensitive' } },
                 {
                     accountNumber: {
@@ -65,8 +79,9 @@ export class BankService {
     }
 
     async updateBankAccount(
+        currentUser,
         id: number,
-        data: { name?: string; owner: string; accountNumber?: string , IBAN?: string , limit?: number  },
+        data: { name?: string; owner: string; accountNumber?: string, IBAN?: string, limit?: number },
     ) {
         const existing = await this.prisma.bANK_accounts.findUnique({ where: { id } });
         if (!existing) throw new NotFoundException('Bank account not found.');
@@ -78,13 +93,27 @@ export class BankService {
             if (duplicate) throw new BadRequestException('Account number already exists.');
         }
 
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Bank Accounts',
+                action: 'UPDATE',
+                description: `قام المستخدم ${user?.name} بتحديث الحساب البنكي: ${existing.name}`,
+            },
+        });
+
         return this.prisma.bANK_accounts.update({
             where: { id },
             data,
         });
     }
 
-    async deleteBankAccount(id: number) {
+    async deleteBankAccount(currentUser, id: number) {
         const bankAccount = await this.prisma.bANK_accounts.findUnique({
             where: { id },
             include: { loans: true },
@@ -96,6 +125,20 @@ export class BankService {
                 'Cannot delete this bank account because it has associated loans.',
             );
         }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Bank Accounts',
+                action: 'DELETE',
+                description: `قام المستخدم ${user?.name} بحذف الحساب البنكي: ${bankAccount.name}`,
+            },
+        });
 
         return this.prisma.bANK_accounts.delete({ where: { id } });
     }

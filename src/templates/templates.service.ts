@@ -4,10 +4,25 @@ import { TemplateType } from '@prisma/client';
 
 @Injectable()
 export class TemplatesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // Upsert template
-  async upsertTemplate(data: { name: TemplateType; content: string; description?: string }) {
+  async upsertTemplate(currentUser, data: { name: TemplateType; content: string; description?: string }) {
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: currentUser },
+    });
+
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: currentUser,
+        screen: 'Templates',
+        action: 'UPDATE',
+        description: `قام ${user?.name} بتحديث القالب ${data.name}`,
+      },
+    });
+
     return this.prisma.template.upsert({
       where: { name: data.name },
       update: {

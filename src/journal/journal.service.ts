@@ -9,6 +9,11 @@ export class JournalService {
 
     // Create journal
     async createJournal(dto: CreateJournalDto, userId?: number) {
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
         const totalDebit = dto.lines.reduce((sum, l) => sum + (l.debit || 0), 0);
         const totalCredit = dto.lines.reduce((sum, l) => sum + (l.credit || 0), 0);
         if (totalDebit !== totalCredit) {
@@ -28,7 +33,7 @@ export class JournalService {
                 type: dto.type,
                 sourceType: dto.sourceType,
                 sourceId: dto.sourceId,
-                postedById: userId || null,
+                postedById: null,
                 lines: {
                     create: dto.lines.map((line) => {
                         const account = accounts.find(a => a.id === line.accountId);
@@ -53,11 +58,21 @@ export class JournalService {
             include: { lines: true },
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId || 0,
+                screen: 'Journals',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بإنشاء قيد يومية برقم مرجعي ${journal.reference}`,
+            },
+        });
+
         return { message: 'Journal created successfully', journal };
     }
 
     // Update journal
-    async updateJournal(id: number, dto: UpdateJournalDto) {
+    async updateJournal(currentUser, id: number, dto: UpdateJournalDto) {
         const journal = await this.prisma.journalHeader.findUnique({ where: { id }, include: { lines: true } });
         if (!journal) throw new NotFoundException('Journal not found');
         if (journal.status === JournalStatus.POSTED) {
@@ -67,6 +82,10 @@ export class JournalService {
         if (dto.lines) {
             await this.prisma.journalLine.deleteMany({ where: { journalId: id } });
         }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const updated = await this.prisma.journalHeader.update({
             where: { id },
@@ -90,19 +109,44 @@ export class JournalService {
             include: { lines: true },
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Journals',
+                action: 'UPDATE',
+                description: `قام المستخدم ${user?.name} بتعديل قيد يومية برقم مرجعي ${journal.reference}`,
+            },
+        });
+
         return { message: 'Journal updated successfully', updated };
     }
 
     // Delete journal
-    async deleteJournal(id: number) {
+    async deleteJournal(currentUser, id: number) {
         const journal = await this.prisma.journalHeader.findUnique({ where: { id } });
         if (!journal) throw new NotFoundException('Journal not found');
         if (journal.status === JournalStatus.POSTED) {
             throw new BadRequestException('Cannot delete a posted journal');
         }
 
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
         await this.prisma.journalLine.deleteMany({ where: { journalId: id } });
         await this.prisma.journalHeader.delete({ where: { id } });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Journals',
+                action: 'DELETE',
+                description: `قام المستخدم ${user?.name} بحذف قيد يومية برقم مرجعي ${journal.reference}`,
+            },
+        });
+
         return { message: 'Journal deleted successfully' };
     }
 
@@ -172,6 +216,10 @@ export class JournalService {
         if (journal.status === JournalStatus.POSTED)
             throw new BadRequestException('Journal already posted');
 
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
         await this.prisma.$transaction(async (tx) => {
             for (const line of journal.lines) {
                 // Apply posting effect recursively (account + parents)
@@ -185,11 +233,21 @@ export class JournalService {
             });
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId || 0,
+                screen: 'Journals',
+                action: 'POST',
+                description: `قام المستخدم ${user?.name} باعتماد قيد يومية برقم مرجعي ${journal.reference}`,
+            },
+        });
+
         return { message: 'Journal posted successfully', journalId: id };
     }
 
     // UNPOST JOURNAL
-    async unpostJournal(id: number) {
+    async unpostJournal(currentUser, id: number) {
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id },
             include: { lines: true },
@@ -197,6 +255,10 @@ export class JournalService {
         if (!journal) throw new NotFoundException('Journal not found');
         if (journal.status !== JournalStatus.POSTED)
             throw new BadRequestException('Only posted journals can be unposted');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         await this.prisma.$transaction(async (tx) => {
             for (const line of journal.lines) {
@@ -209,6 +271,16 @@ export class JournalService {
                 where: { id },
                 data: { status: 'DRAFT' },
             });
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Journals',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بإلغاء اعتماد قيد يومية برقم مرجعي ${journal.reference}`,
+            },
         });
 
         return { message: 'Journal unposted successfully', journalId: id };

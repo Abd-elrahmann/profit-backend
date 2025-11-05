@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import { UpsertTemplateDto } from './dto/templates.dto';
 import { TemplateType } from '@prisma/client';
@@ -13,8 +13,8 @@ export class TemplatesController {
 
   @Post()
   @Permissions('templates', 'canUpdate')
-  async upsert(@Body() dto: UpsertTemplateDto) {
-    return this.templatesService.upsertTemplate(dto);
+  async upsert(@Req() req, @Body() dto: UpsertTemplateDto) {
+    return this.templatesService.upsertTemplate(req.user.id , dto);
   }
 
   @Get(':name')

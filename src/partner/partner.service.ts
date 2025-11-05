@@ -15,11 +15,15 @@ export class PartnerService {
     ) { }
 
     // CREATE PARTNER
-    async createPartner(dto: CreatePartnerDto, userId?: number) {
+    async createPartner(currentUser, dto: CreatePartnerDto, userId?: number) {
         const existing = await this.prisma.partner.findFirst({
             where: { nationalId: dto.nationalId },
         });
         if (existing) throw new BadRequestException('Partner with this national ID already exists');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const liabilities = await this.prisma.account.findUnique({ where: { code: '20000' } });
         const equity = await this.prisma.account.findUnique({ where: { code: '30000' } });
@@ -98,13 +102,27 @@ export class PartnerService {
 
         await this.journalService.createJournal(journalDto, userId);
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Partners',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بإنشاء شريك جديد: ${partner.name} برأس مال ${partner.capitalAmount}`,
+            },
+        });
+
         return { message: 'Partner created successfully with capital journal', partner };
     }
 
     // UPDATE PARTNER
-    async updatePartner(id: number, dto: UpdatePartnerDto) {
+    async updatePartner(currentUser, id: number, dto: UpdatePartnerDto) {
         const partner = await this.prisma.partner.findUnique({ where: { id } });
         if (!partner) throw new NotFoundException('Partner not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const updated = await this.prisma.partner.update({
             where: { id },
@@ -114,16 +132,30 @@ export class PartnerService {
             },
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Partners',
+                action: 'UPDATE',
+                description: `قام المستخدم ${user?.name} بتحديث بيانات الشريك: ${partner.name}`,
+            },
+        });
+
         return { message: 'Partner updated successfully', partner: updated };
     }
 
     // DELETE PARTNER
-    async deletePartner(id: number) {
+    async deletePartner(currentUser, id: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
             include: { AccountPayable: true, AccountEquity: true },
         });
         if (!partner) throw new NotFoundException('Partner not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         // Remove partner upload directory (if exists)
         try {
@@ -146,6 +178,16 @@ export class PartnerService {
             });
             await tx.account.delete({ where: { id: partner.accountPayableId } });
             await tx.account.delete({ where: { id: partner.accountEquityId } });
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Partners',
+                action: 'DELETE',
+                description: `قام المستخدم ${user?.name} بحذف الشريك: ${partner.name}`,
+            },
         });
 
         return { message: 'Partner and related accounts deleted successfully' };
@@ -224,11 +266,15 @@ export class PartnerService {
     }
 
     // UPLOAD MUDARABAH FILE
-    async uploadMudarabahFile(id: number, file: Express.Multer.File) {
+    async uploadMudarabahFile(currentUser, id: number, file: Express.Multer.File) {
         const partner = await this.prisma.partner.findUnique({ where: { id } });
         if (!partner) throw new NotFoundException('Partner not found');
 
         if (!file) throw new BadRequestException('No file uploaded');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -258,6 +304,16 @@ export class PartnerService {
         await this.prisma.partner.update({
             where: { id },
             data: { mudarabahFileUrl: publicUrl },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Partners',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل ملف المضاربة للشريك: ${partner.name}`,
+            },
         });
 
         return { message: 'File uploaded successfully', path: publicUrl };

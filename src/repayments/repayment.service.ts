@@ -77,13 +77,17 @@ export class RepaymentService {
     }
 
     // Upload multiple receipts for a repayment
-    async uploadReceipts(id: number, files: Express.Multer.File[]) {
+    async uploadReceipts(currentUser, id: number, files: Express.Multer.File[]) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
             include: { client: true },
         });
         if (!repayment) throw new NotFoundException('Repayment not found');
         if (!files || files.length === 0) throw new BadRequestException('No files uploaded');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const uploadsDir = path.join(process.cwd(), 'uploads', 'clients', repayment.client?.nationalId || 'unknown', 'repayments');
         if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -122,9 +126,19 @@ export class RepaymentService {
         await this.prisma.repayment.update({
             where: { id },
             data: {
-                attachments: fileUrls, // array of URLs
-                status: PaymentStatus.PENDING,
+                attachments: fileUrls,
+                status: PaymentStatus.PENDING_REVIEW,
                 reviewStatus: 'PENDING',
+            },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Repayments',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل ايصالات للسداد للدفعة رقم ${id}`,
             },
         });
 
@@ -132,7 +146,7 @@ export class RepaymentService {
     }
 
     // Approve repayment
-    async approveRepayment(id: number, dto: RepaymentDto, userId?: number) {
+    async approveRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
             include: { loan: { include: { client: true } } },
@@ -148,8 +162,12 @@ export class RepaymentService {
         if (repayment.status === PaymentStatus.PAID)
             throw new BadRequestException('Repayment already approved');
 
-        if (dto.paidAmount && dto.paidAmount < repayment.amount)
+        if (repayment.paidAmount < repayment.amount)
             throw new BadRequestException('Paid amount cannot be less than repayment amount');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const totalAmount = dto.paidAmount ?? repayment.amount;
         const interestAmount = loan.interestAmount / loan.durationMonths;
@@ -199,7 +217,7 @@ export class RepaymentService {
                         },
                     ],
                 },
-                userId,
+                currentUser,
             );
 
             const updatedRepayment = await tx.repayment.update({
@@ -252,6 +270,16 @@ export class RepaymentService {
 
             await this.updateClientStatus(loan.clientId);
 
+            // create audit log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Repayments',
+                    action: 'POST',
+                    description: `قام المستخدم ${user?.name} بالموافقة على السداد للدفعة رقم ${id}`,
+                },
+            });
+
             return {
                 message: 'Repayment approved successfully',
                 repaymentId: id,
@@ -261,7 +289,7 @@ export class RepaymentService {
     }
 
     // Reject repayment
-    async rejectRepayment(id: number, dto: RepaymentDto) {
+    async rejectRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
             include: { loan: { include: { client: true } } },
@@ -273,6 +301,10 @@ export class RepaymentService {
 
         if (loan.status === LoanStatus.PENDING)
             throw new BadRequestException('loan is pending');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         // Start transaction to keep data consistent
         return await this.prisma.$transaction(async (tx) => {
@@ -331,12 +363,22 @@ export class RepaymentService {
             }
             await this.updateClientStatus(loan.clientId);
 
+            // create audit log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Repayments',
+                    action: 'POST',
+                    description: `قام المستخدم ${user?.name} برفض السداد للدفعة رقم ${id}`,
+                },
+            });
+
             return { message: 'Repayment rejected and journal removed', repaymentId: id };
         });
     }
 
     // Postpone repayment
-    async postponeRepayment(id: number, dto: RepaymentDto) {
+    async postponeRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
             include: { loan: { include: { client: true } } },
@@ -352,6 +394,10 @@ export class RepaymentService {
         if (!dto.newDueDate)
             throw new BadRequestException('New due date is required for postponing');
 
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
         await this.prisma.repayment.update({
             where: { id },
             data: {
@@ -366,11 +412,21 @@ export class RepaymentService {
 
         await this.updateClientStatus(loan.clientId);
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Repayments',
+                action: 'POST',
+                description: `قام المستخدم ${user?.name} بتأجيل السداد للدفعة رقم ${id}`,
+            },
+        });
+
         return { message: 'Repayment postponed successfully', repaymentId: id };
     }
 
     // Upload payment proof
-    async uploadPaymentProof(id: number, file: Express.Multer.File) {
+    async uploadPaymentProof(currentUser, id: number, file: Express.Multer.File) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
             include: { client: true },
@@ -381,6 +437,10 @@ export class RepaymentService {
 
         const nationalId = repayment.client?.nationalId;
         if (!nationalId) throw new BadRequestException('Client national ID not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -408,11 +468,21 @@ export class RepaymentService {
             data: { PaymentProof: publicUrl }
         });
 
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Repayments',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل اثبات السداد للدفعة رقم ${id}`,
+            },
+        });
+
         return { message: 'Payment proof uploaded successfully', fileUrl: publicUrl };
     }
 
     // Update repayment as partial paid
-    async markAsPartialPaid(id: number, paidAmount: number) {
+    async markAsPartialPaid(currentUser, id: number, paidAmount: number) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
         });
@@ -424,16 +494,32 @@ export class RepaymentService {
         if (paidAmount >= repayment.amount)
             throw new BadRequestException('Paid amount cannot be equal or greater than full amount — use approveRepayment instead');
 
-        const remaining = repayment.amount - paidAmount;
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        const newPaidAmount = paidAmount + (repayment.paidAmount || 0);
+
+        const remaining = repayment.amount - newPaidAmount;
 
         const updated = await this.prisma.repayment.update({
             where: { id },
             data: {
-                paidAmount,
+                paidAmount: newPaidAmount,
                 remaining,
                 status: PaymentStatus.PARTIAL_PAID,
                 reviewStatus: 'APPROVED',
                 paymentDate: new Date(),
+            },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Repayments',
+                action: 'UPDATE',
+                description: `قام المستخدم ${user?.name} بتحديث السداد الجزئي للدفعة رقم ${id}`,
             },
         });
 
