@@ -18,5 +18,35 @@
     "balance": 10000,
     "clientId": null,
     "description": "رأس مال youssef khaled"
+  },
+  {
+    "id": 12,
+    "journalId": 7,
+    "accountId": 30,
+    "debit": 8750,
+    "credit": 0,
+    "balance": 8750,
+    "clientId": null,
+    "description": "Repayment received from youssef khaled"
+  },
+  {
+    "id": 13,
+    "journalId": 7,
+    "accountId": 46,
+    "debit": 0,
+    "credit": 8333.333333333334,
+    "balance": -8333.333333333334,
+    "clientId": 1,
+    "description": "Loan principal repayment"
+  },
+  {
+    "id": 14,
+    "journalId": 7,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 416.6666666666667,
+    "balance": 416.6666666666667,
+    "clientId": null,
+    "description": "Loan interest income"
   }
 ]

@@ -11,5 +11,18 @@
     "postedById": 1,
     "periodId": null,
     "createdAt": "2025-10-27T19:42:55.487Z"
+  },
+  {
+    "id": 7,
+    "reference": "REP-49",
+    "description": "Repayment approval for loan #LN-20251102-001",
+    "date": "2025-11-02T23:58:44.562Z",
+    "type": "GENERAL",
+    "status": "DRAFT",
+    "sourceId": 49,
+    "sourceType": "REPAYMENT",
+    "postedById": null,
+    "periodId": null,
+    "createdAt": "2025-11-02T23:58:44.562Z"
   }
 ]
