@@ -233,6 +233,7 @@ enum PaymentStatus {
   PENDING_REVIEW
   PAID
   PARTIAL_PAID
+  COMPLETED
   OVERDUE
 }
 

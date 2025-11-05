@@ -50,7 +50,6 @@ export class RepaymentService {
         });
     }
 
-
     // Get all repayments for a specific loan
     async getRepaymentsByLoan(loanId: number) {
         const loan = await this.prisma.loan.findUnique({
@@ -86,7 +85,6 @@ export class RepaymentService {
 
         return repaymentsWithSaudiTime;
     }
-
 
     // Get specific repayment by ID
     async getRepaymentById(id: number) {
@@ -535,7 +533,7 @@ export class RepaymentService {
             data: {
                 paidAmount: newPaidAmount,
                 remaining,
-                status: remaining > 0 ? PaymentStatus.PARTIAL_PAID : PaymentStatus.PAID,
+                status: remaining > 0 ? PaymentStatus.PARTIAL_PAID : PaymentStatus.COMPLETED,
                 reviewStatus: 'APPROVED',
                 paymentDate: new Date(),
             },

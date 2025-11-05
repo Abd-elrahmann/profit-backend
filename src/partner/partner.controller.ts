@@ -80,6 +80,7 @@ export class PartnerController {
 
     // CREATE TRANSACTION
     @Post('transaction/:id')
+    @Permissions('partners', 'canUpdate')
     async createTransaction(
         @Req() req,
         @Param('id', ParseIntPipe) partnerId: number,
