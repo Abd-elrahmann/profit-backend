@@ -80,7 +80,7 @@ export class PartnerController {
 
     // CREATE TRANSACTION
     @Post('transaction/:id')
-    @Permissions('partners', 'canUpdate')
+    @Permissions('partners', 'canAdd')
     async createTransaction(
         @Req() req,
         @Param('id', ParseIntPipe) partnerId: number,
@@ -101,6 +101,7 @@ export class PartnerController {
 
     // DELETE TRANSACTION
     @Delete('transaction/:id')
+    @Permissions('partners', 'canDelete')
     async deleteTransaction(
         @Req() req,
         @Param('id', ParseIntPipe) id: number,
@@ -111,6 +112,7 @@ export class PartnerController {
 
     // GET TRANSACTIONS
     @Get('transaction/:id/:page')
+    @Permissions('partners', 'canView')
     async getTransactions(
         @Param('id', ParseIntPipe) partnerId: number,
         @Param('page', ParseIntPipe) page: number,
