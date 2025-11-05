@@ -507,7 +507,7 @@ export class RepaymentService {
             data: {
                 paidAmount: newPaidAmount,
                 remaining,
-                status: PaymentStatus.PARTIAL_PAID,
+                status: remaining > 0 ? PaymentStatus.PARTIAL_PAID : PaymentStatus.PAID,
                 reviewStatus: 'APPROVED',
                 paymentDate: new Date(),
             },
