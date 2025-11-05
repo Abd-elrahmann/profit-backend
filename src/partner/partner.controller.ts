@@ -77,4 +77,54 @@ export class PartnerController {
     ) {
         return this.partnerService.uploadMudarabahFile(req.user.id, id, file);
     }
+
+    // CREATE TRANSACTION
+    @Post('transaction/:id')
+    async createTransaction(
+        @Req() req,
+        @Param('id', ParseIntPipe) partnerId: number,
+        @Body()
+        dto: {
+            type: 'DEPOSIT' | 'WITHDRAWAL';
+            amount: number;
+            description?: string;
+        },
+    ) {
+        const currentUser = req.user.id;
+        return await this.partnerService.createPartnerTransaction(
+            currentUser,
+            partnerId,
+            dto,
+        );
+    }
+
+    // DELETE TRANSACTION
+    @Delete('transaction/:id')
+    async deleteTransaction(
+        @Req() req,
+        @Param('id', ParseIntPipe) id: number,
+    ) {
+        const currentUser = req.user.id;
+        return await this.partnerService.deletePartnerTransaction(currentUser, id);
+    }
+
+    // GET TRANSACTIONS
+    @Get('transaction/:id/:page')
+    async getTransactions(
+        @Param('id', ParseIntPipe) partnerId: number,
+        @Param('page', ParseIntPipe) page: number,
+        @Query('limit') limit?: number,
+        @Query('type') type?: 'DEPOSIT' | 'WITHDRAWAL',
+        @Query('search') search?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
+        return await this.partnerService.getPartnerTransactions(partnerId, page, {
+            limit: limit ? Number(limit) : 10,
+            type,
+            search,
+            startDate,
+            endDate,
+        });
+    }
 }

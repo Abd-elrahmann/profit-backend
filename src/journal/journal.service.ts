@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JournalStatus } from '@prisma/client';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class JournalService {
@@ -176,7 +177,7 @@ export class JournalService {
         if (status) where.status = status as any;
         if (type) where.type = type as any;
 
-        const [journals, total] = await Promise.all([
+        const [unformmatedjournals, total] = await Promise.all([
             this.prisma.journalHeader.findMany({
                 where,
                 include: { postedBy: { select: { id: true, name: true, email: true } } },
@@ -186,6 +187,20 @@ export class JournalService {
             }),
             this.prisma.journalHeader.count({ where }),
         ]);
+
+        const journals = unformmatedjournals.map((journal) => ({
+            ...journal,
+            date: journal.date
+                ? DateTime.fromJSDate(journal.date)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+            createdAt: journal.createdAt
+                ? DateTime.fromJSDate(journal.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+        }));
 
         return {
             total,

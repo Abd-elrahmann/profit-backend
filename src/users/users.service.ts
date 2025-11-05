@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class UsersService {
@@ -156,7 +157,7 @@ export class UsersService {
     const totalPages = Math.ceil(totalUsers / limit);
     if (page > totalPages && totalUsers > 0) throw new NotFoundException('Page not found');
 
-    const users = await this.prisma.user.findMany({
+    const unformattedUsers = await this.prisma.user.findMany({
       where,
       skip,
       take: limit,
@@ -176,6 +177,13 @@ export class UsersService {
         createdAt: true
       },
     });
+
+    const users = unformattedUsers.map((user) => ({
+      ...user,
+      createdAt: DateTime.fromJSDate(user.createdAt, { zone: 'utc' })
+        .setZone('Asia/Riyadh')
+        .toFormat('yyyy-MM-dd HH:mm:ss'),
+    }));
 
     return {
       totalUsers,

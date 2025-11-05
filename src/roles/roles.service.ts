@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class RolesService {
@@ -62,11 +63,25 @@ export class RolesService {
         if (filters?.id) where.id = filters.id;
         if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
 
-        const roles = await this.prisma.role.findMany({
+        const unformattedRoles = await this.prisma.role.findMany({
             where,
             include: { permissions: true },
             orderBy: { id: 'asc' },
         });
+
+        const roles = unformattedRoles.map((role) => ({
+            ...role,
+            createdAt: role.createdAt
+                ? DateTime.fromJSDate(role.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+            updatedAt: role.updatedAt
+                ? DateTime.fromJSDate(role.updatedAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+        }));
 
         return { total: roles.length, roles };
     }
