@@ -483,71 +483,119 @@ export class LoansService {
         });
     }
 
-    async uploadDebtAcknowledgmentFile(currentUser, clientId: number, file: Express.Multer.File) {
-        const client = await this.prisma.client.findUnique({
-            where: { id: clientId },
-            include: { documents: true },
-        });
-        if (!client) throw new NotFoundException('Client not found');
+    async uploadDebtAcknowledgmentFile(currentUser: number, loanId: number, file: Express.Multer.File) {
         if (!file) throw new BadRequestException('No file uploaded');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: { client: true },
         });
+        if (!loan) throw new NotFoundException('Loan not found');
+
+        const client = loan.client;
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
         const ext = path.extname(file.originalname);
-        const fileName = `إقرار الدين${ext}`;
+        const fileName = `إقرار الدين - ${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
-
         fs.writeFileSync(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
 
-        const existingDoc = await this.prisma.clientDocument.findFirst({
-            where: { clientId },
+        // 6. Update loan with file URL
+        await this.prisma.loan.update({
+            where: { id: loanId },
+            data: { DEBT_ACKNOWLEDGMENT: publicUrl },
         });
 
-        if (existingDoc) {
-            await this.prisma.clientDocument.update({
-                where: { id: existingDoc.id },
-                data: { DEBT_ACKNOWLEDGMENT: publicUrl },
-            });
-        } else { return console.log('No existing document found'); }
-
-        // create audit log
+        // 7. Create audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
                 screen: 'Loans',
                 action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بتحميل إقرار الدين للعميل ${client.name}`,
+                description: `قام المستخدم ${user?.name} بتحميل إقرار الدين للسلفة رقم ${loan.code} الخاص بالعميل ${client.name}`,
             },
         });
 
-        return { message: 'إقرار الدين uploaded successfully', path: publicUrl };
+        // 8. Return response
+        return { message: 'تم تحميل إقرار الدين بنجاح', path: publicUrl };
     }
 
-    async uploadPromissoryNoteFile(currentUser, clientId: number, file: Express.Multer.File) {
-        const client = await this.prisma.client.findUnique({
-            where: { id: clientId },
-            include: { documents: true },
-        });
-        if (!client) throw new NotFoundException('Client not found');
+    async uploadPromissoryNoteFile(currentUser: number, loanId: number, file: Express.Multer.File) {
         if (!file) throw new BadRequestException('No file uploaded');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
+        // Find the loan and related client
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: { client: true },
         });
+        if (!loan) throw new NotFoundException('Loan not found');
+
+        const client = loan.client;
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+
+        // Create upload directory
+        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        // Build filename with loan code
+        const ext = path.extname(file.originalname);
+        const fileName = `سند لأمر - ${loan.code}${ext}`;
+        const filePath = path.join(uploadDir, fileName);
+
+        // Save file
+        fs.writeFileSync(filePath, file.buffer);
+
+        // Generate public URL
+        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+
+        // Update loan with file URL
+        await this.prisma.loan.update({
+            where: { id: loanId },
+            data: { PROMISSORY_NOTE: publicUrl },
+        });
+
+        // Create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Loans',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل سند لأمر للسلفة رقم ${loan.code} الخاص بالعميل ${client.name}`,
+            },
+        });
+
+        return { message: 'تم تحميل سند لأمر بنجاح', path: publicUrl };
+    }
+
+    async uploadSettlementFile(currentUser: number, loanId: number, file: Express.Multer.File) {
+        if (!file) throw new BadRequestException('No file uploaded');
+
+
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: { client: true },
+        });
+        if (!loan) throw new NotFoundException('Loan not found');
+
+        if (loan.status !== LoanStatus.COMPLETED) {
+            throw new BadRequestException('Only completed loans can have settlement files uploaded');
+        }
+
+        const client = loan.client;
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
         const ext = path.extname(file.originalname);
-        const fileName = `سند لأمر${ext}`;
+        const fileName = `تسوية - ${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
 
         fs.writeFileSync(filePath, file.buffer);
@@ -555,27 +603,20 @@ export class LoansService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
 
-        const existingDoc = await this.prisma.clientDocument.findFirst({
-            where: { clientId },
+        await this.prisma.loan.update({
+            where: { id: loanId },
+            data: { SETTLEMENT: publicUrl },
         });
 
-        if (existingDoc) {
-            await this.prisma.clientDocument.update({
-                where: { id: existingDoc.id },
-                data: { PROMISSORY_NOTE: publicUrl },
-            });
-        } else { return console.log('No existing document found'); }
-
-        // create audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
                 screen: 'Loans',
                 action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بتحميل سند لأمر للعميل ${client.name}`,
+                description: `قام المستخدم ${user?.name} بتحميل ملف التسوية للقرض رقم ${loan.code} الخاص بالعميل ${client.name}`,
             },
         });
 
-        return { message: 'سند لأمر uploaded successfully', path: publicUrl };
+        return { message: 'تم تحميل ملف التسوية بنجاح', path: publicUrl };
     }
 }

@@ -15,12 +15,13 @@ export class AuditLogController {
     async getAllLogs(
         @Param('page', ParseIntPipe) page: number,
         @Query('limit') limit = 10,
+        @Query('userId') userId?: number,
         @Query('screen') screen?: string,
         @Query('action') action?: string,
         @Query('userName') userName?: string,
         @Query('from') from?: string,
         @Query('to') to?: string,
     ) {
-        return this.auditLogService.getAllLogs(+page, +limit, { screen, action, userName, from, to });
+        return this.auditLogService.getAllLogs(+page, +limit, { userId , screen, action, userName, from, to });
     }
 }

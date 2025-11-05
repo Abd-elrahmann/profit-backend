@@ -28,7 +28,7 @@ export class LoansController {
     @Post()
     @Permissions('loans', 'canAdd')
     create(@Req() req, @Body() dto: CreateLoanDto) {
-        return this.loansService.createLoan(req.user.id , dto);
+        return this.loansService.createLoan(req.user.id, dto);
     }
 
     @Patch(':id/activate')
@@ -41,7 +41,7 @@ export class LoansController {
     @Patch(':id/deactivate')
     @Permissions('loans', 'canUpdate')
     deactivateLoan(@Req() req, @Param('id', ParseIntPipe) id: number) {
-        return this.loansService.deactivateLoan(req.user.id , id);
+        return this.loansService.deactivateLoan(req.user.id, id);
     }
 
     @Get('all/:page')
@@ -65,13 +65,13 @@ export class LoansController {
     @Patch(':id')
     @Permissions('loans', 'canUpdate')
     update(@Req() req, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateLoanDto) {
-        return this.loansService.updateLoan(req.user.id , id, dto);
+        return this.loansService.updateLoan(req.user.id, id, dto);
     }
 
     @Delete(':id')
     @Permissions('loans', 'canDelete')
     delete(@Req() req, @Param('id', ParseIntPipe) id: number) {
-        return this.loansService.deleteLoan(req.user.id , id);
+        return this.loansService.deleteLoan(req.user.id, id);
     }
 
     @Post(':id/upload-debt-acknowledgment')
@@ -81,7 +81,7 @@ export class LoansController {
         @Param('id') id: number,
         @UploadedFile() file: Express.Multer.File
     ) {
-        return this.loansService.uploadDebtAcknowledgmentFile(req.user.id , id, file);
+        return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file);
     }
 
     @Post(':id/upload-promissory-note')
@@ -91,6 +91,16 @@ export class LoansController {
         @Param('id') id: number,
         @UploadedFile() file: Express.Multer.File
     ) {
-        return this.loansService.uploadPromissoryNoteFile(req.user.id , id, file);
+        return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file);
+    }
+
+    @Post(':id/upload-Settlement')
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadSettlementFile(
+        @Req() req,
+        @Param('id') id: number,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.loansService.uploadSettlementFile(req.user.id, id, file);
     }
 }

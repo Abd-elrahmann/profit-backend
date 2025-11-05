@@ -10,6 +10,7 @@ export class AuditLogService {
         page: number,
         limit: number,
         filters: {
+            userId?: number;
             screen?: string;
             action?: string;
             userName?: string;
@@ -20,6 +21,10 @@ export class AuditLogService {
         const skip = (page - 1) * limit;
 
         const where: any = {};
+
+        if (filters.userId) {
+            where.userId = filters.userId;
+        }
 
         if (filters.screen) {
             where.screen = { contains: filters.screen, mode: 'insensitive' };
