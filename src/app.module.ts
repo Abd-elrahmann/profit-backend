@@ -16,6 +16,8 @@ import { BankModule } from './bankAccounts/bank.module';
 import { RepaymentModule } from './repayments/repayment.module';
 import { NotificationModule } from './notification/notification.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { audit } from 'rxjs';
+import { AuditLogModule } from './logs/audit-log.module';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     BankModule,
     RepaymentModule,
     NotificationModule,
+    AuditLogModule,
     
   ],
   controllers: [AppController],
