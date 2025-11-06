@@ -222,7 +222,7 @@ export class JournalService {
     }
 
     // POST JOURNAL
-    async postJournal(id: number, userId?: number) {
+    async postJournal(id: number, userId: number) {
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id },
             include: { lines: true },

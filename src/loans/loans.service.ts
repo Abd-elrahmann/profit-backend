@@ -153,7 +153,7 @@ export class LoansService {
     }
 
     // Activate Loan
-    async activateLoan(id: number, userId?: number) {
+    async activateLoan(id: number, userId: number) {
         const loan = await this.prisma.loan.findUnique({ where: { id } });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)

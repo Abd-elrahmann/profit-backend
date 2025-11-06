@@ -15,7 +15,7 @@ export class PartnerService {
     ) { }
 
     // CREATE PARTNER
-    async createPartner(currentUser, dto: CreatePartnerDto, userId?: number) {
+    async createPartner(currentUser, dto: CreatePartnerDto) {
         const existing = await this.prisma.partner.findFirst({
             where: { nationalId: dto.nationalId },
         });
@@ -100,7 +100,7 @@ export class PartnerService {
             ],
         };
 
-        await this.journalService.createJournal(journalDto, userId);
+        await this.journalService.createJournal(journalDto, currentUser);
 
         // create audit log
         await this.prisma.auditLog.create({
@@ -351,19 +351,19 @@ export class PartnerService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // if (dto.type === 'WITHDRAWAL') {
-        //     const monthsSinceCreation = DateTime.now()
-        //         .diff(DateTime.fromJSDate(partner.createdAt), 'months')
-        //         .months;
+        if (dto.type === 'WITHDRAWAL') {
+            const monthsSinceCreation = DateTime.now()
+                .diff(DateTime.fromJSDate(partner.createdAt), 'months')
+                .months;
 
-        //     if (monthsSinceCreation < 15) {
-        //         throw new BadRequestException('لا يمكن السحب من رأس المال قبل مرور 15 شهرًا على الإيداع.');
-        //     }
+            if (monthsSinceCreation < 15) {
+                throw new BadRequestException('لا يمكن السحب من رأس المال قبل مرور 15 شهرًا على الإيداع.');
+            }
 
-        //     if (partner.capitalAmount < dto.amount) {
-        //         throw new BadRequestException('رصيد رأس المال غير كافٍ للسحب.');
-        //     }
-        // }
+            if (partner.capitalAmount < dto.amount) {
+                throw new BadRequestException('رصيد رأس المال غير كافٍ للسحب.');
+            }
+        }
 
         const reference = `PT-${partnerId}-${Date.now()}`;
 
