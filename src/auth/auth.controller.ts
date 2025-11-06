@@ -1,10 +1,10 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, Patch, Param, ParseIntPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './strategy/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   register(@Body() body: { name: string; email: string; password: string; phone: string }) {
@@ -24,7 +24,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('update-profile')
-  updateProfile(@Req() req, @Body() body: { name?: string; phone?: string;}) {
+  updateProfile(@Req() req, @Body() body: { name?: string; phone?: string; }) {
     return this.authService.updateProfile(req.user.id, body);
   }
 
@@ -42,5 +42,14 @@ export class AuthController {
   @Post('reset-password')
   resetPassword(@Body() body: { token: string; newPassword: string; confirmPassword: string }) {
     return this.authService.resetPassword(body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('permissions/:module')
+  getUserModulePermissions(
+    @Req() req,
+    @Param('module') module: string,
+  ) {
+    return this.authService.getUserModulePermissions(req.user.id, module);
   }
 }

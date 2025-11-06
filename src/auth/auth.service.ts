@@ -199,4 +199,36 @@ export class AuthService {
 
     return { message: 'Password reset successfully.' };
   }
+
+  async getUserModulePermissions(userId: number, module: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              where: { module },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.role) return [];
+    if (user.role.permissions.length === 0) return [];
+
+    const permission = user.role.permissions[0];
+
+    // ✅ Explicitly type the array to avoid 'never[]'
+    const permissionsList: string[] = [];
+
+    if (permission.canView) permissionsList.push('View');
+    if (permission.canAdd) permissionsList.push('Add');
+    if (permission.canUpdate) permissionsList.push('Update');
+    if (permission.canDelete) permissionsList.push('Delete');
+    if (permission.canPost) permissionsList.push('Post');
+
+    return permissionsList;
+  }
 }
