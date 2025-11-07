@@ -231,4 +231,53 @@ export class AuthService {
 
     return permissionsList;
   }
+
+  // Get all modules assigned to the user's role
+  async getUserModules(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        role: {
+          include: {
+            permissions: true,
+          },
+        },
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.role) throw new BadRequestException('User has no assigned role');
+    if (!user.role.permissions || user.role.permissions.length === 0)
+      return [];
+
+    // Map of module → frontend path
+    const moduleToPath: Record<string, string> = {
+      dashboard: '/dashboard',
+      logs: '/logs',
+      users: '/employees',
+      roles: '/roles',
+      clients: '/clients',
+      partners: '/investors',
+      templates: '/contract-templates',
+      loans: '/loans',
+      banks: '/banks',
+      repayments: '/installments',
+      journals: '/journal-entries',
+    };
+
+    // Extract unique module names from permissions
+    const modules = [...new Set(user.role.permissions.map((perm) => perm.module))];
+
+    // Map modules to paths (only ones defined above)
+    const paths = modules
+      .map((m) => moduleToPath[m])
+      .filter((path) => path !== undefined);
+
+    // Add second path for templates manually
+    if (modules.includes('templates')) {
+      paths.push('/messages-templates');
+    }
+
+    return paths;
+  }
 }

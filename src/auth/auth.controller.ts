@@ -52,4 +52,12 @@ export class AuthController {
   ) {
     return this.authService.getUserModulePermissions(req.user.id, module);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('modules')
+  getUserModules(
+    @Req() req,
+  ) {
+    return this.authService.getUserModules(req.user.id);
+  }
 }
