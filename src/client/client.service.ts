@@ -9,6 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Injectable()
 export class ClientService {
@@ -218,7 +220,7 @@ export class ClientService {
         const deleteFile = (fileUrl?: string) => {
             if (!fileUrl) return;
             try {
-                const relativePath = decodeURI(fileUrl.replace('http://localhost:3000/', ''));
+               const relativePath = decodeURI(fileUrl.replace(process.env.URL || '', ''));
                 const fullPath = path.join(process.cwd(), relativePath);
                 if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
             } catch (err) {
@@ -457,7 +459,7 @@ export class ClientService {
             const newPath = path.join(clientDir, path.basename(file.path));
             fs.renameSync(file.path, newPath);
             const relPath = newPath.replace(/\\/g, '/');
-            return `http://localhost:3000/${encodeURI(relPath)}`;
+            return `${process.env.URL}${encodeURI(relPath)}`;
         };
 
         return {

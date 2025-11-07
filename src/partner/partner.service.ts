@@ -6,6 +6,8 @@ import * as path from 'path';
 import { JournalService } from '../journal/journal.service';
 import { JournalSourceType, JournalStatus, JournalType } from '@prisma/client';
 import { DateTime } from 'luxon';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Injectable()
 export class PartnerService {
@@ -285,7 +287,7 @@ export class PartnerService {
             try {
                 let existingRelative = partner.mudarabahFileUrl;
                 if (existingRelative.startsWith('http')) {
-                    existingRelative = decodeURI(existingRelative.replace('http://localhost:3000/', ''));
+                    existingRelative = decodeURI(existingRelative.replace(process.env.URL || '', ''));
                 }
                 const existingFull = path.join(process.cwd(), existingRelative);
                 if (fs.existsSync(existingFull)) fs.unlinkSync(existingFull);
@@ -300,7 +302,7 @@ export class PartnerService {
 
         // Build public URL to store in DB
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
         // Update database with public URL
         await this.prisma.partner.update({

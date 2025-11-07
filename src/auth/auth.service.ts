@@ -147,7 +147,7 @@ export class AuthService {
     });
 
     // send email
-    const resetLink = `http://localhost:3001/reset-password?token=${encodeURIComponent(randomToken)}`;
+    const resetLink = `${process.env.FRONT}/reset-password?token=${encodeURIComponent(randomToken)}`;
 
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',

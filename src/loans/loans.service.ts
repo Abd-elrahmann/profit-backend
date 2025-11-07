@@ -6,6 +6,8 @@ import { JournalService } from '../journal/journal.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DateTime } from 'luxon';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Injectable()
 export class LoansService {
@@ -543,7 +545,7 @@ export class LoansService {
         fs.writeFileSync(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
         // 6. Update loan with file URL
         await this.prisma.loan.update({
@@ -592,7 +594,7 @@ export class LoansService {
 
         // Generate public URL
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
         // Update loan with file URL
         await this.prisma.loan.update({
@@ -640,7 +642,7 @@ export class LoansService {
         fs.writeFileSync(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
         await this.prisma.loan.update({
             where: { id: loanId },

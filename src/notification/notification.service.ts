@@ -4,6 +4,8 @@ import { SendNotificationDto } from './dto/notification.dto';
 import { NotificationType } from '@prisma/client';
 import { WhatsappService } from './api/whatsapp.service';
 import { TelegramService } from './api/telegram.service';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Injectable()
 export class NotificationService {
@@ -48,7 +50,7 @@ export class NotificationService {
             paymentDate: repayment?.paymentDate?.toISOString().split('T')[0],
             repaymentNumber: repayment?.count,
             paymentLink: repayment
-                ? `http://localhost:3001/payment-receipt/${loan?.id}/${repayment?.id}/${encodeURIComponent(client?.name || '')}`
+                ? `${process.env.FRONT}payment-receipt/${loan?.id}/${repayment?.id}/${encodeURIComponent(client?.name || '')}`
                 : '',
         };
 

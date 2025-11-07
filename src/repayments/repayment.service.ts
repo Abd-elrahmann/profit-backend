@@ -7,6 +7,8 @@ import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DateTime } from 'luxon';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Injectable()
 export class RepaymentService {
@@ -144,7 +146,7 @@ export class RepaymentService {
             fs.writeFileSync(filePath, file.buffer);
 
             const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-            const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+            const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
             fileUrls.push(publicUrl);
         }
 
@@ -483,7 +485,7 @@ export class RepaymentService {
         }
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `http://localhost:3000/${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
         // Update repayment record with PaymentProof URL
         await this.prisma.repayment.update({
