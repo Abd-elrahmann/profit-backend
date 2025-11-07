@@ -252,17 +252,17 @@ export class AuthService {
 
     // Map of module → frontend path
     const moduleToPath: Record<string, string> = {
-      dashboard: '/dashboard',
-      logs: '/logs',
-      users: '/employees',
-      roles: '/roles',
-      clients: '/clients',
-      partners: '/investors',
-      templates: '/contract-templates',
-      loans: '/loans',
-      banks: '/banks',
-      repayments: '/installments',
-      journals: '/journal-entries',
+      dashboard: 'dashboard',
+      logs: 'logs',
+      users: 'employees',
+      roles: 'roles',
+      clients: 'clients',
+      partners: 'investors',
+      templates: 'contract-templates',
+      loans: 'loans',
+      banks: 'banks',
+      repayments: 'installments',
+      journals: 'journal-entries',
     };
 
     // Extract unique module names from permissions
@@ -275,7 +275,7 @@ export class AuthService {
 
     // Add second path for templates manually
     if (modules.includes('templates')) {
-      paths.push('/messages-templates');
+      paths.push('messages-templates');
     }
 
     return paths;
