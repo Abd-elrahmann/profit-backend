@@ -7,10 +7,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateClientDto, UpdateClientDto } from './dto/client.dto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config();
+import { PaymentStatus, LoanStatus, ClientStatus } from '@prisma/client';
 
 @Injectable()
 export class ClientService {
@@ -220,7 +219,7 @@ export class ClientService {
         const deleteFile = (fileUrl?: string) => {
             if (!fileUrl) return;
             try {
-               const relativePath = decodeURI(fileUrl.replace(process.env.URL || '', ''));
+                const relativePath = decodeURI(fileUrl.replace(process.env.URL || '', ''));
                 const fullPath = path.join(process.cwd(), relativePath);
                 if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
             } catch (err) {
@@ -481,5 +480,92 @@ export class ClientService {
             if (v !== undefined && v !== null) out[k] = v as string;
         }
         return Object.keys(out).length ? out : null;
+    }
+
+    async getClientStatement(id: number, from?: string, to?: string) {
+        const client = await this.prisma.client.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                nationalId: true,
+                balance: true,
+                debit: true,
+                credit: true,
+            },
+        });
+        if (!client) throw new NotFoundException('Client not found');
+
+        const dateFilter: any = {};
+        if (from) dateFilter.gte = new Date(from);
+        if (to) dateFilter.lte = new Date(to);
+
+        const loans = await this.prisma.loan.findMany({
+            where: {
+                clientId: id,
+                ...(Object.keys(dateFilter).length ? { startDate: dateFilter } : {}),
+            },
+            select: {
+                id: true,
+                code: true,
+                startDate: true,
+                totalAmount: true,
+                status: true,
+                newAmount:true,
+            },
+        });
+
+        const repayments = await this.prisma.repayment.findMany({
+            where: {
+                clientId: id,
+                ...(Object.keys(dateFilter).length ? { paymentDate: dateFilter } : {}),
+            },
+            select: {
+                id: true,
+                paymentDate: true,
+                amount: true,
+                paidAmount: true,
+                status: true,
+            },
+        });
+
+        const transactions: any[] = [];
+
+        for (const loan of loans) {
+            transactions.push({
+                date: loan.startDate,
+                type: 'LOAN_DISBURSEMENT',
+                description: `سلفة رقم ${loan.code}`,
+                debit: loan.newAmount ? loan.newAmount : loan.totalAmount,
+                credit: 0,
+            });
+        }
+
+        for (const r of repayments) {
+            if (['PAID', 'COMPLETED', 'PARTIAL_PAID', 'EARLY_PAID'].includes(r.status)) {
+                transactions.push({
+                    date: r.paymentDate,
+                    type: r.status === 'EARLY_PAID' ? 'EARLY_PAYMENT' : 'REPAYMENT',
+                    description: r.status === 'EARLY_PAID' ? 'سداد مبكر' : 'سداد دفعة',
+                    debit: 0,
+                    credit: r.paidAmount || r.amount,
+                });
+            }
+        }
+
+        transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        let runningBalance = client.debit - client.credit;
+        const detailedTransactions = transactions.map((t) => {
+            runningBalance += t.debit - t.credit;
+            return { ...t, balance: runningBalance };
+        });
+
+        return {
+            client,
+            openingBalance: client.debit - client.credit,
+            transactions: detailedTransactions,
+            closingBalance: runningBalance,
+        };
     }
 }

@@ -261,9 +261,19 @@ export class RepaymentService {
             });
 
             if (remaining === 0) {
+
+                const totalPaidAmount = await tx.repayment.aggregate({
+                    where: { loanId: loan.id },
+                    _sum: { paidAmount: true },
+                }).then(res => res._sum.paidAmount || 0);
+
                 await tx.loan.update({
                     where: { id: loan.id },
-                    data: { status: 'COMPLETED' },
+                    data: { 
+                        status: 'COMPLETED',
+                        endDate: new Date(),
+                        newAmount: totalPaidAmount
+                     },
                 });
             }
 
@@ -690,6 +700,11 @@ export class RepaymentService {
                 });
             }
 
+            const totalPaidAmount = await tx.repayment.aggregate({
+                where: { loanId: loan.id },
+                _sum: { paidAmount: true },
+            }).then(res => res._sum.paidAmount || 0);
+
             // Step 7: Update loan
             await tx.loan.update({
                 where: { id: loan.id },
@@ -698,7 +713,8 @@ export class RepaymentService {
                     earlyPaidAmount: totalDue,
                     earlyPaymentDiscount,
                     endDate: new Date(),
-                    disbursementJournalId: journal.journal.id,
+                    settlementJournalId: journal.journal.id,
+                    newAmount: totalPaidAmount
                 },
             });
 

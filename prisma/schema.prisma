@@ -165,6 +165,7 @@ model Loan {
   SETTLEMENT          String?
   earlyPaidAmount       Float?      @default(0)
   earlyPaymentDiscount  Float?      @default(0)
+  newAmount             Int?        @default(0)
 }
 
 enum LoanType {

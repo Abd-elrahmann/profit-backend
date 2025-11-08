@@ -51,7 +51,7 @@ export class ClientController {
         ),
     )
     createClient(@Req() req, @Body() dto: CreateClientDto, @UploadedFiles() files: any) {
-        return this.clientService.createClient(req.user.id , dto, files);
+        return this.clientService.createClient(req.user.id, dto, files);
     }
 
     // UPDATE CLIENT DATA
@@ -68,7 +68,7 @@ export class ClientController {
     // UPDATE KAFEEL DATA
     @Patch(':id/kafeel-data')
     @Permissions('clients', 'canUpdate')
-    updateKafeelData(@Req() req,@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+    updateKafeelData(@Req() req, @Param('id', ParseIntPipe) id: number, @Body() dto: any) {
         return this.clientService.updateKafeelData(req.user.id, id, dto);
     }
 
@@ -150,4 +150,16 @@ export class ClientController {
     getClientById(@Param('id', ParseIntPipe) id: number) {
         return this.clientService.getClientById(id);
     }
+
+    // GET CLIENT STATEMENT
+    @Get(':id/statement')
+    @Permissions('clients', 'canView')
+    getClientStatement(
+        @Param('id', ParseIntPipe) id: number,
+        @Query('from') from?: string,
+        @Query('to') to?: string,
+    ) {
+        return this.clientService.getClientStatement(id, from, to);
+    }
+
 }
