@@ -7,9 +7,16 @@ import {
     Param,
     Body,
     ParseIntPipe,
+    Query,
+    UseGuards,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto, UpdateAccountDto } from './dto/accounts.dto';
+import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
+import { PermissionsGuard } from '../common/guards/permissions.guard';
+import { Permissions } from '../common/decorators/permissions.decorator';
+
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 
 @Controller('accounts')
 export class AccountsController {
@@ -30,9 +37,13 @@ export class AccountsController {
         return this.accountsService.deleteAccount(id);
     }
 
-    @Get()
-    getAll() {
-        return this.accountsService.getAllAccounts();
+    @Get('all/:page')
+    getAllAccounts(
+        @Param('page', ParseIntPipe) page: number,
+        @Query('limit') limit = 10,
+        @Query('search') search?: string,
+    ) {
+        return this.accountsService.getAllAccounts(page, +limit, { search });
     }
 
     @Get('tree')
@@ -40,8 +51,13 @@ export class AccountsController {
         return this.accountsService.getAccountsTree();
     }
 
+    @Get('bank')
+    getBankAccountReport() {
+        return this.accountsService.getBankAccountReport();
+    }
+
     @Get(':id')
     getAccountById(@Param('id', ParseIntPipe) id: number) {
         return this.accountsService.getAccountById(id);
-    }    
+    }
 }

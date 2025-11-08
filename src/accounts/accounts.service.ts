@@ -46,18 +46,42 @@ export class AccountsService {
     }
 
     // GET ALL ACCOUNTS
-    async getAllAccounts() {
+    async getAllAccounts(page: number = 1, limit: number = 10, filters?: any) {
+        const where: any = {};
+
+        // Search filter (by name or code)
+        if (filters?.search) {
+            const search = filters.search.trim();
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { code: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        // Query paginated accounts
         const accounts = await this.prisma.account.findMany({
+            where,
+            skip: (page - 1) * limit,
+            take: limit,
             orderBy: { code: 'asc' },
         });
-        return accounts;
+
+        // Total count for pagination
+        const total = await this.prisma.account.count({ where });
+
+        return {
+            total,
+            page,
+            limit,
+            accounts,
+        };
     }
 
     // GET ACCOUNT BY ID
     async getAccountById(id: number) {
         const account = await this.prisma.account.findUnique({
             where: { id },
-            include: { children: true},
+            include: { children: true },
         });
         if (!account) throw new NotFoundException('Account not found');
         return account;
@@ -83,5 +107,56 @@ export class AccountsService {
         });
 
         return roots;
+    }
+
+    // GET BANK ACCOUNT WITH ALL JOURNALS (REPORT)
+    async getBankAccountReport() {
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { code: '11000' },
+            include: {
+                entries: {
+                    include: {
+                        journal: {
+                            include: {
+                                postedBy: {
+                                    select: { id: true, name: true, email: true },
+                                },
+                            },
+                        },
+                        client: {
+                            select: { id: true, name: true },
+                        },
+                    },
+                    orderBy: { id: 'desc' },
+                },
+            },
+        });
+
+        if (!bankAccount) throw new NotFoundException('Bank account with code 11000 not found');
+
+        return {
+            account: {
+                id: bankAccount.id,
+                name: bankAccount.name,
+                code: bankAccount.code,
+                debit: bankAccount.debit,
+                credit: bankAccount.credit,
+                balance: bankAccount.balance,
+            },
+            totalJournalEntries: bankAccount.entries.length,
+            journals: bankAccount.entries.map((entry) => ({
+                id: entry.journal.id,
+                date: entry.journal.date,
+                reference: entry.journal.reference,
+                description: entry.description ?? entry.journal.description,
+                debit: entry.debit,
+                credit: entry.credit,
+                balance: entry.balance,
+                client: entry.client ? entry.client.name : null,
+                postedBy: entry.journal.postedBy?.name ?? null,
+                status: entry.journal.status,
+                type: entry.journal.type,
+            })),
+        };
     }
 }
