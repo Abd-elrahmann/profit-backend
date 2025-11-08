@@ -252,9 +252,7 @@ export class AuthService {
 
     // Extract unique module names from permissions
     const modules = [...new Set(user.role.permissions.map((perm) => perm.module))];
-
-    // Return the module names directly - frontend expects module names like "users"
-    // not route paths like "employees"
+    
     return modules;
   }
 }

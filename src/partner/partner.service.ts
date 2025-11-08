@@ -83,7 +83,7 @@ export class PartnerService {
         const journalDto = {
             reference: `CAP-${partner.id}`,
             description: `إيداع رأس مال الشريك ${partner.name}`,
-            type: JournalType.GENERAL,
+            type: JournalType.OPENING,
             sourceType: JournalSourceType.PARTNER,
             sourceId: partner.id,
             lines: [
