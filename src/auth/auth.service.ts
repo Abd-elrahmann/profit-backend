@@ -250,34 +250,11 @@ export class AuthService {
     if (!user.role.permissions || user.role.permissions.length === 0)
       return [];
 
-    // Map of module → frontend path
-    const moduleToPath: Record<string, string> = {
-      dashboard: 'dashboard',
-      logs: 'logs',
-      users: 'employees',
-      roles: 'roles',
-      clients: 'clients',
-      partners: 'investors',
-      templates: 'contract-templates',
-      loans: 'loans',
-      banks: 'banks',
-      repayments: 'installments',
-      journals: 'journal-entries',
-    };
-
     // Extract unique module names from permissions
     const modules = [...new Set(user.role.permissions.map((perm) => perm.module))];
 
-    // Map modules to paths (only ones defined above)
-    const paths = modules
-      .map((m) => moduleToPath[m])
-      .filter((path) => path !== undefined);
-
-    // Add second path for templates manually
-    if (modules.includes('templates')) {
-      paths.push('messages-templates');
-    }
-
-    return paths;
+    // Return the module names directly - frontend expects module names like "users"
+    // not route paths like "employees"
+    return modules;
   }
 }
