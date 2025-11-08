@@ -413,8 +413,8 @@ export class RepaymentService {
         const loan = repayment.loan;
         if (!loan) throw new NotFoundException('Loan not found');
 
-        if (loan.status === LoanStatus.PENDING)
-            throw new BadRequestException('loan is pending');
+        if (loan.status === LoanStatus.PENDING || LoanStatus.COMPLETED)
+            throw new BadRequestException('loan is not active');
 
         if (!dto.newDueDate)
             throw new BadRequestException('New due date is required for postponing');
@@ -510,8 +510,13 @@ export class RepaymentService {
     async markAsPartialPaid(currentUser, id: number, paidAmount: number) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
-        });
+            include: { loan: true }
+        },
+        );
         if (!repayment) throw new NotFoundException('Repayment not found');
+
+        const loan = repayment.loan;
+        if (!loan) throw new NotFoundException('Loan not found');
 
         if (paidAmount <= 0)
             throw new BadRequestException('Paid amount must be greater than 0');
@@ -519,11 +524,17 @@ export class RepaymentService {
         if (paidAmount >= repayment.amount)
             throw new BadRequestException('Paid amount cannot be equal or greater than full amount — use approveRepayment instead');
 
+        if (loan.status === LoanStatus.PENDING || LoanStatus.COMPLETED)
+            throw new BadRequestException('loan is not active');
+
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });
 
         const newPaidAmount = paidAmount + (repayment.paidAmount || 0);
+
+        if (newPaidAmount > repayment.amount)
+            throw new BadRequestException('Paid amount must be equal or less than repayment amount');
 
         const remaining = repayment.amount - newPaidAmount;
 
@@ -555,5 +566,163 @@ export class RepaymentService {
             remaining: updated.remaining,
             status: updated.status,
         };
+    }
+
+    // Mark loan as early paid
+    async markLoanAsEarlyPaid(
+        loanId: number,
+        earlyPaymentDiscount: number,
+        currentUserId: number,
+    ) {
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: {
+                repayments: {
+                    orderBy: { dueDate: 'asc' },
+                },
+                client: true,
+            },
+        });
+
+        if (!loan) throw new NotFoundException('Loan not found');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUserId },
+        });
+
+        // Step 1: Calculate totals
+        let totalRemainingPrincipal = 0;
+        let totalRemainingInterest = 0;
+        let totalAlreadyPaid = 0;
+
+        loan.repayments.forEach(rep => {
+            const remainingPrincipal = rep.principalAmount - rep.paidAmount;
+            const paidInterest = Math.max(rep.paidAmount - rep.principalAmount, 0);
+            const remainingInterest = rep.amount - rep.principalAmount - paidInterest;
+
+            totalRemainingPrincipal += Math.max(remainingPrincipal, 0);
+            totalRemainingInterest += Math.max(remainingInterest, 0);
+            totalAlreadyPaid += rep.paidAmount || 0;
+        });
+
+        // Step 2: Validate discount
+        if (earlyPaymentDiscount > totalRemainingInterest) {
+            throw new BadRequestException(
+                `Discount cannot exceed remaining interest (${totalRemainingInterest})`,
+            );
+        }
+
+        // Step 3: Compute totals
+        const totalDue = totalRemainingPrincipal + totalRemainingInterest;
+        const finalPayment = totalDue - earlyPaymentDiscount;
+        const totalPaidIncludingPartial = totalAlreadyPaid + finalPayment;
+        const equalPaymentPerInstallment = totalPaidIncludingPartial / loan.repayments.length;
+
+        // Step 4: Distribute the discount across interest portions proportionally
+        const discountRatio = earlyPaymentDiscount / totalRemainingInterest;
+
+        // Get accounts
+        const bankAccount = await this.prisma.account.findFirst({
+            where: { accountBasicType: 'BANK' },
+        });
+        const loansReceivable = await this.prisma.account.findFirst({
+            where: { accountBasicType: 'LOANS_RECEIVABLE' },
+        });
+        const loanIncome = await this.prisma.account.findFirst({
+            where: { accountBasicType: 'LOAN_INCOME' },
+        });
+
+        if (!bankAccount || !loansReceivable || !loanIncome)
+            throw new BadRequestException('Missing required accounts setup');
+
+        return await this.prisma.$transaction(async (tx) => {
+            // Step 5: Create journal entry (bank debit = totalPaidIncludingPartial)
+            const journal = await this.journalService.createJournal(
+                {
+                    reference: `EARLY-${loan.id}`,
+                    description: `Early payment for Loan ${loan.code} with interest discount ${earlyPaymentDiscount}`,
+                    type: 'GENERAL',
+                    sourceType: JournalSourceType.LOAN,
+                    sourceId: loan.id,
+                    lines: [
+                        {
+                            accountId: bankAccount.id,
+                            debit: totalPaidIncludingPartial,
+                            credit: 0,
+                            description: `استلام سداد مبكر من العميل ${loan.client.name}`,
+                        },
+                        {
+                            accountId: loansReceivable.id,
+                            debit: 0,
+                            credit: totalPaidIncludingPartial - (totalRemainingInterest - earlyPaymentDiscount),
+                            description: 'سداد أصل السلفة بالكامل',
+                            clientId: loan.client.id,
+                        },
+                        {
+                            accountId: loanIncome.id,
+                            debit: 0,
+                            credit: totalRemainingInterest - earlyPaymentDiscount,
+                            description: 'دخل الفائدة بعد خصم السداد المبكر',
+                        },
+                    ],
+                },
+                currentUserId,
+            );
+
+            // Step 6: Update repayments equally but adjust interest discount proportionally
+            for (const rep of loan.repayments) {
+                const paidInterest = Math.max(rep.paidAmount - rep.principalAmount, 0);
+                const remainingInterest = rep.amount - rep.principalAmount - paidInterest;
+
+                // Apply proportional discount to this installment's remaining interest
+                const interestDiscount = remainingInterest * discountRatio;
+
+                await tx.repayment.update({
+                    where: { id: rep.id },
+                    data: {
+                        status: 'EARLY_PAID',
+                        paidAmount: equalPaymentPerInstallment,
+                        remaining: 0,
+                        paymentDate: new Date(),
+                        reviewStatus: 'APPROVED',
+                        notes: `Early paid with proportional interest discount of ${interestDiscount.toFixed(2)}`,
+                    },
+                });
+            }
+
+            // Step 7: Update loan
+            await tx.loan.update({
+                where: { id: loan.id },
+                data: {
+                    status: 'COMPLETED',
+                    earlyPaidAmount: totalDue,
+                    earlyPaymentDiscount,
+                    endDate: new Date(),
+                    disbursementJournalId: journal.journal.id,
+                },
+            });
+
+            // Step 8: Log action
+            await tx.auditLog.create({
+                data: {
+                    userId: currentUserId,
+                    screen: 'Loans',
+                    action: 'POST',
+                    description: `قام المستخدم ${user?.name} بتسديد السلفة رقم ${loan.code} مبكرًا بخصم ${earlyPaymentDiscount} على الفائدة.`,
+                },
+            });
+
+            return {
+                message: 'Loan marked as early paid successfully',
+                totalRemainingPrincipal,
+                totalRemainingInterest,
+                totalDue,
+                finalPayment,
+                earlyPaymentDiscount,
+                totalPaidIncludingPartial,
+                equalPaymentPerInstallment,
+                journalId: journal.journal.id,
+            };
+        });
     }
 }

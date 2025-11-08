@@ -97,11 +97,27 @@ export class RepaymentController {
 
     // Mark repayment as partial paid
     @Patch('partial-paid/:id')
+    @Permissions('repayments', 'canPost')
     async markAsPartialPaid(
         @Req() req,
         @Param('id') id: string,
         @Body('paidAmount') paidAmount: number,
     ) {
         return this.repaymentService.markAsPartialPaid(req.user.id, Number(id), Number(paidAmount));
+    }
+
+    @Patch('early-pay/:id')
+    @Permissions('repayments', 'canPost')
+    async markAsEarlyPaid(
+        @Req() req,
+        @Param('id', ParseIntPipe) id: number,
+        @Body('discount') earlyPaymentDiscount: number,
+    ) {
+        const result = await this.repaymentService.markLoanAsEarlyPaid(
+            id,
+            earlyPaymentDiscount,
+            req.user.id,
+        );
+        return result;
     }
 }

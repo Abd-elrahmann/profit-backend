@@ -163,6 +163,8 @@ model Loan {
   DEBT_ACKNOWLEDGMENT String?
   PROMISSORY_NOTE     String?
   SETTLEMENT          String?
+  earlyPaidAmount       Float?      @default(0)
+  earlyPaymentDiscount  Float?      @default(0)
 }
 
 enum LoanType {
@@ -187,6 +189,7 @@ model Repayment {
   amount      Float
   remaining   Float
   paidAmount  Float         @default(0)
+  principalAmount Float     @default(0)
   status      PaymentStatus @default(PENDING)
   paymentDate DateTime?
   attachments  String[]
@@ -233,6 +236,7 @@ enum PaymentStatus {
   PENDING_REVIEW
   PAID
   PARTIAL_PAID
+  EARLY_PAID
   COMPLETED
   OVERDUE
 }

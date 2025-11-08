@@ -66,6 +66,7 @@ export class LoansService {
         // Calculate total profit
         const profit = dto.amount * (dto.interestRate / 100);
         const total = dto.amount + profit;
+        const principalAmount = dto.amount / dto.durationMonths;
 
         const now = new Date();
         const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // "20251029"
@@ -135,6 +136,7 @@ export class LoansService {
                 dueDate,
                 amount: installmentAmount,
                 remaining: installmentAmount,
+                principalAmount: principalAmount,
                 status: 'PENDING',
             });
         }
@@ -378,17 +380,39 @@ export class LoansService {
                     .toFormat('yyyy-LL-dd HH:mm:ss')
                 : null;
 
-        const formattedRepayments = loan.repayments.map((repayment) => ({
-            ...repayment,
-            dueDate: toSaudiTime(repayment.dueDate),
-            paymentDate: toSaudiTime(repayment.paymentDate),
-            newDueDate: toSaudiTime(repayment.newDueDate),
-            createdAt: toSaudiTime(repayment.createdAt),
-        }));
+        let totalRemainingPrincipal = 0;
+        let totalRemainingInterest = 0;
+
+        // Filter out fully paid repayments
+        const unpaidRepayments = loan.repayments.filter(rep => rep.status !== 'PAID');
+
+        const formattedRepayments = unpaidRepayments.map((repayment) => {
+            const remainingPrincipal = Math.max(repayment.principalAmount - repayment.paidAmount , 0 );
+            const remainingInterest =
+                repayment.amount - repayment.principalAmount - Math.max(repayment.paidAmount - repayment.principalAmount, 0);
+
+            totalRemainingPrincipal += remainingPrincipal;
+            totalRemainingInterest += remainingInterest;
+
+            return {
+                ...repayment,
+                dueDate: toSaudiTime(repayment.dueDate),
+                paymentDate: toSaudiTime(repayment.paymentDate),
+                newDueDate: toSaudiTime(repayment.newDueDate),
+                createdAt: toSaudiTime(repayment.createdAt),
+                remainingPrincipal,
+                remainingInterest,
+            };
+        });
+
+        const totalDue = totalRemainingPrincipal + totalRemainingInterest;
 
         return {
             ...loan,
             repayments: formattedRepayments,
+            totalRemainingPrincipal,
+            totalRemainingInterest,
+            totalDue,
         };
     }
 
