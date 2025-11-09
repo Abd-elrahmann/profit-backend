@@ -616,7 +616,7 @@ export class RepaymentService {
         });
 
         // Step 2: Validate discount
-        if (earlyPaymentDiscount >= totalRemainingInterest) {
+        if (earlyPaymentDiscount > totalRemainingInterest) {
             throw new BadRequestException(
                 `Discount cannot exceed remaining interest (${totalRemainingInterest})`,
             );
