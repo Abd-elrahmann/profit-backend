@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import { PaymentStatus, LoanStatus, ClientStatus } from '@prisma/client';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class ClientService {
@@ -482,7 +483,13 @@ export class ClientService {
         return Object.keys(out).length ? out : null;
     }
 
-    async getClientStatement(id: number, from?: string, to?: string) {
+    async getClientStatement(
+        id: number,
+        page: number,
+        options: { from?: string; to?: string; limit?: number },
+    ) {
+        const { from, to, limit = 10 } = options;
+
         const client = await this.prisma.client.findUnique({
             where: { id },
             select: {
@@ -496,10 +503,27 @@ export class ClientService {
         });
         if (!client) throw new NotFoundException('Client not found');
 
-        const dateFilter: any = {};
-        if (from) dateFilter.gte = new Date(from);
-        if (to) dateFilter.lte = new Date(to);
+        // Helper to convert and compare dates in Saudi timezone
+        const toSaudiDate = (date: Date | string) =>
+            DateTime.fromJSDate(new Date(date))
+                .setZone('Asia/Riyadh')
+                .toFormat('yyyy-LL-dd HH:mm:ss');
 
+        const dateFilter: any = {};
+        if (from) {
+            const saudiFrom = DateTime.fromISO(from, { zone: 'Asia/Riyadh' })
+                .startOf('day') // start of that day (00:00:00)
+                .toJSDate();
+            dateFilter.gte = saudiFrom;
+        }
+        if (to) {
+            const saudiTo = DateTime.fromISO(to, { zone: 'Asia/Riyadh' })
+                .endOf('day') // end of that day (23:59:59)
+                .toJSDate();
+            dateFilter.lte = saudiTo;
+        }
+
+        // Get loans
         const loans = await this.prisma.loan.findMany({
             where: {
                 clientId: id,
@@ -511,10 +535,12 @@ export class ClientService {
                 startDate: true,
                 totalAmount: true,
                 status: true,
-                newAmount:true,
+                newAmount: true,
+                createdAt: true,
             },
         });
 
+        // Get repayments
         const repayments = await this.prisma.repayment.findMany({
             where: {
                 clientId: id,
@@ -529,11 +555,12 @@ export class ClientService {
             },
         });
 
+        // Combine transactions
         const transactions: any[] = [];
 
         for (const loan of loans) {
             transactions.push({
-                date: loan.startDate,
+                date: loan.createdAt,
                 type: 'LOAN_DISBURSEMENT',
                 description: `سلفة رقم ${loan.code}`,
                 debit: loan.newAmount ? loan.newAmount : loan.totalAmount,
@@ -553,18 +580,38 @@ export class ClientService {
             }
         }
 
+        // Sort by date ascending
         transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+        // Compute running balance
         let runningBalance = client.debit - client.credit;
+        let totalDebit = 0;
+        let totalCredit = 0;
+
         const detailedTransactions = transactions.map((t) => {
             runningBalance += t.debit - t.credit;
-            return { ...t, balance: runningBalance };
+            totalDebit += t.debit;
+            totalCredit += t.credit;
+            return {
+                ...t,
+                date: toSaudiDate(t.date),
+                balance: runningBalance,
+            };
         });
 
+        // Pagination
+        const startIndex = (page - 1) * limit;
+        const paginatedTransactions = detailedTransactions.slice(startIndex, startIndex + limit);
+
         return {
+            totalPages: Math.ceil(detailedTransactions.length / limit),
+            currentPage: page,
+            totalTransactions: detailedTransactions.length,
             client,
             openingBalance: client.debit - client.credit,
-            transactions: detailedTransactions,
+            transactions: paginatedTransactions,
+            totalDebit,
+            totalCredit,
             closingBalance: runningBalance,
         };
     }

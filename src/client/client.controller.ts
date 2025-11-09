@@ -152,14 +152,19 @@ export class ClientController {
     }
 
     // GET CLIENT STATEMENT
-    @Get(':id/statement')
+    @Get(':id/statement/:page')
     @Permissions('clients', 'canView')
     getClientStatement(
         @Param('id', ParseIntPipe) id: number,
+        @Param('page', ParseIntPipe) page: number,
+        @Query('limit') limit?: number,
         @Query('from') from?: string,
         @Query('to') to?: string,
     ) {
-        return this.clientService.getClientStatement(id, from, to);
+        return this.clientService.getClientStatement(id, page, {
+            from,
+            to,
+            limit: Number(limit) || 10,
+        });
     }
-
 }
