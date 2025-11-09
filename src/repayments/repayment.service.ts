@@ -730,13 +730,13 @@ export class RepaymentService {
 
             return {
                 message: 'Loan marked as early paid successfully',
-                totalRemainingPrincipal,
-                totalRemainingInterest,
-                totalDue,
-                finalPayment,
-                earlyPaymentDiscount,
-                totalPaidIncludingPartial,
-                equalPaymentPerInstallment,
+                totalRemainingPrincipal: totalRemainingPrincipal.toFixed(2),
+                totalRemainingInterest: totalRemainingInterest.toFixed(2),
+                totalDue: totalDue.toFixed(2),
+                finalPayment: finalPayment.toFixed(2),
+                earlyPaymentDiscount: earlyPaymentDiscount.toFixed(2),
+                totalPaidIncludingPartial: totalPaidIncludingPartial.toFixed(2),
+                equalPaymentPerInstallment: equalPaymentPerInstallment.toFixed(2),
                 journalId: journal.journal.id,
             };
         });
