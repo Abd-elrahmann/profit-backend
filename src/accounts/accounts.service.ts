@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto, UpdateAccountDto } from './dto/accounts.dto';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class AccountsService {
@@ -78,13 +79,95 @@ export class AccountsService {
     }
 
     // GET ACCOUNT BY ID
-    async getAccountById(id: number) {
+    async getAccountById(
+        id: number,
+        page = 1,
+        options: { from?: string; to?: string; limit?: number } = {}
+    ) {
+        const { from, to, limit = 10 } = options;
+
+        // Step 1: Get the account with children
         const account = await this.prisma.account.findUnique({
             where: { id },
             include: { children: true },
         });
         if (!account) throw new NotFoundException('Account not found');
-        return account;
+
+        // Step 2: Build date filter (Saudi timezone)
+        const dateFilter: any = {};
+        if (from) {
+            const saudiFrom = DateTime.fromISO(from, { zone: 'Asia/Riyadh' })
+                .startOf('day')
+                .toJSDate();
+            dateFilter.gte = saudiFrom;
+        }
+        if (to) {
+            const saudiTo = DateTime.fromISO(to, { zone: 'Asia/Riyadh' })
+                .endOf('day')
+                .toJSDate();
+            dateFilter.lte = saudiTo;
+        }
+
+        // Step 3: Count total matching journals
+        const totalJournals = await this.prisma.journalHeader.count({
+            where: {
+                lines: { some: { accountId: id } },
+                ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
+            },
+        });
+
+        // Step 4: Fetch journals with pagination
+        const journals = await this.prisma.journalHeader.findMany({
+            where: {
+                lines: { some: { accountId: id } },
+                ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
+            },
+            include: {
+                lines: {
+                    where: { accountId: id },
+                    include: {
+                        account: { select: { id: true, name: true, code: true } },
+                        client: { select: { id: true, name: true } },
+                    },
+                },
+                postedBy: { select: { id: true, name: true } },
+            },
+            orderBy: { date: 'desc' },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        // Step 5: Format response
+        const formattedJournals = journals.map((j) => ({
+            id: j.id,
+            reference: j.reference,
+            description: j.description,
+            date: DateTime.fromJSDate(j.date)
+                .setZone('Asia/Riyadh')
+                .toFormat('yyyy-LL-dd HH:mm:ss'),
+            status: j.status,
+            type: j.type,
+            postedBy: j.postedBy?.name ?? null,
+            lines: j.lines.map((l) => ({
+                id: l.id,
+                description: l.description,
+                debit: l.debit,
+                credit: l.credit,
+                balance: l.balance,
+                client: l.client ? { id: l.client.id, name: l.client.name } : null,
+                account: l.account,
+            })),
+        }));
+
+        // Step 6: Return result
+        return {
+            totalPages: Math.ceil(totalJournals / limit),
+            currentPage: page,
+            limit,
+            account,
+            totalJournals,
+            journals: formattedJournals,
+        };
     }
 
     // GET ACCOUNTS TREE

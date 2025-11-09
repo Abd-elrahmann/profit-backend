@@ -56,8 +56,18 @@ export class AccountsController {
         return this.accountsService.getBankAccountReport();
     }
 
-    @Get(':id')
-    getAccountById(@Param('id', ParseIntPipe) id: number) {
-        return this.accountsService.getAccountById(id);
+    @Get(':id/:page')
+    getAccountById(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('page', ParseIntPipe) page: number,
+        @Query('from') from?: string,
+        @Query('to') to?: string,
+        @Query('limit') limit = '10',
+    ) {
+        return this.accountsService.getAccountById(id, page, {
+            from,
+            to,
+            limit: Number(limit),
+        });
     }
 }
