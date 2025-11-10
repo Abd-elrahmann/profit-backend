@@ -327,6 +327,7 @@ export class LoansService {
 
         if (filters?.status) where.status = filters.status;
         if (filters?.code) where.code = { contains: filters.code, mode: 'insensitive' };
+        if (filters?.clientId) where.clientId = filters.clientId;
         if (filters?.clientName)
             where.client = { name: { contains: filters.clientName, mode: 'insensitive' } };
         if (filters?.bankAccountName)
@@ -387,7 +388,7 @@ export class LoansService {
         const unpaidRepayments = loan.repayments.filter(rep => rep.status !== 'PAID');
 
         const formattedRepayments = unpaidRepayments.map((repayment) => {
-            const remainingPrincipal = Math.max(repayment.principalAmount - repayment.paidAmount , 0 );
+            const remainingPrincipal = Math.max(repayment.principalAmount - repayment.paidAmount, 0);
             const remainingInterest =
                 repayment.amount - repayment.principalAmount - Math.max(repayment.paidAmount - repayment.principalAmount, 0);
 

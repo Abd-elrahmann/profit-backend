@@ -52,8 +52,9 @@ export class LoansController {
         @Query('status') status?: string,
         @Query('code') code?: string,
         @Query('clientName') clientName?: string,
+        @Query('clientId') clientId?: number,
     ) {
-        return this.loansService.getAllLoans(page, +limit, { status, code, clientName });
+        return this.loansService.getAllLoans(page, +limit, { status, code, clientName , clientId});
     }
 
     @Get(':id')
