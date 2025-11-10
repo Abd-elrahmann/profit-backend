@@ -52,8 +52,8 @@ export class AccountsController {
     }
 
     @Get('bank')
-    getBankAccountReport() {
-        return this.accountsService.getBankAccountReport();
+    getBankAccountReport(@Query('month') month?: string) {
+        return this.accountsService.getBankAccountReport(month);
     }
 
     @Get(':id/:page')

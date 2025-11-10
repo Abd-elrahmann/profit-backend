@@ -193,30 +193,83 @@ export class AccountsService {
     }
 
     // GET BANK ACCOUNT WITH ALL JOURNALS (REPORT)
-    async getBankAccountReport() {
+    async getBankAccountReport(month?: string) {
+        // Step 1: Build Saudi timezone-aware date filter
+        const dateFilter: any = {};
+        if (month) {
+            const [year, monthNum] = month.split('-').map(Number);
+
+            const start = DateTime.fromObject(
+                { year, month: monthNum, day: 1 },
+                { zone: 'Asia/Riyadh' },
+            ).startOf('day');
+
+            const end = start.endOf('month').endOf('day');
+
+            dateFilter.date = {
+                gte: start.toJSDate(),
+                lte: end.toJSDate(),
+            };
+        }
+
+        // Step 2: Fetch bank account and entries with optional date filter
         const bankAccount = await this.prisma.account.findUnique({
             where: { code: '11000' },
             include: {
                 entries: {
+                    where: {
+                        journal: {
+                            ...(dateFilter.date ? { date: dateFilter.date } : {}),
+                        },
+                    },
                     include: {
                         journal: {
                             include: {
-                                postedBy: {
-                                    select: { id: true, name: true, email: true },
-                                },
+                                postedBy: { select: { id: true, name: true, email: true } },
                             },
                         },
-                        client: {
-                            select: { id: true, name: true },
-                        },
+                        client: { select: { id: true, name: true } },
                     },
                     orderBy: { id: 'desc' },
                 },
             },
         });
 
-        if (!bankAccount) throw new NotFoundException('Bank account with code 11000 not found');
+        if (!bankAccount)
+            throw new NotFoundException('Bank account with code 11000 not found');
 
+        // Step 3: Group entries by month (Saudi timezone)
+        const groupedByMonth = bankAccount.entries.reduce((acc, entry) => {
+            const date = DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
+            const monthKey = date.toFormat('yyyy-LL');
+
+            if (!acc[monthKey]) {
+                acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0 };
+            }
+
+            const mapped = {
+                id: entry.journal.id,
+                date: date.toISO(),
+                reference: entry.journal.reference,
+                description: entry.description ?? entry.journal.description,
+                debit: entry.debit,
+                credit: entry.credit,
+                balance: entry.balance,
+                client: entry.client ? entry.client.name : null,
+                postedBy: entry.journal.postedBy?.name ?? null,
+                status: entry.journal.status,
+                type: entry.journal.type,
+            };
+
+            acc[monthKey].entries.push(mapped);
+            acc[monthKey].totalDebit += entry.debit ?? 0;
+            acc[monthKey].totalCredit += entry.credit ?? 0;
+            acc[monthKey].totalBalance += entry.balance ?? 0;
+
+            return acc;
+        }, {} as Record<string, { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number }>);
+
+        // Step 4: Return formatted report
         return {
             account: {
                 id: bankAccount.id,
@@ -227,19 +280,7 @@ export class AccountsService {
                 balance: bankAccount.balance,
             },
             totalJournalEntries: bankAccount.entries.length,
-            journals: bankAccount.entries.map((entry) => ({
-                id: entry.journal.id,
-                date: entry.journal.date,
-                reference: entry.journal.reference,
-                description: entry.description ?? entry.journal.description,
-                debit: entry.debit,
-                credit: entry.credit,
-                balance: entry.balance,
-                client: entry.client ? entry.client.name : null,
-                postedBy: entry.journal.postedBy?.name ?? null,
-                status: entry.journal.status,
-                type: entry.journal.type,
-            })),
+            journalsByMonth: groupedByMonth,
         };
     }
 }
