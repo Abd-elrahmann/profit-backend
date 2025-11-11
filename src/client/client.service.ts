@@ -115,11 +115,11 @@ export class ClientService {
 
     // Map uploaded files and rename with prefixes
     private async mapUploadedFiles(
-        files: Record<string, Express.Multer.File[]> | undefined, // allow undefined
+        files: Record<string, Express.Multer.File[]> | undefined,
         clientId: string,
         prefixMap: Record<string, string>,
     ) {
-        if (!files) return {}; // early return if no files uploaded
+        if (!files) return {};
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', clientId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -130,15 +130,35 @@ export class ClientService {
             const prefix = prefixMap[key] ?? key;
             fileMap[key] = [];
 
-            fileArray.forEach((file, index) => {
+            // Get existing files to determine the next available index
+            const existingFiles = fs.existsSync(uploadDir)
+                ? fs.readdirSync(uploadDir).filter(f => f.startsWith(prefix))
+                : [];
+
+            // Extract existing indices
+            const existingIndices = existingFiles.map(f => {
+                const match = f.match(new RegExp(`${prefix}_(\\d+)`));
+                return match ? parseInt(match[1], 10) : 0;
+            });
+
+            let nextIndex = 1;
+            const getNextIndex = () => {
+                while (existingIndices.includes(nextIndex)) nextIndex++;
+                existingIndices.push(nextIndex); // Reserve it
+                return nextIndex++;
+            };
+
+            // Save each uploaded file
+            for (const file of fileArray) {
                 const ext = path.extname(file.originalname);
-                const filename = `${prefix}_${index + 1}${ext}`;
+                const filename = `${prefix}_${getNextIndex()}${ext}`;
                 const filePath = path.join(uploadDir, filename);
 
                 fs.writeFileSync(filePath, file.buffer);
+
                 const publicPath = `${process.env.URL}uploads/clients/${clientId}/${filename}`;
                 fileMap[key].push(publicPath);
-            });
+            }
         }
 
         return fileMap;
@@ -651,5 +671,64 @@ export class ClientService {
             totalCredit,
             closingBalance: runningBalance,
         };
+    }
+
+    // CREATE NEW KAFEEL FOR A CLIENT
+    async createKafeel(
+        currentUser: number,
+        clientId: number,
+        dto: KafeelDto,
+        files?: Record<string, Express.Multer.File[]>,
+    ) {
+        // 1️⃣ Fetch client
+        const client = await this.prisma.client.findUnique({ where: { id: clientId } });
+        if (!client) throw new NotFoundException('Client not found');
+
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+
+        // 2️⃣ Map uploaded files with proper prefixes
+        let uploadedFiles: Record<string, string[]> = {};
+        if (files && Object.keys(files).length > 0) {
+            const prefixMap: Record<string, string> = {
+                kafeelIdImage: 'kafeel',
+                kafeelWorkCard: 'kafeel_workcard',
+            };
+            uploadedFiles = await this.mapUploadedFiles(files, client.nationalId, prefixMap);
+        }
+
+        // 3️⃣ Prepare data
+        const kafeelData: any = {
+            clientId: client.id,
+            name: dto.name,
+            nationalId: dto.nationalId,
+            birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+            city: dto.city,
+            district: dto.district,
+            employer: dto.employer,
+            salary: dto.salary !== undefined ? Number(dto.salary) : undefined,
+            obligations: dto.obligations !== undefined ? Number(dto.obligations) : undefined,
+            phone: dto.phone,
+            email: dto.email ?? null,
+            kafeelIdImage: uploadedFiles.kafeelIdImage?.[0] ?? dto.kafeelIdImage,
+            kafeelWorkCard: uploadedFiles.kafeelWorkCard?.[0] ?? dto.kafeelWorkCard,
+        };
+
+        // Remove undefined fields
+        Object.keys(kafeelData).forEach((key) => kafeelData[key] === undefined && delete kafeelData[key]);
+
+        // 4️⃣ Create Kafeel
+        const newKafeel = await this.prisma.kafeel.create({ data: kafeelData });
+
+        // 5️⃣ Audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Clients',
+                action: 'CREATE',
+                description: `المستخدم ${user?.name} أضاف كفيل جديد للعميل: ${client.name}`,
+            },
+        });
+
+        return { message: 'Kafeel created successfully', kafeel: newKafeel };
     }
 }

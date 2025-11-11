@@ -195,4 +195,27 @@ export class ClientController {
             limit: Number(limit) || 10,
         });
     }
+
+    // CREATE NEW KAFEEL FOR CLIENT
+    @Post(':id/kafeels')
+    @Permissions('clients', 'canAdd')
+    @UseInterceptors(
+        FileFieldsInterceptor(
+            [
+                { name: 'kafeelIdImage', maxCount: 1 },
+                { name: 'kafeelWorkCard', maxCount: 1 },
+            ],
+            {
+                 storage: memoryStorage(),
+            },
+        ),
+    )
+    async createKafeel(
+        @Req() req,
+        @Param('id', ParseIntPipe) clientId: number,
+        @Body() dto: KafeelDto,
+        @UploadedFiles() files?: Record<string, Express.Multer.File[]>,
+    ) {
+        return this.clientService.createKafeel(req.user.id, clientId, dto, files);
+    }
 }
