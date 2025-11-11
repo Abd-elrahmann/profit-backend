@@ -144,6 +144,7 @@ model Loan {
   interestRate   Float
   interestAmount Float
   totalAmount    Float
+  paymentAmount  Float
   durationMonths Int
   type           LoanType
   status         LoanStatus  @default(PENDING)
@@ -191,6 +192,7 @@ model Repayment {
   remaining   Float
   paidAmount  Float         @default(0)
   principalAmount Float     @default(0)
+  interestAmount Float      @default(0)
   status      PaymentStatus @default(PENDING)
   paymentDate DateTime?
   attachments  String[]
