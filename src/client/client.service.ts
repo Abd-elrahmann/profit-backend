@@ -4,7 +4,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateClientDto, UpdateClientDto } from './dto/client.dto';
+import { CreateClientDto, UpdateClientDto, KafeelDto } from './dto/client.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -16,81 +16,91 @@ import { DateTime } from 'luxon';
 export class ClientService {
     constructor(private prisma: PrismaService) { }
 
-    //  CREATE CLIENT 
+    // CREATE CLIENT 
     async createClient(
-        currentUser,
+        currentUser: number,
         dto: CreateClientDto,
         files?: Record<string, Array<Express.Multer.File>>,
     ) {
+        // 1️⃣ Check if client exists
         const exists = await this.prisma.client.findFirst({
             where: { OR: [{ phone: dto.phone }, { nationalId: dto.nationalId }] },
         });
         if (exists) throw new BadRequestException('Client already exists');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
+        // 2️⃣ Start transaction
         const client = await this.prisma.$transaction(async (tx) => {
-            // ✅ Create kafeel if provided
-            let kafeelRecord: { id: number } | null = null;
-            if (dto.kafeel) {
-                const kafeelData = {
-                    ...dto.kafeel,
-                    birthDate: dto.kafeel.birthDate
-                        ? new Date(dto.kafeel.birthDate)
-                        : new Date(),
-                    name: dto.kafeel.name ?? 'N/A',
-                    nationalId: dto.kafeel.nationalId ?? 'N/A',
-                    city: dto.kafeel.city ?? 'N/A',
-                    district: dto.kafeel.district ?? 'N/A',
-                    employer: dto.kafeel.employer ?? 'N/A',
-                    salary: dto.kafeel.salary ?? 0,
-                    obligations: dto.kafeel.obligations ?? 0,
-                    phone: dto.kafeel.phone ?? 'N/A',
-                    email: dto.kafeel.email ?? null,
-                };
+            const { kafeel: kafeelList, documents: docDto, ...clientData } = dto;
 
-                kafeelRecord = await tx.kafeel.create({
-                    data: kafeelData,
-                    select: { id: true },
-                });
-            }
-
-            // ✅ Create client
-            const { kafeel: _kafeel, documents: _docs, ...clientData } = dto;
+            // 2a️⃣ Create Client
             const newClient = await tx.client.create({
                 data: {
                     ...clientData,
                     birthDate: new Date(dto.birthDate),
-                    kafeel: kafeelRecord
-                        ? { connect: { id: kafeelRecord.id } }
-                        : undefined,
+                    status: dto.status ?? ClientStatus.نشط,
                 },
                 select: { id: true, name: true, nationalId: true },
             });
 
-            // ✅ Handle uploaded files
-            const documents = await this.mapUploadedFiles(files, newClient.nationalId);
-            const docData = this.cleanDocumentData(documents);
-            if (docData && docData.clientIdImage) {
+            // 2b️⃣ Map uploaded files with custom prefixes
+            const prefixMap: Record<string, string> = {
+                clientIdImage: 'client_id',
+                clientWorkCard: 'client_workcard',
+                salaryReport: 'salary_report',
+                simaReport: 'sima_report',
+                kafeelIdImage: 'kafeel', // will append 1,2,3
+                kafeelWorkCard: 'kafeel_workcard',
+            };
+
+            const uploadedFiles = await this.mapUploadedFiles(files, newClient.nationalId, prefixMap);
+
+            // 2c️⃣ Save client documents
+            if (uploadedFiles.clientIdImage?.length) {
                 await tx.clientDocument.create({
                     data: {
                         clientId: newClient.id,
-                        clientIdImage: docData.clientIdImage,
-                        clientWorkCard: docData.clientWorkCard ?? null,
-                        salaryReport: docData.salaryReport ?? null,
-                        simaReport: docData.simaReport ?? null,
-                        kafeelIdImage: docData.kafeelIdImage ?? null,
-                        kafeelWorkCard: docData.kafeelWorkCard ?? null,
+                        clientIdImage: uploadedFiles.clientIdImage[0],
+                        clientWorkCard: uploadedFiles.clientWorkCard?.[0] ?? null,
+                        salaryReport: uploadedFiles.salaryReport?.[0] ?? null,
+                        simaReport: uploadedFiles.simaReport?.[0] ?? null,
                     },
                 });
+            }
+
+            // 2d️⃣ Create Kafeels
+            if (Array.isArray(kafeelList) && kafeelList.length > 0) {
+                for (let i = 0; i < kafeelList.length; i++) {
+                    const k = kafeelList[i];
+
+                    const kafeelIdImage = uploadedFiles.kafeelIdImage?.[i] ?? null;
+                    const kafeelWorkCard = uploadedFiles.kafeelWorkCard?.[i] ?? null;
+
+                    await tx.kafeel.create({
+                        data: {
+                            clientId: newClient.id,
+                            name: k.name,
+                            nationalId: k.nationalId,
+                            birthDate: new Date(k.birthDate),
+                            city: k.city,
+                            district: k.district,
+                            employer: k.employer,
+                            salary: k.salary,
+                            obligations: k.obligations,
+                            phone: k.phone,
+                            email: k.email ?? null,
+                            kafeelIdImage,
+                            kafeelWorkCard,
+                        },
+                    });
+                }
             }
 
             return newClient;
         });
 
-        // create audit log
+        // 3️⃣ Audit Log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -99,32 +109,78 @@ export class ClientService {
                 description: `المستخدم ${user?.name} أضاف عميل جديد: ${client.name}`,
             },
         });
+
         return { message: 'Client created successfully', client };
     }
 
-    //  UPDATE CLIENT DATA 
-    async updateClientData(currentUser, id: number, dto: UpdateClientDto) {
+    // Map uploaded files and rename with prefixes
+    private async mapUploadedFiles(
+        files: Record<string, Express.Multer.File[]> | undefined, // allow undefined
+        clientId: string,
+        prefixMap: Record<string, string>,
+    ) {
+        if (!files) return {}; // early return if no files uploaded
+
+        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', clientId);
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        const fileMap: Record<string, string[]> = {};
+
+        for (const [key, fileArray] of Object.entries(files)) {
+            const prefix = prefixMap[key] ?? key;
+            fileMap[key] = [];
+
+            fileArray.forEach((file, index) => {
+                const ext = path.extname(file.originalname);
+                const filename = `${prefix}_${index + 1}${ext}`;
+                const filePath = path.join(uploadDir, filename);
+
+                fs.writeFileSync(filePath, file.buffer);
+                const publicPath = `${process.env.URL}uploads/clients/${clientId}/${filename}`;
+                fileMap[key].push(publicPath);
+            });
+        }
+
+        return fileMap;
+    }
+
+    // Clean document data
+    private cleanDocumentData(data: Record<string, any>) {
+        if (!data) return null;
+        const cleaned: Record<string, any> = {};
+        for (const [key, value] of Object.entries(data)) {
+            if (value !== undefined && value !== null && value !== '') {
+                cleaned[key] = value;
+            }
+        }
+        return cleaned;
+    }
+
+    // UPDATE CLIENT DATA 
+    async updateClientData(currentUser: number, id: number, dto: UpdateClientDto) {
         const client = await this.prisma.client.findUnique({ where: { id } });
         if (!client) throw new NotFoundException('Client not found');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
         const updateData: any = { ...dto };
+
+        // Properly cast/update fields
         if (dto.birthDate) updateData.birthDate = new Date(dto.birthDate);
         if (dto.salary) updateData.salary = Number(dto.salary);
         if (dto.obligations) updateData.obligations = Number(dto.obligations);
 
+        // Exclude kafeel and documents for now
         delete updateData.kafeel;
         delete updateData.documents;
 
-        await this.prisma.client.update({
+        // Update client
+        const updatedClient = await this.prisma.client.update({
             where: { id },
             data: updateData,
         });
 
-        // create audit log
+        // Audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -134,89 +190,109 @@ export class ClientService {
             },
         });
 
-        return { message: 'Client data updated successfully' };
+        return { message: 'Client data updated successfully', client: updatedClient };
     }
 
-    //  UPDATE KAFEEL DATA 
-    async updateKafeelData(currentUser, id: number, dto: any) {
-        const client = await this.prisma.client.findUnique({
-            where: { id },
-            include: { kafeel: true },
+    // UPDATE KAFEEL DATA 
+    async updateKafeelData(
+        currentUser: number,
+        kafeelId: number,
+        dto: Partial<KafeelDto>,
+        files?: Record<string, Express.Multer.File[]>,
+    ) {
+        // 1️⃣ Fetch the kafeel including the client to get nationalId
+        const kafeel = await this.prisma.kafeel.findUnique({
+            where: { id: kafeelId },
+            include: { client: true },
         });
-        if (!client) throw new NotFoundException('Client not found');
+        if (!kafeel) throw new NotFoundException('Kafeel not found');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+        // 2️⃣ Fetch user for audit log
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        const kafeelData = {
-            name: dto.name ?? client.kafeel?.name ?? 'N/A',
-            nationalId: dto.nationalId ?? client.kafeel?.nationalId ?? 'N/A',
-            birthDate: dto.birthDate
-                ? new Date(dto.birthDate)
-                : client.kafeel?.birthDate ?? new Date(),
-            city: dto.city ?? client.kafeel?.city ?? 'N/A',
-            district: dto.district ?? client.kafeel?.district ?? 'N/A',
-            employer: dto.employer ?? client.kafeel?.employer ?? 'N/A',
-            salary: dto.salary ? Number(dto.salary) : client.kafeel?.salary ?? 0,
-            obligations: dto.obligations
-                ? Number(dto.obligations)
-                : client.kafeel?.obligations ?? 0,
-            phone: dto.phone ?? client.kafeel?.phone ?? 'N/A',
-            email: dto.email ?? client.kafeel?.email ?? null,
-        };
+        // 3️⃣ Map uploaded files if any
+        let uploadedFiles: Record<string, string[]> = {};
+        if (files && Object.keys(files).length > 0) {
+            const prefixMap: Record<string, string> = {
+                kafeelIdImage: 'kafeel',
+                kafeelWorkCard: 'kafeel_workcard',
+            };
 
-        if (client.kafeelId) {
-            await this.prisma.kafeel.update({
-                where: { id: client.kafeelId },
-                data: kafeelData,
-            });
-        } else {
-            const newKafeel = await this.prisma.kafeel.create({
-                data: kafeelData,
-                select: { id: true },
-            });
-            await this.prisma.client.update({
-                where: { id },
-                data: { kafeelId: newKafeel.id },
-            });
+            uploadedFiles = await this.mapUploadedFiles(
+                files,
+                kafeel.client.nationalId, // use national ID for folder
+                prefixMap
+            );
         }
 
-        // create audit log
+        // 4️⃣ Prepare update data
+        const updateData: any = {
+            ...dto,
+            salary: dto.salary !== undefined ? Number(dto.salary) : undefined,
+            obligations: dto.obligations !== undefined ? Number(dto.obligations) : undefined,
+            birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+            kafeelIdImage: uploadedFiles.kafeelIdImage?.[0] ?? dto.kafeelIdImage ?? kafeel.kafeelIdImage,
+            kafeelWorkCard: uploadedFiles.kafeelWorkCard?.[0] ?? dto.kafeelWorkCard ?? kafeel.kafeelWorkCard,
+        };
+
+        // 5️⃣ Remove undefined fields to prevent Prisma errors
+        Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
+
+        // 6️⃣ Update kafeel
+        const updatedKafeel = await this.prisma.kafeel.update({
+            where: { id: kafeelId },
+            data: updateData,
+        });
+
+        // 7️⃣ Audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
                 screen: 'Clients',
                 action: 'UPDATE',
-                description: `المستخدم ${user?.name} حدث بيانات الكفيل للعميل: ${client.name}`,
+                description: `المستخدم ${user?.name} حدث بيانات الكفيل: ${kafeel.name}`,
             },
         });
 
-        return { message: 'Kafeel data updated successfully' };
+        return { message: 'Kafeel data updated successfully', kafeel: updatedKafeel };
     }
 
-    //  UPDATE CLIENT DOCUMENTS 
+    // UPDATE CLIENT DOCUMENTS
     async updateClientDocuments(
-        currentUser,
-        id: number,
-        files?: Record<string, Array<Express.Multer.File>>,
+        currentUser: number,
+        clientId: number,
+        files?: Record<string, Express.Multer.File[]>,
         deleteFields?: string[],
     ) {
-        const client = await this.prisma.client.findUnique({ where: { id } });
+        // 1️⃣ Fetch client
+        const client = await this.prisma.client.findUnique({ where: { id: clientId } });
         if (!client) throw new NotFoundException('Client not found');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        const documents = await this.mapUploadedFiles(files, client.nationalId);
-        const docData = this.cleanDocumentData(documents);
+        // 2️⃣ Map uploaded files with prefixes
+        let uploadedFiles: Record<string, string[]> = {};
+        if (files && Object.keys(files).length > 0) {
+            const prefixMap: Record<string, string> = {
+                clientIdImage: 'client_id',
+                clientWorkCard: 'client_workcard',
+                salaryReport: 'salary_report',
+                simaReport: 'sima_report',
+            };
+            uploadedFiles = await this.mapUploadedFiles(files, client.nationalId, prefixMap);
+        }
 
-        const existingDocs = await this.prisma.clientDocument.findFirst({
-            where: { clientId: id },
-        });
+        // 3️⃣ Clean mapped files
+        const docData = this.cleanDocumentData(
+            Object.fromEntries(
+                Object.entries(uploadedFiles).map(([k, v]) => [k, v[0]]) // take first file only
+            )
+        );
 
-        // 🧹 Helper: safely delete a file if it exists
+        // 4️⃣ Fetch existing documents
+        const existingDocs = await this.prisma.clientDocument.findFirst({ where: { clientId } });
+
+        // Helper: delete old file if exists
         const deleteFile = (fileUrl?: string) => {
             if (!fileUrl) return;
             try {
@@ -231,7 +307,7 @@ export class ClientService {
         const updateData: Record<string, string | null> = {};
 
         if (existingDocs) {
-            // Handle deletions
+            // 5️⃣ Handle deletions
             if (deleteFields?.length) {
                 for (const field of deleteFields) {
                     const oldUrl = (existingDocs as any)[field];
@@ -240,36 +316,39 @@ export class ClientService {
                 }
             }
 
-            // Handle new uploads / replacements
+            // 6️⃣ Handle new uploads
             for (const key of Object.keys(docData || {})) {
                 const newUrl = (docData as any)[key];
                 const oldUrl = (existingDocs as any)[key];
+
                 if (oldUrl && newUrl && oldUrl !== newUrl) deleteFile(oldUrl);
-                updateData[key] = newUrl;
+
+                updateData[key] = newUrl ?? null;
             }
 
+            // 7️⃣ Update Prisma
             await this.prisma.clientDocument.update({
                 where: { id: existingDocs.id },
                 data: updateData,
             });
         } else {
-            if (!docData?.clientIdImage)
+            // 8️⃣ Create new documents if not exist
+            if (!docData?.clientIdImage) {
                 throw new BadRequestException('clientIdImage is required');
+            }
 
             await this.prisma.clientDocument.create({
                 data: {
-                    clientId: id,
+                    clientId,
                     clientIdImage: docData.clientIdImage,
                     clientWorkCard: docData.clientWorkCard ?? undefined,
                     salaryReport: docData.salaryReport ?? undefined,
                     simaReport: docData.simaReport ?? undefined,
-                    kafeelIdImage: docData.kafeelIdImage ?? undefined,
-                    kafeelWorkCard: docData.kafeelWorkCard ?? undefined,
                 },
             });
         }
 
-        // create audit log
+        // 9️⃣ Audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -282,36 +361,39 @@ export class ClientService {
         return { message: 'Client documents updated successfully' };
     }
 
-    //  DELETE CLIENT  
-    async deleteClient(currentUser, id: number) {
+    // DELETE CLIENT
+    async deleteClient(currentUser: number, clientId: number) {
+        // 1️⃣ Fetch client with all related kafeels
         const client = await this.prisma.client.findUnique({
-            where: { id },
-            include: { kafeel: true },
+            where: { id: clientId },
+            include: { kafeelS: true }, // fetch all kafeels
         });
         if (!client) throw new NotFoundException('Client not found');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+        // 2️⃣ Fetch user for audit log
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
+        // 3️⃣ Transaction: delete related data
         await this.prisma.$transaction(async (tx) => {
-            await tx.clientDocument.deleteMany({ where: { clientId: id } });
-            await tx.loan.deleteMany({ where: { clientId: id } });
-            await tx.client.delete({ where: { id } });
+            // Delete client documents
+            await tx.clientDocument.deleteMany({ where: { clientId } });
 
-            if (client.kafeelId) {
-                await tx.kafeel.delete({ where: { id: client.kafeelId } });
+            // Delete loans
+            await tx.loan.deleteMany({ where: { clientId } });
+
+            // Delete kafeels
+            if (client.kafeelS && client.kafeelS.length > 0) {
+                const kafeelIds = client.kafeelS.map((k) => k.id);
+                await tx.kafeel.deleteMany({ where: { id: { in: kafeelIds } } });
             }
+
+            // Delete client
+            await tx.client.delete({ where: { id: clientId } });
         });
 
+        // 4️⃣ Delete client folder from filesystem
         try {
-            const clientDir = path.join(
-                process.cwd(),
-                'uploads',
-                'clients',
-                client.nationalId || 'unknown',
-            );
-
+            const clientDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId || 'unknown');
             if (fs.existsSync(clientDir)) {
                 fs.rmSync(clientDir, { recursive: true, force: true });
                 console.log(`🗑️ Deleted folder: ${clientDir}`);
@@ -319,10 +401,10 @@ export class ClientService {
                 console.warn(`⚠️ Folder not found for client: ${clientDir}`);
             }
         } catch (err) {
-            console.warn('⚠️ Failed to delete client folder:', err.message);
+            console.warn('⚠️ Failed to delete client folder:', (err as Error).message);
         }
 
-        // create audit log
+        // 5️⃣ Create audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -332,10 +414,10 @@ export class ClientService {
             },
         });
 
-        return { message: 'Client and related data deleted successfully' };
+        return { message: 'Client and all related data deleted successfully' };
     }
 
-    //  GET CLIENTS 
+    // GET CLIENTS
     async getClients(
         page: number = 1,
         filters?: {
@@ -347,27 +429,21 @@ export class ClientService {
             status?: string;
         },
     ) {
-        const limit =
-            filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
+        const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
 
         const where: any = {};
 
-        if (filters?.name)
-            where.name = { contains: filters.name, mode: 'insensitive' };
-        if (filters?.phone)
-            where.phone = { contains: filters.phone, mode: 'insensitive' };
-        if (filters?.nationalId)
-            where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
-        if (filters?.city)
-            where.city = { contains: filters.city, mode: 'insensitive' };
+        if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
+        if (filters?.phone) where.phone = { contains: filters.phone, mode: 'insensitive' };
+        if (filters?.nationalId) where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
+        if (filters?.city) where.city = { contains: filters.city, mode: 'insensitive' };
         if (filters?.status) where.status = filters.status;
 
         const totalClients = await this.prisma.client.count({ where });
         const totalPages = Math.ceil(totalClients / limit);
 
-        if (page > totalPages && totalClients > 0)
-            throw new NotFoundException('Page not found');
+        if (page > totalPages && totalClients > 0) throw new NotFoundException('Page not found');
 
         const clients = await this.prisma.client.findMany({
             where,
@@ -375,8 +451,8 @@ export class ClientService {
             take: limit,
             orderBy: { id: 'desc' },
             include: {
-                kafeel: true,
-                documents: true,
+                kafeelS: true,       // fetch all kafeels
+                documents: true,     // fetch documents
             },
         });
 
@@ -395,7 +471,7 @@ export class ClientService {
                 notes: c.notes,
                 createdAt: c.createdAt,
             },
-            kafeel: c.kafeel || null,
+            kafeels: c.kafeelS || [],
             documents: c.documents || null,
         }));
 
@@ -408,13 +484,13 @@ export class ClientService {
         };
     }
 
-    //  GET CLIENT BY ID
+    // GET CLIENT BY ID
     async getClientById(id: number) {
         const client = await this.prisma.client.findUnique({
             where: { id },
             include: {
-                kafeel: true,
-                documents: true,
+                kafeelS: true,    // fetch all kafeels for this client
+                documents: true,  // fetch documents
             },
         });
 
@@ -439,48 +515,9 @@ export class ClientService {
                 notes: client.notes,
                 createdAt: client.createdAt,
             },
-            kafeel: client.kafeel || null,
+            kafeels: client.kafeelS || [], // return array for consistency
             documents: client.documents || null,
         };
-    }
-
-    //  Helpers 
-    private async mapUploadedFiles(
-        files?: Record<string, Array<Express.Multer.File>>,
-        clientEmail?: string,
-    ) {
-        if (!files) return null;
-
-        const clientDir = path.join('uploads', 'clients', clientEmail || 'unknown');
-        if (!fs.existsSync(clientDir)) fs.mkdirSync(clientDir, { recursive: true });
-
-        const moveFile = (file?: Express.Multer.File) => {
-            if (!file) return undefined;
-            const newPath = path.join(clientDir, path.basename(file.path));
-            fs.renameSync(file.path, newPath);
-            const relPath = newPath.replace(/\\/g, '/');
-            return `${process.env.URL}${encodeURI(relPath)}`;
-        };
-
-        return {
-            clientIdImage: moveFile(files?.clientIdImage?.[0]),
-            clientWorkCard: moveFile(files?.clientWorkCard?.[0]),
-            salaryReport: moveFile(files?.salaryReport?.[0]),
-            simaReport: moveFile(files?.simaReport?.[0]),
-            kafeelIdImage: moveFile(files?.kafeelIdImage?.[0]),
-            kafeelWorkCard: moveFile(files?.kafeelWorkCard?.[0]),
-        };
-    }
-
-    private cleanDocumentData(
-        doc?: Record<string, string | undefined | null> | null,
-    ): Record<string, string> | null {
-        if (!doc) return null;
-        const out: Record<string, string> = {};
-        for (const [k, v] of Object.entries(doc)) {
-            if (v !== undefined && v !== null) out[k] = v as string;
-        }
-        return Object.keys(out).length ? out : null;
     }
 
     async getClientStatement(

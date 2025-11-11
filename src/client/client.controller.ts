@@ -14,10 +14,10 @@ import {
     Req,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import multer, { diskStorage, memoryStorage } from 'multer';
+import path, { extname } from 'path';
 import { ClientService } from './client.service';
-import { CreateClientDto, UpdateClientDto } from './dto/client.dto';
+import { CreateClientDto, UpdateClientDto, KafeelDto } from './dto/client.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
@@ -37,22 +37,32 @@ export class ClientController {
                 { name: 'clientWorkCard', maxCount: 1 },
                 { name: 'salaryReport', maxCount: 1 },
                 { name: 'simaReport', maxCount: 1 },
-                { name: 'kafeelIdImage', maxCount: 1 },
-                { name: 'kafeelWorkCard', maxCount: 1 },
+                { name: 'kafeelIdImage', maxCount: 10 },
+                { name: 'kafeelWorkCard', maxCount: 10 },
             ],
             {
-                storage: diskStorage({
-                    destination: 'uploads/temp',
-                    filename: (req, file, cb) => {
-                        cb(null, `${file.fieldname}${extname(file.originalname)}`);
-                    },
-                }),
+                storage: multer.memoryStorage(),
             },
         ),
     )
-    createClient(@Req() req, @Body() dto: CreateClientDto, @UploadedFiles() files: any) {
-        return this.clientService.createClient(req.user.id, dto, files);
+
+    createClient(
+        @Req() req,
+        @Body() dto: CreateClientDto,
+        @UploadedFiles() files: Record<string, Express.Multer.File[]>,
+    ) {
+        // Normalize files: convert kafeelIdImage[0] -> kafeelIdImage
+        const normalizedFiles: Record<string, Express.Multer.File[]> = {};
+
+        Object.entries(files).forEach(([key, value]) => {
+            const cleanKey = key.replace(/\[\d+\]$/, ''); // remove [0], [1], etc.
+            if (!normalizedFiles[cleanKey]) normalizedFiles[cleanKey] = [];
+            normalizedFiles[cleanKey].push(...value);
+        });
+
+        return this.clientService.createClient(req.user.id, dto, normalizedFiles);
     }
+
 
     // UPDATE CLIENT DATA
     @Patch(':id/client-data')
@@ -66,10 +76,29 @@ export class ClientController {
     }
 
     // UPDATE KAFEEL DATA
-    @Patch(':id/kafeel-data')
+    @Patch('kafeel/:id')
     @Permissions('clients', 'canUpdate')
-    updateKafeelData(@Req() req, @Param('id', ParseIntPipe) id: number, @Body() dto: any) {
-        return this.clientService.updateKafeelData(req.user.id, id, dto);
+    @UseInterceptors(
+        FileFieldsInterceptor(
+            [
+                { name: 'kafeelIdImage', maxCount: 1 },
+                { name: 'kafeelWorkCard', maxCount: 1 },
+            ],
+            {
+                storage: memoryStorage(),
+            },
+        ),
+    )
+    updateKafeelData(
+        @Req() req,
+        @Param('id', ParseIntPipe) kafeelId: number,
+        @Body() dto: Partial<KafeelDto>,
+        @UploadedFiles() files?: {
+            kafeelIdImage?: Express.Multer.File[];
+            kafeelWorkCard?: Express.Multer.File[];
+        },
+    ) {
+        return this.clientService.updateKafeelData(req.user.id, kafeelId, dto, files);
     }
 
     // UPDATE DOCUMENTS
@@ -82,16 +111,9 @@ export class ClientController {
                 { name: 'clientWorkCard', maxCount: 1 },
                 { name: 'salaryReport', maxCount: 1 },
                 { name: 'simaReport', maxCount: 1 },
-                { name: 'kafeelIdImage', maxCount: 1 },
-                { name: 'kafeelWorkCard', maxCount: 1 },
             ],
             {
-                storage: diskStorage({
-                    destination: 'uploads/temp',
-                    filename: (req, file, cb) => {
-                        cb(null, `${file.fieldname}${extname(file.originalname)}`);
-                    },
-                }),
+                storage: memoryStorage(), // store in memory
             },
         ),
     )
@@ -102,6 +124,7 @@ export class ClientController {
         @Body('deleteFields') deleteFields?: string | string[],
     ) {
         let parsedDeleteFields: string[] | undefined;
+
         if (typeof deleteFields === 'string') {
             try {
                 parsedDeleteFields = JSON.parse(deleteFields);
@@ -112,7 +135,12 @@ export class ClientController {
             parsedDeleteFields = deleteFields;
         }
 
-        return this.clientService.updateClientDocuments(req.user.id, id, files, parsedDeleteFields);
+        return this.clientService.updateClientDocuments(
+            req.user.id,
+            id,
+            files,
+            parsedDeleteFields,
+        );
     }
 
     // DELETE CLIENT
@@ -135,7 +163,7 @@ export class ClientController {
         @Query('status') status?: string,
     ) {
         return this.clientService.getClients(page, {
-            limit: Number(limit) || 10,
+            limit: limit ? Number(limit) : undefined,
             name,
             phone,
             nationalId,
