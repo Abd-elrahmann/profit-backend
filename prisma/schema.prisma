@@ -88,11 +88,10 @@ model Client {
   credit         Float            @default(0)
   balance        Float            @default(0)
   status         ClientStatus     @default(نشط)
-  kafeel         Kafeel?          @relation(fields: [kafeelId], references: [id])
-  kafeelId       Int?
   documents      ClientDocument[]
   repayment      Repayment[]
   loans          Loan[]
+  kafeelS         Kafeel[]
   notes          String?
   createdAt      DateTime         @default(now())
   JournalLine    JournalLine[]
@@ -102,6 +101,7 @@ model Client {
 
 model Kafeel {
   id          Int      @id @default(autoincrement())
+  clientId    Int
   name        String
   nationalId  String
   birthDate   DateTime
@@ -112,7 +112,10 @@ model Kafeel {
   obligations Float
   phone       String
   email       String?
-  client      Client[]
+  kafeelIdImage  String?
+  kafeelWorkCard String?
+  client Client @relation(fields: [clientId], references: [id])
+  loans           Loan[]
   createdAt   DateTime @default(now())
 }
 
@@ -123,8 +126,6 @@ model ClientDocument {
   clientWorkCard String?
   salaryReport   String?
   simaReport     String?
-  kafeelIdImage  String?
-  kafeelWorkCard String?
   createdAt      DateTime @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
@@ -140,6 +141,7 @@ model Loan {
   id             Int         @id @default(autoincrement())
   code           String
   clientId       Int
+  kafeelId       Int?
   amount         Float
   interestRate   Float
   interestAmount Float
@@ -155,6 +157,7 @@ model Loan {
   Notification   Notification[]
   createdAt      DateTime    @default(now())
   client         Client      @relation(fields: [clientId], references: [id])
+  kafeel         Kafeel?     @relation(fields: [kafeelId], references: [id])
   bankAccountId  Int?
   bankAccount    BANK_accounts? @relation(fields: [bankAccountId], references: [id])
   partnerId      Int?

@@ -3,66 +3,60 @@ import {
   IsOptional,
   IsEmail,
   IsNumber,
-  IsDateString,
-  ValidateNested,
   IsEnum,
+  IsDateString,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-
-export enum ClientStatus {
-  نشط = 'نشط',
-  منتهي = 'منتهي',
-  متعثر = 'متعثر',
-}
+import { ClientStatus } from '@prisma/client';
 
 export class KafeelDto {
-  @IsOptional()
   @IsString()
-  name?: string;
+  name: string;
 
-  @IsOptional()
   @IsString()
-  nationalId?: string;
+  nationalId: string;
 
-  @IsOptional()
   @IsDateString()
-  birthDate?: string;
+  birthDate: string;
 
-  @IsOptional()
   @IsString()
-  city?: string;
+  city: string;
 
-  @IsOptional()
   @IsString()
-  district?: string;
+  district: string;
 
-  @IsOptional()
   @IsString()
-  employer?: string;
+  employer: string;
 
-  @IsOptional()
-  @Type(() => Number)
   @IsNumber()
-  salary?: number;
-
-  @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  obligations?: number;
+  salary: number;
 
-  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  obligations: number;
+
   @IsString()
-  phone?: string;
+  phone: string;
 
   @IsOptional()
   @IsEmail()
   email?: string;
-}
 
-export class ClientDocumentsDto {
   @IsOptional()
   @IsString()
-  clientIdImage?: string;
+  kafeelIdImage?: string;
+
+  @IsOptional()
+  @IsString()
+  kafeelWorkCard?: string;
+}
+
+export class ClientDocumentDto {
+  @IsString()
+  clientIdImage: string;
 
   @IsOptional()
   @IsString()
@@ -75,14 +69,6 @@ export class ClientDocumentsDto {
   @IsOptional()
   @IsString()
   simaReport?: string;
-
-  @IsOptional()
-  @IsString()
-  kafeelIdImage?: string;
-
-  @IsOptional()
-  @IsString()
-  kafeelWorkCard?: string;
 }
 
 export class CreateClientDto {
@@ -95,6 +81,10 @@ export class CreateClientDto {
 
   @IsString()
   phone: string;
+
+  @IsOptional()
+  @IsString()
+  telegramChatId?: string;
 
   @IsDateString()
   birthDate: string;
@@ -114,16 +104,28 @@ export class CreateClientDto {
   @IsString()
   employer: string;
 
-  @Type(() => Number)
   @IsNumber()
+  @Type(() => Number)
   salary: number;
 
-  @Type(() => Number)
   @IsNumber()
+  @Type(() => Number)
   obligations: number;
 
   @IsString()
   creationReason: string;
+
+  @IsOptional()
+  @IsNumber()
+  debit?: number;
+
+  @IsOptional()
+  @IsNumber()
+  credit?: number;
+
+  @IsOptional()
+  @IsNumber()
+  balance?: number;
 
   @IsOptional()
   @IsEnum(ClientStatus)
@@ -134,14 +136,15 @@ export class CreateClientDto {
   notes?: string;
 
   @IsOptional()
-  @ValidateNested()
+  @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => KafeelDto)
-  kafeel?: KafeelDto;
+  kafeel?: KafeelDto[];
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => ClientDocumentsDto)
-  documents?: ClientDocumentsDto;
+  @Type(() => ClientDocumentDto)
+  documents?: ClientDocumentDto;
 }
 
 export class UpdateClientDto {
@@ -156,6 +159,10 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  telegramChatId?: string;
 
   @IsOptional()
   @IsDateString()
@@ -182,18 +189,28 @@ export class UpdateClientDto {
   employer?: string;
 
   @IsOptional()
-  @Type(() => Number)
   @IsNumber()
   salary?: number;
 
   @IsOptional()
-  @Type(() => Number)
   @IsNumber()
   obligations?: number;
 
   @IsOptional()
   @IsString()
   creationReason?: string;
+
+  @IsOptional()
+  @IsNumber()
+  debit?: number;
+
+  @IsOptional()
+  @IsNumber()
+  credit?: number;
+
+  @IsOptional()
+  @IsNumber()
+  balance?: number;
 
   @IsOptional()
   @IsEnum(ClientStatus)
@@ -204,12 +221,13 @@ export class UpdateClientDto {
   notes?: string;
 
   @IsOptional()
-  @ValidateNested()
+  @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => KafeelDto)
-  kafeel?: KafeelDto;
+  kafeel?: KafeelDto[];
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => ClientDocumentsDto)
-  documents?: ClientDocumentsDto;
+  @Type(() => ClientDocumentDto)
+  documents?: ClientDocumentDto;
 }

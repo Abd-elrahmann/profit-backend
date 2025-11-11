@@ -76,16 +76,37 @@ export class LoansService {
         let months = fullMonths.toNumber();
         if (lastPayment.gt(0)) months += 1;
 
+        // Validate Kafeel
+        if (dto.kafeelId) {
+            const kafeel = await this.prisma.kafeel.findUnique({
+                where: { id: dto.kafeelId },
+                include: { loans: true },
+            });
+            if (!kafeel) throw new NotFoundException('Kafeel not found');
+
+            if (kafeel.clientId !== dto.clientId) {
+                throw new BadRequestException('This Kafeel is not associated with the selected client.');
+            }
+
+            const hasActiveLoan = kafeel.loans.some(
+                (l) => l.status !== LoanStatus.COMPLETED || LoanStatus.PENDING
+            );
+
+            if (hasActiveLoan) throw new BadRequestException('This Kafeel has a pending or active loan and cannot be added.');
+        }
+
         // Loan code
         const now = new Date();
         const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
         const clientIdStr = String(client.id).padStart(3, '0');
         const code = `LN-${datePart}-${clientIdStr}`;
 
+        // Create loan
         const loan = await this.prisma.loan.create({
             data: {
                 code,
                 clientId: dto.clientId,
+                kafeelId: dto.kafeelId ?? null, // add Kafeel here
                 amount: Number(principal.toFixed(2)),
                 interestRate: Number(interestRate.toFixed(2)),
                 interestAmount: Number(totalInterest.toFixed(2)),
@@ -130,19 +151,15 @@ export class LoansService {
             }
 
             let amount = paymentAmount;
-            // Last installment takes the remainder
             if (i === months && lastPayment.gt(0)) amount = lastPayment;
 
-            // Calculate principal and interest for this installment proportionally
             let principalAmount: Decimal;
             let interestAmount: Decimal;
 
             if (i === months && lastPayment.gt(0)) {
-                // Last payment: remaining principal + interest
                 principalAmount = remainingPrincipal;
                 interestAmount = remainingInterest;
             } else {
-                // Distribute payment proportionally
                 const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
                 interestAmount = amount.mul(interestRatio).toDecimalPlaces(2);
                 principalAmount = amount.minus(interestAmount).toDecimalPlaces(2);
