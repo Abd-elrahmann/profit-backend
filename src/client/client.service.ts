@@ -574,12 +574,10 @@ export class ClientService {
         if (!client) throw new NotFoundException('Client not found');
         const documents = [
             ...client.documents.map(doc => ({
-                type: 'ClientDocument',
                 clientIdImage: doc.clientIdImage,
                 clientWorkCard: doc.clientWorkCard,
-                salaryReport: doc.salaryReport,
-                simaReport: doc.simaReport,
-                createdAt: doc.createdAt,
+                salaryReport: doc.salaryReport || undefined,
+                simaReport: doc.simaReport || undefined,
             })),
             ...client.loans.flatMap(loan => [
                 loan.DEBT_ACKNOWLEDGMENT ? {DEBT_ACKNOWLEDGMENT: loan.DEBT_ACKNOWLEDGMENT, loanId: loan.id } : null,
