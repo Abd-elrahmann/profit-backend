@@ -6,6 +6,9 @@ export class CreateLoanDto {
     clientId: number;
 
     @IsNumber()
+    kafeelId?: number;
+
+    @IsNumber()
     amount: number;
 
     @IsNumber()
