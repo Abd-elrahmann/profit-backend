@@ -451,6 +451,9 @@ export class LoansService {
             interestAmount: Number(loan.interestAmount.toFixed(2)),
             totalAmount: Number(loan.totalAmount.toFixed(2)),
             paymentAmount: Number(loan.paymentAmount.toFixed(2)),
+            newAmount: loan.newAmount ? Number(loan.newAmount.toFixed(2)) : null,
+            earlyPaymentDiscount: loan.earlyPaymentDiscount ? Number(loan.earlyPaymentDiscount.toFixed(2)) : null,
+            earlyPaidAmount: loan.earlyPaidAmount ? Number(loan.earlyPaidAmount.toFixed(2)) : null,
         };
     }
 
