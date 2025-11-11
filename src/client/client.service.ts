@@ -469,6 +469,7 @@ export class ClientService {
             simaReport: moveFile(files?.simaReport?.[0]),
             kafeelIdImage: moveFile(files?.kafeelIdImage?.[0]),
             kafeelWorkCard: moveFile(files?.kafeelWorkCard?.[0]),
+            
         };
     }
 
