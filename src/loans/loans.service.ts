@@ -2,11 +2,13 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
 import { JournalSourceType, LoanStatus, LoanType, Prisma } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import { JournalService } from '../journal/journal.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DateTime } from 'luxon';
 import * as dotenv from 'dotenv';
+
 dotenv.config();
 
 @Injectable()
@@ -55,34 +57,41 @@ export class LoansService {
         const client = await this.prisma.client.findUnique({ where: { id: dto.clientId } });
         if (!client) throw new NotFoundException('Client not found');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
         const bankAccount = await this.prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
         if (!bankAccount) throw new NotFoundException('Bank account not found');
         if (bankAccount.limit <= 0) throw new BadRequestException('Bank account limit exceeded');
 
-        // Calculate total profit
-        const profit = dto.amount * (dto.interestRate / 100);
-        const total = dto.amount + profit;
-        const principalAmount = dto.amount / dto.durationMonths;
+        const principal = new Decimal(dto.amount);
+        const interestRate = new Decimal(dto.interestRate);
+        const totalAmount = principal.mul(interestRate.div(100).add(1));
+        const totalInterest = totalAmount.minus(principal);
 
+        const paymentAmount = new Decimal(dto.paymentAmount);
+
+        // Calculate full installments and remainder
+        const fullMonths = totalAmount.div(paymentAmount).floor();
+        const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
+        let months = fullMonths.toNumber();
+        if (lastPayment.gt(0)) months += 1;
+
+        // Loan code
         const now = new Date();
-        const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // "20251029"
-        const clientId = String(client.id).padStart(3, '0'); // "001"
-        const code = `LN-${datePart}-${clientId}`;
+        const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const clientIdStr = String(client.id).padStart(3, '0');
+        const code = `LN-${datePart}-${clientIdStr}`;
 
-        // Create loan record
         const loan = await this.prisma.loan.create({
             data: {
                 code,
                 clientId: dto.clientId,
-                amount: dto.amount,
-                interestRate: dto.interestRate,
-                interestAmount: profit,
-                totalAmount: total,
-                durationMonths: dto.durationMonths,
+                amount: Number(principal.toFixed(2)),
+                interestRate: Number(interestRate.toFixed(2)),
+                interestAmount: Number(totalInterest.toFixed(2)),
+                totalAmount: Number(totalAmount.toFixed(2)),
+                paymentAmount: Number(paymentAmount.toFixed(2)),
+                durationMonths: months,
                 type: dto.type,
                 startDate: new Date(dto.startDate),
                 status: LoanStatus.PENDING,
@@ -92,12 +101,12 @@ export class LoansService {
             },
         });
 
+        // Update bank account
         const account = await this.prisma.bANK_accounts.update({
             where: { id: dto.bankAccountId },
             data: { limit: { decrement: 1 } },
             select: { limit: true },
         });
-
         if (account.limit <= 0) {
             await this.prisma.bANK_accounts.update({
                 where: { id: dto.bankAccountId },
@@ -105,45 +114,59 @@ export class LoansService {
             });
         }
 
-        // Generate repayments
-        const repaymentCount =
-            dto.type === LoanType.DAILY
-                ? dto.durationMonths * 30
-                : dto.type === LoanType.WEEKLY
-                    ? dto.durationMonths * 4
-                    : dto.durationMonths;
-
-        const installmentAmount = total / repaymentCount;
         const repayments: Prisma.RepaymentCreateManyInput[] = [];
         const startDate = new Date(dto.startDate);
-        let remainingAmount = total;
 
-        for (let i = 1; i <= repaymentCount; i++) {
+        let remainingPrincipal = principal;
+        let remainingInterest = totalInterest;
+
+        for (let i = 1; i <= months; i++) {
             const dueDate = new Date(startDate);
             if (dto.type === LoanType.DAILY) dueDate.setDate(startDate.getDate() + i);
             else if (dto.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
             else {
                 dueDate.setMonth(startDate.getMonth() + i);
-                if (dto.repaymentDay) {
-                    dueDate.setDate(dto.repaymentDay);
-                }
+                if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
             }
+
+            let amount = paymentAmount;
+            // Last installment takes the remainder
+            if (i === months && lastPayment.gt(0)) amount = lastPayment;
+
+            // Calculate principal and interest for this installment proportionally
+            let principalAmount: Decimal;
+            let interestAmount: Decimal;
+
+            if (i === months && lastPayment.gt(0)) {
+                // Last payment: remaining principal + interest
+                principalAmount = remainingPrincipal;
+                interestAmount = remainingInterest;
+            } else {
+                // Distribute payment proportionally
+                const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
+                interestAmount = amount.mul(interestRatio).toDecimalPlaces(2);
+                principalAmount = amount.minus(interestAmount).toDecimalPlaces(2);
+            }
+
+            remainingPrincipal = remainingPrincipal.minus(principalAmount);
+            remainingInterest = remainingInterest.minus(interestAmount);
 
             repayments.push({
                 count: i,
                 loanId: loan.id,
                 clientId: dto.clientId,
                 dueDate,
-                amount: installmentAmount,
-                remaining: installmentAmount,
-                principalAmount: principalAmount,
+                amount: Number(amount.toFixed(2)),
+                remaining: Number(amount.toFixed(2)),
+                principalAmount: Number(principalAmount.toFixed(2)),
+                interestAmount: Number(interestAmount.toFixed(2)),
                 status: 'PENDING',
             });
         }
 
         await this.prisma.repayment.createMany({ data: repayments });
 
-        // create audit log
+        // Audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -388,9 +411,11 @@ export class LoansService {
         const unpaidRepayments = loan.repayments.filter(rep => rep.status !== 'PAID');
 
         const formattedRepayments = unpaidRepayments.map((repayment) => {
-            const remainingPrincipal = Math.max(repayment.principalAmount - repayment.paidAmount, 0);
-            const remainingInterest =
-                repayment.amount - repayment.principalAmount - Math.max(repayment.paidAmount - repayment.principalAmount, 0);
+            // Round to 2 decimals
+            const remainingPrincipal = Number((repayment.principalAmount - repayment.paidAmount).toFixed(2));
+            const remainingInterest = Number(
+                (repayment.amount - repayment.principalAmount - Math.max(repayment.paidAmount - repayment.principalAmount, 0)).toFixed(2)
+            );
 
             totalRemainingPrincipal += remainingPrincipal;
             totalRemainingInterest += remainingInterest;
@@ -403,10 +428,18 @@ export class LoansService {
                 createdAt: toSaudiTime(repayment.createdAt),
                 remainingPrincipal,
                 remainingInterest,
+                // Make sure these are decimals as well
+                amount: Number(repayment.amount.toFixed(2)),
+                principalAmount: Number(repayment.principalAmount.toFixed(2)),
+                interestAmount: Number(repayment.interestAmount.toFixed(2)),
+                paidAmount: Number(repayment.paidAmount.toFixed(2)),
             };
         });
 
-        const totalDue = totalRemainingPrincipal + totalRemainingInterest;
+        // Round totals as well
+        const totalDue = Number((totalRemainingPrincipal + totalRemainingInterest).toFixed(2));
+        totalRemainingPrincipal = Number(totalRemainingPrincipal.toFixed(2));
+        totalRemainingInterest = Number(totalRemainingInterest.toFixed(2));
 
         return {
             ...loan,
@@ -414,6 +447,10 @@ export class LoansService {
             totalRemainingPrincipal,
             totalRemainingInterest,
             totalDue,
+            amount: Number(loan.amount.toFixed(2)),
+            interestAmount: Number(loan.interestAmount.toFixed(2)),
+            totalAmount: Number(loan.totalAmount.toFixed(2)),
+            paymentAmount: Number(loan.paymentAmount.toFixed(2)),
         };
     }
 
@@ -428,29 +465,35 @@ export class LoansService {
             where: { id: currentUser },
         });
 
-        // Update loan basic fields
+        // Update loan basic fields first
         const updated = await this.prisma.loan.update({
             where: { id },
             data: dto,
         });
 
         // If financial fields changed, regenerate repayments
-        if (dto.amount || dto.interestRate || dto.durationMonths || dto.type || dto.repaymentDay) {
+        if (dto.amount || dto.interestRate || dto.type || dto.repaymentDay) {
             // Delete existing repayments
             await this.prisma.repayment.deleteMany({ where: { loanId: id } });
 
-            const profit = updated.amount * (updated.interestRate / 100);
-            const total = updated.amount + profit;
+            // Use Decimal for accurate calculations
+            const principal = new Decimal(dto.amount || updated.amount);
+            const interestRate = new Decimal(dto.interestRate || updated.interestRate);
+            const totalAmount = principal.mul(interestRate.div(100).add(1)).toDecimalPlaces(2);
+            const totalInterest = totalAmount.minus(principal).toDecimalPlaces(2);
 
             // Update loan financials
             await this.prisma.loan.update({
                 where: { id },
                 data: {
-                    interestAmount: profit,
-                    totalAmount: total,
+                    amount: Number(principal.toFixed(2)),
+                    interestRate: Number(interestRate.toFixed(2)),
+                    interestAmount: Number(totalInterest.toFixed(2)),
+                    totalAmount: Number(totalAmount.toFixed(2)),
                 },
             });
 
+            // Determine number of installments
             const repaymentCount =
                 updated.type === LoanType.DAILY
                     ? updated.durationMonths * 30
@@ -458,10 +501,13 @@ export class LoansService {
                         ? updated.durationMonths * 4
                         : updated.durationMonths;
 
-            const installmentAmount = total / repaymentCount;
+            // Calculate installment amount
+            const installmentAmount = totalAmount.div(repaymentCount).toDecimalPlaces(2);
             const startDate = new Date(updated.startDate);
+            let remainingPrincipal = principal;
+            let remainingInterest = totalInterest;
+
             const repayments: Prisma.RepaymentCreateManyInput[] = [];
-            let remainingAmount = total;
 
             for (let i = 1; i <= repaymentCount; i++) {
                 const dueDate = new Date(startDate);
@@ -469,21 +515,33 @@ export class LoansService {
                 else if (updated.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
                 else {
                     dueDate.setMonth(startDate.getMonth() + i);
-                    if (dto.repaymentDay) {
-                        dueDate.setDate(dto.repaymentDay);
-                    }
+                    if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
                 }
 
-                remainingAmount -= installmentAmount;
-                if (remainingAmount < 0) remainingAmount = 0;
+                let principalAmount: Decimal;
+                let interestAmount: Decimal;
+                // Last installment takes remaining amounts
+                if (i === repaymentCount) {
+                    principalAmount = remainingPrincipal;
+                    interestAmount = remainingInterest;
+                } else {
+                    const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
+                    interestAmount = installmentAmount.mul(interestRatio).toDecimalPlaces(2);
+                    principalAmount = installmentAmount.minus(interestAmount).toDecimalPlaces(2);
+                }
+
+                remainingPrincipal = remainingPrincipal.minus(principalAmount).toDecimalPlaces(2);
+                remainingInterest = remainingInterest.minus(interestAmount).toDecimalPlaces(2);
 
                 repayments.push({
                     count: i,
                     loanId: updated.id,
                     clientId: dto.clientId || loan.clientId,
                     dueDate,
-                    amount: installmentAmount,
-                    remaining: remainingAmount,
+                    amount: Number(installmentAmount.toFixed(2)),
+                    remaining: Number(installmentAmount.toFixed(2)),
+                    principalAmount: Number(principalAmount.toFixed(2)),
+                    interestAmount: Number(interestAmount.toFixed(2)),
                     status: 'PENDING',
                 });
             }
