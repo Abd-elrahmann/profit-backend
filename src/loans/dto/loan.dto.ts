@@ -5,6 +5,7 @@ export class CreateLoanDto {
     @IsNumber()
     clientId: number;
 
+    @IsOptional()
     @IsNumber()
     kafeelId?: number;
 

@@ -4,7 +4,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateClientDto, UpdateClientDto, KafeelDto } from './dto/client.dto';
+import { CreateClientDto, UpdateClientDto, KafeelDto, UpdateKafeelDto } from './dto/client.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';

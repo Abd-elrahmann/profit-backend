@@ -377,7 +377,7 @@ export class LoansService {
 
         const unformattedLoans = await this.prisma.loan.findMany({
             where,
-            include: { client: true, bankAccount: true, partner: true },
+            include: { client: true, bankAccount: true, partner: true , kafeel: {select : {id: true , name: true }} },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
@@ -410,7 +410,13 @@ export class LoansService {
     async getLoanById(id: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
-            include: { repayments: true, client: true, bankAccount: true, partner: true },
+            include: {
+                repayments: true,
+                client: true,
+                bankAccount: true,
+                partner: true,
+                kafeel: { select: { name: true, nationalId: true, birthDate: true } }
+            },
         });
         if (!loan) throw new NotFoundException('Loan not found');
 
@@ -420,6 +426,9 @@ export class LoansService {
                     .setZone('Asia/Riyadh')
                     .toFormat('yyyy-LL-dd HH:mm:ss')
                 : null;
+
+        const toDateOnly = (date: Date | null | undefined) =>
+            date ? DateTime.fromJSDate(date).toFormat('yyyy-LL-dd') : null;
 
         let totalRemainingPrincipal = 0;
         let totalRemainingInterest = 0;
@@ -471,6 +480,16 @@ export class LoansService {
             newAmount: loan.newAmount ? Number(loan.newAmount.toFixed(2)) : null,
             earlyPaymentDiscount: loan.earlyPaymentDiscount ? Number(loan.earlyPaymentDiscount.toFixed(2)) : null,
             earlyPaidAmount: loan.earlyPaidAmount ? Number(loan.earlyPaidAmount.toFixed(2)) : null,
+            client: {
+                ...loan.client,
+                birthDate: toDateOnly(loan.client.birthDate),
+            },
+            kafeel: loan.kafeel
+                ? {
+                    ...loan.kafeel,
+                    birthDate: toDateOnly(loan.kafeel.birthDate),
+                }
+                : null,
         };
     }
 
