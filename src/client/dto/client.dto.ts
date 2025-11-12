@@ -54,6 +54,58 @@ export class KafeelDto {
   kafeelWorkCard?: string;
 }
 
+export class UpdateKafeelDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  nationalId?: string;
+
+  @IsOptional()
+  @IsDateString()
+  birthDate?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  employer?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  salary?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  obligations?: number;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  kafeelIdImage?: string;
+
+  @IsOptional()
+  @IsString()
+  kafeelWorkCard?: string;
+}
+
 export class ClientDocumentDto {
   @IsString()
   clientIdImage: string;

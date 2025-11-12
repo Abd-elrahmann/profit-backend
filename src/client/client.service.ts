@@ -217,7 +217,7 @@ export class ClientService {
     async updateKafeelData(
         currentUser: number,
         kafeelId: number,
-        dto: Partial<KafeelDto>,
+        dto: Partial<KafeelDto> | UpdateKafeelDto,
         files?: Record<string, Express.Multer.File[]>,
     ) {
         // 1️⃣ Fetch the kafeel including the client to get nationalId

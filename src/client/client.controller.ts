@@ -17,7 +17,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import multer, { diskStorage, memoryStorage } from 'multer';
 import path, { extname } from 'path';
 import { ClientService } from './client.service';
-import { CreateClientDto, UpdateClientDto, KafeelDto } from './dto/client.dto';
+import { CreateClientDto, UpdateClientDto, KafeelDto, UpdateKafeelDto } from './dto/client.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
@@ -92,7 +92,7 @@ export class ClientController {
     updateKafeelData(
         @Req() req,
         @Param('id', ParseIntPipe) kafeelId: number,
-        @Body() dto: Partial<KafeelDto>,
+        @Body() dto: UpdateKafeelDto,
         @UploadedFiles() files?: {
             kafeelIdImage?: Express.Multer.File[];
             kafeelWorkCard?: Express.Multer.File[];
