@@ -504,63 +504,7 @@ export class ClientService {
         };
     }
 
-    // // GET CLIENT BY ID
-    // async getClientById(id: number) {
-    //     const client = await this.prisma.client.findUnique({
-    //         where: { id },
-    //         include: {
-    //             kafeelS: true,   
-    //             documents: true,  
-    //             loans: true,      
-    //         },
-    //     });
-
-    //     if (!client) throw new NotFoundException('Client not found');
-
-    //     // Collect all documents
-    //     const clientDocs = client.documents.map(doc => ({
-    //         type: 'ClientDocument',
-    //         clientIdImage: doc.clientIdImage,
-    //         clientWorkCard: doc.clientWorkCard,
-    //         salaryReport: doc.salaryReport,
-    //         simaReport: doc.simaReport,
-    //         createdAt: doc.createdAt,
-    //     }));
-
-    //     const loanDocs = client.loans.flatMap(loan => {
-    //         const docs = [];
-    //         if (loan.DEBT_ACKNOWLEDGMENT) docs.push({ type: 'DEBT_ACKNOWLEDGMENT', url: loan.DEBT_ACKNOWLEDGMENT, loanId: loan.id });
-    //         if (loan.PROMISSORY_NOTE) docs.push({ type: 'PROMISSORY_NOTE', url: loan.PROMISSORY_NOTE, loanId: loan.id });
-    //         if (loan.SETTLEMENT) docs.push({ type: 'SETTLEMENT', url: loan.SETTLEMENT, loanId: loan.id });
-    //         return docs;
-    //     });
-
-    //     const documents = [...clientDocs, ...loanDocs];
-
-    //     return {
-    //         client: {
-    //             id: client.id,
-    //             name: client.name,
-    //             phone: client.phone,
-    //             email: client.email,
-    //             birthDate: client.birthDate,
-    //             address: client.address,
-    //             creationReason: client.creationReason,
-    //             nationalId: client.nationalId,
-    //             city: client.city,
-    //             district: client.district,
-    //             employer: client.employer,
-    //             salary: client.salary,
-    //             obligations: client.obligations,
-    //             status: client.status,
-    //             notes: client.notes,
-    //             createdAt: client.createdAt,
-    //         },
-    //         kafeels: client.kafeelS || [],
-    //         documents,
-    //     };
-    // }
-
+    // GET CLIENT BY ID
     async getClientById(id: number) {
         const client = await this.prisma.client.findUnique({
             where: { id },
@@ -580,7 +524,7 @@ export class ClientService {
                 simaReport: doc.simaReport || undefined,
             })),
             ...client.loans.flatMap(loan => [
-                loan.DEBT_ACKNOWLEDGMENT ? {DEBT_ACKNOWLEDGMENT: loan.DEBT_ACKNOWLEDGMENT, loanId: loan.id } : null,
+                loan.DEBT_ACKNOWLEDGMENT ? { DEBT_ACKNOWLEDGMENT: loan.DEBT_ACKNOWLEDGMENT, loanId: loan.id } : null,
                 loan.PROMISSORY_NOTE ? { PROMISSORY_NOTE: loan.PROMISSORY_NOTE, loanId: loan.id } : null,
                 loan.SETTLEMENT ? { SETTLEMENT: loan.SETTLEMENT, loanId: loan.id } : null,
             ].filter(Boolean)),
@@ -800,5 +744,66 @@ export class ClientService {
         });
 
         return { message: 'Kafeel created successfully', kafeel: newKafeel };
+    }
+
+    // DELETE KAFEEL BY ID
+    async deleteKafeel(currentUser: number, kafeelId: number) {
+        // Fetch kafeel with client info
+        const kafeel = await this.prisma.kafeel.findUnique({
+            where: { id: kafeelId },
+            include: {
+                client: true,
+                loans: true, // Include loans to check statuses
+            },
+        });
+        if (!kafeel) throw new NotFoundException('Kafeel not found');
+
+        // Validation: Prevent deletion if kafeel has active or pending loans
+        const hasActiveOrPendingLoans = kafeel.loans.some(
+            (loan) => loan.status === 'ACTIVE' || loan.status === 'PENDING',
+        );
+
+        if (hasActiveOrPendingLoans) {
+            throw new BadRequestException(
+                `Cannot delete kafeel ${kafeel.name} because they are associated with active or pending loans.`,
+            );
+        }
+
+        // Fetch user for audit log
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+
+        // Helper function to delete file
+        const deleteFile = (fileUrl?: string | null) => {
+            if (!fileUrl) return;
+            try {
+                const relativePath = decodeURI(fileUrl.replace(process.env.URL || '', ''));
+                const fullPath = path.join(process.cwd(), relativePath);
+                if (fs.existsSync(fullPath)) {
+                    fs.unlinkSync(fullPath);
+                    console.log(`🗑️ Deleted file: ${fullPath}`);
+                }
+            } catch (err) {
+                console.warn('⚠️ Could not delete kafeel file:', (err as Error).message);
+            }
+        };
+
+        // Delete physical files if they exist
+        deleteFile(kafeel.kafeelIdImage);
+        deleteFile(kafeel.kafeelWorkCard);
+
+        // Delete kafeel
+        await this.prisma.kafeel.delete({ where: { id: kafeelId } });
+
+        // Audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Clients',
+                action: 'DELETE',
+                description: `المستخدم ${user?.name} حذف الكفيل: ${kafeel.name} للعميل ${kafeel.client.name}`,
+            },
+        });
+
+        return { message: 'Kafeel and related files deleted successfully' };
     }
 }

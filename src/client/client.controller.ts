@@ -206,7 +206,7 @@ export class ClientController {
                 { name: 'kafeelWorkCard', maxCount: 1 },
             ],
             {
-                 storage: memoryStorage(),
+                storage: memoryStorage(),
             },
         ),
     )
@@ -218,4 +218,15 @@ export class ClientController {
     ) {
         return this.clientService.createKafeel(req.user.id, clientId, dto, files);
     }
+
+    // DELETE KAFEEL BY ID
+    @Delete('kafeel/:id')
+    @Permissions('clients', 'canDelete')
+    async deleteKafeel(
+        @Req() req,
+        @Param('id', ParseIntPipe) kafeelId: number,
+    ) {
+        return this.clientService.deleteKafeel(req.user.id, kafeelId);
+    }
+
 }
