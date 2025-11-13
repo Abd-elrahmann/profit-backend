@@ -14,7 +14,7 @@ export class CreateLoanDto {
 
     @IsNumber()
     paymentAmount: number;
-    
+
     @IsNumber()
     interestRate: number;
 
@@ -71,4 +71,8 @@ export class UpdateLoanDto {
     @IsOptional()
     @IsNumber()
     clientId?: number;
+
+    @IsOptional()
+    @IsNumber()
+    kafeelId?: number;
 }

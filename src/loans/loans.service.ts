@@ -435,9 +435,9 @@ export class LoansService {
         let totalRemainingInterest = 0;
 
         // Filter out fully paid repayments
-        const unpaidRepayments = loan.repayments.filter(rep => rep.status !== 'PAID');
+        const Repayments = loan.repayments;
 
-        const formattedRepayments = unpaidRepayments.map((repayment) => {
+        const formattedRepayments = Repayments.map((repayment) => {
             // Round to 2 decimals
             const remainingPrincipal = Number((repayment.principalAmount - repayment.paidAmount).toFixed(2));
             const remainingInterest = Number(
@@ -526,6 +526,7 @@ export class LoansService {
             await this.prisma.loan.update({
                 where: { id },
                 data: {
+                    kafeelId: Number(dto.kafeelId),
                     amount: Number(principal.toFixed(2)),
                     interestRate: Number(interestRate.toFixed(2)),
                     interestAmount: Number(totalInterest.toFixed(2)),
