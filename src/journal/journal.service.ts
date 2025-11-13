@@ -214,12 +214,31 @@ export class JournalService {
     // Get specific journal with lines
     async getJournalById(id: number) {
         const journal = await this.prisma.journalHeader.findUnique({
-            where: { id },
-            include: { lines: { include: { account: true, client: true } } },
+          where: { id },
+          include: { lines: { include: { account: true, client: true } } },
         });
+      
         if (!journal) throw new NotFoundException('Journal not found');
-        return journal;
-    }
+      
+        // Calculate totals
+        const totalDebit = journal.lines.reduce((sum, line) => sum + (line.debit || 0), 0);
+        const totalCredit = journal.lines.reduce((sum, line) => sum + (line.credit || 0), 0);
+        const totalBalance = totalDebit - totalCredit;
+      
+        // Round values to 2 decimal places and fix floating point issues
+        const normalize = (num: number) =>
+          Math.abs(num) < 0.000001 ? 0 : Number(num.toFixed(2));
+      
+        return {
+          ...journal,
+          totals: {
+            totalDebit: normalize(totalDebit),
+            totalCredit: normalize(totalCredit),
+            totalBalance: normalize(totalBalance),
+          },
+        };
+      }
+      
 
     // POST JOURNAL
     async postJournal(id: number, userId: number) {
