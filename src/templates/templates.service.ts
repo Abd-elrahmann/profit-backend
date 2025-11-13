@@ -7,7 +7,7 @@ export class TemplatesService {
   constructor(private readonly prisma: PrismaService) { }
 
   // Upsert template
-  async upsertTemplate(currentUser, data: { name: TemplateType; content: string; description?: string; styles?: string; variables?: Array<{ name: string; description: string }> }) {
+  async upsertTemplate(currentUser, data: { name: TemplateType; content: string; description?: string }) {
 
     const user = await this.prisma.user.findUnique({
       where: { id: currentUser },
@@ -28,15 +28,11 @@ export class TemplatesService {
       update: {
         content: data.content,
         description: data.description,
-        styles: data.styles,
-        variables: data.variables ? JSON.parse(JSON.stringify(data.variables)) : null,
       },
       create: {
         name: data.name,
         content: data.content,
         description: data.description,
-        styles: data.styles,
-        variables: data.variables ? JSON.parse(JSON.stringify(data.variables)) : null,
       },
     });
   }

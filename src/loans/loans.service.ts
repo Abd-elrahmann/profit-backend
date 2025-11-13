@@ -218,6 +218,7 @@ export class LoansService {
         if (!receivable || !bank)
             throw new BadRequestException('Loan receivable and bank accounts must exist');
 
+        console.log(loan)
         // Create Journal Entry (using JournalService)
         const { journal } = await this.journalService.createJournal(
             {

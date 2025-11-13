@@ -458,8 +458,6 @@ model Template {
   name        TemplateType @unique
   description String?
   content     String
-  styles      String?      // CSS styles separated from content
-  variables   Json?        // Dynamic variables array [{name, description}]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
