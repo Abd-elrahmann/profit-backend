@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import { UpsertTemplateDto } from './dto/templates.dto';
 import { TemplateType } from '@prisma/client';
@@ -13,8 +23,8 @@ export class TemplatesController {
 
   @Post()
   @Permissions('templates', 'canUpdate')
-  async upsert(@Req() req, @Body() dto: UpsertTemplateDto) {
-    return this.templatesService.upsertTemplate(req.user.id , dto);
+  async upsert(@Req() req: any, @Body() dto: UpsertTemplateDto) {
+    return this.templatesService.upsertTemplate(req.user.id, dto);
   }
 
   @Get(':name')
@@ -22,5 +32,47 @@ export class TemplatesController {
   async getByName(@Param('name') name: TemplateType) {
     name = name.toUpperCase() as TemplateType;
     return this.templatesService.getTemplateByName(name);
+  }
+
+  @Get(':name/with-variables')
+  @Permissions('templates', 'canView')
+  async getTemplateWithVariables(@Param('name') name: TemplateType) {
+    name = name.toUpperCase() as TemplateType;
+    return this.templatesService.getTemplateWithVariables(name);
+  }
+
+  @Post(':templateName/variables')
+  @Permissions('templates', 'canUpdate')
+  async addVariable(
+    @Param('templateName') templateName: TemplateType,
+    @Body() body: { key: string; description?: string }
+  ) {
+    templateName = templateName.toUpperCase() as TemplateType;
+    return this.templatesService.addVariable(templateName, body.key, body.description);
+  }
+
+  @Put('variables/:id')
+  @Permissions('templates', 'canUpdate')
+  async updateVariable(
+    @Param('id') id: string,
+    @Body() body: { key: string; description?: string }
+  ) {
+    return this.templatesService.updateVariable(parseInt(id), body.key, body.description);
+  }
+
+  @Delete('variables/:id')
+  @Permissions('templates', 'canUpdate')
+  async deleteVariable(@Param('id') id: string) {
+    return this.templatesService.deleteVariable(parseInt(id));
+  }
+
+  @Post(':templateName/styles')
+  @Permissions('templates', 'canUpdate')
+  async saveStyle(
+    @Param('templateName') templateName: TemplateType,
+    @Body() body: { css: string }
+  ) {
+    templateName = templateName.toUpperCase() as TemplateType;
+    return this.templatesService.saveStyle(templateName, body.css);
   }
 }

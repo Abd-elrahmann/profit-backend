@@ -6,14 +6,76 @@ import { TemplateType } from '@prisma/client';
 export class TemplatesService {
   constructor(private readonly prisma: PrismaService) { }
 
-  // Upsert template
+   // الحصول على القالب مع متغيراته
+   async getTemplateWithVariables(name: TemplateType) {
+    const template = await this.prisma.template.findUnique({
+      where: { name },
+      include: { 
+        variables: true,
+        styles: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      },
+    });
+
+    if (!template) throw new NotFoundException('Template not found');
+    return template;
+  }
+
+  // إضافة متغير جديد
+  async addVariable(templateName: TemplateType, key: string, description?: string) {
+    const template = await this.prisma.template.findUnique({
+      where: { name: templateName },
+    });
+    if (!template) throw new NotFoundException('Template not found');
+
+    return this.prisma.templateVariable.create({
+      data: {
+        templateId: template.id,
+        key,
+        description,
+      },
+    });
+  }
+
+  // تحديث المتغير
+  async updateVariable(id: number, key: string, description?: string) {
+    return this.prisma.templateVariable.update({
+      where: { id },
+      data: { key, description },
+    });
+  }
+
+  // حذف متغير
+  async deleteVariable(id: number) {
+    return this.prisma.templateVariable.delete({
+      where: { id },
+    });
+  }
+
+  // حفظ الـ CSS
+  async saveStyle(templateName: TemplateType, css: string) {
+    const template = await this.prisma.template.findUnique({
+      where: { name: templateName },
+    });
+    if (!template) throw new NotFoundException('Template not found');
+
+    return this.prisma.templateStyle.create({
+      data: {
+        templateId: template.id,
+        css,
+      },
+    });
+  }
+
+
   async upsertTemplate(currentUser, data: { name: TemplateType; content: string; description?: string }) {
 
     const user = await this.prisma.user.findUnique({
       where: { id: currentUser },
     });
 
-    // create audit log
     await this.prisma.auditLog.create({
       data: {
         userId: currentUser,
@@ -37,13 +99,12 @@ export class TemplatesService {
     });
   }
 
-  // Get template by name
   async getTemplateByName(name: TemplateType) {
     const template = await this.prisma.template.findUnique({
       where: { name },
     });
-
-    if (!template) throw new NotFoundException(`Template "${name}" not found`);
+    if (!template) throw new NotFoundException('Template not found');
     return template;
   }
+
 }
