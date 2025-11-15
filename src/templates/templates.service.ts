@@ -54,6 +54,13 @@ export class TemplatesService {
     });
   }
 
+  // حذف المتغير
+  async deleteVariable(id: number) {
+    return this.prisma.templateVariable.delete({
+      where: { id },
+    });
+  }
+
   // الحصول على جميع القوالب (جديد)
   async getAllTemplates() {
     return this.prisma.template.findMany({
