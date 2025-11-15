@@ -469,6 +469,7 @@ model TemplateVariable {
   templateId  Int
   key         String     // مثل: {{اسم_العميل}}
   description String?    // مثل: "اسم العميل"
+  group       String?    // جديد: مثل "بيانات الأطراف", "البيانات المالية"
   createdAt   DateTime   @default(now())
   
   template    Template   @relation(fields: [templateId], references: [id])

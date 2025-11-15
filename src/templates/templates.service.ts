@@ -6,12 +6,14 @@ import { TemplateType } from '@prisma/client';
 export class TemplatesService {
   constructor(private readonly prisma: PrismaService) { }
 
-   // الحصول على القالب مع متغيراته
-   async getTemplateWithVariables(name: TemplateType) {
+  // الحصول على القالب مع متغيراته (محدث)
+  async getTemplateWithVariables(name: TemplateType) {
     const template = await this.prisma.template.findUnique({
       where: { name },
       include: { 
-        variables: true,
+        variables: {
+          orderBy: { createdAt: 'desc' }
+        },
         styles: {
           orderBy: { createdAt: 'desc' },
           take: 1
@@ -23,8 +25,8 @@ export class TemplatesService {
     return template;
   }
 
-  // إضافة متغير جديد
-  async addVariable(templateName: TemplateType, key: string, description?: string) {
+  // إضافة متغير جديد (محدث لدعم المجموعات)
+  async addVariable(templateName: TemplateType, key: string, description?: string, group?: string) {
     const template = await this.prisma.template.findUnique({
       where: { name: templateName },
     });
@@ -35,26 +37,54 @@ export class TemplatesService {
         templateId: template.id,
         key,
         description,
+        group, // إضافة دعم للمجموعات
       },
     });
   }
 
-  // تحديث المتغير
-  async updateVariable(id: number, key: string, description?: string) {
+  // تحديث المتغير (محدث لدعم المجموعات)
+  async updateVariable(id: number, key: string, description?: string, group?: string) {
     return this.prisma.templateVariable.update({
       where: { id },
-      data: { key, description },
+      data: { 
+        key, 
+        description,
+        group // إضافة دعم للمجموعات
+      },
     });
   }
 
-  // حذف متغير
-  async deleteVariable(id: number) {
-    return this.prisma.templateVariable.delete({
-      where: { id },
+  // الحصول على جميع القوالب (جديد)
+  async getAllTemplates() {
+    return this.prisma.template.findMany({
+      include: {
+        variables: true,
+        styles: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      },
+      orderBy: { name: 'asc' }
     });
   }
 
-  // حفظ الـ CSS
+  // الحصول على أحدث CSS للقالب (جديد)
+  async getLatestStyle(templateName: TemplateType) {
+    const template = await this.prisma.template.findUnique({
+      where: { name: templateName },
+      include: {
+        styles: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
+    });
+
+    if (!template) throw new NotFoundException('Template not found');
+    return template.styles[0] || null;
+  }
+
+  // حفظ الـ CSS (محدث)
   async saveStyle(templateName: TemplateType, css: string) {
     const template = await this.prisma.template.findUnique({
       where: { name: templateName },
@@ -69,13 +99,13 @@ export class TemplatesService {
     });
   }
 
-
-  async upsertTemplate(currentUser, data: { name: TemplateType; content: string; description?: string }) {
-
+  // تحديث القالب (محدث)
+  async upsertTemplate(currentUser: number, data: { name: TemplateType; content: string; description?: string }) {
     const user = await this.prisma.user.findUnique({
       where: { id: currentUser },
     });
 
+    // تسجيل في سجل التدقيق
     await this.prisma.auditLog.create({
       data: {
         userId: currentUser,
@@ -99,12 +129,25 @@ export class TemplatesService {
     });
   }
 
+  // الحصول على القالب بالاسم (محدث)
   async getTemplateByName(name: TemplateType) {
     const template = await this.prisma.template.findUnique({
       where: { name },
+      include: {
+        styles: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
     });
     if (!template) throw new NotFoundException('Template not found');
     return template;
   }
 
+  // حذف القالب (جديد - اختياري)
+  async deleteTemplate(name: TemplateType) {
+    return this.prisma.template.delete({
+      where: { name },
+    });
+  }
 }

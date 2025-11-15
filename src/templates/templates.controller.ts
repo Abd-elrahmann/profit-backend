@@ -21,6 +21,13 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
+  // 🔥 NEW: Get all templates
+  @Get()
+  @Permissions('templates', 'canView')
+  async getAllTemplates() {
+    return this.templatesService.getAllTemplates();
+  }
+
   @Post()
   @Permissions('templates', 'canUpdate')
   async upsert(@Req() req: any, @Body() dto: UpsertTemplateDto) {
@@ -41,23 +48,35 @@ export class TemplatesController {
     return this.templatesService.getTemplateWithVariables(name);
   }
 
+  // 🔥 UPDATED: Add group parameter
   @Post(':templateName/variables')
   @Permissions('templates', 'canUpdate')
   async addVariable(
     @Param('templateName') templateName: TemplateType,
-    @Body() body: { key: string; description?: string }
+    @Body() body: { key: string; description?: string; group?: string } // ✅ Added group
   ) {
     templateName = templateName.toUpperCase() as TemplateType;
-    return this.templatesService.addVariable(templateName, body.key, body.description);
+    return this.templatesService.addVariable(
+      templateName, 
+      body.key, 
+      body.description,
+      body.group // ✅ Pass group to service
+    );
   }
 
+  // 🔥 UPDATED: Add group parameter
   @Put('variables/:id')
   @Permissions('templates', 'canUpdate')
   async updateVariable(
     @Param('id') id: string,
-    @Body() body: { key: string; description?: string }
+    @Body() body: { key: string; description?: string; group?: string } // ✅ Added group
   ) {
-    return this.templatesService.updateVariable(parseInt(id), body.key, body.description);
+    return this.templatesService.updateVariable(
+      parseInt(id), 
+      body.key, 
+      body.description,
+      body.group // ✅ Pass group to service
+    );
   }
 
   @Delete('variables/:id')
@@ -74,5 +93,13 @@ export class TemplatesController {
   ) {
     templateName = templateName.toUpperCase() as TemplateType;
     return this.templatesService.saveStyle(templateName, body.css);
+  }
+
+  // 🔥 NEW: Get latest styles
+  @Get(':templateName/styles/latest')
+  @Permissions('templates', 'canView')
+  async getLatestStyle(@Param('templateName') templateName: TemplateType) {
+    templateName = templateName.toUpperCase() as TemplateType;
+    return this.templatesService.getLatestStyle(templateName);
   }
 }
