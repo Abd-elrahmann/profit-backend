@@ -170,6 +170,20 @@ model Loan {
   earlyPaidAmount       Float?      @default(0)
   earlyPaymentDiscount  Float?      @default(0)
   newAmount             Int?        @default(0)
+  profitAccruals PartnerShareAccrual[]
+  LoanPartnerShare LoanPartnerShare[]
+}
+
+model LoanPartnerShare {
+  id        Int @id @default(autoincrement())
+  loanId    Int
+  partnerId Int
+  sharePercent     Float
+  isActive         Boolean   @default(true)
+
+  loan    Loan    @relation(fields: [loanId], references: [id])
+  partner Partner @relation(fields: [partnerId], references: [id])
+  @@unique([loanId, partnerId])
 }
 
 enum LoanType {
@@ -209,6 +223,8 @@ model Repayment {
   loan         Loan          @relation(fields: [loanId], references: [id])
   client         Client      @relation(fields: [clientId], references: [id])
   Notification Notification[]
+  profitAccruals PartnerShareAccrual[]
+
 }
 
 model Notification {
@@ -256,9 +272,11 @@ model Partner {
   email            String?
   orgProfitPercent Float
   capitalAmount    Float
+  totalProfit      Float     @default(0)
+  totalAmount      Float     @default(0)
   contractSignedAt DateTime?
   mudarabahFileUrl String?
-  isActive         Boolean   @default(true)
+  isActive         Boolean   @default(false)
   accountPayableId Int       @unique
   accountEquityId  Int       @unique
 
@@ -266,6 +284,9 @@ model Partner {
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
   loans Loan[]
   transactions PartnerTransaction[]
+  profitAccruals PartnerShareAccrual[]
+  PartnerPeriodProfit  PartnerPeriodProfit[]
+  LoanPartnerShare LoanPartnerShare[]
 
   createdAt DateTime @default(now())
 }
@@ -286,6 +307,22 @@ model PartnerTransaction {
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
+}
+
+model PartnerShareAccrual {
+  id          Int       @id @default(autoincrement())
+  partnerId   Int
+  loanId      Int?
+  repaymentId Int?
+  rawShare       Float    
+  companyCut     Float  
+  partnerFinal   Float   
+  isClosed       Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  partner     Partner   @relation(fields: [partnerId], references: [id])
+  loan        Loan?     @relation(fields: [loanId], references: [id])
+  repayment   Repayment? @relation(fields: [repaymentId], references: [id])
 }
 
 model BANK_accounts {
@@ -364,7 +401,19 @@ model PeriodHeader {
   closingJournalId Int?              @unique
   accountsClosing  accountsClosing[]
   clientsClosing   clientsClosing[]
+  PartnerPeriodProfit  PartnerPeriodProfit[]
 }
+
+model PartnerPeriodProfit {
+  id        Int @id @default(autoincrement())
+  partnerId Int
+  periodId  Int
+  totalProfit Float @default(0)
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+  period  PeriodHeader @relation(fields: [periodId], references: [id])
+}
+
 
 model accountsClosing {
   id        Int @id @default(autoincrement())

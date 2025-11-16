@@ -28,10 +28,10 @@ export class CreateLoanDto {
     @IsNumber()
     repaymentDay?: number;
 
-    @IsOptional()
+    @IsNumber()
     bankAccountId?: number;
 
-    @IsOptional()
+    @IsNumber()
     partnerId?: number;
 }
 

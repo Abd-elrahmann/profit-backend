@@ -70,7 +70,7 @@ export class PartnerService {
                 capitalAmount: dto.capitalAmount,
                 contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : null,
                 mudarabahFileUrl: dto.mudarabahFileUrl,
-                isActive: dto.isActive ?? true,
+                isActive: dto.isActive ?? false,
                 accountPayableId: payableAccount.id,
                 accountEquityId: equityAccount.id,
             },

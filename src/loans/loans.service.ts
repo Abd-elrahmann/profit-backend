@@ -122,6 +122,39 @@ export class LoansService {
             },
         });
 
+        if (dto.partnerId) {
+            const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
+            if (!partner) throw new NotFoundException('Partner not found');
+
+            if (partner.isActive === false) {
+                await this.prisma.loanPartnerShare.create({
+                    data: {
+                        loanId: loan.id,
+                        partnerId: partner.id,
+                        sharePercent: 100,
+                        isActive: false,
+                    },
+                });
+            } else {
+                const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
+
+                const totalCapital = activePartners.reduce((sum, p) => sum + p.capitalAmount, 0);
+
+                for (const p of activePartners) {
+                    const percent = (p.capitalAmount / totalCapital) * 100;
+
+                    await this.prisma.loanPartnerShare.create({
+                        data: {
+                            loanId: loan.id,
+                            partnerId: p.id,
+                            sharePercent: Number(percent.toFixed(2)),
+                            isActive: true,
+                        },
+                    });
+                }
+            }
+        }
+
         // Update bank account
         const account = await this.prisma.bANK_accounts.update({
             where: { id: dto.bankAccountId },
@@ -218,7 +251,6 @@ export class LoansService {
         if (!receivable || !bank)
             throw new BadRequestException('Loan receivable and bank accounts must exist');
 
-        console.log(loan)
         // Create Journal Entry (using JournalService)
         const { journal } = await this.journalService.createJournal(
             {
@@ -259,6 +291,16 @@ export class LoansService {
         });
 
         await this.updateClientStatus(loan.clientId);
+
+        if (loan.partnerId) {
+            const partner = await this.prisma.partner.findUnique({ where: { id: loan.partnerId } });
+            if (partner && !partner.isActive) {
+                await this.prisma.partner.update({
+                    where: { id: partner.id },
+                    data: { isActive: true },
+                });
+            }
+        }
 
         // create audit log
         await this.prisma.auditLog.create({
@@ -344,6 +386,19 @@ export class LoansService {
 
             await this.updateClientStatus(loan.clientId);
 
+            if (loan.partnerId) {
+                const loanPartnerShare = await tx.loanPartnerShare.findFirst({
+                    where: { loanId: loan.id, partnerId: loan.partnerId },
+                });
+
+                if (loanPartnerShare && loanPartnerShare.isActive === false) {
+                    await tx.partner.update({
+                        where: { id: loan.partnerId },
+                        data: { isActive: false },
+                    });
+                }
+            }
+
             // create audit log
             await this.prisma.auditLog.create({
                 data: {
@@ -378,7 +433,7 @@ export class LoansService {
 
         const unformattedLoans = await this.prisma.loan.findMany({
             where,
-            include: { client: true, bankAccount: true, partner: true , kafeel: {select : {id: true , name: true }} },
+            include: { client: true, bankAccount: true, partner: true, kafeel: { select: { id: true, name: true } } },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
@@ -416,7 +471,8 @@ export class LoansService {
                 client: true,
                 bankAccount: true,
                 partner: true,
-                kafeel: { select: { name: true, nationalId: true, birthDate: true } }
+                kafeel: { select: { name: true, nationalId: true, birthDate: true } },
+                LoanPartnerShare: { select: { partnerId: true, sharePercent: true } },
             },
         });
         if (!loan) throw new NotFoundException('Loan not found');
@@ -430,6 +486,24 @@ export class LoansService {
 
         const toDateOnly = (date: Date | null | undefined) =>
             date ? DateTime.fromJSDate(date).toFormat('yyyy-LL-dd') : null;
+
+        const getpartnername = async (partnerId: number) => {
+            const partner = await this.prisma.partner.findUnique({ where: { id: partnerId } });
+            return {
+                name: partner?.name ?? 'Unknown',
+                nationalId: partner?.nationalId ?? 'N/A',
+            };
+        };
+
+        const loanPartnerShareName = await Promise.all(
+            loan.LoanPartnerShare.map(async (share) => {
+                const partnerInfo = await getpartnername(share.partnerId);
+                return {
+                    ...share,
+                    ...partnerInfo,
+                };
+            })
+        );
 
         let totalRemainingPrincipal = 0;
         let totalRemainingInterest = 0;
@@ -491,6 +565,7 @@ export class LoansService {
                     birthDate: toDateOnly(loan.kafeel.birthDate),
                 }
                 : null,
+            loanPartnerShareName,
         };
     }
 
@@ -511,6 +586,35 @@ export class LoansService {
             data: dto,
         });
 
+        if (dto.partnerId) {
+            const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
+            if (!partner) throw new NotFoundException('Partner not found');
+
+            await this.prisma.loanPartnerShare.deleteMany({ where: { loanId: loan.id } });
+
+            if (partner.isActive === false) {
+                // inactive → all share to this partner
+                await this.prisma.loanPartnerShare.upsert({
+                    where: { loanId_partnerId: { loanId: loan.id, partnerId: partner.id } },
+                    update: { sharePercent: 100, isActive: false },
+                    create: { loanId: loan.id, partnerId: partner.id, sharePercent: 100, isActive: false },
+                });
+            } else {
+                // active partner → calculate shares for all active partners
+                const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
+                const totalCapital = activePartners.reduce((sum, p) => sum + Number(p.capitalAmount), 0);
+
+                for (const p of activePartners) {
+                    const percent = (Number(p.capitalAmount) / totalCapital) * 100;
+                    await this.prisma.loanPartnerShare.upsert({
+                        where: { loanId_partnerId: { loanId: loan.id, partnerId: p.id } },
+                        update: { sharePercent: percent, isActive: true },
+                        create: { loanId: loan.id, partnerId: p.id, sharePercent: percent, isActive: true },
+                    });
+                }
+            }
+        }
+
         // If financial fields changed, regenerate repayments
         if (dto.amount || dto.interestRate || dto.type || dto.repaymentDay) {
             // Delete existing repayments
@@ -526,7 +630,7 @@ export class LoansService {
             await this.prisma.loan.update({
                 where: { id },
                 data: {
-                    kafeelId: Number(dto.kafeelId),
+                    //kafeelId: Number(dto.kafeelId),
                     amount: Number(principal.toFixed(2)),
                     interestRate: Number(interestRate.toFixed(2)),
                     interestAmount: Number(totalInterest.toFixed(2)),
@@ -631,6 +735,8 @@ export class LoansService {
             });
 
             await tx.repayment.deleteMany({ where: { loanId: id } });
+
+            await tx.loanPartnerShare.deleteMany({ where: { loanId: id } });
 
             await tx.loan.delete({ where: { id } });
 
