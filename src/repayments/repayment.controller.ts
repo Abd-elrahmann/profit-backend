@@ -25,15 +25,8 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class RepaymentController {
     constructor(private readonly repaymentService: RepaymentService) { }
 
-    // Get all repayments for a specific loan
-    @Get(':loanId')
-    @Permissions('repayments', 'canView')
-    getRepaymentsByLoan(@Param('loanId', ParseIntPipe) loanId: number) {
-        return this.repaymentService.getRepaymentsByLoan(loanId);
-    }
-
     // Get specific repayment by ID
-    @Get('repayment/:id')
+    @Get(':id')
     @Permissions('repayments', 'canView')
     getRepaymentById(@Param('id', ParseIntPipe) id: number) {
         return this.repaymentService.getRepaymentById(id);

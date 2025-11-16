@@ -52,42 +52,6 @@ export class RepaymentService {
         });
     }
 
-    // Get all repayments for a specific loan
-    async getRepaymentsByLoan(loanId: number) {
-        const loan = await this.prisma.loan.findUnique({
-            where: { id: loanId },
-            include: { repayments: true, client: true },
-        });
-        if (!loan) throw new NotFoundException('Loan not found');
-
-        // Convert repayment date fields to Saudi timezone
-        const repaymentsWithSaudiTime = loan.repayments.map((repayment) => ({
-            ...repayment,
-            dueDate: repayment.dueDate
-                ? DateTime.fromJSDate(repayment.dueDate)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd HH:mm:ss')
-                : null,
-            paymentDate: repayment.paymentDate
-                ? DateTime.fromJSDate(repayment.paymentDate)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd HH:mm:ss')
-                : null,
-            newDueDate: repayment.newDueDate
-                ? DateTime.fromJSDate(repayment.newDueDate)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd HH:mm:ss')
-                : null,
-            createdAt: repayment.createdAt
-                ? DateTime.fromJSDate(repayment.createdAt)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd HH:mm:ss')
-                : null,
-        }));
-
-        return repaymentsWithSaudiTime;
-    }
-
     // Get specific repayment by ID
     async getRepaymentById(id: number) {
         const repayment = await this.prisma.repayment.findUnique({
@@ -95,11 +59,22 @@ export class RepaymentService {
             include: {
                 loan: {
                     include: {
-                        client: true
+                        client: true,
                     }
-                }
+                },
+                profitAccruals: {
+                    select: {
+                        partnerId: true,
+                        rawShare: true,
+                        companyCut: true,
+                        partnerFinal: true,
+                        isClosed: true,
+                    }
+                },
             }
-        });
+        }
+        );
+
         if (!repayment) throw new NotFoundException('Repayment not found');
         return repayment;
     }
@@ -257,6 +232,31 @@ export class RepaymentService {
                 },
             });
 
+            const partnerShares = await tx.loanPartnerShare.findMany({
+                where: { loanId: loan.id },
+                include: { partner: true }
+            });
+
+            for (const ps of partnerShares) {
+
+                const sharePercent = Number(ps.sharePercent || 0);
+                const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
+                const rawShare = Number(((interestAmount * sharePercent) / 100).toFixed(2));
+                const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
+                const partnerFinal = rawShare - companyCut;
+
+                await tx.partnerShareAccrual.create({
+                    data: {
+                        loanId: loan.id,
+                        repaymentId: repayment.id,
+                        partnerId: ps.partnerId,
+                        rawShare,
+                        companyCut,
+                        partnerFinal,
+                    },
+                });
+            }
+
             const remaining = await tx.repayment.count({
                 where: { loanId: loan.id, status: { not: PaymentStatus.PAID } },
             });
@@ -324,246 +324,7 @@ export class RepaymentService {
         });
     }
 
-    // // Approve repayment (updated with partner distribution)
-    // async approveRepayment(currentUser, id: number, dto: RepaymentDto) {
-    //     const repayment = await this.prisma.repayment.findUnique({
-    //         where: { id },
-    //         include: { loan: { include: { client: true } } },
-    //     });
-    //     if (!repayment) throw new NotFoundException('لم يتم العثور على الدفعة');
-
-    //     const loan = repayment.loan;
-    //     if (!loan) throw new NotFoundException('لم يتم العثور على القرض');
-
-    //     if (loan.status === LoanStatus.PENDING)
-    //         throw new BadRequestException('القرض في حالة انتظار');
-
-    //     if (repayment.status === PaymentStatus.PAID)
-    //         throw new BadRequestException('الدفعة مُعتمدة بالفعل');
-
-    //     const user = await this.prisma.user.findUnique({
-    //         where: { id: currentUser },
-    //     });
-
-    //     const totalAmount = dto.paidAmount ?? repayment.amount;
-    //     const interestAmount = repayment.interestAmount || 0;
-    //     const principalAmount = repayment.principalAmount || 0;
-
-    //     // حساب الحسابات الأساسية
-    //     const bankAccount = await this.prisma.account.findFirst({
-    //         where: { accountBasicType: 'BANK' },
-    //     });
-    //     const loansReceivable = await this.prisma.account.findFirst({
-    //         where: { accountBasicType: 'LOANS_RECEIVABLE' },
-    //     });
-    //     const loanIncome = await this.prisma.account.findFirst({
-    //         where: { accountBasicType: 'LOAN_INCOME' },
-    //     });
-    //     const companyAccount = await this.prisma.account.findFirst({
-    //         where: { accountBasicType: 'COMPANY_SHARES' },
-    //     });
-
-    //     if (!bankAccount || !loansReceivable || !loanIncome)
-    //         throw new BadRequestException('الاعداد المحاسبي مفقود (Bank / Loans Receivable / Loan Income)');
-
-    //     // جلب الشركاء النشطين لتوزيع الفائدة
-    //     const partners = await this.prisma.partner.findMany({
-    //         where: { isActive: true },
-    //         select: {
-    //             id: true,
-    //             name: true,
-    //             capitalAmount: true,
-    //             orgProfitPercent: true,
-    //             accountPayableId: true,
-    //         },
-    //     });
-
-    //     // حساب رأس المال الإجمالي ونسب الشركاء
-    //     const totalCapital = partners.reduce((s, p) => s + (p.capitalAmount || 0), 0);
-
-    //     // إذا مفيش شركاء أو رأس المال = 0 -> نحافظ على السلوك القديم (نكتب الفائدة كـ income بدون توزيع)
-    //     const shouldDistribute = partners.length > 0 && totalCapital > 0 && interestAmount > 0;
-
-    //     return await this.prisma.$transaction(async (tx) => {
-    //         // بناء خطوط القيود الأساسية (استلام من العميل: Bank / LoansReceivable / LoanIncome)
-    //         const journalLines: Array<any> = [
-    //             {
-    //                 accountId: bankAccount.id,
-    //                 debit: totalAmount,
-    //                 credit: 0,
-    //                 description: `استلام سداد للقسط رقم ${repayment.id} من ${loan.client?.name || 'العميل'}`,
-    //             },
-    //             {
-    //                 accountId: loansReceivable.id,
-    //                 debit: 0,
-    //                 credit: principalAmount,
-    //                 description: 'تسوية أصل القسط',
-    //                 clientId: loan.clientId,
-    //             },
-    //             {
-    //                 accountId: loanIncome.id,
-    //                 debit: 0,
-    //                 credit: interestAmount,
-    //                 description: 'دخل الفائدة للقسط',
-    //             },
-    //         ];
-
-    //         // اذا هنوزع الفائدة على الشركاء: نضيف خطوط تحويل الفائدة (ندين Loan Income ثم نقيد المستحقات والشركة)
-    //         if (shouldDistribute) {
-    //             // أولاً: سطر لدين (debit) حساب Loan Income بقيمة الفائدة كاملة (لتحريكها)
-    //             journalLines.push({
-    //                 accountId: loanIncome.id,
-    //                 debit: interestAmount,
-    //                 credit: 0,
-    //                 description: `تحويل أرباح الدفعة رقم ${repayment.id} للمستحقين والشركة`,
-    //             });
-
-    //             // نحسب ونبني خطوط الائتمان لكل شريك وحصة الشركة
-    //             let companyTotalCut = 0;
-    //             for (const partner of partners) {
-    //                 if (!partner.accountPayableId) {
-    //                     throw new BadRequestException(`حساب مستحقات الشريك غير معرّف للشريك ${partner.name}`);
-    //                 }
-    //                 const partnerPercent = (partner.capitalAmount || 0) / totalCapital;
-    //                 const partnerGross = +(interestAmount * partnerPercent); // قبل خصم حصة الشركة
-    //                 const orgPercent = (partner.orgProfitPercent || 0) / 100;
-    //                 const companyCut = +(partnerGross * orgPercent);
-    //                 const partnerNet = +(partnerGross - companyCut);
-
-    //                 // تجنب الأرقام العشرية المتكررة: نحتفظ بقيمتين عشرية
-    //                 const partnerNetRounded = Number(partnerNet.toFixed(2));
-    //                 const companyCutRounded = Number(companyCut.toFixed(2));
-
-    //                 if (partnerNetRounded > 0) {
-    //                     journalLines.push({
-    //                         accountId: partner.accountPayableId,
-    //                         debit: 0,
-    //                         credit: partnerNetRounded,
-    //                         description: `مستحقات شريك ${partner.name} عن الدفعة رقم ${repayment.id}`,
-    //                     });
-
-    //                     // سجل توزيع مؤجل في جدول PartnerShareAccrual
-    //                     await tx.partnerShareAccrual.create({
-    //                         data: {
-    //                             partnerId: partner.id,
-    //                             loanId: loan.id,
-    //                             repaymentId: repayment.id,
-    //                             amount: partnerNetRounded,
-    //                         },
-    //                     });
-    //                 }
-
-    //                 companyTotalCut += companyCutRounded;
-    //             }
-
-    //             // إذا كان هناك حصة للشركة نضيف سطر لها (نستخدم حساب COMPANY_SHARES إن وُجد، وإلا نستخدم loanIncome كبديل)
-    //             const companyAccountToUse = companyAccount ? companyAccount : loanIncome;
-    //             if (companyTotalCut > 0) {
-    //                 // نقرّب أيضًا إلى خانتين عشريتين
-    //                 const companyTotalRounded = Number(companyTotalCut.toFixed(2));
-    //                 journalLines.push({
-    //                     accountId: companyAccountToUse.id,
-    //                     debit: 0,
-    //                     credit: companyTotalRounded,
-    //                     description: `حصة الشركة من أرباح الدفعة رقم ${repayment.id}`,
-    //                 });
-    //             }
-    //         }
-
-    //         // إنشاء القيد عبر journalService (يحتوي كل الخطوط)
-    //         const journal = await this.journalService.createJournal(
-    //             {
-    //                 reference: `REP-${repayment.id}`,
-    //                 description: `ترحيل استلام القسط وتوزيع الأرباح للقسط رقم ${repayment.id} (قرض: ${loan.code})`,
-    //                 type: 'GENERAL',
-    //                 sourceType: JournalSourceType.REPAYMENT,
-    //                 sourceId: repayment.id,
-    //                 lines: journalLines,
-    //             },
-    //             currentUser,
-    //         );
-
-    //         // تحديث حالة الدفعة
-    //         const updatedRepayment = await tx.repayment.update({
-    //             where: { id },
-    //             data: {
-    //                 paidAmount: totalAmount,
-    //                 status: PaymentStatus.PAID,
-    //                 paymentDate: new Date(),
-    //                 notes: dto.notes,
-    //                 reviewStatus: 'APPROVED',
-    //                 remaining: 0,
-    //             },
-    //         });
-
-    //         // لو مفيش أقساط متبقية نكمل إغلاق القرض كما كان
-    //         const remaining = await tx.repayment.count({
-    //             where: { loanId: loan.id, status: { not: PaymentStatus.PAID } },
-    //         });
-
-    //         if (remaining === 0) {
-    //             const totalPaidAmount = await tx.repayment.aggregate({
-    //                 where: { loanId: loan.id },
-    //                 _sum: { paidAmount: true },
-    //             }).then(res => res._sum.paidAmount || 0);
-
-    //             await tx.loan.update({
-    //                 where: { id: loan.id },
-    //                 data: {
-    //                     status: 'COMPLETED',
-    //                     endDate: new Date(),
-    //                     newAmount: totalPaidAmount,
-    //                 },
-    //             });
-    //         }
-
-    //         // ارسال اشعارات (WhatsApp, Telegram) - كما في القديم
-    //         try {
-    //             await this.notificationService.sendNotification({
-    //                 templateType: TemplateType.PAYMENT_APPROVED,
-    //                 clientId: loan.clientId,
-    //                 loanId: loan.id,
-    //                 repaymentId: repayment.id,
-    //                 channel: 'WHATSAPP',
-    //             });
-    //         } catch (error) {
-    //             console.error('❌ فشل إرسال اشعار WhatsApp:', (error as Error).message);
-    //         }
-
-    //         try {
-    //             await this.notificationService.sendNotification({
-    //                 templateType: TemplateType.PAYMENT_APPROVED,
-    //                 clientId: loan.clientId,
-    //                 loanId: loan.id,
-    //                 repaymentId: repayment.id,
-    //                 channel: 'TELEGRAM',
-    //             });
-    //         } catch (error) {
-    //             console.error('❌ فشل إرسال اشعار Telegram:', (error as Error).message);
-    //         }
-
-    //         // تحديث حالة العميل
-    //         await this.updateClientStatus(loan.clientId);
-
-    //         // سجل تدقيق
-    //         await tx.auditLog.create({
-    //             data: {
-    //                 userId: currentUser,
-    //                 screen: 'Repayments',
-    //                 action: 'POST',
-    //                 description: `قام المستخدم ${user?.name} بالموافقة على السداد للدفعة رقم ${id}`,
-    //             },
-    //         });
-
-    //         return {
-    //             message: 'تمت الموافقة على السداد وتوزيع الأرباح للمساهمين (إن وجدوا) بنجاح',
-    //             repaymentId: id,
-    //             journalId: journal.journal.id,
-    //         };
-    //     });
-    // }
-
-    // Reject repayment
+    // Reject repayment   
     async rejectRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -609,6 +370,10 @@ export class RepaymentService {
                     attachments: [],
                     PaymentProof: null,
                 },
+            });
+
+            await tx.partnerShareAccrual.deleteMany({
+                where: { repaymentId: repayment.id },
             });
 
             // Send notification via WhatsApp
