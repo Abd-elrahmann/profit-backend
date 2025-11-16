@@ -539,8 +539,9 @@ export class RepaymentService {
         if (paidAmount >= repayment.amount)
             throw new BadRequestException('Paid amount cannot be equal or greater than full amount — use approveRepayment instead');
 
-        if (loan.status === LoanStatus.PENDING || LoanStatus.COMPLETED)
+        if (loan.status === LoanStatus.PENDING || loan.status === LoanStatus.COMPLETED) {
             throw new BadRequestException('loan is not active');
+        }
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -601,46 +602,37 @@ export class RepaymentService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUserId } });
 
-        // Step 1: حساب مجموع الأقساط غير المدفوعة
+        // Step 1: Filter unpaid or partially paid repayments
         const unpaidRepayments = loan.repayments.filter(
             r => r.status !== 'PAID' && r.status !== 'EARLY_PAID'
         );
 
+        if (unpaidRepayments.length === 0)
+            throw new BadRequestException('No unpaid repayments to process.');
+
+        // Step 2: Calculate totals for unpaid repayments
         let totalRemainingPrincipal = 0;
         let totalRemainingInterest = 0;
-        let totalAlreadyPaid = 0;
 
-        loan.repayments.forEach(rep => {
-            const remainingPrincipal = rep.principalAmount - rep.paidAmount;
-            const paidInterest = Math.max(rep.paidAmount - rep.principalAmount, 0);
+        unpaidRepayments.forEach(rep => {
+            const remainingPrincipal = rep.principalAmount - (rep.paidAmount || 0);
+            const paidInterest = Math.max((rep.paidAmount || 0) - rep.principalAmount, 0);
             const remainingInterest = rep.amount - rep.principalAmount - paidInterest;
 
-            if (rep.status !== 'PAID' && rep.status !== 'EARLY_PAID') {
-                totalRemainingPrincipal += Math.max(remainingPrincipal, 0);
-                totalRemainingInterest += Math.max(remainingInterest, 0);
-            }
-
-            totalAlreadyPaid += rep.paidAmount || 0;
+            totalRemainingPrincipal += Math.max(remainingPrincipal, 0);
+            totalRemainingInterest += Math.max(remainingInterest, 0);
         });
 
-        // Step 2: التحقق من الخصم
+        // Step 3: Validate discount
         if (earlyPaymentDiscount > totalRemainingInterest) {
             throw new BadRequestException(
-                `الخصم لا يمكن أن يتجاوز الفائدة المتبقية (${totalRemainingInterest.toFixed(2)})`
+                `Discount cannot exceed remaining interest (${totalRemainingInterest.toFixed(2)})`,
             );
         }
 
-        // Step 3: حساب المبلغ النهائي بعد الخصم
-        const totalDue = totalRemainingPrincipal + totalRemainingInterest;
         const finalPayment = totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount);
 
-        // Step 4: توزيع الأقساط الجديدة بعد الخصم
-        const principalPerInstallment = parseFloat(
-            (totalRemainingPrincipal / unpaidRepayments.length).toFixed(2)
-        );
-        const interestPerInstallment = 0; // بعد تطبيق الخصم، الفائدة المتبقية = 0
-
-        // Step 5: إعداد الحسابات (Bank, Loans Receivable, Loan Income)
+        // Step 4: Get accounts
         const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
         const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
         const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
@@ -649,7 +641,7 @@ export class RepaymentService {
             throw new BadRequestException('Missing required accounts setup');
 
         return await this.prisma.$transaction(async (tx) => {
-            // Step 6: إنشاء قيد اليومية
+            // Step 5: Create journal entry
             const journal = await this.journalService.createJournal(
                 {
                     reference: `EARLY-${loan.id}`,
@@ -658,68 +650,89 @@ export class RepaymentService {
                     sourceType: JournalSourceType.LOAN,
                     sourceId: loan.id,
                     lines: [
-                        {
-                            accountId: bankAccount.id,
-                            debit: finalPayment,
-                            credit: 0,
-                            description: `استلام سداد مبكر من العميل ${loan.client.name}`,
-                        },
-                        {
-                            accountId: loansReceivable.id,
-                            debit: 0,
-                            credit: totalRemainingPrincipal,
-                            description: 'سداد أصل السلفة بالكامل',
-                            clientId: loan.client.id,
-                        },
-                        {
-                            accountId: loanIncome.id,
-                            debit: 0,
-                            credit: totalRemainingInterest - earlyPaymentDiscount,
-                            description: 'دخل الفائدة بعد خصم السداد المبكر',
-                        },
+                        { accountId: bankAccount.id, debit: finalPayment, credit: 0, description: `استلام سداد مبكر من العميل ${loan.client.name}` },
+                        { accountId: loansReceivable.id, debit: 0, credit: totalRemainingPrincipal, description: 'سداد أصل السلفة بالكامل', clientId: loan.client.id },
+                        { accountId: loanIncome.id, debit: 0, credit: totalRemainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر' },
                     ],
                 },
                 currentUserId
             );
 
-            // Step 7: تحديث الأقساط غير المدفوعة
+            // Step 6: Update repayments
+            const discountRatio = earlyPaymentDiscount / totalRemainingInterest;
+            let interestDistributed = 0;
+
             for (const [index, rep] of unpaidRepayments.entries()) {
-                let paidAmount = principalPerInstallment;
-                // تعديل القسط الأخير لتصحيح الفارق الناتج عن التقريب
+                const alreadyPaid = rep.paidAmount || 0;
+                const remainingPrincipal = rep.principalAmount - alreadyPaid;
+                const paidInterest = Math.max(alreadyPaid - rep.principalAmount, 0);
+                const remainingInterest = rep.amount - rep.principalAmount - paidInterest;
+
+                // Calculate interest discount for this installment
+                let interestDiscount = parseFloat((remainingInterest * discountRatio).toFixed(2));
+                let interestPortion = parseFloat((remainingInterest - interestDiscount).toFixed(2));
+
+                // For the last repayment, adjust to ensure total sums exactly
                 if (index === unpaidRepayments.length - 1) {
-                    const sumPrevious = principalPerInstallment * (unpaidRepayments.length - 1);
-                    paidAmount = totalRemainingPrincipal - sumPrevious;
+                    interestPortion = parseFloat((totalRemainingInterest - earlyPaymentDiscount - interestDistributed).toFixed(2));
+                    interestDiscount = remainingInterest - interestPortion;
+                } else {
+                    interestDistributed += interestPortion;
                 }
+
+                const newPaidAmount = parseFloat((remainingPrincipal + interestPortion + alreadyPaid).toFixed(2));
 
                 await tx.repayment.update({
                     where: { id: rep.id },
                     data: {
                         status: 'EARLY_PAID',
-                        paidAmount,
-                        principalAmount: paidAmount,
-                        interestAmount: interestPerInstallment,
+                        paidAmount: newPaidAmount,
+                        interestAmount: interestPortion,
                         remaining: 0,
                         paymentDate: new Date(),
                         reviewStatus: 'APPROVED',
-                        notes: `تم السداد المبكر مع خصم الفائدة ${earlyPaymentDiscount.toFixed(2)}`,
+                        notes: `تم السداد المبكر مع خصم الفائدة ${interestDiscount.toFixed(2)}`,
                     },
                 });
             }
 
-            // Step 8: تحديث القرض
+            // Step 7: Partner Share Accrual
+            const partnerShares = await tx.loanPartnerShare.findMany({
+                where: { loanId: loan.id },
+                include: { partner: true },
+            });
+
+            const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;
+
+            if (realizedInterest > 0) {
+                for (const ps of partnerShares) {
+                    const sharePercent = Number(ps.sharePercent || 0);
+                    const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
+
+                    const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
+                    const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
+                    const partnerFinal = rawShare - companyCut;
+
+                    await tx.partnerShareAccrual.create({
+                        data: { loanId: loan.id, repaymentId: null, partnerId: ps.partnerId, rawShare, companyCut, partnerFinal },
+                    });
+                }
+            }
+
+            // Step 8: Update loan
             await tx.loan.update({
                 where: { id: loan.id },
                 data: {
                     status: 'COMPLETED',
-                    earlyPaidAmount: totalDue,
+                    earlyPaidAmount: totalRemainingPrincipal + totalRemainingInterest,
                     earlyPaymentDiscount,
                     endDate: new Date(),
                     settlementJournalId: journal.journal.id,
-                    newAmount: totalAlreadyPaid + finalPayment,
+                    newAmount: loan.repayments.reduce((sum, r) => sum + (r.paidAmount || 0), 0),
                 },
             });
 
-            // Step 9: تسجيل العملية في سجل التدقيق
+            // Step 9: Audit log
             await tx.auditLog.create({
                 data: {
                     userId: currentUserId,
@@ -731,12 +744,7 @@ export class RepaymentService {
 
             return {
                 message: 'Loan marked as early paid successfully',
-                totalRemainingPrincipal: totalRemainingPrincipal.toFixed(2),
-                totalRemainingInterest: totalRemainingInterest.toFixed(2),
-                totalDue: totalDue.toFixed(2),
                 finalPayment: finalPayment.toFixed(2),
-                earlyPaymentDiscount: earlyPaymentDiscount.toFixed(2),
-                totalPaidIncludingPartial: (totalAlreadyPaid + finalPayment).toFixed(2),
                 journalId: journal.journal.id,
             };
         });

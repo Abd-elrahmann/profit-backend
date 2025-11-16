@@ -89,144 +89,148 @@ export class LoansService {
             }
 
             const hasActiveLoan = kafeel.loans.some(
-                (l) => l.status !== LoanStatus.COMPLETED || LoanStatus.PENDING
+                (l) => l.status === LoanStatus.PENDING || l.status === LoanStatus.ACTIVE
             );
 
-            if (hasActiveLoan) throw new BadRequestException('This Kafeel has a pending or active loan and cannot be added.');
-        }
+            if (hasActiveLoan) {
+                throw new BadRequestException(
+                    'This Kafeel has a pending or active loan and cannot be added.'
+                );
+            }
 
-        // Loan code
-        const now = new Date();
-        const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
-        const clientIdStr = String(client.id).padStart(3, '0');
-        const code = `LN-${datePart}-${clientIdStr}`;
+            // Loan code
+            const now = new Date();
+            const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const clientIdStr = String(client.id).padStart(3, '0');
+            const code = `LN-${datePart}-${clientIdStr}`;
 
-        // Create loan
-        const loan = await this.prisma.loan.create({
-            data: {
-                code,
-                clientId: dto.clientId,
-                kafeelId: dto.kafeelId ?? null, // add Kafeel here
-                amount: Number(principal.toFixed(2)),
-                interestRate: Number(interestRate.toFixed(2)),
-                interestAmount: Number(totalInterest.toFixed(2)),
-                totalAmount: Number(totalAmount.toFixed(2)),
-                paymentAmount: Number(paymentAmount.toFixed(2)),
-                durationMonths: months,
-                type: dto.type,
-                startDate: new Date(dto.startDate),
-                status: LoanStatus.PENDING,
-                repaymentDay: dto.repaymentDay,
-                bankAccountId: dto.bankAccountId,
-                partnerId: dto.partnerId,
-            },
-        });
+            // Create loan
+            const loan = await this.prisma.loan.create({
+                data: {
+                    code,
+                    clientId: dto.clientId,
+                    kafeelId: dto.kafeelId ?? null, // add Kafeel here
+                    amount: Number(principal.toFixed(2)),
+                    interestRate: Number(interestRate.toFixed(2)),
+                    interestAmount: Number(totalInterest.toFixed(2)),
+                    totalAmount: Number(totalAmount.toFixed(2)),
+                    paymentAmount: Number(paymentAmount.toFixed(2)),
+                    durationMonths: months,
+                    type: dto.type,
+                    startDate: new Date(dto.startDate),
+                    status: LoanStatus.PENDING,
+                    repaymentDay: dto.repaymentDay,
+                    bankAccountId: dto.bankAccountId,
+                    partnerId: dto.partnerId,
+                },
+            });
 
-        if (dto.partnerId) {
-            const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
-            if (!partner) throw new NotFoundException('Partner not found');
+            if (dto.partnerId) {
+                const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
+                if (!partner) throw new NotFoundException('Partner not found');
 
-            if (partner.isActive === false) {
-                await this.prisma.loanPartnerShare.create({
-                    data: {
-                        loanId: loan.id,
-                        partnerId: partner.id,
-                        sharePercent: 100,
-                        isActive: false,
-                    },
-                });
-            } else {
-                const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
-
-                const totalCapital = activePartners.reduce((sum, p) => sum + p.capitalAmount, 0);
-
-                for (const p of activePartners) {
-                    const percent = (p.capitalAmount / totalCapital) * 100;
-
+                if (partner.isActive === false) {
                     await this.prisma.loanPartnerShare.create({
                         data: {
                             loanId: loan.id,
-                            partnerId: p.id,
-                            sharePercent: Number(percent.toFixed(2)),
-                            isActive: true,
+                            partnerId: partner.id,
+                            sharePercent: 100,
+                            isActive: false,
                         },
                     });
+                } else {
+                    const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
+
+                    const totalCapital = activePartners.reduce((sum, p) => sum + p.capitalAmount, 0);
+
+                    for (const p of activePartners) {
+                        const percent = (p.capitalAmount / totalCapital) * 100;
+
+                        await this.prisma.loanPartnerShare.create({
+                            data: {
+                                loanId: loan.id,
+                                partnerId: p.id,
+                                sharePercent: Number(percent.toFixed(2)),
+                                isActive: true,
+                            },
+                        });
+                    }
                 }
             }
-        }
 
-        // Update bank account
-        const account = await this.prisma.bANK_accounts.update({
-            where: { id: dto.bankAccountId },
-            data: { limit: { decrement: 1 } },
-            select: { limit: true },
-        });
-        if (account.limit <= 0) {
-            await this.prisma.bANK_accounts.update({
+            // Update bank account
+            const account = await this.prisma.bANK_accounts.update({
                 where: { id: dto.bankAccountId },
-                data: { status: 'Expired' },
+                data: { limit: { decrement: 1 } },
+                select: { limit: true },
             });
-        }
-
-        const repayments: Prisma.RepaymentCreateManyInput[] = [];
-        const startDate = new Date(dto.startDate);
-
-        let remainingPrincipal = principal;
-        let remainingInterest = totalInterest;
-
-        for (let i = 1; i <= months; i++) {
-            const dueDate = new Date(startDate);
-            if (dto.type === LoanType.DAILY) dueDate.setDate(startDate.getDate() + i);
-            else if (dto.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
-            else {
-                dueDate.setMonth(startDate.getMonth() + i);
-                if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
+            if (account.limit <= 0) {
+                await this.prisma.bANK_accounts.update({
+                    where: { id: dto.bankAccountId },
+                    data: { status: 'Expired' },
+                });
             }
 
-            let amount = paymentAmount;
-            if (i === months && lastPayment.gt(0)) amount = lastPayment;
+            const repayments: Prisma.RepaymentCreateManyInput[] = [];
+            const startDate = new Date(dto.startDate);
 
-            let principalAmount: Decimal;
-            let interestAmount: Decimal;
+            let remainingPrincipal = principal;
+            let remainingInterest = totalInterest;
 
-            if (i === months && lastPayment.gt(0)) {
-                principalAmount = remainingPrincipal;
-                interestAmount = remainingInterest;
-            } else {
-                const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
-                interestAmount = amount.mul(interestRatio).toDecimalPlaces(2);
-                principalAmount = amount.minus(interestAmount).toDecimalPlaces(2);
+            for (let i = 1; i <= months; i++) {
+                const dueDate = new Date(startDate);
+                if (dto.type === LoanType.DAILY) dueDate.setDate(startDate.getDate() + i);
+                else if (dto.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
+                else {
+                    dueDate.setMonth(startDate.getMonth() + i);
+                    if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
+                }
+
+                let amount = paymentAmount;
+                if (i === months && lastPayment.gt(0)) amount = lastPayment;
+
+                let principalAmount: Decimal;
+                let interestAmount: Decimal;
+
+                if (i === months && lastPayment.gt(0)) {
+                    principalAmount = remainingPrincipal;
+                    interestAmount = remainingInterest;
+                } else {
+                    const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
+                    interestAmount = amount.mul(interestRatio).toDecimalPlaces(2);
+                    principalAmount = amount.minus(interestAmount).toDecimalPlaces(2);
+                }
+
+                remainingPrincipal = remainingPrincipal.minus(principalAmount);
+                remainingInterest = remainingInterest.minus(interestAmount);
+
+                repayments.push({
+                    count: i,
+                    loanId: loan.id,
+                    clientId: dto.clientId,
+                    dueDate,
+                    amount: Number(amount.toFixed(2)),
+                    remaining: Number(amount.toFixed(2)),
+                    principalAmount: Number(principalAmount.toFixed(2)),
+                    interestAmount: Number(interestAmount.toFixed(2)),
+                    status: 'PENDING',
+                });
             }
 
-            remainingPrincipal = remainingPrincipal.minus(principalAmount);
-            remainingInterest = remainingInterest.minus(interestAmount);
+            await this.prisma.repayment.createMany({ data: repayments });
 
-            repayments.push({
-                count: i,
-                loanId: loan.id,
-                clientId: dto.clientId,
-                dueDate,
-                amount: Number(amount.toFixed(2)),
-                remaining: Number(amount.toFixed(2)),
-                principalAmount: Number(principalAmount.toFixed(2)),
-                interestAmount: Number(interestAmount.toFixed(2)),
-                status: 'PENDING',
+            // Audit log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Loans',
+                    action: 'CREATE',
+                    description: `قام المستخدم ${user?.name} بإنشاء سلفة جديدة للعميل ${client.name} بمبلغ ${dto.amount}`,
+                },
             });
+
+            return { message: 'Loan created successfully', loan };
         }
-
-        await this.prisma.repayment.createMany({ data: repayments });
-
-        // Audit log
-        await this.prisma.auditLog.create({
-            data: {
-                userId: currentUser,
-                screen: 'Loans',
-                action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بإنشاء سلفة جديدة للعميل ${client.name} بمبلغ ${dto.amount}`,
-            },
-        });
-
-        return { message: 'Loan created successfully', loan };
     }
 
     // Activate Loan
@@ -399,6 +403,8 @@ export class LoansService {
                 }
             }
 
+            await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
+
             // create audit log
             await this.prisma.auditLog.create({
                 data: {
@@ -513,7 +519,7 @@ export class LoansService {
 
         const formattedRepayments = Repayments.map((repayment) => {
             // Round to 2 decimals
-            const remainingPrincipal = Number((repayment.principalAmount - repayment.paidAmount).toFixed(2));
+            const remainingPrincipal = Number((Math.max(repayment.principalAmount - repayment.paidAmount), 0).toFixed(2));
             const remainingInterest = Number(
                 (repayment.amount - repayment.principalAmount - Math.max(repayment.paidAmount - repayment.principalAmount, 0)).toFixed(2)
             );
@@ -542,9 +548,12 @@ export class LoansService {
         totalRemainingPrincipal = Number(totalRemainingPrincipal.toFixed(2));
         totalRemainingInterest = Number(totalRemainingInterest.toFixed(2));
 
+        const { LoanPartnerShare, ...loanWithoutShare } = loan;
+
         return {
-            ...loan,
+             ...loanWithoutShare,  
             repayments: formattedRepayments,
+            loanPartnerShare: loanPartnerShareName,
             totalRemainingPrincipal,
             totalRemainingInterest,
             totalDue,
@@ -565,329 +574,330 @@ export class LoansService {
                     birthDate: toDateOnly(loan.kafeel.birthDate),
                 }
                 : null,
-            loanPartnerShareName,
         };
     }
 
     // Update Loan
     async updateLoan(currentUser, id: number, dto: UpdateLoanDto) {
-        const loan = await this.prisma.loan.findUnique({ where: { id } });
-        if (!loan) throw new NotFoundException('Loan not found');
-        if (loan.status !== LoanStatus.PENDING)
-            throw new BadRequestException('Only pending loans can be updated');
+    const loan = await this.prisma.loan.findUnique({ where: { id } });
+    if (!loan) throw new NotFoundException('Loan not found');
+    if (loan.status !== LoanStatus.PENDING)
+        throw new BadRequestException('Only pending loans can be updated');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+    const user = await this.prisma.user.findUnique({
+        where: { id: currentUser },
+    });
 
-        // Update loan basic fields first
-        const updated = await this.prisma.loan.update({
-            where: { id },
-            data: dto,
-        });
+    // Update loan basic fields first
+    const updated = await this.prisma.loan.update({
+        where: { id },
+        data: dto,
+    });
 
-        if (dto.partnerId) {
-            const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
-            if (!partner) throw new NotFoundException('Partner not found');
+    if (dto.partnerId) {
+        const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
+        if (!partner) throw new NotFoundException('Partner not found');
 
-            await this.prisma.loanPartnerShare.deleteMany({ where: { loanId: loan.id } });
+        await this.prisma.loanPartnerShare.deleteMany({ where: { loanId: loan.id } });
 
-            if (partner.isActive === false) {
-                // inactive → all share to this partner
-                await this.prisma.loanPartnerShare.upsert({
-                    where: { loanId_partnerId: { loanId: loan.id, partnerId: partner.id } },
-                    update: { sharePercent: 100, isActive: false },
-                    create: { loanId: loan.id, partnerId: partner.id, sharePercent: 100, isActive: false },
-                });
-            } else {
-                // active partner → calculate shares for all active partners
-                const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
-                const totalCapital = activePartners.reduce((sum, p) => sum + Number(p.capitalAmount), 0);
-
-                for (const p of activePartners) {
-                    const percent = (Number(p.capitalAmount) / totalCapital) * 100;
-                    await this.prisma.loanPartnerShare.upsert({
-                        where: { loanId_partnerId: { loanId: loan.id, partnerId: p.id } },
-                        update: { sharePercent: percent, isActive: true },
-                        create: { loanId: loan.id, partnerId: p.id, sharePercent: percent, isActive: true },
-                    });
-                }
-            }
-        }
-
-        // If financial fields changed, regenerate repayments
-        if (dto.amount || dto.interestRate || dto.type || dto.repaymentDay) {
-            // Delete existing repayments
-            await this.prisma.repayment.deleteMany({ where: { loanId: id } });
-
-            // Use Decimal for accurate calculations
-            const principal = new Decimal(dto.amount || updated.amount);
-            const interestRate = new Decimal(dto.interestRate || updated.interestRate);
-            const totalAmount = principal.mul(interestRate.div(100).add(1)).toDecimalPlaces(2);
-            const totalInterest = totalAmount.minus(principal).toDecimalPlaces(2);
-
-            // Update loan financials
-            await this.prisma.loan.update({
-                where: { id },
-                data: {
-                    //kafeelId: Number(dto.kafeelId),
-                    amount: Number(principal.toFixed(2)),
-                    interestRate: Number(interestRate.toFixed(2)),
-                    interestAmount: Number(totalInterest.toFixed(2)),
-                    totalAmount: Number(totalAmount.toFixed(2)),
-                },
+        if (partner.isActive === false) {
+            // inactive → all share to this partner
+            await this.prisma.loanPartnerShare.upsert({
+                where: { loanId_partnerId: { loanId: loan.id, partnerId: partner.id } },
+                update: { sharePercent: 100, isActive: false },
+                create: { loanId: loan.id, partnerId: partner.id, sharePercent: 100, isActive: false },
             });
+        } else {
+            // active partner → calculate shares for all active partners
+            const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
+            const totalCapital = activePartners.reduce((sum, p) => sum + Number(p.capitalAmount), 0);
 
-            // Determine number of installments
-            const repaymentCount =
-                updated.type === LoanType.DAILY
-                    ? updated.durationMonths * 30
-                    : updated.type === LoanType.WEEKLY
-                        ? updated.durationMonths * 4
-                        : updated.durationMonths;
-
-            // Calculate installment amount
-            const installmentAmount = totalAmount.div(repaymentCount).toDecimalPlaces(2);
-            const startDate = new Date(updated.startDate);
-            let remainingPrincipal = principal;
-            let remainingInterest = totalInterest;
-
-            const repayments: Prisma.RepaymentCreateManyInput[] = [];
-
-            for (let i = 1; i <= repaymentCount; i++) {
-                const dueDate = new Date(startDate);
-                if (updated.type === LoanType.DAILY) dueDate.setDate(startDate.getDate() + i);
-                else if (updated.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
-                else {
-                    dueDate.setMonth(startDate.getMonth() + i);
-                    if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
-                }
-
-                let principalAmount: Decimal;
-                let interestAmount: Decimal;
-                // Last installment takes remaining amounts
-                if (i === repaymentCount) {
-                    principalAmount = remainingPrincipal;
-                    interestAmount = remainingInterest;
-                } else {
-                    const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
-                    interestAmount = installmentAmount.mul(interestRatio).toDecimalPlaces(2);
-                    principalAmount = installmentAmount.minus(interestAmount).toDecimalPlaces(2);
-                }
-
-                remainingPrincipal = remainingPrincipal.minus(principalAmount).toDecimalPlaces(2);
-                remainingInterest = remainingInterest.minus(interestAmount).toDecimalPlaces(2);
-
-                repayments.push({
-                    count: i,
-                    loanId: updated.id,
-                    clientId: dto.clientId || loan.clientId,
-                    dueDate,
-                    amount: Number(installmentAmount.toFixed(2)),
-                    remaining: Number(installmentAmount.toFixed(2)),
-                    principalAmount: Number(principalAmount.toFixed(2)),
-                    interestAmount: Number(interestAmount.toFixed(2)),
-                    status: 'PENDING',
+            for (const p of activePartners) {
+                const percent = (Number(p.capitalAmount) / totalCapital) * 100;
+                await this.prisma.loanPartnerShare.upsert({
+                    where: { loanId_partnerId: { loanId: loan.id, partnerId: p.id } },
+                    update: { sharePercent: percent, isActive: true },
+                    create: { loanId: loan.id, partnerId: p.id, sharePercent: percent, isActive: true },
                 });
             }
-
-            await this.prisma.repayment.createMany({ data: repayments });
         }
+    }
+
+    // If financial fields changed, regenerate repayments
+    if (dto.amount || dto.interestRate || dto.type || dto.repaymentDay) {
+        // Delete existing repayments
+        await this.prisma.repayment.deleteMany({ where: { loanId: id } });
+
+        // Use Decimal for accurate calculations
+        const principal = new Decimal(dto.amount || updated.amount);
+        const interestRate = new Decimal(dto.interestRate || updated.interestRate);
+        const totalAmount = principal.mul(interestRate.div(100).add(1)).toDecimalPlaces(2);
+        const totalInterest = totalAmount.minus(principal).toDecimalPlaces(2);
+
+        // Update loan financials
+        await this.prisma.loan.update({
+            where: { id },
+            data: {
+                //kafeelId: Number(dto.kafeelId),
+                amount: Number(principal.toFixed(2)),
+                interestRate: Number(interestRate.toFixed(2)),
+                interestAmount: Number(totalInterest.toFixed(2)),
+                totalAmount: Number(totalAmount.toFixed(2)),
+            },
+        });
+
+        // Determine number of installments
+        const repaymentCount =
+            updated.type === LoanType.DAILY
+                ? updated.durationMonths * 30
+                : updated.type === LoanType.WEEKLY
+                    ? updated.durationMonths * 4
+                    : updated.durationMonths;
+
+        // Calculate installment amount
+        const installmentAmount = totalAmount.div(repaymentCount).toDecimalPlaces(2);
+        const startDate = new Date(updated.startDate);
+        let remainingPrincipal = principal;
+        let remainingInterest = totalInterest;
+
+        const repayments: Prisma.RepaymentCreateManyInput[] = [];
+
+        for (let i = 1; i <= repaymentCount; i++) {
+            const dueDate = new Date(startDate);
+            if (updated.type === LoanType.DAILY) dueDate.setDate(startDate.getDate() + i);
+            else if (updated.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
+            else {
+                dueDate.setMonth(startDate.getMonth() + i);
+                if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
+            }
+
+            let principalAmount: Decimal;
+            let interestAmount: Decimal;
+            // Last installment takes remaining amounts
+            if (i === repaymentCount) {
+                principalAmount = remainingPrincipal;
+                interestAmount = remainingInterest;
+            } else {
+                const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
+                interestAmount = installmentAmount.mul(interestRatio).toDecimalPlaces(2);
+                principalAmount = installmentAmount.minus(interestAmount).toDecimalPlaces(2);
+            }
+
+            remainingPrincipal = remainingPrincipal.minus(principalAmount).toDecimalPlaces(2);
+            remainingInterest = remainingInterest.minus(interestAmount).toDecimalPlaces(2);
+
+            repayments.push({
+                count: i,
+                loanId: updated.id,
+                clientId: dto.clientId || loan.clientId,
+                dueDate,
+                amount: Number(installmentAmount.toFixed(2)),
+                remaining: Number(installmentAmount.toFixed(2)),
+                principalAmount: Number(principalAmount.toFixed(2)),
+                interestAmount: Number(interestAmount.toFixed(2)),
+                status: 'PENDING',
+            });
+        }
+
+        await this.prisma.repayment.createMany({ data: repayments });
+    }
+
+    // create audit log
+    await this.prisma.auditLog.create({
+        data: {
+            userId: currentUser,
+            screen: 'Loans',
+            action: 'UPDATE',
+            description: `قام المستخدم ${user?.name} بتحديث السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+        },
+    });
+
+    return { message: 'Loan updated successfully', updated };
+}
+
+    // Delete Loan
+    async deleteLoan(currentUser, id: number) {
+    const loan = await this.prisma.loan.findUnique({
+        where: { id },
+        include: { repayments: true },
+    });
+
+    if (!loan) throw new NotFoundException('Loan not found');
+    if (loan.status !== LoanStatus.PENDING)
+        throw new BadRequestException('Only pending loans can be deleted');
+
+    const user = await this.prisma.user.findUnique({
+        where: { id: currentUser },
+    });
+
+    return await this.prisma.$transaction(async (tx) => {
+        const repaymentIds = loan.repayments.map((r) => r.id);
+
+        await tx.notification.deleteMany({
+            where: {
+                OR: [
+                    { loanId: id },
+                    { repaymentId: { in: repaymentIds.length > 0 ? repaymentIds : undefined } },
+                ],
+            },
+        });
+
+        await tx.repayment.deleteMany({ where: { loanId: id } });
+
+        await tx.loanPartnerShare.deleteMany({ where: { loanId: id } });
+
+        await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
+
+        await tx.loan.delete({ where: { id } });
 
         // create audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
                 screen: 'Loans',
-                action: 'UPDATE',
-                description: `قام المستخدم ${user?.name} بتحديث السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+                action: 'DELETE',
+                description: `قام المستخدم ${user?.name} بحذف السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
             },
         });
 
-        return { message: 'Loan updated successfully', updated };
-    }
-
-    // Delete Loan
-    async deleteLoan(currentUser, id: number) {
-        const loan = await this.prisma.loan.findUnique({
-            where: { id },
-            include: { repayments: true },
-        });
-
-        if (!loan) throw new NotFoundException('Loan not found');
-        if (loan.status !== LoanStatus.PENDING)
-            throw new BadRequestException('Only pending loans can be deleted');
-
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
-
-        return await this.prisma.$transaction(async (tx) => {
-            const repaymentIds = loan.repayments.map((r) => r.id);
-
-            await tx.notification.deleteMany({
-                where: {
-                    OR: [
-                        { loanId: id },
-                        { repaymentId: { in: repaymentIds.length > 0 ? repaymentIds : undefined } },
-                    ],
-                },
-            });
-
-            await tx.repayment.deleteMany({ where: { loanId: id } });
-
-            await tx.loanPartnerShare.deleteMany({ where: { loanId: id } });
-
-            await tx.loan.delete({ where: { id } });
-
-            // create audit log
-            await this.prisma.auditLog.create({
-                data: {
-                    userId: currentUser,
-                    screen: 'Loans',
-                    action: 'DELETE',
-                    description: `قام المستخدم ${user?.name} بحذف السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
-                },
-            });
-
-            return { message: 'Loan and related data deleted successfully' };
-        });
-    }
+        return { message: 'Loan and related data deleted successfully' };
+    });
+}
 
     async uploadDebtAcknowledgmentFile(currentUser: number, loanId: number, file: Express.Multer.File) {
-        if (!file) throw new BadRequestException('No file uploaded');
+    if (!file) throw new BadRequestException('No file uploaded');
 
-        const loan = await this.prisma.loan.findUnique({
-            where: { id: loanId },
-            include: { client: true },
-        });
-        if (!loan) throw new NotFoundException('Loan not found');
+    const loan = await this.prisma.loan.findUnique({
+        where: { id: loanId },
+        include: { client: true },
+    });
+    if (!loan) throw new NotFoundException('Loan not found');
 
-        const client = loan.client;
-        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+    const client = loan.client;
+    const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-        const ext = path.extname(file.originalname);
-        const fileName = `إقرار الدين - ${loan.code}${ext}`;
-        const filePath = path.join(uploadDir, fileName);
-        fs.writeFileSync(filePath, file.buffer);
+    const ext = path.extname(file.originalname);
+    const fileName = `إقرار الدين - ${loan.code}${ext}`;
+    const filePath = path.join(uploadDir, fileName);
+    fs.writeFileSync(filePath, file.buffer);
 
-        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+    const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // 6. Update loan with file URL
-        await this.prisma.loan.update({
-            where: { id: loanId },
-            data: { DEBT_ACKNOWLEDGMENT: publicUrl },
-        });
+    // 6. Update loan with file URL
+    await this.prisma.loan.update({
+        where: { id: loanId },
+        data: { DEBT_ACKNOWLEDGMENT: publicUrl },
+    });
 
-        // 7. Create audit log
-        await this.prisma.auditLog.create({
-            data: {
-                userId: currentUser,
-                screen: 'Loans',
-                action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بتحميل إقرار الدين للسلفة رقم ${loan.code} الخاص بالعميل ${client.name}`,
-            },
-        });
+    // 7. Create audit log
+    await this.prisma.auditLog.create({
+        data: {
+            userId: currentUser,
+            screen: 'Loans',
+            action: 'CREATE',
+            description: `قام المستخدم ${user?.name} بتحميل إقرار الدين للسلفة رقم ${loan.code} الخاص بالعميل ${client.name}`,
+        },
+    });
 
-        // 8. Return response
-        return { message: 'تم تحميل إقرار الدين بنجاح', path: publicUrl };
-    }
+    // 8. Return response
+    return { message: 'تم تحميل إقرار الدين بنجاح', path: publicUrl };
+}
 
     async uploadPromissoryNoteFile(currentUser: number, loanId: number, file: Express.Multer.File) {
-        if (!file) throw new BadRequestException('No file uploaded');
+    if (!file) throw new BadRequestException('No file uploaded');
 
-        // Find the loan and related client
-        const loan = await this.prisma.loan.findUnique({
-            where: { id: loanId },
-            include: { client: true },
-        });
-        if (!loan) throw new NotFoundException('Loan not found');
+    // Find the loan and related client
+    const loan = await this.prisma.loan.findUnique({
+        where: { id: loanId },
+        include: { client: true },
+    });
+    if (!loan) throw new NotFoundException('Loan not found');
 
-        const client = loan.client;
-        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+    const client = loan.client;
+    const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // Create upload directory
-        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    // Create upload directory
+    const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-        // Build filename with loan code
-        const ext = path.extname(file.originalname);
-        const fileName = `سند لأمر - ${loan.code}${ext}`;
-        const filePath = path.join(uploadDir, fileName);
+    // Build filename with loan code
+    const ext = path.extname(file.originalname);
+    const fileName = `سند لأمر - ${loan.code}${ext}`;
+    const filePath = path.join(uploadDir, fileName);
 
-        // Save file
-        fs.writeFileSync(filePath, file.buffer);
+    // Save file
+    fs.writeFileSync(filePath, file.buffer);
 
-        // Generate public URL
-        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+    // Generate public URL
+    const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Update loan with file URL
-        await this.prisma.loan.update({
-            where: { id: loanId },
-            data: { PROMISSORY_NOTE: publicUrl },
-        });
+    // Update loan with file URL
+    await this.prisma.loan.update({
+        where: { id: loanId },
+        data: { PROMISSORY_NOTE: publicUrl },
+    });
 
-        // Create audit log
-        await this.prisma.auditLog.create({
-            data: {
-                userId: currentUser,
-                screen: 'Loans',
-                action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بتحميل سند لأمر للسلفة رقم ${loan.code} الخاص بالعميل ${client.name}`,
-            },
-        });
+    // Create audit log
+    await this.prisma.auditLog.create({
+        data: {
+            userId: currentUser,
+            screen: 'Loans',
+            action: 'CREATE',
+            description: `قام المستخدم ${user?.name} بتحميل سند لأمر للسلفة رقم ${loan.code} الخاص بالعميل ${client.name}`,
+        },
+    });
 
-        return { message: 'تم تحميل سند لأمر بنجاح', path: publicUrl };
-    }
+    return { message: 'تم تحميل سند لأمر بنجاح', path: publicUrl };
+}
 
     async uploadSettlementFile(currentUser: number, loanId: number, file: Express.Multer.File) {
-        if (!file) throw new BadRequestException('No file uploaded');
+    if (!file) throw new BadRequestException('No file uploaded');
 
 
-        const loan = await this.prisma.loan.findUnique({
-            where: { id: loanId },
-            include: { client: true },
-        });
-        if (!loan) throw new NotFoundException('Loan not found');
+    const loan = await this.prisma.loan.findUnique({
+        where: { id: loanId },
+        include: { client: true },
+    });
+    if (!loan) throw new NotFoundException('Loan not found');
 
-        if (loan.status !== LoanStatus.COMPLETED) {
-            throw new BadRequestException('Only completed loans can have settlement files uploaded');
-        }
-
-        const client = loan.client;
-        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
-
-        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-        const ext = path.extname(file.originalname);
-        const fileName = `تسوية - ${loan.code}${ext}`;
-        const filePath = path.join(uploadDir, fileName);
-
-        fs.writeFileSync(filePath, file.buffer);
-
-        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
-
-        await this.prisma.loan.update({
-            where: { id: loanId },
-            data: { SETTLEMENT: publicUrl },
-        });
-
-        await this.prisma.auditLog.create({
-            data: {
-                userId: currentUser,
-                screen: 'Loans',
-                action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بتحميل ملف التسوية للقرض رقم ${loan.code} الخاص بالعميل ${client.name}`,
-            },
-        });
-
-        return { message: 'تم تحميل ملف التسوية بنجاح', path: publicUrl };
+    if (loan.status !== LoanStatus.COMPLETED) {
+        throw new BadRequestException('Only completed loans can have settlement files uploaded');
     }
+
+    const client = loan.client;
+    const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+
+    const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+    const ext = path.extname(file.originalname);
+    const fileName = `تسوية - ${loan.code}${ext}`;
+    const filePath = path.join(uploadDir, fileName);
+
+    fs.writeFileSync(filePath, file.buffer);
+
+    const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+
+    await this.prisma.loan.update({
+        where: { id: loanId },
+        data: { SETTLEMENT: publicUrl },
+    });
+
+    await this.prisma.auditLog.create({
+        data: {
+            userId: currentUser,
+            screen: 'Loans',
+            action: 'CREATE',
+            description: `قام المستخدم ${user?.name} بتحميل ملف التسوية للقرض رقم ${loan.code} الخاص بالعميل ${client.name}`,
+        },
+    });
+
+    return { message: 'تم تحميل ملف التسوية بنجاح', path: publicUrl };
+}
 }
