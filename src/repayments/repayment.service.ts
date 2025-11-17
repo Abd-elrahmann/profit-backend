@@ -521,67 +521,162 @@ export class RepaymentService {
         return { message: 'Payment proof uploaded successfully', fileUrl: publicUrl };
     }
 
-    // Update repayment as partial paid
-    async markAsPartialPaid(currentUser, id: number, paidAmount: number) {
+    // Mark repayment as partial paid
+    async markAsPartialPaid(currentUser: number, id: number, paidAmount: number) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
-            include: { loan: true }
-        },
-        );
+            include: { loan: { include: { client: true } } },
+        });
+
         if (!repayment) throw new NotFoundException('Repayment not found');
 
         const loan = repayment.loan;
+
         if (!loan) throw new NotFoundException('Loan not found');
+        if (loan.status === LoanStatus.PENDING || loan.status === LoanStatus.COMPLETED)
+            throw new BadRequestException('Loan is not active');
 
         if (paidAmount <= 0)
             throw new BadRequestException('Paid amount must be greater than 0');
 
-        if (paidAmount >= repayment.amount)
-            throw new BadRequestException('Paid amount cannot be equal or greater than full amount — use approveRepayment instead');
-
-        if (loan.status === LoanStatus.PENDING || loan.status === LoanStatus.COMPLETED) {
-            throw new BadRequestException('loan is not active');
-        }
-
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
-
-        const newPaidAmount = paidAmount + (repayment.paidAmount || 0);
+        const currentPaid = repayment.paidAmount || 0;
+        const newPaidAmount = currentPaid + paidAmount;
 
         if (newPaidAmount > repayment.amount)
-            throw new BadRequestException('Paid amount must be equal or less than repayment amount');
+            throw new BadRequestException(
+                `Paid amount exceeds installment amount. Max allowed: ${repayment.amount - currentPaid}`
+            );
 
-        const remaining = repayment.amount - newPaidAmount;
+        const remaining = parseFloat((repayment.amount - newPaidAmount).toFixed(2));
 
-        const updated = await this.prisma.repayment.update({
-            where: { id },
-            data: {
+        // Accounting accounts
+        const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
+        const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
+        const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
+
+        if (!bankAccount || !loansReceivable || !loanIncome)
+            throw new BadRequestException('Missing required accounting accounts');
+
+        return await this.prisma.$transaction(async tx => {
+
+            // Determine how much of this payment is Principal vs Interest
+            const totalPrincipal = repayment.principalAmount;
+            const totalInterest = repayment.amount - repayment.principalAmount;
+
+            const alreadyPaidInterest = Math.max(currentPaid - totalPrincipal, 0);
+            const remainingInterest = totalInterest - alreadyPaidInterest;
+
+            let principalPart = 0;
+            let interestPart = 0;
+
+            // 1st: always cover remaining principal first
+            if (currentPaid < totalPrincipal) {
+                const remainingPrincipal = totalPrincipal - currentPaid;
+
+                if (paidAmount <= remainingPrincipal) {
+                    principalPart = paidAmount;
+                } else {
+                    principalPart = remainingPrincipal;
+                    interestPart = paidAmount - remainingPrincipal;
+                }
+            } else {
+                interestPart = paidAmount;
+            }
+
+            // Create Journal Entry for this partial payment
+            await this.journalService.createJournal(
+                {
+                    reference: `PARTIAL-${repayment.id}-${Date.now()}`,
+                    description: `Partial payment for repayment #${repayment.id}`,
+                    type: 'GENERAL',
+                    sourceType: JournalSourceType.REPAYMENT,
+                    sourceId: repayment.id,
+                    lines: [
+                        {
+                            accountId: bankAccount.id,
+                            debit: paidAmount,
+                            credit: 0,
+                            description: `Partial repayment received from ${loan.client.name}`,
+                        },
+                        {
+                            accountId: loansReceivable.id,
+                            debit: 0,
+                            credit: principalPart,
+                            description: 'Partial principal repayment',
+                            clientId: loan.client.id,
+                        },
+                        {
+                            accountId: loanIncome.id,
+                            debit: 0,
+                            credit: interestPart,
+                            description: 'Interest portion of partial payment',
+                        },
+                    ],
+                },
+                currentUser
+            );
+
+            // Update repayment record
+            const updated = await tx.repayment.update({
+                where: { id },
+                data: {
+                    paidAmount: newPaidAmount,
+                    remaining,
+                    status: remaining > 0 ? PaymentStatus.PARTIAL_PAID : PaymentStatus.PAID,
+                    reviewStatus: 'APPROVED',
+                    paymentDate: new Date(),
+                },
+            });
+
+            // Create partner share accrual for this partial payment
+            const loanPartners = await tx.loanPartnerShare.findMany({
+                where: { loanId: loan.id, isActive: true },
+                include: { partner: true }
+            });
+
+            for (const partner of loanPartners) {
+                const partnerPercentage = partner.sharePercent / 100;
+
+                // نصيب المساهم من الفائدة فقط
+                const rawShare = parseFloat((interestPart * partnerPercentage).toFixed(2));
+
+                // الشركة تأخذ نسبة من نصيبهم
+                const companyCut = parseFloat((rawShare * (partner.partner.orgProfitPercent / 100)).toFixed(2));
+
+                const partnerFinal = parseFloat((rawShare - companyCut).toFixed(2));
+
+                await tx.partnerShareAccrual.create({
+                    data: {
+                        partnerId: partner.partnerId,
+                        loanId: loan.id,
+                        repaymentId: repayment.id,
+                        rawShare,
+                        companyCut,
+                        partnerFinal,
+                        isClosed: false,
+                    }
+                });
+            }
+
+            // Audit Log
+            await tx.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Repayments',
+                    action: 'UPDATE',
+                    description: `قام المستخدم بعمل سداد جزئي للدفعة رقم ${id} بمبلغ ${paidAmount}`,
+                },
+            });
+
+            return {
+                message: 'Partial payment recorded successfully',
+                repaymentId: id,
                 paidAmount: newPaidAmount,
                 remaining,
-                status: remaining > 0 ? PaymentStatus.PARTIAL_PAID : PaymentStatus.COMPLETED,
-                reviewStatus: 'APPROVED',
-                paymentDate: new Date(),
-            },
+                principalPart,
+                interestPart,
+            };
         });
-
-        // create audit log
-        await this.prisma.auditLog.create({
-            data: {
-                userId: currentUser,
-                screen: 'Repayments',
-                action: 'UPDATE',
-                description: `قام المستخدم ${user?.name} بتحديث السداد الجزئي للدفعة رقم ${id}`,
-            },
-        });
-
-        return {
-            message: 'Repayment marked as partial paid',
-            repaymentId: updated.id,
-            paidAmount: updated.paidAmount,
-            remaining: updated.remaining,
-            status: updated.status,
-        };
     }
 
     // Mark loan as early paid
