@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
-import { JournalStatus } from '@prisma/client';
+import { JournalStatus, JournalSourceType } from '@prisma/client';
 import { DateTime } from 'luxon';
 
 @Injectable()
@@ -168,12 +168,37 @@ export class JournalService {
         const where: any = {};
 
         if (search) {
-            where.OR = [
+            const searchUpper = search.toUpperCase();
+            // Try to match enum values for sourceType
+            const sourceTypeMatches: JournalSourceType[] = [];
+            if (searchUpper.includes('LOAN') || searchUpper === 'LN') {
+                sourceTypeMatches.push(JournalSourceType.LOAN);
+            }
+            if (searchUpper.includes('REPAYMENT') || searchUpper === 'REP') {
+                sourceTypeMatches.push(JournalSourceType.REPAYMENT);
+            }
+            if (searchUpper.includes('PARTNER')) {
+                sourceTypeMatches.push(JournalSourceType.PARTNER);
+            }
+            if (searchUpper.includes('WITHDRAWAL') || searchUpper.includes('سحب')) {
+                sourceTypeMatches.push(JournalSourceType.PARTNER_TRANSACTION_WITHDRAWAL);
+            }
+            if (searchUpper.includes('DEPOSIT') || searchUpper.includes('إيداع')) {
+                sourceTypeMatches.push(JournalSourceType.PARTNER_TRANSACTION_DEPOSIT);
+            }
+
+            const orConditions: any[] = [
                 { reference: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
-                { sourceType: { contains: search, mode: 'insensitive' } },
                 { postedBy: { name: { contains: search, mode: 'insensitive' } } },
             ];
+
+            // Add sourceType search if there are matches
+            if (sourceTypeMatches.length > 0) {
+                orConditions.push({ sourceType: { in: sourceTypeMatches } });
+            }
+
+            where.OR = orConditions;
         }
 
         if (status) where.status = status as any;
@@ -217,7 +242,10 @@ export class JournalService {
     async getJournalById(id: number) {
         const journal = await this.prisma.journalHeader.findUnique({
           where: { id },
-          include: { lines: { include: { account: true, client: true } } },
+          include: { 
+            lines: { include: { account: true, client: true } },
+            postedBy: { select: { id: true, name: true, email: true } }
+          },
         });
       
         if (!journal) throw new NotFoundException('Journal not found');
