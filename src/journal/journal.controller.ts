@@ -12,8 +12,8 @@ export class JournalController {
 
     @Post()
     @Permissions('journals', 'canAdd')
-    create(@Body() dto: CreateJournalDto) {
-        return this.journalService.createJournal(dto);
+    create(@Req() req, @Body() dto: CreateJournalDto) {
+        return this.journalService.createJournal(dto, req.user.id);
     }
 
     @Patch(':id')

@@ -11,9 +11,9 @@ export class JournalService {
     // Create journal
     async createJournal(dto: CreateJournalDto, userId?: number) {
 
-        const user = await this.prisma.user.findUnique({
+        const user = userId ? await this.prisma.user.findUnique({
             where: { id: userId },
-        });
+        }) : null;
 
         const totalDebit = dto.lines.reduce((sum, l) => sum + (l.debit || 0), 0);
         const totalCredit = dto.lines.reduce((sum, l) => sum + (l.credit || 0), 0);
@@ -59,15 +59,17 @@ export class JournalService {
             include: { lines: true },
         });
 
-        // create audit log
-        await this.prisma.auditLog.create({
-            data: {
-                userId: userId || 0,
-                screen: 'Journals',
-                action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بإنشاء قيد يومية برقم مرجعي ${journal.reference}`,
-            },
-        });
+        // create audit log (only if userId is provided)
+        if (userId) {
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: userId,
+                    screen: 'Journals',
+                    action: 'CREATE',
+                    description: `قام المستخدم ${user?.name || 'غير معروف'} بإنشاء قيد يومية برقم مرجعي ${journal.reference}`,
+                },
+            });
+        }
 
         return { message: 'Journal created successfully', journal };
     }
