@@ -1,162 +1,122 @@
 [
   {
-    "id": 5,
-    "journalId": 3,
-    "accountId": 46,
-    "debit": 12000,
-    "credit": 0,
-    "balance": 12000,
-    "clientId": 1,
-    "description": "Loan receivable"
-  },
-  {
-    "id": 6,
-    "journalId": 3,
+    "id": 202,
+    "journalId": 83,
     "accountId": 30,
-    "debit": 0,
-    "credit": 12000,
-    "balance": -12000,
-    "clientId": null,
-    "description": "bank disbursed"
-  },
-  {
-    "id": 1,
-    "journalId": 1,
-    "accountId": 30,
-    "debit": 100000,
+    "debit": 10000,
     "credit": 0,
-    "balance": 100000,
+    "balance": 10000,
     "clientId": null,
     "description": "إيداع نقدي لرأس المال"
   },
   {
-    "id": 2,
-    "journalId": 1,
-    "accountId": 45,
+    "id": 203,
+    "journalId": 83,
+    "accountId": 59,
     "debit": 0,
-    "credit": 100000,
-    "balance": 100000,
+    "credit": 10000,
+    "balance": 10000,
     "clientId": null,
-    "description": "رأس مال youssef khaled"
+    "description": "رأس مال محمد"
   },
   {
-    "id": 13,
-    "journalId": 6,
+    "id": 204,
+    "journalId": 84,
     "accountId": 30,
-    "debit": 2200,
+    "debit": 15000,
     "credit": 0,
-    "balance": 2200,
+    "balance": 15000,
     "clientId": null,
-    "description": "Repayment received from youssef khaled"
+    "description": "إيداع نقدي لرأس المال"
   },
   {
-    "id": 14,
-    "journalId": 6,
+    "id": 205,
+    "journalId": 84,
+    "accountId": 61,
+    "debit": 0,
+    "credit": 15000,
+    "balance": 15000,
+    "clientId": null,
+    "description": "رأس مال youssef"
+  },
+  {
+    "id": 206,
+    "journalId": 85,
     "accountId": 46,
-    "debit": 0,
-    "credit": 2000,
-    "balance": -2000,
-    "clientId": 1,
-    "description": "Loan principal repayment"
-  },
-  {
-    "id": 15,
-    "journalId": 6,
-    "accountId": 47,
-    "debit": 0,
-    "credit": 200,
-    "balance": 200,
-    "clientId": null,
-    "description": "Loan interest income"
-  },
-  {
-    "id": 23,
-    "journalId": 11,
-    "accountId": 30,
-    "debit": 2200,
+    "debit": 10000,
     "credit": 0,
-    "balance": 2200,
-    "clientId": null,
-    "description": "Repayment received from youssef khaled"
-  },
-  {
-    "id": 24,
-    "journalId": 11,
-    "accountId": 46,
-    "debit": 0,
-    "credit": 2000,
-    "balance": -2000,
-    "clientId": 1,
-    "description": "Loan principal repayment"
-  },
-  {
-    "id": 25,
-    "journalId": 11,
-    "accountId": 47,
-    "debit": 0,
-    "credit": 200,
-    "balance": 200,
-    "clientId": null,
-    "description": "Loan interest income"
-  },
-  {
-    "id": 33,
-    "journalId": 15,
-    "accountId": 46,
-    "debit": 12000,
-    "credit": 0,
-    "balance": 12000,
+    "balance": 10000,
     "clientId": 1,
     "description": "Loan receivable"
   },
   {
-    "id": 34,
-    "journalId": 15,
+    "id": 207,
+    "journalId": 85,
     "accountId": 30,
     "debit": 0,
-    "credit": 12000,
-    "balance": -12000,
+    "credit": 10000,
+    "balance": -10000,
     "clientId": null,
     "description": "Bank disbursement"
   },
   {
-    "id": 38,
-    "journalId": 17,
+    "id": 208,
+    "journalId": 86,
     "accountId": 30,
-    "debit": 5000,
+    "debit": 3000,
     "credit": 0,
-    "balance": 5000,
+    "balance": 3000,
     "clientId": null,
-    "description": "إيداع نقدي من الشريك youssef khaled"
+    "description": "Repayment received from youssef khaled"
   },
   {
-    "id": 39,
-    "journalId": 17,
-    "accountId": 45,
+    "id": 209,
+    "journalId": 86,
+    "accountId": 46,
     "debit": 0,
-    "credit": 5000,
-    "balance": 5000,
-    "clientId": null,
-    "description": "زيادة في رأس مال الشريك youssef khaled"
+    "credit": 2500,
+    "balance": -2500,
+    "clientId": 1,
+    "description": "Loan principal repayment"
   },
   {
-    "id": 40,
-    "journalId": 18,
+    "id": 210,
+    "journalId": 86,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 500,
+    "balance": 500,
+    "clientId": null,
+    "description": "Loan interest income"
+  },
+  {
+    "id": 211,
+    "journalId": 87,
     "accountId": 30,
-    "debit": 5000,
+    "debit": 8000,
     "credit": 0,
-    "balance": 5000,
+    "balance": 8000,
     "clientId": null,
-    "description": "إيداع نقدي من الشريك youssef khaled"
+    "description": "استلام سداد مبكر من العميل youssef khaled"
   },
   {
-    "id": 41,
-    "journalId": 18,
-    "accountId": 45,
+    "id": 212,
+    "journalId": 87,
+    "accountId": 46,
     "debit": 0,
-    "credit": 5000,
-    "balance": 5000,
+    "credit": 7500,
+    "balance": -7500,
+    "clientId": 1,
+    "description": "سداد أصل السلفة بالكامل"
+  },
+  {
+    "id": 213,
+    "journalId": 87,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 500,
+    "balance": 500,
     "clientId": null,
-    "description": "زيادة في رأس مال الشريك youssef khaled"
+    "description": "دخل الفائدة بعد خصم السداد المبكر"
   }
 ]

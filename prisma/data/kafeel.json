@@ -1,8 +1,26 @@
 [
   {
-    "id": 1,
+    "id": 27,
+    "clientId": 1,
+    "name": "Ali Saleh",
+    "nationalId": "2098765432122",
+    "birthDate": "1985-05-15T00:00:00.000Z",
+    "city": "Riyadh",
+    "district": "Al-Sulaymaniyah",
+    "employer": "SABIC",
+    "salary": 10000,
+    "obligations": 3000,
+    "phone": "0555555556",
+    "email": "ali@gmail.com",
+    "kafeelIdImage": "http://localhost:3000/uploads/clients/30301090200415121/kafeel_2.avif",
+    "kafeelWorkCard": "http://localhost:3000/uploads/clients/30301090200415121/kafeel_workcard_2.webp",
+    "createdAt": "2025-11-11T22:20:19.126Z"
+  },
+  {
+    "id": 36,
+    "clientId": 1,
     "name": "Mohamed Hassan",
-    "nationalId": "2098765432",
+    "nationalId": "2098765432121",
     "birthDate": "1980-01-10T00:00:00.000Z",
     "city": "Riyadh",
     "district": "Malaz",
@@ -11,6 +29,25 @@
     "obligations": 2000,
     "phone": "0555555555",
     "email": "mohamed@gmail.com",
-    "createdAt": "2025-10-27T18:28:55.631Z"
+    "kafeelIdImage": "http://localhost:3000/uploads/clients/30301090200/kafeel_1.jpg",
+    "kafeelWorkCard": "http://localhost:3000/uploads/clients/30301090200/kafeel_workcard_1.pdf",
+    "createdAt": "2025-11-16T20:13:43.408Z"
+  },
+  {
+    "id": 37,
+    "clientId": 1,
+    "name": "Ali Saleh",
+    "nationalId": "2098765432122",
+    "birthDate": "1985-05-15T00:00:00.000Z",
+    "city": "Riyadh",
+    "district": "Al-Sulaymaniyah",
+    "employer": "SABIC",
+    "salary": 10000,
+    "obligations": 3000,
+    "phone": "0555555556",
+    "email": "ali@gmail.com",
+    "kafeelIdImage": "http://localhost:3000/uploads/clients/30301090200/kafeel_2.avif",
+    "kafeelWorkCard": "http://localhost:3000/uploads/clients/30301090200/kafeel_workcard_2.webp",
+    "createdAt": "2025-11-16T20:13:43.412Z"
   }
 ]

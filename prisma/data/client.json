@@ -3,7 +3,7 @@
     "id": 1,
     "name": "youssef khaled",
     "email": "youssef.khaled@gmail.com",
-    "phone": "+201223563376",
+    "phone": "+2012235633",
     "telegramChatId": "1956973104",
     "birthDate": "2003-09-01T00:00:00.000Z",
     "address": "Riyadh, King Fahd Road",
@@ -14,11 +14,10 @@
     "salary": 8000,
     "obligations": 1500,
     "creationReason": "New loan request",
-    "debit": 12000,
-    "credit": 0,
-    "balance": 12000,
+    "debit": 10000,
+    "credit": 10000,
+    "balance": 0,
     "status": "نشط",
-    "kafeelId": 1,
     "notes": "High salary, low obligations",
     "createdAt": "2025-10-27T18:31:51.944Z"
   }

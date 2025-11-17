@@ -44,6 +44,10 @@ export class CreateJournalDto {
     @IsNumber()
     sourceId?: number;
 
+    @IsOptional()
+    @IsNumber()
+    periodId?: number;
+
     @IsNotEmpty()
     @IsArray()
     @ValidateNested({ each: true })

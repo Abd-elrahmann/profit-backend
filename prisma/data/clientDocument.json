@@ -1,13 +1,11 @@
 [
   {
-    "id": 3,
+    "id": 11,
     "clientId": 1,
-    "clientIdImage": "http://localhost:3000/uploads/clients/30301090200415/clientIdImage.png",
-    "clientWorkCard": "http://localhost:3000/uploads/clients/30301090200415/clientWorkCard.pdf",
+    "clientIdImage": "http://localhost:3000/uploads/clients/30301090200415121/client_id_1.png",
+    "clientWorkCard": "http://localhost:3000/uploads/clients/30301090200415121/client_workcard_1.png",
     "salaryReport": null,
     "simaReport": null,
-    "kafeelIdImage": "http://localhost:3000/uploads/clients/30301090200415/kafeelIdImage.png",
-    "kafeelWorkCard": null,
-    "createdAt": "2025-10-27T18:31:51.957Z"
+    "createdAt": "2025-11-11T22:20:19.120Z"
   }
 ]
