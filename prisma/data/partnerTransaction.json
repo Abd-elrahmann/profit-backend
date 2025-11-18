@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "partnerId": 8,
+    "type": "DEPOSIT",
+    "amount": 5000,
+    "date": "2025-11-05T14:03:41.918Z",
+    "reference": "PT-8-1762351421916",
+    "description": null,
+    "journalId": null,
+    "createdAt": "2025-11-05T14:03:41.918Z"
+  },
+  {
+    "id": 2,
+    "partnerId": 8,
+    "type": "DEPOSIT",
+    "amount": 5000,
+    "date": "2025-11-05T14:09:01.934Z",
+    "reference": "PT-8-1762351741932",
+    "description": null,
+    "journalId": null,
+    "createdAt": "2025-11-05T14:09:01.934Z"
+  }
+]
