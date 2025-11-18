@@ -111,6 +111,7 @@ export class AccountsService {
         // Step 3: Count total matching journals
         const totalJournals = await this.prisma.journalHeader.count({
             where: {
+                status: 'POSTED',
                 lines: { some: { accountId: id } },
                 ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
             },
@@ -119,6 +120,7 @@ export class AccountsService {
         // Step 4: Fetch journals with pagination
         const journals = await this.prisma.journalHeader.findMany({
             where: {
+                status: 'POSTED',
                 lines: { some: { accountId: id } },
                 ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
             },
@@ -219,6 +221,7 @@ export class AccountsService {
                 entries: {
                     where: {
                         journal: {
+                            status: 'POSTED',
                             ...(dateFilter.date ? { date: dateFilter.date } : {}),
                         },
                     },

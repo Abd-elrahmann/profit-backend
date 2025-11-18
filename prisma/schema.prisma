@@ -318,6 +318,7 @@ model PartnerShareAccrual {
   companyCut     Float  
   partnerFinal   Float   
   isClosed       Boolean   @default(false)
+  isDistributed  Boolean   @default(false)
   createdAt   DateTime  @default(now())
 
   partner     Partner   @relation(fields: [partnerId], references: [id])
@@ -399,9 +400,11 @@ model PeriodHeader {
   createdAt        DateTime          @default(now())
   openingJournalId Int?              @unique
   closingJournalId Int?              @unique
+  isClosed         Boolean  @default(false)
   accountsClosing  accountsClosing[]
   clientsClosing   clientsClosing[]
   PartnerPeriodProfit  PartnerPeriodProfit[]
+  journals JournalHeader[]
 }
 
 model PartnerPeriodProfit {
@@ -462,6 +465,7 @@ model JournalHeader {
   lines       JournalLine[]
   periodId    Int?
   createdAt   DateTime      @default(now())
+  period      PeriodHeader? @relation(fields: [periodId], references: [id])
 }
 
 model JournalLine {

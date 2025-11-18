@@ -181,6 +181,15 @@ export class JournalService {
 
         const where: any = {};
 
+        where.NOT = [
+            {
+                AND: [
+                    { sourceType: JournalSourceType.PERIOD_CLOSING },
+                    { status: { not: 'POSTED' } }
+                ]
+            }
+        ];
+
         if (search) {
             const searchUpper = search.toUpperCase();
             // Try to match enum values for sourceType
@@ -201,6 +210,10 @@ export class JournalService {
                 sourceTypeMatches.push(JournalSourceType.PARTNER_TRANSACTION_DEPOSIT);
             }
 
+            if (searchUpper.includes('CLOSING') || searchUpper.includes('إقفال')) {
+                sourceTypeMatches.push(JournalSourceType.PERIOD_CLOSING);
+            }
+
             const orConditions: any[] = [
                 { reference: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
@@ -209,7 +222,19 @@ export class JournalService {
 
             // Add sourceType search if there are matches
             if (sourceTypeMatches.length > 0) {
-                orConditions.push({ sourceType: { in: sourceTypeMatches } });
+                const sourceTypeConditions = sourceTypeMatches.map((type) => {
+                    if (type === JournalSourceType.PERIOD_CLOSING) {
+                        return {
+                            AND: [
+                                { sourceType: type },
+                                { status: 'POSTED' }
+                            ]
+                        };
+                    }
+                    return { sourceType: type };
+                });
+
+                orConditions.push(...sourceTypeConditions);
             }
 
             where.OR = orConditions;

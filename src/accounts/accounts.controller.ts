@@ -17,7 +17,6 @@ import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
-
 @Controller('accounts')
 export class AccountsController {
     constructor(private readonly accountsService: AccountsService) { }
@@ -52,11 +51,13 @@ export class AccountsController {
     }
 
     @Get('bank')
+    @Permissions('treasury', 'canView')
     getBankAccountReport(@Query('month') month?: string) {
         return this.accountsService.getBankAccountReport(month);
     }
 
     @Get(':id/:page')
+    @Permissions('general-ledger', 'canView')
     getAccountById(
         @Param('id', ParseIntPipe) id: number,
         @Param('page', ParseIntPipe) page: number,

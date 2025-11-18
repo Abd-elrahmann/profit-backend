@@ -22,6 +22,10 @@ export class PeriodService {
             const period = await tx.periodHeader.findUnique({ where: { id: periodId } });
             if (!period) throw new NotFoundException('Period not found');
 
+            if (period.closingJournalId) {
+                throw new BadRequestException('Period is already closed');
+            }
+
             const drafts = await tx.journalHeader.findMany({
                 where: { periodId, status: { not: 'POSTED' } },
             });
@@ -123,11 +127,6 @@ export class PeriodService {
                 });
             }
 
-            // post the journal
-            if (closingJournalId) {
-                await this.journalService.postJournal(closingJournalId, closingUserId);
-            }
-
             // Accounts closing
             await this.closeAccountsWithParents(tx, periodId);
 
@@ -176,7 +175,11 @@ export class PeriodService {
 
             await tx.periodHeader.update({
                 where: { id: period.id },
-                data: { closingJournalId },
+                data: {
+                    closingJournalId,
+                    isClosed: true,
+                    endDate: new Date(),
+                },
             });
 
             return {
@@ -285,5 +288,338 @@ export class PeriodService {
         for (const acc of accounts) {
             await compute(acc.id);
         }
+    }
+
+    async reversePeriodClosing(periodId: number, userId: number) {
+        return await this.prisma.$transaction(async (tx) => {
+            const period = await tx.periodHeader.findUnique({
+                where: { id: periodId },
+            });
+            if (!period) throw new NotFoundException("Period not found");
+
+            if (period.isClosed === false) {
+                throw new BadRequestException("Period is not closed, cannot reverse.");
+            }
+
+            // reverse last closed period first
+            if (periodId !== (await tx.periodHeader.findFirst({
+                where: { isClosed: true },
+                orderBy: { startDate: 'desc' },
+            }))?.id) {
+                throw new BadRequestException("Only the most recently closed period can be reversed.");
+            }
+
+            const closingJournalId = period.closingJournalId || 0;
+
+            await tx.accountsClosing.deleteMany({
+                where: { periodId },
+            });
+
+            await tx.clientsClosing.deleteMany({
+                where: { periodId },
+            });
+
+            await tx.partnerShareAccrual.updateMany({
+                where: {
+                    isClosed: true,
+                    isDistributed: false,
+                },
+                data: {
+                    isClosed: false,
+                },
+            });
+
+            await tx.partnerPeriodProfit.deleteMany({
+                where: { periodId },
+            });
+
+            if (closingJournalId !== 0) {
+                await tx.journalLine.deleteMany({
+                    where: { journal: { id: closingJournalId } },
+                });
+
+                await tx.journalHeader.delete({
+                    where: { id: closingJournalId },
+                });
+            }
+
+            const newPeriod = await tx.periodHeader.findFirst({
+                where: { startDate: { gt: period.startDate } },
+                orderBy: { startDate: "asc" },
+            });
+
+            if (newPeriod) {
+                await tx.periodHeader.delete({
+                    where: { id: newPeriod.id },
+                });
+            }
+
+            await tx.periodHeader.update({
+                where: { id: periodId },
+                data: { closingJournalId: null, isClosed: false, endDate: null },
+            });
+
+            return {
+                message: "Period closing reversed successfully.",
+                periodId,
+                deletedNewPeriodId: newPeriod?.id || null,
+            };
+        });
+    }
+
+    async getPeriodDetails(periodId: number) {
+        const period = await this.prisma.periodHeader.findUnique({
+            where: { id: periodId },
+            include: {
+                journals: {
+                    include: {
+                        lines: {
+                            include: {
+                                account: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        code: true,
+                                        accountBasicType: true,
+                                    }
+                                },
+                                client: {
+                                    select: {
+                                        id: true,
+                                        name: true
+                                    }
+                                }
+                            }
+                        },
+                        postedBy: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        date: 'desc'
+                    }
+                },
+                PartnerPeriodProfit: {
+                    include: {
+                        partner: {
+                            select: {
+                                id: true,
+                                name: true,
+                                accountPayableId: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!period) {
+            throw new NotFoundException('Period not found');
+        }
+
+        // Calculate journal totals and transform data
+        const journals = period.journals.map(journal => {
+            const totalDebit = journal.lines.reduce((sum, line) => sum + Number(line.debit), 0);
+            const totalCredit = journal.lines.reduce((sum, line) => sum + Number(line.credit), 0);
+
+            return {
+                id: journal.id,
+                reference: journal.reference,
+                description: journal.description,
+                date: journal.date,
+                type: journal.type,
+                status: journal.status,
+                sourceType: journal.sourceType,
+                totalDebit,
+                totalCredit,
+                lines: journal.lines.map(line => ({
+                    id: line.id,
+                    accountId: line.accountId,
+                    accountName: line.account.name,
+                    debit: Number(line.debit),
+                    credit: Number(line.credit),
+                    description: line.description,
+                    clientId: line.clientId,
+                    clientName: line.client?.name
+                }))
+            };
+        });
+
+        let partnerProfits = [] as any[];
+        let totalPartnerProfit = 0;
+        let companyProfit = 0;
+
+        if (period.closingJournalId) {
+            // For closed periods, use PartnerPeriodProfit data
+            partnerProfits = period.PartnerPeriodProfit.map(ppp => ({
+                partnerId: ppp.partnerId,
+                partnerName: ppp.partner.name,
+                totalProfit: Number(ppp.totalProfit),
+                accountPayableId: ppp.partner.accountPayableId
+            }));
+
+            totalPartnerProfit = partnerProfits.reduce((sum, partner) => sum + partner.totalProfit, 0);
+
+            // Calculate company profit from closing journal
+            const closingJournal = period.journals.find(j => j.id === period.closingJournalId);
+            if (closingJournal) {
+                const companyShareLines = closingJournal.lines.filter(line =>
+                    line.account.accountBasicType === 'COMPANY_SHARES'
+                );
+                companyProfit = companyShareLines.reduce((sum, line) => sum + Number(line.credit), 0);
+            }
+        } else {
+            // For open periods, calculate from journals and accruals
+            const profitCalculation = await this.calculateOpenPeriodProfits(periodId);
+            partnerProfits = profitCalculation.partnerProfits;
+            totalPartnerProfit = profitCalculation.totalPartnerProfit;
+            companyProfit = profitCalculation.companyProfit;
+        }
+
+        return {
+            id: period.id,
+            name: period.name,
+            startDate: period.startDate,
+            endDate: period.endDate,
+            journals,
+            partnerProfits,
+            companyProfit,
+            totalPartnerProfit,
+            isClosed: !!period.closingJournalId
+        };
+    }
+
+    private async calculateOpenPeriodProfits(periodId: number): Promise<{
+        partnerProfits: Array<{
+            partnerId: number;
+            partnerName: string;
+            totalProfit: number;
+            accountPayableId: number;
+        }>;
+        totalPartnerProfit: number;
+        companyProfit: number;
+    }> {
+        // Get all unclosed accruals (regardless of period)
+        const allAccruals = await this.prisma.partnerShareAccrual.findMany({
+            where: {
+                isClosed: false
+            },
+            include: {
+                partner: {
+                    select: {
+                        id: true,
+                        name: true,
+                        accountPayableId: true
+                    }
+                }
+            }
+        });
+
+        const partnerProfits: Array<{
+            partnerId: number;
+            partnerName: string;
+            totalProfit: number;
+            accountPayableId: number;
+        }> = [];
+
+        let totalPartnerProfit = 0;
+        let companyProfit = 0;
+
+        if (allAccruals.length > 0) {
+            const profitByPartner = new Map<number, {
+                partnerId: number;
+                partnerName: string;
+                totalProfit: number;
+                accountPayableId: number;
+            }>();
+
+            for (const accrual of allAccruals) {
+                const partnerId = accrual.partnerId;
+                const current = profitByPartner.get(partnerId) || {
+                    partnerId: accrual.partner.id,
+                    partnerName: accrual.partner.name,
+                    totalProfit: 0,
+                    accountPayableId: accrual.partner.accountPayableId
+                };
+
+                current.totalProfit += Number(accrual.partnerFinal || 0);
+                profitByPartner.set(partnerId, current);
+
+                companyProfit += Number(accrual.companyCut || 0);
+            }
+
+            partnerProfits.push(...Array.from(profitByPartner.values()));
+            totalPartnerProfit = partnerProfits.reduce((sum, partner) => sum + partner.totalProfit, 0);
+        }
+
+        return {
+            partnerProfits,
+            totalPartnerProfit,
+            companyProfit
+        };
+    }
+
+    async getAllPeriods(
+        page = 1,
+        filters?: {
+            limit?: number;
+            name?: string;
+            startDate?: string;
+            endDate?: string;
+            isClosed?: boolean;
+        }
+    ) {
+        const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
+        const skip = (page - 1) * limit;
+
+        const where: any = {};
+
+        // SEARCH BY NAME
+        if (filters?.name) {
+            where.name = { contains: filters.name, mode: 'insensitive' };
+        }
+
+        // FILTER BY START DATE
+        if (filters?.startDate) {
+            where.startDate = { gte: new Date(filters.startDate) };
+        }
+
+        // FILTER BY END DATE
+        if (filters?.endDate) {
+            where.endDate = {
+                lte: new Date(filters.endDate + "T23:59:59"),
+            };
+        }
+
+        // FILTER BY CLOSED STATUS
+        if (filters?.isClosed !== undefined) {
+            where.isClosed = filters.isClosed;
+        }
+
+        // COUNT TOTAL RECORDS
+        const totalPeriods = await this.prisma.periodHeader.count({ where });
+        const totalPages = Math.ceil(totalPeriods / limit);
+
+        if (page > totalPages && totalPeriods > 0) {
+            throw new NotFoundException("Page not found");
+        }
+
+        // FETCH PERIOD DATA
+        const periods = await this.prisma.periodHeader.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { startDate: "desc" },
+        });
+
+        return {
+            totalPeriods,
+            totalPages,
+            currentPage: page,
+            periods,
+        };
     }
 }
