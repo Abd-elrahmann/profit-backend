@@ -319,8 +319,10 @@ model PartnerShareAccrual {
   partnerFinal   Float   
   isClosed       Boolean   @default(false)
   isDistributed  Boolean   @default(false)
+  periodId      Int?
   createdAt   DateTime  @default(now())
 
+  period  PeriodHeader? @relation(fields: [periodId], references: [id])
   partner     Partner   @relation(fields: [partnerId], references: [id])
   loan        Loan?     @relation(fields: [loanId], references: [id])
   repayment   Repayment? @relation(fields: [repaymentId], references: [id])
@@ -404,6 +406,7 @@ model PeriodHeader {
   accountsClosing  accountsClosing[]
   clientsClosing   clientsClosing[]
   PartnerPeriodProfit  PartnerPeriodProfit[]
+  PartnerShareAccrual  PartnerShareAccrual[]
   journals JournalHeader[]
 }
 

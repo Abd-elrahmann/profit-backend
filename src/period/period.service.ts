@@ -26,6 +26,10 @@ export class PeriodService {
                 throw new BadRequestException('Period is already closed');
             }
 
+            const user = await this.prisma.user.findUnique({
+                where: { id: closingUserId },
+            });
+
             const drafts = await tx.journalHeader.findMany({
                 where: { periodId, status: { not: 'POSTED' } },
             });
@@ -35,7 +39,7 @@ export class PeriodService {
 
             // Partner profit accrual closing
             const accruals = await tx.partnerShareAccrual.findMany({
-                where: { isClosed: false },
+                where: { periodId: periodId },
                 include: { partner: true },
             });
 
@@ -182,6 +186,16 @@ export class PeriodService {
                 },
             });
 
+            // create audit log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: closingUserId,
+                    screen: 'Period',
+                    action: 'UPDATE',
+                    description: `قام المستخدم ${user?.name} بإغلاق الفترة ${period.name} (${period.id})`,
+                },
+            });
+
             return {
                 message: 'Period closed successfully (no opening journal)',
                 periodId: period.id,
@@ -300,6 +314,9 @@ export class PeriodService {
             if (period.isClosed === false) {
                 throw new BadRequestException("Period is not closed, cannot reverse.");
             }
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+            });
 
             // reverse last closed period first
             if (periodId !== (await tx.periodHeader.findFirst({
@@ -321,11 +338,11 @@ export class PeriodService {
 
             await tx.partnerShareAccrual.updateMany({
                 where: {
-                    isClosed: true,
-                    isDistributed: false,
+                    periodId: periodId,
                 },
                 data: {
                     isClosed: false,
+                    isDistributed: false,
                 },
             });
 
@@ -357,6 +374,16 @@ export class PeriodService {
             await tx.periodHeader.update({
                 where: { id: periodId },
                 data: { closingJournalId: null, isClosed: false, endDate: null },
+            });
+
+            // create audit log
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: userId,
+                    screen: 'Period',
+                    action: 'UPDATE',
+                    description: `قام المستخدم ${user?.name} بعكس إغلاق الفترة ${period.name} (${period.id})`,
+                },
             });
 
             return {
@@ -505,7 +532,7 @@ export class PeriodService {
         // Get all unclosed accruals (regardless of period)
         const allAccruals = await this.prisma.partnerShareAccrual.findMany({
             where: {
-                isClosed: false
+                periodId: periodId
             },
             include: {
                 partner: {

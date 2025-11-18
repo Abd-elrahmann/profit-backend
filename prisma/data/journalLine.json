@@ -1,5 +1,65 @@
 [
   {
+    "id": 232,
+    "journalId": 91,
+    "accountId": 47,
+    "debit": 320,
+    "credit": 0,
+    "balance": -320,
+    "clientId": null,
+    "description": "Partner shares for period"
+  },
+  {
+    "id": 233,
+    "journalId": 91,
+    "accountId": 58,
+    "debit": 0,
+    "credit": 320,
+    "balance": 320,
+    "clientId": null,
+    "description": "Partner payable - share for period"
+  },
+  {
+    "id": 234,
+    "journalId": 91,
+    "accountId": 47,
+    "debit": 420,
+    "credit": 0,
+    "balance": -420,
+    "clientId": null,
+    "description": "Partner shares for period"
+  },
+  {
+    "id": 235,
+    "journalId": 91,
+    "accountId": 60,
+    "debit": 0,
+    "credit": 420,
+    "balance": 420,
+    "clientId": null,
+    "description": "Partner payable - share for period"
+  },
+  {
+    "id": 236,
+    "journalId": 91,
+    "accountId": 47,
+    "debit": 260,
+    "credit": 0,
+    "balance": -260,
+    "clientId": null,
+    "description": "Partner shares for period"
+  },
+  {
+    "id": 237,
+    "journalId": 91,
+    "accountId": 48,
+    "debit": 0,
+    "credit": 260,
+    "balance": 260,
+    "clientId": null,
+    "description": "Company share from partners profit"
+  },
+  {
     "id": 202,
     "journalId": 83,
     "accountId": 30,

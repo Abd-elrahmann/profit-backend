@@ -19,6 +19,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { audit } from 'rxjs';
 import { AuditLogModule } from './logs/audit-log.module';
 import { PeriodModule } from './period/period.module';
+import { DistributionModule } from './distribution/distribution.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { PeriodModule } from './period/period.module';
     NotificationModule,
     AuditLogModule,
     PeriodModule,
+    DistributionModule,
     
   ],
   controllers: [AppController],

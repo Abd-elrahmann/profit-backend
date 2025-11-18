@@ -1,5 +1,17 @@
 [
   {
+    "id": 184,
+    "roleId": 1,
+    "module": "period",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "createdAt": "2025-11-18T16:25:28.543Z",
+    "updatedAt": "2025-11-18T16:25:08.169Z"
+  },
+  {
     "id": 170,
     "roleId": 1,
     "module": "dashboard",

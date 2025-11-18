@@ -237,6 +237,15 @@ export class RepaymentService {
                 include: { partner: true }
             });
 
+            const currentPeriod = await this.prisma.periodHeader.findFirst({
+                where: { endDate: null },
+                orderBy: { startDate: 'desc' },
+            });
+            if (!currentPeriod) {
+                throw new BadRequestException('No open period found. Please create a period first.');
+            }
+            const periodId = currentPeriod.id;
+
             for (const ps of partnerShares) {
 
                 const sharePercent = Number(ps.sharePercent || 0);
@@ -247,6 +256,7 @@ export class RepaymentService {
 
                 await tx.partnerShareAccrual.create({
                     data: {
+                        periodId: periodId,
                         loanId: loan.id,
                         repaymentId: repayment.id,
                         partnerId: ps.partnerId,
@@ -634,6 +644,15 @@ export class RepaymentService {
                 include: { partner: true }
             });
 
+            const currentPeriod = await this.prisma.periodHeader.findFirst({
+                where: { endDate: null },
+                orderBy: { startDate: 'desc' },
+            });
+            if (!currentPeriod) {
+                throw new BadRequestException('No open period found. Please create a period first.');
+            }
+            const periodId = currentPeriod.id;
+
             for (const partner of loanPartners) {
                 const partnerPercentage = partner.sharePercent / 100;
 
@@ -647,6 +666,7 @@ export class RepaymentService {
 
                 await tx.partnerShareAccrual.create({
                     data: {
+                        periodId: periodId,
                         partnerId: partner.partnerId,
                         loanId: loan.id,
                         repaymentId: repayment.id,
@@ -799,6 +819,15 @@ export class RepaymentService {
 
             const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;
 
+            const currentPeriod = await this.prisma.periodHeader.findFirst({
+                where: { endDate: null },
+                orderBy: { startDate: 'desc' },
+            });
+            if (!currentPeriod) {
+                throw new BadRequestException('No open period found. Please create a period first.');
+            }
+            const periodId = currentPeriod.id;
+
             if (realizedInterest > 0) {
                 for (const ps of partnerShares) {
                     const sharePercent = Number(ps.sharePercent || 0);
@@ -809,7 +838,7 @@ export class RepaymentService {
                     const partnerFinal = rawShare - companyCut;
 
                     await tx.partnerShareAccrual.create({
-                        data: { loanId: loan.id, repaymentId: null, partnerId: ps.partnerId, rawShare, companyCut, partnerFinal },
+                        data: { periodId: periodId, loanId: loan.id, repaymentId: null, partnerId: ps.partnerId, rawShare, companyCut, partnerFinal },
                     });
                 }
             }

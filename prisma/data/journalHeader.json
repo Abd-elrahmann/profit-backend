@@ -13,6 +13,19 @@
     "createdAt": "2025-11-17T20:07:14.603Z"
   },
   {
+    "id": 91,
+    "reference": "CLOSE-PERIOD-1-1763477612955",
+    "description": "Closing partner profit for period 1",
+    "date": "2025-11-18T14:53:33.027Z",
+    "type": "CLOSING",
+    "status": "DRAFT",
+    "sourceId": 1,
+    "sourceType": "PERIOD_CLOSING",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-11-18T14:53:33.027Z"
+  },
+  {
     "id": 84,
     "reference": "CAP-14",
     "description": "إيداع رأس مال الشريك youssef",

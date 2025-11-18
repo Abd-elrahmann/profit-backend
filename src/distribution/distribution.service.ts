@@ -1,0 +1,124 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { JournalService } from '../journal/journal.service';
+
+@Injectable()
+export class DistributionService {
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly journalService: JournalService,
+    ) { }
+
+    // Post closing journal for a period 
+    async postClosing(periodId: number, userId: number) {
+        const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
+        if (!period) throw new NotFoundException('Period not found');
+
+        if (period.isClosed === false) throw new BadRequestException('Period is not closed');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        const closingJournalId = period.closingJournalId || 0
+            ;
+        await this.journalService.postJournal(closingJournalId, userId);
+
+        // Get unclosed partner accruals
+        const accruals = await this.prisma.partnerShareAccrual.findMany({
+            where: { periodId: periodId },
+            include: { partner: true },
+        });
+
+        if (!accruals.length) throw new BadRequestException('No partner accruals to post');
+
+        // Mark accruals as closed
+        await this.prisma.partnerShareAccrual.updateMany({
+            where: { id: { in: accruals.map(a => a.id) } },
+            data: { isDistributed: true },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId,
+                screen: 'Distribution',
+                action: 'POST',
+                description: `قام المستخدم ${user?.name} بتوزيع ارباح الفترة ${period.name} بنجاح.`,
+            },
+        });
+
+        return { message: 'Period posted successfully', closingJournalId };
+    }
+
+    // Reverse the posted closing journal
+    async reverseClosing(periodId: number, userId: number) {
+        const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
+        if (!period) throw new NotFoundException('Period not found');
+
+        if (period.isClosed === false) throw new BadRequestException('Period is not closed');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        const closingJournalId = period.closingJournalId || 0;
+
+        await this.journalService.unpostJournal(userId, closingJournalId);
+
+        // Reopen accruals
+        await this.prisma.partnerShareAccrual.updateMany({
+            where: {
+                periodId: periodId,
+            },
+            data: { isDistributed: false },
+        });
+
+        // create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId,
+                screen: 'Distribution',
+                action: 'POST',
+                description: `قام المستخدم ${user?.name} بعكس توزيع ارباح الفترة ${period.name} بنجاح.`,
+            },
+        });
+
+        return { message: 'Period reversal successful', periodId };
+    }
+
+    // Get closed periods
+    async getClosedPeriods() {
+        const periods = await this.prisma.periodHeader.findMany({
+            where: { isClosed: true },
+            include: {
+                PartnerPeriodProfit: { include: { partner: true } },
+                journals: { include: { lines: { include: { account: true } } } }
+            },
+            orderBy: { startDate: 'desc' }
+        });
+
+        return periods.map(p => {
+            const companyProfit = p.journals
+                .flatMap(j => j.lines)
+                .filter(l => l.account.accountBasicType === 'COMPANY_SHARES')
+                .reduce((sum, l) => sum + Number(l.credit), 0);
+
+            const partners = p.PartnerPeriodProfit.map(pp => ({
+                partnerId: pp.partnerId,
+                partnerName: pp.partner.name,
+                totalProfit: Number(pp.totalProfit)
+            }));
+
+            return {
+                periodId: p.id,
+                name: p.name,
+                startDate: p.startDate,
+                endDate: p.endDate,
+                closingJournalId: p.closingJournalId,
+                companyProfit,
+                partners
+            };
+        });
+    }
+}

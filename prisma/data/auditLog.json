@@ -16,6 +16,38 @@
     "createdAt": "2025-11-05T00:29:55.353Z"
   },
   {
+    "id": 417,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763468807126",
+    "createdAt": "2025-11-18T12:26:47.328Z"
+  },
+  {
+    "id": 418,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763468807126",
+    "createdAt": "2025-11-18T12:26:47.382Z"
+  },
+  {
+    "id": 419,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763468807126",
+    "createdAt": "2025-11-18T12:30:01.997Z"
+  },
+  {
+    "id": 433,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-18T17:24:06.269Z"
+  },
+  {
     "id": 2,
     "userId": 1,
     "screen": "Roles",
@@ -54,6 +86,70 @@
     "action": "CREATE",
     "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-10",
     "createdAt": "2025-11-05T00:48:26.730Z"
+  },
+  {
+    "id": 420,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763469223041",
+    "createdAt": "2025-11-18T12:33:43.125Z"
+  },
+  {
+    "id": 421,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763469223041",
+    "createdAt": "2025-11-18T12:33:43.184Z"
+  },
+  {
+    "id": 434,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-18T17:29:02.875Z"
+  },
+  {
+    "id": 422,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763469223041",
+    "createdAt": "2025-11-18T13:57:10.320Z"
+  },
+  {
+    "id": 423,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763475554255",
+    "createdAt": "2025-11-18T14:19:14.366Z"
+  },
+  {
+    "id": 424,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-18T14:53:33.066Z"
+  },
+  {
+    "id": 425,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CAP-13",
+    "createdAt": "2025-11-18T16:31:25.439Z"
+  },
+  {
+    "id": 426,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-13",
+    "createdAt": "2025-11-18T16:31:45.579Z"
   },
   {
     "id": 9,
@@ -2792,6 +2888,46 @@
     "createdAt": "2025-11-16T21:04:45.861Z"
   },
   {
+    "id": 427,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CAP-13",
+    "createdAt": "2025-11-18T16:33:55.770Z"
+  },
+  {
+    "id": 428,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-13",
+    "createdAt": "2025-11-18T16:34:43.625Z"
+  },
+  {
+    "id": 429,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CAP-13",
+    "createdAt": "2025-11-18T16:34:49.288Z"
+  },
+  {
+    "id": 430,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-13",
+    "createdAt": "2025-11-18T16:34:52.036Z"
+  },
+  {
+    "id": 431,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-18T17:22:35.649Z"
+  },
+  {
     "id": 351,
     "userId": 1,
     "screen": "Journals",
@@ -3318,5 +3454,13 @@
     "action": "POST",
     "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EARLY-49",
     "createdAt": "2025-11-17T20:15:26.006Z"
+  },
+  {
+    "id": 432,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-18T17:23:53.347Z"
   }
 ]

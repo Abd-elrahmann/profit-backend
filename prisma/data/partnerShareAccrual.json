@@ -7,7 +7,9 @@
     "rawShare": 200,
     "companyCut": 40,
     "partnerFinal": 160,
-    "isClosed": false,
+    "isClosed": true,
+    "isDistributed": false,
+    "periodId": 1,
     "createdAt": "2025-11-17T20:10:40.008Z"
   },
   {
@@ -18,7 +20,9 @@
     "rawShare": 300,
     "companyCut": 90,
     "partnerFinal": 210,
-    "isClosed": false,
+    "isClosed": true,
+    "isDistributed": false,
+    "periodId": 1,
     "createdAt": "2025-11-17T20:10:40.011Z"
   },
   {
@@ -29,7 +33,9 @@
     "rawShare": 200,
     "companyCut": 40,
     "partnerFinal": 160,
-    "isClosed": false,
+    "isClosed": true,
+    "isDistributed": false,
+    "periodId": 1,
     "createdAt": "2025-11-17T20:15:08.785Z"
   },
   {
@@ -40,7 +46,9 @@
     "rawShare": 300,
     "companyCut": 90,
     "partnerFinal": 210,
-    "isClosed": false,
+    "isClosed": true,
+    "isDistributed": false,
+    "periodId": 1,
     "createdAt": "2025-11-17T20:15:08.786Z"
   }
 ]
