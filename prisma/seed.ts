@@ -60,7 +60,7 @@ async function main() {
         if (inserted === 0) break
     }
 
-    // ✅ Step 3: Reset ID sequences (Fix 1)
+    // Step 3: Reset ID sequences (Fix 1)
     console.log('\n🔧 Resetting PostgreSQL ID sequences...')
     const tables = await prisma.$queryRawUnsafe<
         { relname: string }[]
