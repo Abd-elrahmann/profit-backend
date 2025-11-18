@@ -194,27 +194,28 @@ export class AccountsService {
         return roots;
     }
 
-    // GET BANK ACCOUNT WITH ALL JOURNALS (REPORT)
+    // GET BANK ACCOUNT WITH ALL JOURNALS AND REPAYMENTS
     async getBankAccountReport(month?: string) {
         // Step 1: Build Saudi timezone-aware date filter
-        const dateFilter: any = {};
+        let monthStart: Date | undefined;
+        let monthEnd: Date | undefined;
+
         if (month) {
             const [year, monthNum] = month.split('-').map(Number);
 
-            const start = DateTime.fromObject(
+            // Start and end in Riyadh timezone, then convert to UTC
+            monthStart = DateTime.fromObject(
                 { year, month: monthNum, day: 1 },
-                { zone: 'Asia/Riyadh' },
-            ).startOf('day');
+                { zone: 'Asia/Riyadh' }
+            ).startOf('day').toUTC().toJSDate();
 
-            const end = start.endOf('month').endOf('day');
-
-            dateFilter.date = {
-                gte: start.toJSDate(),
-                lte: end.toJSDate(),
-            };
+            monthEnd = DateTime.fromObject(
+                { year, month: monthNum, day: 1 },
+                { zone: 'Asia/Riyadh' }
+            ).endOf('month').endOf('day').toUTC().toJSDate();
         }
 
-        // Step 2: Fetch bank account and entries with optional date filter
+        // Step 2: Fetch bank account and journal entries
         const bankAccount = await this.prisma.account.findUnique({
             where: { code: '11000' },
             include: {
@@ -222,7 +223,7 @@ export class AccountsService {
                     where: {
                         journal: {
                             status: 'POSTED',
-                            ...(dateFilter.date ? { date: dateFilter.date } : {}),
+                            ...(monthStart && monthEnd ? { date: { gte: monthStart, lte: monthEnd } } : {}),
                         },
                     },
                     include: {
@@ -241,38 +242,61 @@ export class AccountsService {
         if (!bankAccount)
             throw new NotFoundException('Bank account with code 11000 not found');
 
-        // Step 3: Group entries by month (Saudi timezone)
-        const groupedByMonth = bankAccount.entries.reduce((acc, entry) => {
-            const date = DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
-            const monthKey = date.toFormat('yyyy-LL');
+        // Step 3: Group journal entries by month (Saudi timezone)
+        const groupedByMonth = bankAccount.entries.reduce(
+            (acc, entry) => {
+                const date = DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
+                const monthKey = date.toFormat('yyyy-LL');
 
-            if (!acc[monthKey]) {
-                acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0 };
-            }
+                if (!acc[monthKey]) {
+                    acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0 };
+                }
 
-            const mapped = {
-                id: entry.journal.id,
-                date: date.toISO(),
-                reference: entry.journal.reference,
-                description: entry.description ?? entry.journal.description,
-                debit: entry.debit,
-                credit: entry.credit,
-                balance: entry.balance,
-                client: entry.client ? entry.client.name : null,
-                postedBy: entry.journal.postedBy?.name ?? null,
-                status: entry.journal.status,
-                type: entry.journal.type,
-            };
+                const mapped = {
+                    id: entry.journal.id,
+                    date: date.toISO(),
+                    reference: entry.journal.reference,
+                    description: entry.description ?? entry.journal.description,
+                    debit: entry.debit,
+                    credit: entry.credit,
+                    balance: entry.balance,
+                    client: entry.client ? entry.client.name : null,
+                    postedBy: entry.journal.postedBy?.name ?? null,
+                    status: entry.journal.status,
+                    type: entry.journal.type,
+                };
 
-            acc[monthKey].entries.push(mapped);
-            acc[monthKey].totalDebit += entry.debit ?? 0;
-            acc[monthKey].totalCredit += entry.credit ?? 0;
-            acc[monthKey].totalBalance += entry.balance ?? 0;
+                acc[monthKey].entries.push(mapped);
+                acc[monthKey].totalDebit += entry.debit ?? 0;
+                acc[monthKey].totalCredit += entry.credit ?? 0;
+                acc[monthKey].totalBalance += entry.balance ?? 0;
 
-            return acc;
-        }, {} as Record<string, { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number }>);
+                return acc;
+            },
+            {} as Record<
+                string,
+                { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number }
+            >
+        );
 
-        // Step 4: Return formatted report
+        // Step 4: Calculate repayment totals (filter by month if provided)
+        const repaymentFilter: any = {};
+        if (monthStart && monthEnd) {
+            repaymentFilter.dueDate = { gte: monthStart, lte: monthEnd };
+        }
+
+        const repayments = await this.prisma.repayment.findMany({
+            where: repaymentFilter,
+            select: {
+                amount: true,
+                paidAmount: true,
+            },
+        });
+
+        const totalAmount = repayments.reduce((sum, r) => sum + Number(r.amount), 0);
+        const paidUntilNow = repayments.reduce((sum, r) => sum + Number(r.paidAmount), 0);
+
+        // Step 5: Return full report
         return {
             account: {
                 id: bankAccount.id,
@@ -284,6 +308,10 @@ export class AccountsService {
             },
             totalJournalEntries: bankAccount.entries.length,
             journalsByMonth: groupedByMonth,
+            repayments: {
+                totalAmount,
+                paidUntilNow,
+            },
         };
     }
 }
