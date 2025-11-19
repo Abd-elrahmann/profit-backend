@@ -626,6 +626,10 @@ export class PeriodService {
             where.isClosed = filters.isClosed;
         }
 
+        where.journals = {
+            some: {}
+        };
+
         // COUNT TOTAL RECORDS
         const totalPeriods = await this.prisma.periodHeader.count({ where });
         const totalPages = Math.ceil(totalPeriods / limit);

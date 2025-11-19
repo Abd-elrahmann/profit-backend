@@ -98,6 +98,11 @@ export class DistributionService {
             orderBy: { startDate: 'desc' }
         });
 
+        // get the closing journal header
+        const closingJournal = await this.prisma.journalHeader.findUnique({
+            where: { id: periods[0]?.closingJournalId || 0 },
+        });
+
         return periods.map(p => {
             const companyProfit = p.journals
                 .flatMap(j => j.lines)
@@ -116,6 +121,7 @@ export class DistributionService {
                 startDate: p.startDate,
                 endDate: p.endDate,
                 closingJournalId: p.closingJournalId,
+                isdistributed: closingJournal?.status === 'POSTED',
                 companyProfit,
                 partners
             };
