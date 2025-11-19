@@ -435,6 +435,9 @@ export class PeriodService {
                             select: {
                                 id: true,
                                 name: true,
+                                nationalId: true,
+                                phone: true,
+                                orgProfitPercent:true,
                                 accountPayableId: true
                             }
                         }
@@ -484,6 +487,9 @@ export class PeriodService {
             partnerProfits = period.PartnerPeriodProfit.map(ppp => ({
                 partnerId: ppp.partnerId,
                 partnerName: ppp.partner.name,
+                partnerNationalId: ppp.partner.nationalId,
+                partnerPhone: ppp.partner.phone,
+                orgProfitPercent: ppp.partner.orgProfitPercent,
                 totalProfit: Number(ppp.totalProfit),
                 accountPayableId: ppp.partner.accountPayableId
             }));
