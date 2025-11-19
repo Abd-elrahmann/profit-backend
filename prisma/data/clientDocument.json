@@ -1,20 +1,11 @@
 [
   {
-    "id": 1,
+    "id": 11,
     "clientId": 1,
-    "clientIdImage": "http://localhost:3000/uploads/clients/30307180200579/client_id_1.png",
-    "clientWorkCard": null,
+    "clientIdImage": "http://localhost:3000/uploads/clients/30301090200415121/client_id_1.png",
+    "clientWorkCard": "http://localhost:3000/uploads/clients/30301090200415121/client_workcard_1.png",
     "salaryReport": null,
     "simaReport": null,
-    "createdAt": "2025-11-12T02:38:30.752Z"
-  },
-  {
-    "id": 2,
-    "clientId": 2,
-    "clientIdImage": "http://localhost:3000/uploads/clients/57578587877411001/client_id_1.png",
-    "clientWorkCard": "http://localhost:3000/uploads/clients/57578587877411001/client_workcard_1.pdf",
-    "salaryReport": "http://localhost:3000/uploads/clients/57578587877411001/salary_report_1.pdf",
-    "simaReport": null,
-    "createdAt": "2025-11-12T03:48:53.417Z"
+    "createdAt": "2025-11-11T22:20:19.120Z"
   }
 ]

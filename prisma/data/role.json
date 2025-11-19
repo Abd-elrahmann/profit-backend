@@ -4,13 +4,6 @@
     "name": "Admin",
     "description": "Full access role",
     "createdAt": "2025-10-27T18:28:55.503Z",
-    "updatedAt": "2025-11-12T21:21:26.383Z"
-  },
-  {
-    "id": 2,
-    "name": "محاسب",
-    "description": "صلاحيات لصفحات الحسابيه فقط",
-    "createdAt": "2025-11-15T07:28:53.771Z",
-    "updatedAt": "2025-11-15T07:28:53.771Z"
+    "updatedAt": "2025-11-09T11:28:51.584Z"
   }
 ]
