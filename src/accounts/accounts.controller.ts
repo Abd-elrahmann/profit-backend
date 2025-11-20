@@ -56,6 +56,11 @@ export class AccountsController {
         return this.accountsService.getBankAccountReport(month);
     }
 
+    @Get(':id')
+    getAccountDetails(@Param('id', ParseIntPipe) id: number) {
+        return this.accountsService.getAccountDetails(id);
+    }
+
     @Get(':id/:page')
     @Permissions('general-ledger', 'canView')
     getAccountById(

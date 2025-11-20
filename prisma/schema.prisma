@@ -15,6 +15,7 @@ model User {
   email          String               @unique
   password       String
   phone          String               @unique
+  profileImage   String?              // Add this line
   isActive       Boolean              @default(true)
   roleId         Int?
   role           Role?                @relation(fields: [roleId], references: [id])

@@ -78,13 +78,24 @@ export class AccountsService {
         };
     }
 
+    // GET ACCOUNT DETAILS (without journals)
+    async getAccountDetails(id: number) {
+        const account = await this.prisma.account.findUnique({
+            where: { id },
+            include: { children: true },
+        });
+        if (!account) throw new NotFoundException('Account not found');
+
+        return account;
+    }
+
     // GET ACCOUNT BY ID
     async getAccountById(
         id: number,
         page = 1,
         options: { from?: string; to?: string; limit?: number } = {}
     ) {
-        const { from, to, limit = 10 } = options;
+        const { from, to, limit = 1 } = options;
 
         // Step 1: Get the account with children
         const account = await this.prisma.account.findUnique({

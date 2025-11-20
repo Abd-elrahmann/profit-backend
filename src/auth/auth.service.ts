@@ -11,6 +11,8 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 dotenv.config();
 
 @Injectable()
@@ -59,7 +61,16 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true, phone: true, roleId: true, isActive: true, createdAt: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        phone: true, 
+        roleId: true, 
+        isActive: true, 
+        createdAt: true,
+        profileImage: true 
+      },
     });
     return user;
   }
@@ -68,7 +79,15 @@ export class AuthService {
   private generateToken(user: any) {
     const payload = { sub: user.id, email: user.email };
     const accessToken = this.jwtService.sign(payload);
-    return { accessToken, user: { id: user.id, name: user.name, email: user.email } };
+    return { 
+      accessToken, 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email,
+        profileImage: user.profileImage 
+      } 
+    };
   }
 
   async updateProfile(userId: number, data: { name?: string; phone?: string }) {
@@ -85,7 +104,14 @@ export class AuthService {
         name: data.name ?? user.name,
         phone: data.phone ?? user.phone,
       },
-      select: { id: true, name: true, email: true, phone: true, updatedAt: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        phone: true, 
+        updatedAt: true,
+        profileImage: true 
+      },
     });
 
     // create audit log
@@ -99,6 +125,56 @@ export class AuthService {
     });
 
     return { message: 'Profile updated successfully', user: updated };
+  }
+
+  async uploadProfileImage(userId: number, file: Express.Multer.File) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Create uploads directory if not exists
+    const uploadDir = path.join(process.cwd(), 'uploads', 'profiles', userId.toString());
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // Generate unique filename
+    const fileExtension = path.extname(file.originalname);
+    const filename = `profile-${Date.now()}${fileExtension}`;
+    const filePath = path.join(uploadDir, filename);
+
+    // Save file
+    fs.writeFileSync(filePath, file.buffer);
+
+    // Generate public URL
+    const publicPath = `${process.env.URL}uploads/profiles/${userId}/${filename}`;
+
+    // Update user profile image
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { profileImage: publicPath },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        profileImage: true 
+      },
+    });
+
+    // create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        screen: 'Auth',
+        action: 'UPDATE',
+        description: `المستخدم ${user.name} قام بتحديث صورته الشخصية`,
+      },
+    });
+
+    return { 
+      message: 'Profile image uploaded successfully', 
+      profileImage: publicPath,
+      user: updatedUser
+    };
   }
 
   async updatePassword(userId: number, dto: { oldPassword: string; newPassword: string; confirmPassword: string }) {
@@ -158,7 +234,6 @@ export class AuthService {
         pass: process.env.EMAIL_PASS,
       },
     });
-
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
