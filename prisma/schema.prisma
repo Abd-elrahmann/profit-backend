@@ -280,6 +280,9 @@ model Partner {
   isActive         Boolean   @default(false)
   accountPayableId Int       @unique
   accountEquityId  Int       @unique
+  yearlyZakatRequired Float? @default(0)
+  yearlyZakatPaid     Float? @default(0)
+  yearlyZakatBalance  Float? @default(0)
 
   AccountPayable Account @relation(name: "account_payable", references: [id], fields: [accountPayableId])
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
@@ -288,6 +291,8 @@ model Partner {
   profitAccruals PartnerShareAccrual[]
   PartnerPeriodProfit  PartnerPeriodProfit[]
   LoanPartnerShare LoanPartnerShare[]
+  ZakatAccrual ZakatAccrual[]
+  ZakatPayment ZakatPayment[]
 
   createdAt DateTime @default(now())
 }
@@ -327,6 +332,30 @@ model PartnerShareAccrual {
   partner     Partner   @relation(fields: [partnerId], references: [id])
   loan        Loan?     @relation(fields: [loanId], references: [id])
   repayment   Repayment? @relation(fields: [repaymentId], references: [id])
+}
+
+model ZakatAccrual {
+  id         Int       @id @default(autoincrement())
+  partnerId  Int
+  partner    Partner   @relation(fields: [partnerId], references: [id])
+  periodId   Int?
+  year       Int
+  month      Int
+  amount     Float
+  createdAt  DateTime  @default(now())
+
+  @@unique([partnerId, year, month])
+}
+
+model ZakatPayment {
+  id         Int       @id @default(autoincrement())
+  partnerId  Int
+  partner    Partner   @relation(fields: [partnerId], references: [id])
+  periodId   Int?
+  year       Int
+  month      Int
+  amount     Float
+  createdAt  DateTime  @default(now())
 }
 
 model BANK_accounts {
@@ -379,6 +408,7 @@ enum AccountBasicType {
   LOAN_INCOME
   COMPANY_SHARES
   PARTNER_SHARES_EXPENSES
+  ZAKAT_EXPENSES
   OTHER
 }
 
@@ -501,6 +531,7 @@ enum JournalSourceType {
   PARTNER_TRANSACTION_WITHDRAWAL
   PARTNER_TRANSACTION_DEPOSIT
   PERIOD_CLOSING
+  ZAKAT
   OTHER
 }
 

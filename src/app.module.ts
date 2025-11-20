@@ -20,6 +20,7 @@ import { audit } from 'rxjs';
 import { AuditLogModule } from './logs/audit-log.module';
 import { PeriodModule } from './period/period.module';
 import { DistributionModule } from './distribution/distribution.module';
+import { ZakatModule } from './zakat/zakat.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { DistributionModule } from './distribution/distribution.module';
     AuditLogModule,
     PeriodModule,
     DistributionModule,
+    ZakatModule,
     
   ],
   controllers: [AppController],

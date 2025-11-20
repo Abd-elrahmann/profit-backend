@@ -73,6 +73,9 @@ export class PartnerService {
                 isActive: dto.isActive ?? false,
                 accountPayableId: payableAccount.id,
                 accountEquityId: equityAccount.id,
+                yearlyZakatRequired: dto.capitalAmount * 0.025,
+                yearlyZakatPaid: 0,
+                yearlyZakatBalance: 0,
             },
             include: {
                 AccountPayable: true,
@@ -103,6 +106,25 @@ export class PartnerService {
         };
 
         await this.journalService.createJournal(journalDto, currentUser);
+
+        const startMonth = partner.createdAt ? new Date(partner.createdAt).getMonth() + 1 : new Date().getMonth() + 1;
+        const remainingMonths = 12 - startMonth + 1;
+
+        // حساب الزكاة السنوية والقسط الشهري
+        const annualZakat = partner.capitalAmount * 0.025;
+        const monthlyZakat = annualZakat / remainingMonths;
+        const currentYear = new Date().getFullYear();
+
+        for (let month = startMonth; month <= 12; month++) {
+            await this.prisma.zakatAccrual.create({
+                data: {
+                    partnerId: partner.id,
+                    year: currentYear,
+                    month: month,
+                    amount: monthlyZakat,
+                },
+            });
+        }
 
         // create audit log
         await this.prisma.auditLog.create({
