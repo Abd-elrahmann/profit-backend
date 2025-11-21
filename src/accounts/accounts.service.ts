@@ -95,15 +95,15 @@ export class AccountsService {
         page = 1,
         options: { from?: string; to?: string; limit?: number } = {}
     ) {
-        const { from, to, limit = 1 } = options;
-
+        const { from, to, limit = 10 } = options;
+    
         // Step 1: Get the account with children
         const account = await this.prisma.account.findUnique({
             where: { id },
             include: { children: true },
         });
         if (!account) throw new NotFoundException('Account not found');
-
+    
         // Step 2: Build date filter (Saudi timezone)
         const dateFilter: any = {};
         if (from) {
@@ -118,7 +118,7 @@ export class AccountsService {
                 .toJSDate();
             dateFilter.lte = saudiTo;
         }
-
+    
         // Step 3: Count total matching journals
         const totalJournals = await this.prisma.journalHeader.count({
             where: {
@@ -127,7 +127,7 @@ export class AccountsService {
                 ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
             },
         });
-
+    
         // Step 4: Fetch journals with pagination
         const journals = await this.prisma.journalHeader.findMany({
             where: {
@@ -149,8 +149,34 @@ export class AccountsService {
             skip: (page - 1) * limit,
             take: limit,
         });
-
-        // Step 5: Format response
+    
+        // Step 5: Calculate period-specific totals
+        const periodTotals = await this.prisma.journalLine.aggregate({
+            where: {
+                accountId: id,
+                journal: {
+                    status: 'POSTED',
+                    ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
+                }
+            },
+            _sum: {
+                debit: true,
+                credit: true,
+            },
+        });
+    
+        const periodDebit = periodTotals._sum?.debit || 0;
+        const periodCredit = periodTotals._sum?.credit || 0;
+        
+        // Calculate period balance based on account nature
+        let periodBalance = 0;
+        if (account.nature === 'DEBIT') {
+            periodBalance = periodDebit - periodCredit;
+        } else {
+            periodBalance = periodCredit - periodDebit;
+        }
+    
+        // Step 6: Format response
         const formattedJournals = journals.map((j) => ({
             id: j.id,
             reference: j.reference,
@@ -171,15 +197,26 @@ export class AccountsService {
                 account: l.account,
             })),
         }));
-
-        // Step 6: Return result
+    
+        // Step 7: Return result with period-specific balances
         return {
             totalPages: Math.ceil(totalJournals / limit),
             currentPage: page,
             limit,
-            account,
+            account: {
+                ...account,
+                // Override the overall balance with period-specific balance
+                balance: periodBalance,
+                debit: periodDebit,
+                credit: periodCredit,
+            },
             totalJournals,
             journals: formattedJournals,
+            periodSummary: {
+                debit: periodDebit,
+                credit: periodCredit,
+                balance: periodBalance,
+            },
         };
     }
 
