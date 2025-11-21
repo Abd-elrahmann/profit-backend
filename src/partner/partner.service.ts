@@ -202,6 +202,11 @@ export class PartnerService {
             });
             await tx.account.delete({ where: { id: partner.accountPayableId } });
             await tx.account.delete({ where: { id: partner.accountEquityId } });
+            await tx.zakatAccrual.deleteMany({ where: { partnerId: id } });
+            await tx.zakatPayment.deleteMany({ where: { partnerId: id } });
+            await tx.partnerTransaction.deleteMany({ where: { partnerId: id } });
+            await tx.partnerShareAccrual.deleteMany({ where: { partnerId: id } });
+            await tx.partnerPeriodProfit.deleteMany({ where: { partnerId: id } });
         });
 
         // create audit log

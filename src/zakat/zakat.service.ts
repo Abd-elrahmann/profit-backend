@@ -1,5 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { JournalService } from '../journal/journal.service';
+import { DateTime } from 'luxon';
+import { use } from 'passport';
 
 type ZakatYearSummary = {
     partnerId: number;
@@ -11,11 +14,15 @@ type ZakatYearSummary = {
     totalPaid: number;
     remaining: number;
     monthlyBreakdown: any[];
+    payments?: any[];
 };
 
 @Injectable()
 export class ZakatService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly journalService: JournalService,
+    ) { }
 
     // Get yearly zakat summary for a partner
     async getPartnerZakatSummary(partnerId: number, year?: number) {
@@ -25,29 +32,74 @@ export class ZakatService {
 
         if (!partner) throw new NotFoundException('Partner not found');
 
-        const startMonth = partner.createdAt
-            ? new Date(partner.createdAt).getMonth() + 1
-            : 1;
-
-        const remainingMonths = 12 - startMonth + 1;
-
-        const annualZakat = partner.capitalAmount * 0.025;
-        const monthlyZakat = annualZakat / remainingMonths;
-
         // Helper: build summary for a specific year
         const buildYearSummary = async (yr: number): Promise<ZakatYearSummary> => {
+
+            // Determine start month for this year
+            const partnerStartYear = partner.createdAt ? new Date(partner.createdAt).getFullYear() : yr;
+            const startMonth = yr === partnerStartYear
+                ? new Date(partner.createdAt).getMonth() + 1
+                : 1;
+
+            const remainingMonths = 12 - startMonth + 1;
+            const annualZakat = partner.capitalAmount * 0.025;
+            const monthlyZakat = annualZakat / remainingMonths;
+
+            // Get accruals (one entry per month)
             const accruals = await this.prisma.zakatAccrual.findMany({
                 where: { partnerId, year: yr },
                 orderBy: { month: 'asc' },
             });
 
-            const payments = await this.prisma.zakatPayment.aggregate({
+            // Get all payments in that year
+            const payments = await this.prisma.zakatPayment.findMany({
                 where: { partnerId, year: yr },
-                _sum: { amount: true },
             });
 
-            const paidAmount = payments._sum.amount || 0;
-            const remaining = annualZakat - paidAmount;
+            // Add status to each month based on payments
+            const monthlyWithStatus = await Promise.all(
+                accruals.map(async (acc) => {
+                    // Find payment for this month (may not exist)
+                    const payment = payments.find((p) => p.month === acc.month);
+
+                    let status = 'NOT_PAID';
+
+                    if (payment) {
+                        const journal = await this.prisma.journalHeader.findFirst({
+                            where: {
+                                sourceType: 'ZAKAT',
+                                sourceId: payment.id,
+                                status: 'POSTED',
+                            },
+                        });
+
+                        if (journal) status = 'PAID';
+                    }
+
+                    return {
+                        ...acc,
+                        status,
+                    };
+                })
+            );
+
+            // Calculate total paid (posted only)
+            const postedPayments = await Promise.all(
+                payments.map(async (p) => {
+                    const journal = await this.prisma.journalHeader.findFirst({
+                        where: {
+                            sourceType: 'ZAKAT',
+                            sourceId: p.id,
+                            status: 'POSTED',
+                        },
+                    });
+                    return journal ? p.amount : 0;
+                })
+            );
+
+            const totalPaid = postedPayments.reduce((a, b) => a + b, 0);
+
+            const remaining = annualZakat - totalPaid;
 
             return {
                 partnerId,
@@ -56,9 +108,9 @@ export class ZakatService {
                 year: yr,
                 annualZakat,
                 monthlyZakat,
-                totalPaid: paidAmount,
+                totalPaid,
                 remaining: remaining < 0 ? 0 : remaining,
-                monthlyBreakdown: accruals,
+                monthlyBreakdown: monthlyWithStatus, // updated
             };
         };
 
@@ -73,13 +125,14 @@ export class ZakatService {
             orderBy: [{ year: 'asc' }, { month: 'asc' }],
         });
 
-        const distinctYears = [...new Set(allAccruals.map(a => a.year))];
+        const distinctYears = [...new Set(allAccruals.map((a) => a.year))];
 
         const results: ZakatYearSummary[] = [];
 
         for (const yr of distinctYears) {
             results.push(await buildYearSummary(yr));
         }
+
         return results;
     }
 
@@ -87,8 +140,6 @@ export class ZakatService {
         const pageLimit = limit && limit > 0 ? limit : 10;
         const skip = (page - 1) * pageLimit;
 
-        // Count only partners that have zakah data for the specified year
-        // (either accruals or payments)
         const totalPartners = await this.prisma.partner.count({
             where: {
                 OR: [
@@ -165,7 +216,8 @@ export class ZakatService {
         const results: ZakatYearSummary[] = [];
 
         for (const p of partners) {
-            const startMonth = p.createdAt
+            const partnerStartYear = p.createdAt ? new Date(p.createdAt).getFullYear() : new Date().getFullYear();
+            const startMonth = year === partnerStartYear
                 ? new Date(p.createdAt).getMonth() + 1
                 : 1;
 
@@ -206,6 +258,164 @@ export class ZakatService {
                 hasNextPage: page < totalPages,
                 hasPreviousPage: page > 1,
             },
+        };
+    }
+
+    async withdrawZakat(
+        amount: number,
+        userId: number,
+    ) {
+        if (amount <= 0) {
+            throw new BadRequestException("Amount must be greater than 0");
+        }
+
+        const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
+        if (!zakatAccount) throw new BadRequestException('zakat account (20001) must exist');
+
+
+        if (zakatAccount.balance < amount) {
+            throw new BadRequestException("Amount exceeds zakat account balance");
+        }
+
+        const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        if (!bankAccount) throw new NotFoundException("Bank account not found");
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+
+        const reference = `ZAKAT-WITHDRAW-${zakatAccount.id}-${year}-${month}`;
+
+        const journal = await this.journalService.createJournal(
+            {
+                reference,
+                description: `سحب مبلغ زكاة قدره ${amount}`,
+                type: 'GENERAL',
+                sourceType: 'ZAKAT',
+                sourceId: undefined,
+                lines: [
+                    {
+                        accountId: zakatAccount.id,
+                        debit: amount,
+                        credit: 0,
+                        description: 'سحب مبلغ الزكاة من حساب الزكاة',
+                    },
+                    {
+                        accountId: bankAccount.id,
+                        debit: 0,
+                        credit: amount,
+                        description: 'سحب مبلغ الزكاة من الحساب البنكي',
+                    },
+                ],
+            },
+            userId,
+        );
+
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId,
+                screen: 'Zakat',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بسحب مبلغ زكاة قدره ${amount}`,
+            },
+        });
+
+        return {
+            message: "تم سحب مبلغ الزكاة بنجاح",
+            journalId: journal.journal.id
+        };
+    }
+
+    async getZakatAccountReport(month?: string) {
+        let monthStart: Date | undefined;
+        let monthEnd: Date | undefined;
+
+        if (month) {
+            const [year, monthNum] = month.split('-').map(Number);
+            monthStart = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
+                .startOf('day')
+                .toUTC()
+                .toJSDate();
+            monthEnd = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
+                .endOf('month')
+                .endOf('day')
+                .toUTC()
+                .toJSDate();
+        }
+
+        // Fetch zakat account with posted journal entries
+        const zakatAccount = await this.prisma.account.findUnique({
+            where: { code: '20001' }, // zakat account code
+            include: {
+                entries: {
+                    where: {
+                        journal: {
+                            status: 'POSTED',
+                            ...(monthStart && monthEnd ? { date: { gte: monthStart, lte: monthEnd } } : {}),
+                        },
+                    },
+                    include: {
+                        journal: {
+                            include: {
+                                postedBy: { select: { id: true, name: true } },
+                            },
+                        },
+                        client: { select: { id: true, name: true } },
+                    },
+                    orderBy: { id: 'desc' },
+                },
+            },
+        });
+
+        if (!zakatAccount) throw new NotFoundException('Zakat account not found');
+
+        // Group journal entries by month (Saudi timezone)
+        const groupedByMonth = zakatAccount.entries.reduce((acc, entry) => {
+            const date = DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
+            const monthKey = date.toFormat('yyyy-LL');
+
+            if (!acc[monthKey]) {
+                acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0 };
+            }
+
+            const mapped = {
+                id: entry.journal.id,
+                date: date.toISO(),
+                reference: entry.journal.reference,
+                description: entry.description ?? entry.journal.description,
+                debit: entry.debit,
+                credit: entry.credit,
+                balance: entry.balance,
+                client: entry.client?.name ?? null,
+                postedBy: entry.journal.postedBy?.name ?? null,
+                status: entry.journal.status,
+                type: entry.journal.type,
+            };
+
+            acc[monthKey].entries.push(mapped);
+            acc[monthKey].totalDebit += entry.debit ?? 0;
+            acc[monthKey].totalCredit += entry.credit ?? 0;
+            acc[monthKey].totalBalance += entry.balance ?? 0;
+
+            return acc;
+        }, {} as Record<string, { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number }>);
+
+        // Return report
+        return {
+            account: {
+                id: zakatAccount.id,
+                name: zakatAccount.name,
+                code: zakatAccount.code,
+                debit: zakatAccount.debit,
+                credit: zakatAccount.credit,
+                balance: zakatAccount.balance,
+            },
+            totalJournalEntries: zakatAccount.entries.length,
+            journalsByMonth: groupedByMonth,
         };
     }
 }

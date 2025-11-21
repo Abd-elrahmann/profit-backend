@@ -353,7 +353,7 @@ model ZakatPayment {
   partner    Partner   @relation(fields: [partnerId], references: [id])
   periodId   Int?
   year       Int
-  month      Int
+  month      Int?
   amount     Float
   createdAt  DateTime  @default(now())
 }

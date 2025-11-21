@@ -5,6 +5,9 @@ import {
   Query,
   UseGuards,
   BadRequestException,
+  Post,
+  Body,
+  Req,
 } from '@nestjs/common';
 import { ZakatService } from './zakat.service';
 import { ZakatSchedulerService } from './zakat.scheduler';
@@ -18,7 +21,7 @@ export class ZakatController {
   constructor(
     private readonly zakatService: ZakatService,
     private readonly zakatScheduler: ZakatSchedulerService,
-  ) {}
+  ) { }
 
   @Get('partner/:partnerId')
   @Permissions('zakat', 'canView')
@@ -71,6 +74,32 @@ export class ZakatController {
     return this.zakatService.getYearlyAllPartners(yearNum, pageNum, limitNum);
   }
 
+  @Post('withdraw')
+  @Permissions('zakat', 'canPost')
+  async withdrawZakat(
+    @Body('amount') amount: number,
+    @Req() req: any,
+  ) {
+    return this.zakatService.withdrawZakat(amount, req.user.id);
+  }
+
+  @Get('account')
+  @Permissions('zakat', 'canView')
+  async zakatAccountReport(@Query('month') month?: string) {
+    if (month) {
+      const [year, monthNum] = month.split('-').map(Number);
+      if (
+        isNaN(year) ||
+        isNaN(monthNum) ||
+        monthNum < 1 ||
+        monthNum > 12
+      ) {
+        throw new BadRequestException('Invalid month format. Use YYYY-MM');
+      }
+    }
+    return this.zakatService.getZakatAccountReport(month);
+  }
+
   // MANUAL TEST: Trigger monthly zakat job
   @Get('test/monthly')
   async testMonthly() {
@@ -83,5 +112,12 @@ export class ZakatController {
   async testYearEnd() {
     await this.zakatScheduler.runYearEndZakatSettlement();
     return { message: 'Year-end zakat job executed successfully' };
+  }
+
+  // MANUAL TEST: Trigger year-end zakat reconciliation
+  @Get('test/next-year-accruals')
+  async runNextYearZakatAccruals() {
+    await this.zakatScheduler.runNextYearZakatAccruals();
+    return { message: 'Next year zakat accruals job executed successfully' };
   }
 }
