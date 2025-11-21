@@ -83,11 +83,80 @@ export class ZakatService {
         return results;
     }
 
-    async getYearlyAllPartners(year: number) {
+    async getYearlyAllPartners(year: number, page: number = 1, limit?: number) {
+        const pageLimit = limit && limit > 0 ? limit : 10;
+        const skip = (page - 1) * pageLimit;
+
+        // Count only partners that have zakah data for the specified year
+        // (either accruals or payments)
+        const totalPartners = await this.prisma.partner.count({
+            where: {
+                OR: [
+                    {
+                        ZakatAccrual: {
+                            some: {
+                                year: year,
+                            },
+                        },
+                    },
+                    {
+                        ZakatPayment: {
+                            some: {
+                                year: year,
+                            },
+                        },
+                    },
+                ],
+            },
+        });
+
+        const totalPages = Math.ceil(totalPartners / pageLimit);
+
+        if (page > totalPages && totalPartners > 0) {
+            throw new NotFoundException('Page not found');
+        }
+
+        // If no partners have data for this year, return empty result
+        if (totalPartners === 0) {
+            return {
+                data: [],
+                pagination: {
+                    totalPartners: 0,
+                    totalPages: 0,
+                    currentPage: page,
+                    limit: pageLimit,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                },
+            };
+        }
+
+        // Get partners with pagination (only those with zakah data for the year)
         const partners = await this.prisma.partner.findMany({
+            where: {
+                OR: [
+                    {
+                        ZakatAccrual: {
+                            some: {
+                                year: year,
+                            },
+                        },
+                    },
+                    {
+                        ZakatPayment: {
+                            some: {
+                                year: year,
+                            },
+                        },
+                    },
+                ],
+            },
+            skip,
+            take: pageLimit,
+            orderBy: { id: 'asc' },
             include: {
                 ZakatAccrual: {
-                    where: { year },
+                    where: { year }, // Filter accruals by the specified year
                     orderBy: { month: 'asc' },
                 },
             },
@@ -105,9 +174,9 @@ export class ZakatService {
             const annualZakat = p.capitalAmount * 0.025;
             const monthlyZakat = annualZakat / remainingMonths;
 
-            // 🔹 Sum zakat payments for this partner/year
+            // Sum zakat payments for this partner/year (filtered by year)
             const payments = await this.prisma.zakatPayment.aggregate({
-                where: { partnerId: p.id, year },
+                where: { partnerId: p.id, year }, // Filter payments by the specified year
                 _sum: { amount: true },
             });
 
@@ -127,6 +196,16 @@ export class ZakatService {
             });
         }
 
-        return results;
+        return {
+            data: results,
+            pagination: {
+                totalPartners,
+                totalPages,
+                currentPage: page,
+                limit: pageLimit,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
+            },
+        };
     }
 }
