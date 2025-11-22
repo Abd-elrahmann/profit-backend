@@ -21,6 +21,7 @@ import { AuditLogModule } from './logs/audit-log.module';
 import { PeriodModule } from './period/period.module';
 import { DistributionModule } from './distribution/distribution.module';
 import { ZakatModule } from './zakat/zakat.module';
+import { SavingModule } from './saving/saving.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ZakatModule } from './zakat/zakat.module';
     PeriodModule,
     DistributionModule,
     ZakatModule,
+    SavingModule,
     
   ],
   controllers: [AppController],

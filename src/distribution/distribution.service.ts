@@ -10,7 +10,7 @@ export class DistributionService {
     ) { }
 
     // Post closing journal for a period 
-    async postClosing(periodId: number, userId: number) {
+    async postClosing(periodId: number, userId: number, savingPercentage?: number) {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
 
@@ -20,25 +20,71 @@ export class DistributionService {
             where: { id: userId },
         });
 
-        const closingJournalId = period.closingJournalId || 0
-            ;
+        const closingJournalId = period.closingJournalId || 0;
         await this.journalService.postJournal(closingJournalId, userId);
 
-        // Get unclosed partner accruals
-        const accruals = await this.prisma.partnerShareAccrual.findMany({
+        // Get partner accruals for this period
+        const accruals = await this.prisma.partnerPeriodProfit.findMany({
             where: { periodId: periodId },
             include: { partner: true },
         });
 
         if (!accruals.length) throw new BadRequestException('No partner accruals to post');
 
-        // Mark accruals as closed
+        const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });
+        if (!savingAccount) throw new BadRequestException('saving account (20002) must exist');
+
+        if (savingPercentage && savingPercentage > 0) {
+            for (const acc of accruals) {
+                const partner = acc.partner;
+                const totalProfit = Number(acc.totalProfit);
+
+                const savingAmount = (totalProfit * savingPercentage) / 100;
+
+                const savingRecord = await this.prisma.partnerSavingAccrual.create({
+                    data: {
+                        partnerId: partner.id,
+                        periodId: periodId,
+                        accrualId: acc.id,
+                        savingAmount: savingAmount,
+                    },
+                });
+
+                await this.journalService.createJournal(
+                    {
+                        reference: `SAVE-${partner.id}-${periodId}`,
+                        description: `ادخار بنسبة ${savingPercentage}% للشريك ${partner.name}`,
+                        type: 'GENERAL',
+                        sourceType: 'SAVING',
+                        sourceId: savingRecord.id,
+                        lines: [
+                            {
+                                accountId: savingAccount.id,
+                                debit: 0,
+                                credit: savingAmount,
+                                description: `تسجيل ادخار (${savingPercentage}%)`,
+                            },
+                            {
+                                accountId: partner.accountPayableId,
+                                debit: savingAmount,
+                                credit: 0,
+                                description: `خصم ادخار للشريك ${partner.name}`,
+                            },
+                        ],
+                    },
+                    userId,
+                );
+            }
+        }
+
+        // Mark all accruals for this period as distributed
         await this.prisma.partnerShareAccrual.updateMany({
-            where: { id: { in: accruals.map(a => a.id) } },
+            where: { periodId: periodId },
             data: { isDistributed: true },
         });
 
-        // create audit log
+
+        // Audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,
@@ -66,15 +112,32 @@ export class DistributionService {
 
         await this.journalService.unpostJournal(userId, closingJournalId);
 
-        // Reopen accruals
+        const savingAccruals = await this.prisma.partnerSavingAccrual.findMany({
+            where: { periodId },
+        });
+
+        for (const s of savingAccruals) {
+            const savingJournal = await this.prisma.journalHeader.findFirst({
+                where: {
+                    sourceType: 'SAVING',
+                    sourceId: s.id,
+                },
+            });
+
+            if (savingJournal) {
+                await this.journalService.unpostJournal(userId, savingJournal.id);
+            }
+        }
+
+        await this.prisma.partnerSavingAccrual.deleteMany({
+            where: { periodId },
+        });
+
         await this.prisma.partnerShareAccrual.updateMany({
-            where: {
-                periodId: periodId,
-            },
+            where: { periodId },
             data: { isDistributed: false },
         });
 
-        // create audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,
@@ -84,7 +147,7 @@ export class DistributionService {
             },
         });
 
-        return { message: 'Period reversal successful', periodId };
+        return { message: 'تم الغاء توزيع الفترة بنجاح', periodId };
     }
 
     // Get closed periods

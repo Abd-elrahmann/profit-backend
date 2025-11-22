@@ -293,6 +293,7 @@ model Partner {
   LoanPartnerShare LoanPartnerShare[]
   ZakatAccrual ZakatAccrual[]
   ZakatPayment ZakatPayment[]
+  PartnerSavingAccrual PartnerSavingAccrual[]
 
   createdAt DateTime @default(now())
 }
@@ -358,6 +359,18 @@ model ZakatPayment {
   createdAt  DateTime  @default(now())
 }
 
+model PartnerSavingAccrual {
+  id             Int      @id @default(autoincrement())
+  partnerId      Int
+  periodId       Int
+  accrualId      Int
+  savingAmount   Decimal
+  createdAt      DateTime @default(now())
+
+  partner        Partner  @relation(fields: [partnerId], references: [id])
+  accrual        PartnerPeriodProfit   @relation("PartnerSavingAccrualToProfit", fields: [accrualId], references: [id])
+}
+
 model BANK_accounts {
   id             Int       @id @default(autoincrement())
   name           String
@@ -409,6 +422,7 @@ enum AccountBasicType {
   COMPANY_SHARES
   PARTNER_SHARES_EXPENSES
   ZAKAT_EXPENSES
+  SAVINGS
   OTHER
 }
 
@@ -449,6 +463,7 @@ model PartnerPeriodProfit {
 
   partner Partner @relation(fields: [partnerId], references: [id])
   period  PeriodHeader @relation(fields: [periodId], references: [id])
+  savings       PartnerSavingAccrual[] @relation("PartnerSavingAccrualToProfit")
 }
 
 
@@ -532,6 +547,7 @@ enum JournalSourceType {
   PARTNER_TRANSACTION_DEPOSIT
   PERIOD_CLOSING
   ZAKAT
+  SAVING
   OTHER
 }
 

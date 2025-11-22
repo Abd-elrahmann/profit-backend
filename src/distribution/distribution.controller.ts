@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Param, Get, Req, UseGuards, Query } from '@nestjs/common';
 import { DistributionService } from './distribution.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -14,8 +14,10 @@ export class DistributionController {
     async postClosing(
         @Req() req,
         @Param('periodId') periodId: string,
+        @Query('savingPercentage') savingPercentage?: string,
     ) {
-        return this.distributionService.postClosing(Number(periodId), req.user.id);;
+        const percentage = savingPercentage ? Number(savingPercentage) : undefined;
+        return this.distributionService.postClosing(Number(periodId), req.user.id, percentage);;
     }
 
     @Post('unpost/:periodId')

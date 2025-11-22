@@ -8,6 +8,10 @@ import moment from 'moment-timezone';
 export class ZakatSchedulerService {
     private readonly logger = new Logger(ZakatSchedulerService.name);
 
+    private round2(v: number) {
+        return Math.round((v + Number.EPSILON) * 100) / 100;
+    }
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
@@ -44,6 +48,7 @@ export class ZakatSchedulerService {
 
         for (const acc of accruals) {
             const partner = acc.partner;
+            const amount = this.round2(acc.amount);
 
             // 1) Create ZakatPayment
             const zakatPayment = await this.prisma.zakatPayment.create({
@@ -51,7 +56,7 @@ export class ZakatSchedulerService {
                     partnerId: partner.id,
                     year,
                     month,
-                    amount: acc.amount,
+                    amount,
                 },
             });
 
@@ -68,13 +73,13 @@ export class ZakatSchedulerService {
                             // Zakat Expense (credit)
                             accountId: zakat.id,
                             debit: 0,
-                            credit: acc.amount,
+                            credit: amount,
                             description: 'مصروف زكاة',
                         },
                         {
                             // Partner Equity (debit)
                             accountId: partner.accountEquityId,
-                            debit: acc.amount,
+                            debit: amount,
                             credit: 0,
                             description: 'التزام زكاة',
                         },
@@ -88,7 +93,7 @@ export class ZakatSchedulerService {
                 where: { id: partner.id },
                 data: {
                     yearlyZakatPaid: {
-                        increment: acc.amount,
+                        increment: amount,
                     },
                 },
             });
@@ -111,15 +116,15 @@ export class ZakatSchedulerService {
         if (!zakat) throw new BadRequestException('zakat account (20001) must exist');
 
         for (const p of partners) {
-            const annualZakat = p.capitalAmount * 0.025;
+            const annualZakat = this.round2(p.capitalAmount * 0.025);
 
             const paid = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId: p.id, year },
                 _sum: { amount: true },
             });
 
-            const paidAmount = paid._sum.amount || 0;
-            const diff = annualZakat - paidAmount;
+            const paidAmount = this.round2(paid._sum.amount || 0);
+            const diff = this.round2(annualZakat - paidAmount);
 
             if (diff !== 0) {
                 const zakatPayment = await this.prisma.zakatPayment.create({
@@ -203,8 +208,8 @@ export class ZakatSchedulerService {
         if (!zakatAccount) throw new BadRequestException('Zakat account (20001) must exist');
 
         for (const partner of partners) {
-            const annualZakat = partner.capitalAmount * 0.025;
-            const monthlyZakat = annualZakat / 12;
+            const annualZakat = this.round2(partner.capitalAmount * 0.025);
+            const monthlyZakat = this.round2(annualZakat / 12);
 
             for (let month = 1; month <= 12; month++) {
                 await this.prisma.zakatAccrual.create({
