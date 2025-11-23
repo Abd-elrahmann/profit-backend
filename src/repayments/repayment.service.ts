@@ -852,7 +852,7 @@ export class RepaymentService {
                     earlyPaymentDiscount,
                     endDate: new Date(),
                     settlementJournalId: journal.journal.id,
-                    newAmount: loan.repayments.reduce((sum, r) => sum + (r.paidAmount || 0), 0),
+                    newAmount: loan.totalAmount - earlyPaymentDiscount,
                 },
             });
 
