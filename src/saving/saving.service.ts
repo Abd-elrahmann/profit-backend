@@ -10,17 +10,45 @@ export class SavingService {
     async getPartnerSavingSummary(partnerId: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
-            include: { PartnerSavingAccrual: { include: { accrual: { include: { period: true } } } } },
+            include: {
+                PartnerSavingAccrual: {
+                    include: {
+                        accrual: {
+                            include: {
+                                period: true
+                            }
+                        }
+                    }
+                }
+            }
         });
+
         if (!partner) throw new NotFoundException('Partner not found');
 
         const summaryByPeriod = partner.PartnerSavingAccrual.reduce((acc, a) => {
-            const periodName = a.accrual?.period?.name || 'Unknown';
-            if (!acc[periodName]) acc[periodName] = { period: a.accrual?.period, total: 0, accruals: [] };
-            acc[periodName].total += Number(a.savingAmount);
-            acc[periodName].accruals.push(a);
+            const period = a.accrual?.period;
+            const periodId = period?.id;
+            const periodName = period?.name || 'Unknown';
+
+            if (!acc[periodId]) {
+                acc[periodId] = {
+                    periodId,
+                    periodName,
+                    totalSaving: 0,
+                    accruals: []
+                };
+            }
+
+            acc[periodId].totalSaving += Number(a.savingAmount);
+
+            acc[periodId].accruals.push({
+                savingId: a.id,
+                savingAmount: Number(a.savingAmount),
+                date: a.createdAt
+            });
+
             return acc;
-        }, {} as Record<string, any>);
+        }, {} as Record<number, any>);
 
         return Object.values(summaryByPeriod);
     }
@@ -44,19 +72,18 @@ export class SavingService {
         const totalPages = Math.ceil(totalPartners / limit);
         if (page > totalPages && totalPartners > 0) throw new NotFoundException('Page not found');
 
-        // Fetch partners with related period profits and savings
+        // Fetch partners with saving accruals only (NO PARTNER DATA INCLUDES)
         const partners = await this.prisma.partner.findMany({
             where,
             skip,
             take: limit,
             orderBy: { id: 'asc' },
             include: {
-                PartnerPeriodProfit: {
+                PartnerSavingAccrual: {
                     include: {
-                        savings: {
+                        accrual: {
                             include: {
-                                partner: true,
-                                accrual: { include: { period: true } },
+                                period: true,
                             },
                         },
                     },
@@ -64,19 +91,37 @@ export class SavingService {
             },
         });
 
-        // Format periods and group savings
-        const data = partners.map(p => {
-            const periods = p.PartnerPeriodProfit.reduce((acc, profit) => {
-                profit.savings.forEach(s => {
-                    const periodName = s.accrual?.period?.name || 'Unknown';
-                    if (!acc[periodName]) acc[periodName] = { period: s.accrual?.period, total: 0, accruals: [] };
-                    acc[periodName].total += Number(s.savingAmount);
-                    acc[periodName].accruals.push(s);
-                });
-                return acc;
-            }, {} as Record<string, any>);
+        // Format periods and group savings WITHOUT duplicated nested structures
+        const data = partners.map((p) => {
+            const periodMap = new Map<string, any>();
 
-            return { partnerId: p.id, partnerName: p.name, periods: Object.values(periods) };
+            p.PartnerSavingAccrual.forEach((s) => {
+                const period = s.accrual?.period;
+                const periodName = period?.name || 'Unknown';
+
+                if (!periodMap.has(periodName)) {
+                    periodMap.set(periodName, {
+                        period: {
+                            id: period?.id,
+                            name: period?.name,
+                            startDate: period?.startDate,
+                            endDate: period?.endDate,
+                        },
+                        total: 0,
+                        accrualCount: 0, // to avoid returning full accrual objects
+                    });
+                }
+
+                const record = periodMap.get(periodName);
+                record.total += Number(s.savingAmount);
+                record.accrualCount += 1; // count only, not full object
+            });
+
+            return {
+                partnerId: p.id,
+                partnerName: p.name,
+                periods: Array.from(periodMap.values()),
+            };
         });
 
         return {

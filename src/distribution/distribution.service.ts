@@ -163,44 +163,92 @@ export class DistributionService {
         return { message: 'تم الغاء توزيع الفترة بنجاح', periodId };
     }
 
-    // Get closed periods
-    async getClosedPeriods() {
+    async getClosedPeriods(periodId?: number) {
+        // Build where condition
+        const whereCondition: any = { isClosed: true };
+        if (periodId) whereCondition.id = periodId;
+
+        // Fetch closed periods
         const periods = await this.prisma.periodHeader.findMany({
-            where: { isClosed: true },
+            where: whereCondition,
             include: {
                 PartnerPeriodProfit: { include: { partner: true } },
-                journals: { include: { lines: { include: { account: true } } } }
+                journals: {
+                    include: {
+                        lines: {
+                            include: { account: true }
+                        }
+                    }
+                }
             },
             orderBy: { startDate: 'desc' }
         });
 
-        // get the closing journal header
-        const closingJournal = await this.prisma.journalHeader.findUnique({
-            where: { id: periods[0]?.closingJournalId || 0 },
+        if (periods.length === 0) return [];
+
+        // Fetch savings for all periods in one query
+        const savings = await this.prisma.partnerSavingAccrual.findMany({
+            where: {
+                periodId: periodId ? periodId : { in: periods.map(p => p.id) }
+            }
         });
 
-        return periods.map(p => {
+        // Convert savings list to map: periodId -> partnerId -> savingAmount
+        const savingMap = new Map<number, Map<number, number>>();
+        savings.forEach(s => {
+            if (!savingMap.has(s.periodId)) savingMap.set(s.periodId, new Map());
+            savingMap.get(s.periodId)!.set(s.partnerId, Number(s.savingAmount));
+        });
+
+        return await Promise.all(periods.map(async p => {
+            // Load closing/distribution journal
+            const distributionJournal = await this.prisma.journalHeader.findUnique({
+                where: { id: p.closingJournalId || 0 },
+            }
+            );
+
+            // Calculate company profit
             const companyProfit = p.journals
                 .flatMap(j => j.lines)
                 .filter(l => l.account.accountBasicType === 'COMPANY_SHARES')
                 .reduce((sum, l) => sum + Number(l.credit), 0);
 
-            const partners = p.PartnerPeriodProfit.map(pp => ({
-                partnerId: pp.partnerId,
-                partnerName: pp.partner.name,
-                totalProfit: Number(pp.totalProfit)
-            }));
+            // Get saving map for this period
+            const periodSavingMap = savingMap.get(p.id) || new Map<number, number>();
+
+            // Build partner list with saving
+            const partners = p.PartnerPeriodProfit.map(pp => {
+                const savingAmount = periodSavingMap.get(pp.partnerId) ?? 0;
+
+                return {
+                    partnerId: pp.partnerId,
+                    partnerName: pp.partner.name,
+                    nationalId: pp.partner.nationalId,
+                    phone: pp.partner.phone,
+                    orgProfitPercent: pp.partner.orgProfitPercent,
+                    totalProfit: Number(pp.totalProfit),
+                    savingAmount,
+                    totalAfterSaving: Number(pp.totalProfit) - savingAmount
+                };
+            });
 
             return {
                 periodId: p.id,
                 name: p.name,
                 startDate: p.startDate,
                 endDate: p.endDate,
+
                 closingJournalId: p.closingJournalId,
-                isdistributed: closingJournal?.status === 'POSTED',
+                isDistributed: distributionJournal?.status === 'POSTED',
+
                 companyProfit,
-                partners
+                totalSaving: partners.reduce((sum, pr) => sum + pr.savingAmount, 0),
+                totalAfterSaving: partners.reduce((sum, pr) => sum + pr.totalAfterSaving, 0),
+                partners,
+
+                // Full distribution journal details (if exist)
+                distributionJournal: distributionJournal || null
             };
-        });
+        }));
     }
 }

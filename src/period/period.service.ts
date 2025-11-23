@@ -437,7 +437,7 @@ export class PeriodService {
                                 name: true,
                                 nationalId: true,
                                 phone: true,
-                                orgProfitPercent:true,
+                                orgProfitPercent: true,
                                 accountPayableId: true
                             }
                         }
@@ -449,6 +449,18 @@ export class PeriodService {
         if (!period) {
             throw new NotFoundException('Period not found');
         }
+
+        // --- NEW: Get savings for this period ---
+        const savings = await this.prisma.partnerSavingAccrual.findMany({
+            where: { periodId },
+            select: {
+                partnerId: true,
+                savingAmount: true
+            }
+        });
+
+        const savingMap = new Map<number, number>();
+        savings.forEach(s => savingMap.set(s.partnerId, Number(s.savingAmount)));
 
         // Calculate journal totals and transform data
         const journals = period.journals.map(journal => {
@@ -494,7 +506,20 @@ export class PeriodService {
                 accountPayableId: ppp.partner.accountPayableId
             }));
 
-            totalPartnerProfit = partnerProfits.reduce((sum, partner) => sum + partner.totalProfit, 0);
+            partnerProfits = partnerProfits.map(p => {
+                const savingAmount = savingMap.get(p.partnerId) ?? 0;
+
+                return {
+                    ...p,
+                    savingAmount,
+                    totalAfterSaving: Math.round((p.totalProfit - savingAmount) * 100) / 100
+                };
+            });
+
+            totalPartnerProfit = partnerProfits.reduce(
+                (sum, partner) => sum + (partner.totalAfterSaving ?? partner.totalProfit),
+                0
+            );
 
             // Calculate company profit from closing journal
             const closingJournal = period.journals.find(j => j.id === period.closingJournalId);

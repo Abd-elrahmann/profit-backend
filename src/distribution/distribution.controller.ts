@@ -30,7 +30,7 @@ export class DistributionController {
 
     @Get('closed-periods')
     @Permissions('distribution', 'canView')
-    async getClosedPeriods() {
-        return this.distributionService.getClosedPeriods();
+    async getClosedPeriods(@Query('periodId') periodId?: number) {
+        return this.distributionService.getClosedPeriods(periodId);
     }
 }
