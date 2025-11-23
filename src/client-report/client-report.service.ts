@@ -197,18 +197,17 @@ export class ClientReportService {
                 loanId: loan.id,
                 code: loan.code,
                 amount: loan.amount,
+                interest: loan.interestAmount,
+                discount: loan.earlyPaymentDiscount,
                 totalAmount: loan.newAmount ?? loan.totalAmount,
                 paidAmount: loanTotalPaid,
                 remaining: loanRemaining,
                 paidCount: loanPaidCount,
                 pendingCount: loanPendingCount,
                 overdueCount: loanOverdueCount,
-                earlyPaidAmount: loan.earlyPaidAmount,
-                discount: loan.earlyPaymentDiscount,
                 startDate: loan.startDate,
                 endDate: loan.endDate,
                 status: loan.status,
-                repayments: loan.repayments,
             };
         });
 

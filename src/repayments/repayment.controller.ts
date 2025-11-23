@@ -26,7 +26,7 @@ export class RepaymentController {
     constructor(private readonly repaymentService: RepaymentService) { }
 
     // Get specific repayment by ID
-    @Get(':id')
+    @Get('repayment/:id')
     @Permissions('repayments', 'canView')
     getRepaymentById(@Param('id', ParseIntPipe) id: number) {
         return this.repaymentService.getRepaymentById(id);

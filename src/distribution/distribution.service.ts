@@ -126,6 +126,19 @@ export class DistributionService {
 
             if (savingJournal) {
                 await this.journalService.unpostJournal(userId, savingJournal.id);
+
+                await this.prisma.journalLine.deleteMany({
+                    where: {
+                        journalId: savingJournal?.id,
+                    },
+                });
+
+                await this.prisma.journalHeader.deleteMany({
+                    where: {
+                        id: savingJournal.id
+                    },
+                },
+                );
             }
         }
 

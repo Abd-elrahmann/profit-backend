@@ -15,6 +15,12 @@ export class SavingController {
         return this.savingService.getPartnerSavingSummary(id);
     }
 
+    @Get('account-report')
+    @Permissions('saving', 'canView')
+    getAccountReport(@Query('month') month?: string) {
+        return this.savingService.getSavingAccountReport(month);
+    }
+
     @Get(':page')
     @Permissions('saving', 'canView')
     getAllPartners(
@@ -25,11 +31,5 @@ export class SavingController {
         @Query('phone') phone?: string,
     ) {
         return this.savingService.getAllPartnerSavings(page, { limit, name, nationalId, phone });
-    }
-
-    @Get('account-report')
-    @Permissions('saving', 'canView')
-    getAccountReport(@Query('month') month?: string) {
-        return this.savingService.getSavingAccountReport(month);
     }
 }
