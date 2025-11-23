@@ -22,6 +22,7 @@ import { PeriodModule } from './period/period.module';
 import { DistributionModule } from './distribution/distribution.module';
 import { ZakatModule } from './zakat/zakat.module';
 import { SavingModule } from './saving/saving.module';
+import { ClientReportModule } from './client-report/client-report.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { SavingModule } from './saving/saving.module';
     DistributionModule,
     ZakatModule,
     SavingModule,
+    ClientReportModule,
     
   ],
   controllers: [AppController],
