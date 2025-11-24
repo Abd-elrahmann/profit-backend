@@ -23,6 +23,7 @@ import { DistributionModule } from './distribution/distribution.module';
 import { ZakatModule } from './zakat/zakat.module';
 import { SavingModule } from './saving/saving.module';
 import { ClientReportModule } from './client-report/client-report.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ClientReportModule } from './client-report/client-report.module';
     ZakatModule,
     SavingModule,
     ClientReportModule,
+    DashboardModule,
     
   ],
   controllers: [AppController],
