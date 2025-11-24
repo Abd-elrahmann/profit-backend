@@ -42,7 +42,7 @@ export class ZakatService {
                 : 1;
 
             const remainingMonths = 12 - startMonth + 1;
-            const annualZakat = partner.capitalAmount * 0.025;
+            const annualZakat = partner.totalAmount * 0.025;
             const monthlyZakat = annualZakat / remainingMonths;
 
             // Get accruals (one entry per month)
@@ -104,7 +104,7 @@ export class ZakatService {
             return {
                 partnerId,
                 partnerName: partner.name,
-                capitalAmount: partner.capitalAmount,
+                capitalAmount: partner.totalAmount,
                 year: yr,
                 annualZakat,
                 monthlyZakat,
@@ -223,7 +223,7 @@ export class ZakatService {
 
             const remainingMonths = 12 - startMonth + 1;
 
-            const annualZakat = p.capitalAmount * 0.025;
+            const annualZakat = p.totalAmount * 0.025;
             const monthlyZakat = annualZakat / remainingMonths;
 
             // Sum zakat payments for this partner/year (filtered by year)
@@ -238,7 +238,7 @@ export class ZakatService {
             results.push({
                 partnerId: p.id,
                 partnerName: p.name,
-                capitalAmount: p.capitalAmount,
+                capitalAmount: p.totalAmount,
                 year,
                 annualZakat,
                 monthlyZakat,

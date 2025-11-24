@@ -31,6 +31,45 @@ export class DistributionService {
 
         if (!accruals.length) throw new BadRequestException('No partner accruals to post');
 
+        // Fetch posted journal lines to add amounts to partner totals
+        const closingJournal = await this.prisma.journalHeader.findUnique({
+            where: { id: closingJournalId },
+            include: {
+                lines: {
+                    include: { account: true },
+                },
+            },
+        });
+
+        // Build a map of partner ID to total debit amounts from journal lines
+        const partnerAmountMap = new Map<number, number>();
+        if (closingJournal && closingJournal.lines.length > 0) {
+            for (const line of closingJournal.lines) {
+                // Find which partner this line belongs to (by matching accountPayableId or accountEquityId)
+                for (const accrual of accruals) {
+                    const partner = accrual.partner;
+                    if (
+                        line.accountId === partner.accountPayableId ||
+                        line.accountId === partner.accountEquityId
+                    ) {
+                        const currentAmount = partnerAmountMap.get(partner.id) || 0;
+                        partnerAmountMap.set(partner.id, currentAmount + Number(line.credit));
+                    }
+                }
+            }
+        }
+
+        // Update partner totalProfit and totalAmount with amounts from journal lines
+        for (const [partnerId, amount] of partnerAmountMap) {
+            await this.prisma.partner.update({
+                where: { id: partnerId },
+                data: {
+                    totalProfit: { increment: amount },
+                    totalAmount: { increment: amount },
+                },
+            });
+        }
+
         const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });
         if (!savingAccount) throw new BadRequestException('saving account (20002) must exist');
 
@@ -50,7 +89,7 @@ export class DistributionService {
                     },
                 });
 
-                await this.journalService.createJournal(
+                const savingJournal = await this.journalService.createJournal(
                     {
                         reference: `SAVE-${partner.id}-${periodId}`,
                         description: `ادخار بنسبة ${savingPercentage}% للشريك ${partner.name}`,
@@ -74,6 +113,16 @@ export class DistributionService {
                     },
                     userId,
                 );
+                await this.journalService.postJournal(savingJournal.journal.id, userId);
+
+                // Decrease partner totalProfit and totalAmount by the saving amount
+                await this.prisma.partner.update({
+                    where: { id: partner.id },
+                    data: {
+                        totalProfit: { decrement: savingAmount },
+                        totalAmount: { decrement: savingAmount },
+                    },
+                });
             }
         }
 
@@ -110,8 +159,54 @@ export class DistributionService {
 
         const closingJournalId = period.closingJournalId || 0;
 
+        // Get partner accruals to reverse amounts from closing journal
+        const accruals = await this.prisma.partnerPeriodProfit.findMany({
+            where: { periodId: periodId },
+            include: { partner: true },
+        });
+
+        // Fetch closing journal with lines to reverse partner totals
+        const closingJournal = await this.prisma.journalHeader.findUnique({
+            where: { id: closingJournalId },
+            include: {
+                lines: {
+                    include: { account: true },
+                },
+            },
+        });
+
+        // Build a map of partner ID to total credit amounts from closing journal lines
+        const partnerAmountMap = new Map<number, number>();
+        if (closingJournal && closingJournal.lines.length > 0) {
+            for (const line of closingJournal.lines) {
+                for (const accrual of accruals) {
+                    const partner = accrual.partner;
+                    if (
+                        line.accountId === partner.accountPayableId ||
+                        line.accountId === partner.accountEquityId
+                    ) {
+                        const currentAmount = partnerAmountMap.get(partner.id) || 0;
+                        partnerAmountMap.set(partner.id, currentAmount + Number(line.credit));
+                    }
+                }
+            }
+        }
+
+        // Unpost closing journal
         await this.journalService.unpostJournal(userId, closingJournalId);
 
+        // decrement partner totalProfit and totalAmount based on closing journal amounts
+        for (const [partnerId, amount] of partnerAmountMap) {
+            await this.prisma.partner.update({
+                where: { id: partnerId },
+                data: {
+                    totalProfit: { decrement: amount },
+                    totalAmount: { decrement: amount },
+                },
+            });
+        }
+
+        // Get saving accruals with their amounts
         const savingAccruals = await this.prisma.partnerSavingAccrual.findMany({
             where: { periodId },
         });
@@ -139,6 +234,15 @@ export class DistributionService {
                     },
                 },
                 );
+
+                // Increment partner totalProfit and totalAmount by the saving amount
+                await this.prisma.partner.update({
+                    where: { id: s.partnerId },
+                    data: {
+                        totalProfit: { increment: Number(s.savingAmount) },
+                        totalAmount: { increment: Number(s.savingAmount) },
+                    },
+                });
             }
         }
 

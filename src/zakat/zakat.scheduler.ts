@@ -92,6 +92,8 @@ export class ZakatSchedulerService {
             await this.prisma.partner.update({
                 where: { id: partner.id },
                 data: {
+                    capitalAmount: { decrement: amount},
+                    totalAmount: { decrement: amount},
                     yearlyZakatPaid: {
                         increment: amount,
                     },
@@ -116,7 +118,7 @@ export class ZakatSchedulerService {
         if (!zakat) throw new BadRequestException('zakat account (20001) must exist');
 
         for (const p of partners) {
-            const annualZakat = this.round2(p.capitalAmount * 0.025);
+            const annualZakat = this.round2(p.totalAmount * 0.025);
 
             const paid = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId: p.id, year },
@@ -182,6 +184,8 @@ export class ZakatSchedulerService {
             await this.prisma.partner.update({
                 where: { id: p.id },
                 data: {
+                    capitalAmount: { decrement: diff },
+                    totalAmount: { decrement: diff },
                     yearlyZakatBalance: diff,
                     yearlyZakatRequired: annualZakat,
                     yearlyZakatPaid: paidAmount,
@@ -208,7 +212,7 @@ export class ZakatSchedulerService {
         if (!zakatAccount) throw new BadRequestException('Zakat account (20001) must exist');
 
         for (const partner of partners) {
-            const annualZakat = this.round2(partner.capitalAmount * 0.025);
+            const annualZakat = this.round2(partner.totalAmount * 0.025);
             const monthlyZakat = this.round2(annualZakat / 12);
 
             for (let month = 1; month <= 12; month++) {

@@ -68,6 +68,7 @@ export class PartnerService {
                 email: dto.email,
                 orgProfitPercent: dto.orgProfitPercent,
                 capitalAmount: dto.capitalAmount,
+                totalAmount: dto.capitalAmount,
                 contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : null,
                 mudarabahFileUrl: dto.mudarabahFileUrl,
                 isActive: dto.isActive ?? false,
@@ -239,7 +240,7 @@ export class PartnerService {
 
         // Total active capital for percent calculation
         const totalActiveCapital = await this.prisma.partner.aggregate({
-            _sum: { capitalAmount: true },
+            _sum: { totalAmount: true },
             where: { isActive: true },
         });
 
@@ -253,12 +254,12 @@ export class PartnerService {
                 AccountEquity: true,
             },
         });
-        const totalCapital = totalActiveCapital._sum.capitalAmount || 0;
+        const totalCapital = totalActiveCapital._sum.totalAmount || 0;
 
         // Add partnerProfitPercent dynamically
         const enrichedPartners = partners.map(p => ({
             ...p,
-            partnerProfitPercent: totalCapital > 0 ? Number(((p.capitalAmount / totalCapital) * 100).toFixed(2)) : 0,
+            partnerProfitPercent: totalCapital > 0 ? Number(((p.totalAmount / totalCapital) * 100).toFixed(2)) : 0,
         }));
 
         return {
@@ -283,12 +284,12 @@ export class PartnerService {
         if (!partner) throw new NotFoundException('Partner not found');
 
         const totalActiveCapital = await this.prisma.partner.aggregate({
-            _sum: { capitalAmount: true },
+            _sum: { totalAmount: true },
             where: { isActive: true },
         });
 
-        const totalCapital = totalActiveCapital._sum.capitalAmount || 0;
-        const partnerProfitPercent = totalCapital > 0 ? Number(((partner.capitalAmount / totalCapital) * 100).toFixed(2)) : 0;
+        const totalCapital = totalActiveCapital._sum.totalAmount || 0;
+        const partnerProfitPercent = totalCapital > 0 ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2)) : 0;
 
         return {
             ...partner,
@@ -463,15 +464,21 @@ export class PartnerService {
 
         // update partner capitalAmount
         let newCapitalAmount = partner.capitalAmount;
+        let newTotalAmount = partner.totalAmount;
         if (dto.type === 'DEPOSIT') {
             newCapitalAmount += dto.amount;
+            newTotalAmount += dto.amount;
         } else {
             newCapitalAmount -= dto.amount;
+            newTotalAmount -= dto.amount;
         }
 
         await this.prisma.partner.update({
             where: { id: partnerId },
-            data: { capitalAmount: newCapitalAmount },
+            data: {
+                capitalAmount: newCapitalAmount,
+                totalAmount: newTotalAmount
+            },
         });
 
         await this.prisma.partnerTransaction.update({
@@ -524,15 +531,21 @@ export class PartnerService {
         const partner = await this.prisma.partner.findUnique({ where: { id: transaction.partnerId } });
         if (partner) {
             let newCapitalAmount = partner.capitalAmount;
+            let newTotalAmount = partner.totalAmount;
             if (transaction.type === 'DEPOSIT') {
                 newCapitalAmount -= transaction.amount;
+                newTotalAmount -= transaction.amount;
             } else {
                 newCapitalAmount += transaction.amount;
+                newTotalAmount += transaction.amount;
             }
 
             await this.prisma.partner.update({
                 where: { id: partner.id },
-                data: { capitalAmount: newCapitalAmount },
+                data: {
+                    capitalAmount: newCapitalAmount,
+                    totalAmount: newTotalAmount
+                },
             });
 
             // Delete the partner transaction

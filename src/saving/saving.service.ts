@@ -66,11 +66,13 @@ export class SavingService {
         if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId) where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
         if (filters?.phone) where.phone = { contains: filters.phone, mode: 'insensitive' };
+        where.PartnerSavingAccrual = { some: {} };
 
         // Count total partners
         const totalPartners = await this.prisma.partner.count({ where });
         const totalPages = Math.ceil(totalPartners / limit);
         if (page > totalPages && totalPartners > 0) throw new NotFoundException('Page not found');
+        
 
         // Fetch partners with saving accruals only (NO PARTNER DATA INCLUDES)
         const partners = await this.prisma.partner.findMany({
