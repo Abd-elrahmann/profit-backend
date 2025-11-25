@@ -251,11 +251,25 @@ export class DashboardService {
 
         const totalRemaining = Math.max(totalRepayment - totalPaid, 0);
 
+        // Calculate collection percentage
+        const collectionPercentage = totalRepayment > 0 
+            ? Math.round((totalPaid / totalRepayment) * 100) 
+            : 0;
+
+        // Get bank balance (available for lending)
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { code: "11000" },
+        });
+
+        const availableForLending = bankAccount?.balance || 0;
+
         return {
             range: { startDate, endDate },
             totalRepayment,
             totalPaid,
             totalRemaining,
+            collectionPercentage,
+            availableForLending,
         };
     }
 }
