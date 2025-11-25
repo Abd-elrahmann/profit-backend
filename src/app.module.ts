@@ -24,6 +24,7 @@ import { ZakatModule } from './zakat/zakat.module';
 import { SavingModule } from './saving/saving.module';
 import { ClientReportModule } from './client-report/client-report.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PartnersReportModule } from './partners-report/partners-report.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     SavingModule,
     ClientReportModule,
     DashboardModule,
+    PartnersReportModule,
     
   ],
   controllers: [AppController],
