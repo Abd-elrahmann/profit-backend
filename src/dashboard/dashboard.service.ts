@@ -193,7 +193,7 @@ export class DashboardService {
 
         // Total loan amount
         const loanAmounts = await this.prisma.loan.aggregate({
-            _sum: { amount: true },
+            _sum: { totalAmount: true , newAmount: true },
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
@@ -207,7 +207,7 @@ export class DashboardService {
             loans: {
                 count: loansCount,
                 byStatus: loansByStatus,
-                totalAmount: loanAmounts._sum.amount || 0,
+                totalAmount: loanAmounts._sum.newAmount? loanAmounts._sum.newAmount : loanAmounts._sum.totalAmount || 0,
             },
             bank: {
                 balance: bankBalance,
