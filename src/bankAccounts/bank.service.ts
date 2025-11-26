@@ -11,7 +11,7 @@ export class BankService {
         });
 
         if (existing) {
-            throw new BadRequestException('Account number already exists.');
+            throw new BadRequestException('رقم الحساب موجود مسبقاً.');
         }
 
         const user = await this.prisma.user.findUnique({
@@ -96,7 +96,7 @@ export class BankService {
             const duplicate = await this.prisma.bANK_accounts.findFirst({
                 where: { accountNumber: data.accountNumber },
             });
-            if (duplicate) throw new BadRequestException('Account number already exists.');
+            if (duplicate) throw new BadRequestException('رقم الحساب موجود مسبقاً.');
         }
 
         const user = await this.prisma.user.findUnique({
@@ -136,7 +136,7 @@ export class BankService {
         if (!bankAccount) throw new NotFoundException('Bank account not found.');
         if (bankAccount.loans.length > 0) {
             throw new BadRequestException(
-                'Cannot delete this bank account because it has associated loans.',
+                'لا يمكن حذف الحساب البنكي لارتباطه بسلف.',
             );
         }
 

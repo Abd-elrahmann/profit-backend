@@ -266,7 +266,7 @@ export class ZakatService {
         userId: number,
     ) {
         if (amount <= 0) {
-            throw new BadRequestException("Amount must be greater than 0");
+            throw new BadRequestException("المبلغ يجب أن يكون أكبر من صفر");
         }
 
         const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
@@ -274,7 +274,7 @@ export class ZakatService {
 
 
         if (zakatAccount.balance < amount) {
-            throw new BadRequestException("Amount exceeds zakat account balance");
+            throw new BadRequestException("الرصيد في حساب الزكاة غير كافٍ للسحب");
         }
 
         const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });

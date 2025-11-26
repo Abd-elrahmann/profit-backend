@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 export class RolesService {
     constructor(private prisma: PrismaService) { }
 
-    // ✅ Create a new role with permissions
+    // Create a new role with permissions
     async createRole(currentUser, data: {
         name: string;
         description?: string;
@@ -20,7 +20,7 @@ export class RolesService {
         }[];
     }) {
         const exists = await this.prisma.role.findUnique({ where: { name: data.name } });
-        if (exists) throw new BadRequestException('Role name already exists');
+        if (exists) throw new BadRequestException('اسم الدور موجود بالفعل');
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -54,10 +54,10 @@ export class RolesService {
             },
         });
 
-        return { message: 'Role created successfully', role };
+        return { message: 'تم انشاء الدور بنجاح', role };
     }
 
-    // ✅ Get all roles (with optional filters by name or id)
+    // Get all roles (with optional filters by name or id)
     async getRoles(filters?: { id?: number; name?: string }) {
         const where: any = {};
         if (filters?.id) where.id = filters.id;
@@ -86,7 +86,7 @@ export class RolesService {
         return { total: roles.length, roles };
     }
 
-    // ✅ Get permissions for a specific user
+    // Get permissions for a specific user
     async getUserPermissions(userId: number) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
@@ -113,7 +113,7 @@ export class RolesService {
         };
     }
 
-    // ✅ Update role (and its permissions)
+    // Update role (and its permissions)
     async updateRole(
         id: number,
         currentUser,
@@ -174,10 +174,10 @@ export class RolesService {
             },
         });
 
-        return { message: 'Role updated successfully', role: updatedRole };
+        return { message: 'تم تعديل الدور بنجاح', role: updatedRole };
     }
 
-    // ✅ Delete role (and permissions)
+    // Delete role (and permissions)
     async deleteRole(currentUser, id: number) {
         const role = await this.prisma.role.findUnique({ where: { id } });
         if (!role) throw new NotFoundException('Role not found');
@@ -201,6 +201,6 @@ export class RolesService {
             },
         });
 
-        return { message: 'Role deleted successfully' };
+        return { message: 'تم حذف الدور بنجاح' };
     }
 }

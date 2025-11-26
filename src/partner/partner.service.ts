@@ -21,7 +21,7 @@ export class PartnerService {
         const existing = await this.prisma.partner.findFirst({
             where: { nationalId: dto.nationalId },
         });
-        if (existing) throw new BadRequestException('Partner with this national ID already exists');
+        if (existing) throw new BadRequestException('المساهم برقم الهوية هذا موجود مسبقًا');
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -136,8 +136,7 @@ export class PartnerService {
                 description: `قام المستخدم ${user?.name} بإنشاء شريك جديد: ${partner.name} برأس مال ${partner.capitalAmount}`,
             },
         });
-
-        return { message: 'Partner created successfully with capital journal', partner };
+        return { message: 'تم اضافة مساهم جديد بنجاح', partner };
     }
 
     // UPDATE PARTNER
@@ -167,7 +166,7 @@ export class PartnerService {
             },
         });
 
-        return { message: 'Partner updated successfully', partner: updated };
+        return { message: 'تم تحديث بيانات المساهم بنجاح', partner: updated };
     }
 
     // DELETE PARTNER
@@ -220,7 +219,7 @@ export class PartnerService {
             },
         });
 
-        return { message: 'Partner and related accounts deleted successfully' };
+        return { message: 'تم حذف المساهم بنجاح' };
     }
 
     // GET ALL PARTNERS (with pagination + filters)
@@ -348,7 +347,7 @@ export class PartnerService {
             },
         });
 
-        return { message: 'File uploaded successfully', path: publicUrl };
+        return { message: 'تم رفع المستند بنجاح', path: publicUrl };
     }
 
     // Helper: generate incremental account codes
@@ -377,7 +376,7 @@ export class PartnerService {
         if (!partner.accountEquityId)
             throw new BadRequestException('Partner capital account not defined');
 
-        if (dto.amount <= 0) throw new BadRequestException('Amount must be greater than zero');
+        if (dto.amount <= 0) throw new BadRequestException('المبلغ يجب أن يكون أكبر من صفر.');
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
@@ -497,7 +496,7 @@ export class PartnerService {
         });
 
         return {
-            message: 'Transaction and journal created & posted successfully',
+            message: 'تم إنشاء معاملة المساهم بنجاح',
             transaction,
             journal,
         };
@@ -561,7 +560,7 @@ export class PartnerService {
                 },
             });
 
-            return { message: 'Transaction and related journal deleted successfully' };
+            return { message: 'تم حذف معاملة المساهم بنجاح' };
         }
     }
 

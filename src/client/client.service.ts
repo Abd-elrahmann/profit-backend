@@ -26,7 +26,7 @@ export class ClientService {
         const exists = await this.prisma.client.findFirst({
             where: { OR: [{ phone: dto.phone }, { nationalId: dto.nationalId }] },
         });
-        if (exists) throw new BadRequestException('Client already exists');
+        if (exists) throw new BadRequestException('العميل موجود مسبقاً');
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
@@ -110,7 +110,7 @@ export class ClientService {
             },
         });
 
-        return { message: 'Client created successfully', client };
+        return { message: 'تم اضافة عميل جديد', client };
     }
 
     // Map uploaded files and rename with prefixes
@@ -210,7 +210,7 @@ export class ClientService {
             },
         });
 
-        return { message: 'Client data updated successfully', client: updatedClient };
+        return { message: 'تم تحديث بيانات العميل بنجاح', client: updatedClient };
     }
 
     // UPDATE KAFEEL DATA 
@@ -274,7 +274,7 @@ export class ClientService {
             },
         });
 
-        return { message: 'Kafeel data updated successfully', kafeel: updatedKafeel };
+        return { message: 'تم تحديث بيانات الكفيل بنجاح', kafeel: updatedKafeel };
     }
 
     // UPDATE CLIENT DOCUMENTS
@@ -378,7 +378,7 @@ export class ClientService {
             },
         });
 
-        return { message: 'Client documents updated successfully' };
+        return { message: 'تم تحديث مستندات العميل بنجاح' };
     }
 
     // DELETE CLIENT
@@ -434,7 +434,7 @@ export class ClientService {
             },
         });
 
-        return { message: 'Client and all related data deleted successfully' };
+        return { message: `تم حذف العميل ${client.name} بنجاح` }
     }
 
     // GET CLIENTS
@@ -743,7 +743,7 @@ export class ClientService {
             },
         });
 
-        return { message: 'Kafeel created successfully', kafeel: newKafeel };
+        return { message: 'تم اضافة كفيل جديد', kafeel: newKafeel };
     }
 
     // DELETE KAFEEL BY ID
@@ -765,7 +765,7 @@ export class ClientService {
 
         if (hasActiveOrPendingLoans) {
             throw new BadRequestException(
-                `Cannot delete kafeel ${kafeel.name} because they are associated with active or pending loans.`,
+                 `لا يمكن حذف الكفيل ${kafeel.name} لارتباطه بسلف نشطة أو قيد الانتظار.`,
             );
         }
 
@@ -804,6 +804,6 @@ export class ClientService {
             },
         });
 
-        return { message: 'Kafeel and related files deleted successfully' };
+        return { message: 'تم حذف الكفيل بنجاح' };
     }
 }

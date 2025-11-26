@@ -23,7 +23,7 @@ export class PeriodService {
             if (!period) throw new NotFoundException('Period not found');
 
             if (period.closingJournalId) {
-                throw new BadRequestException('Period is already closed');
+                throw new BadRequestException('الفترة مغلقة بالفعل.');
             }
 
             const user = await this.prisma.user.findUnique({
@@ -34,7 +34,7 @@ export class PeriodService {
                 where: { periodId, status: { not: 'POSTED' } },
             });
             if (drafts.length > 0) {
-                throw new BadRequestException(`Cannot close period: there are ${drafts.length} unposted/draft journals.`);
+                throw new BadRequestException(`لا يمكن إغلاق الفترة: هناك ${drafts.length} قيود غير معتمدة.`);
             }
 
             // Partner profit accrual closing
@@ -70,13 +70,13 @@ export class PeriodService {
                     accountId: LOAN_INCOME.id,
                     debit: Number(v.partnerFinal.toFixed(2)),
                     credit: 0,
-                    description: 'Partner shares for period',
+                    description: 'نصيب المساهمين للفترة',
                 });
                 lines.push({
                     accountId: v.partnerAccountId,
                     debit: 0,
                     credit: Number(v.partnerFinal.toFixed(2)),
-                    description: 'Partner payable - share for period',
+                    description: 'نصيب المساهم من أرباح الشركة',
                 });
             }
 
@@ -85,13 +85,13 @@ export class PeriodService {
                     accountId: LOAN_INCOME.id,
                     debit: Number(totalCompanyShare.toFixed(2)),
                     credit: 0,
-                    description: 'Partner shares for period',
+                    description: 'نصيب الشركة من أرباح المساهمين',
                 });
                 lines.push({
                     accountId: COMPANY_SHARES.id,
                     debit: 0,
                     credit: Number(totalCompanyShare.toFixed(2)),
-                    description: 'Company share from partners profit',
+                    description: 'نصيب الشركة من أرباح المساهمين',
                 });
             }
 
@@ -101,7 +101,7 @@ export class PeriodService {
                     {
                         periodId: period.id,
                         reference: `CLOSE-PERIOD-${period.id}-${Date.now()}`,
-                        description: `Closing partner profit for period ${period.id}`,
+                        description: `إقفال فترة ${period.name}`,
                         type: 'CLOSING',
                         sourceType: JournalSourceType.PERIOD_CLOSING,
                         sourceId: period.id,
@@ -172,7 +172,8 @@ export class PeriodService {
             // Create new period WITHOUT Opening Journal
             const newPeriod = await tx.periodHeader.create({
                 data: {
-                    name: `Open period starting ${new Date().toISOString().slice(0, 10)}`,
+                    // name: `Open period starting ${new Date().toISOString().slice(0, 10)}`,
+                    name: `فترة مفتوحة تبدأ من ${new Date().toISOString().slice(0, 10)}`,
                     startDate: new Date(),
                 },
             });
@@ -197,7 +198,7 @@ export class PeriodService {
             });
 
             return {
-                message: 'Period closed successfully (no opening journal)',
+                message: 'تم إغلاق الفترة بنجاح.',
                 periodId: period.id,
                 newPeriodId: newPeriod.id,
             };
@@ -312,7 +313,7 @@ export class PeriodService {
             if (!period) throw new NotFoundException("Period not found");
 
             if (period.isClosed === false) {
-                throw new BadRequestException("Period is not closed, cannot reverse.");
+                throw new BadRequestException("الفترة مفتوحة بالفعل.");
             }
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
@@ -323,7 +324,7 @@ export class PeriodService {
                 where: { isClosed: true },
                 orderBy: { startDate: 'desc' },
             }))?.id) {
-                throw new BadRequestException("Only the most recently closed period can be reversed.");
+                throw new BadRequestException("يجب عكس إغلاق الفترة المغلقة الأخيرة أولاً.");
             }
 
             const closingJournalId = period.closingJournalId || 0;
@@ -387,7 +388,7 @@ export class PeriodService {
             });
 
             return {
-                message: "Period closing reversed successfully.",
+                message: "تم عكس إغلاق الفترة بنجاح.",
                 periodId,
                 deletedNewPeriodId: newPeriod?.id || null,
             };

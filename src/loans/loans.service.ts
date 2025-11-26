@@ -61,7 +61,7 @@ export class LoansService {
 
         const bankAccount = await this.prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
         if (!bankAccount) throw new NotFoundException('Bank account not found');
-        if (bankAccount.limit <= 0) throw new BadRequestException('Bank account limit exceeded');
+        if (bankAccount.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
 
         const principal = new Decimal(dto.amount);
         const interestRate = new Decimal(dto.interestRate);
@@ -102,7 +102,7 @@ export class LoansService {
 
             if (hasActiveLoan) {
                 throw new BadRequestException(
-                    'This Kafeel has a pending or active loan and cannot be added.'
+                    'الكفيل لديه سلفة نشطة أو معلقة بالفعل مع هذا العميل'
                 );
             }
         }
@@ -237,7 +237,7 @@ export class LoansService {
             },
         });
 
-        return { message: 'Loan created successfully', loan };
+        return { message: 'تم انشاء السلفة بنجاح', loan };
     }
 
     // Activate Loan
@@ -245,7 +245,7 @@ export class LoansService {
         const loan = await this.prisma.loan.findUnique({ where: { id } });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
-            throw new BadRequestException('Only pending loans can be activated');
+            throw new BadRequestException('فقط السلف المعلقة يمكن تفعيلها');
 
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
@@ -266,7 +266,7 @@ export class LoansService {
         const { journal } = await this.journalService.createJournal(
             {
                 reference: `LN-${loan.id}`,
-                description: `Loan disbursement for client ${loan.clientId}`,
+                description: `صرف سلفة للعميل ${loan.clientId}`,
                 type: 'GENERAL',
                 sourceType: JournalSourceType.LOAN,
                 sourceId: loan.id,
@@ -275,14 +275,14 @@ export class LoansService {
                         accountId: receivable.id,
                         debit: loan.amount,
                         credit: 0,
-                        description: 'Loan receivable',
+                        description: 'سلفة عميل',
                         clientId: loan.clientId,
                     },
                     {
                         accountId: bank.id,
                         debit: 0,
                         credit: loan.amount,
-                        description: 'Bank disbursement',
+                        description: 'سلفة عميل',
                     },
                 ],
             },
@@ -324,7 +324,7 @@ export class LoansService {
         });
 
         return {
-            message: '✅ Loan activated, journal created and posted successfully',
+            message: 'تم تفعيل السلفة بنجاح',
             loanId: id,
             journalId: journal.id,
         };
@@ -345,7 +345,7 @@ export class LoansService {
 
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.ACTIVE)
-            throw new BadRequestException('Only active loans can be deactivated');
+            throw new BadRequestException('فقط السلف النشطة يمكن إلغاء تفعيلها');
 
         return await this.prisma.$transaction(async (tx) => {
             // Collect all repayment IDs
@@ -423,7 +423,7 @@ export class LoansService {
             });
 
             return {
-                message: '✅ Loan deactivated, all related journals unposted and deleted successfully',
+                message: 'تم إلغاء تفعيل السلفة بنجاح',
                 loanId: id,
                 deletedJournalsCount: allJournalIds.length,
             };
@@ -589,7 +589,7 @@ export class LoansService {
         const loan = await this.prisma.loan.findUnique({ where: { id } });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
-            throw new BadRequestException('Only pending loans can be updated');
+            throw new BadRequestException('فقط السلف المعلقة يمكن تعديلها');
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -730,7 +730,7 @@ export class LoansService {
             },
         });
 
-        return { message: 'Loan updated successfully', updated };
+        return { message: 'تم تعديل السلفة بنجاح', updated };
     }
 
     // Delete Loan
@@ -742,7 +742,7 @@ export class LoansService {
 
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
-            throw new BadRequestException('Only pending loans can be deleted');
+            throw new BadRequestException('فقط السلف المعلقة يمكن حذفها');
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -778,7 +778,7 @@ export class LoansService {
                 },
             });
 
-            return { message: 'Loan and related data deleted successfully' };
+            return { message: 'تم حذف السلفة بنجاح' };
         });
     }
 
@@ -896,7 +896,7 @@ export class LoansService {
         if (!loan) throw new NotFoundException('Loan not found');
 
         if (loan.status !== LoanStatus.COMPLETED) {
-            throw new BadRequestException('Only completed loans can have settlement files uploaded');
+            throw new BadRequestException('فقط السلف المكتملة يمكن تحميل ملف التسوية لها');
         }
 
         const client = loan.client;
