@@ -168,6 +168,8 @@ model Loan {
   DEBT_ACKNOWLEDGMENT String?
   PROMISSORY_NOTE     String?
   SETTLEMENT          String?
+  debtAcknowledgmentNumber String?
+  promissoryNoteNumber     String?
   earlyPaidAmount       Float?      @default(0)
   earlyPaymentDiscount  Float?      @default(0)
   newAmount             Int?        @default(0)
