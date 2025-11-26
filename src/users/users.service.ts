@@ -10,10 +10,10 @@ export class UsersService {
   // Add new user
   async addUser(currentUser, data: { name: string; email: string; password: string; phone: string; roleId?: number }) {
     const existingEmail = await this.prisma.user.findUnique({ where: { email: data.email } });
-    if (existingEmail) throw new BadRequestException('Email already exists');
+    if (existingEmail) throw new BadRequestException('الايميل موجود بالفعل');
 
     const existingPhone = await this.prisma.user.findUnique({ where: { phone: data.phone } });
-    if (existingPhone) throw new BadRequestException('Phone already exists');
+    if (existingPhone) throw new BadRequestException('الرقم موجود بالفعل');
 
     const current = await this.prisma.user.findUnique({
       where: { id: currentUser },
@@ -54,7 +54,7 @@ export class UsersService {
       },
     });
 
-    return { message: 'User created successfully', user };
+    return { message: 'تم اضافة مستخدم جديد بنجاح', user };
   }
 
   // Update user
@@ -64,7 +64,7 @@ export class UsersService {
 
     if (data.phone && data.phone !== user.phone) {
       const phoneExists = await this.prisma.user.findUnique({ where: { phone: data.phone } });
-      if (phoneExists) throw new BadRequestException('Phone already in use');
+      if (phoneExists) throw new BadRequestException('الرقم موجود بالفعل');
     }
 
     const current = await this.prisma.user.findUnique({
@@ -103,7 +103,7 @@ export class UsersService {
       },
     });
 
-    return { message: 'User updated successfully', user: updated };
+    return { message: 'تم تحديث بيانات المستخدم بنجاح', user: updated };
   }
 
   // Delete user and cascade related records
@@ -135,7 +135,7 @@ export class UsersService {
       },
     });
 
-    return { message: 'User and all related records deleted successfully' };
+    return { message: 'تم حذف المستخدم بنجاح' };
   }
 
   // Get all users with pagination and filters
@@ -214,6 +214,6 @@ export class UsersService {
       },
     });
 
-    return { message: 'Role assigned successfully' };
+    return { message: 'تم تعيين الدور بنجاح' };
   }
 }

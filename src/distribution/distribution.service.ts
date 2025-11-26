@@ -14,7 +14,7 @@ export class DistributionService {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
 
-        if (period.isClosed === false) throw new BadRequestException('Period is not closed');
+        if (period.isClosed === false) throw new BadRequestException('الفترة غير مغلقة');
 
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
@@ -29,7 +29,7 @@ export class DistributionService {
             include: { partner: true },
         });
 
-        if (!accruals.length) throw new BadRequestException('No partner accruals to post');
+        if (!accruals.length) throw new BadRequestException('لا توجد أرباح لتوزيعها لهذه الفترة');
 
         // Fetch posted journal lines to add amounts to partner totals
         const closingJournal = await this.prisma.journalHeader.findUnique({
@@ -71,7 +71,7 @@ export class DistributionService {
         }
 
         const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });
-        if (!savingAccount) throw new BadRequestException('saving account (20002) must exist');
+        if (!savingAccount) throw new BadRequestException('حساب الادخار (20002) يجب ان يكون موجود');
 
         if (savingPercentage && savingPercentage > 0) {
             for (const acc of accruals) {
@@ -143,7 +143,7 @@ export class DistributionService {
             },
         });
 
-        return { message: 'Period posted successfully', closingJournalId };
+        return { message: 'تم توزيع الارباح بنجاح', closingJournalId };
     }
 
     // Reverse the posted closing journal
@@ -151,7 +151,7 @@ export class DistributionService {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
 
-        if (period.isClosed === false) throw new BadRequestException('Period is not closed');
+        if (period.isClosed === false) throw new BadRequestException('الفترة غير مغلقة');
 
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
@@ -264,7 +264,7 @@ export class DistributionService {
             },
         });
 
-        return { message: 'تم الغاء توزيع الفترة بنجاح', periodId };
+        return { message: 'تم الغاء توزيع الارباح بنجاح', periodId };
     }
 
     async getClosedPeriods(periodId?: number) {

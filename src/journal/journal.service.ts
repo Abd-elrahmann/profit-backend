@@ -31,7 +31,7 @@ export class JournalService {
         const totalDebit = dto.lines.reduce((sum, l) => sum + (l.debit || 0), 0);
         const totalCredit = dto.lines.reduce((sum, l) => sum + (l.credit || 0), 0);
         if (totalDebit !== totalCredit) {
-            throw new BadRequestException('Journal not balanced (debits ≠ credits)');
+            throw new BadRequestException('القيد غير متوازن: مجموع المدين لا يساوي مجموع الدائن');
         }
 
         const accountIds = dto.lines.map(l => l.accountId);
@@ -52,7 +52,7 @@ export class JournalService {
                 lines: {
                     create: dto.lines.map((line) => {
                         const account = accounts.find(a => a.id === line.accountId);
-                        if (!account) throw new BadRequestException(`Account ${line.accountId} not found`);
+                        if (!account) throw new BadRequestException(`الحساب ${line.accountId} غير موجود`);
 
                         const balance =
                             account.nature === 'DEBIT'
@@ -85,7 +85,7 @@ export class JournalService {
             });
         }
 
-        return { message: 'Journal created successfully', journal };
+        return { message: 'تم انشاء القيد بنجاح', journal };
     }
 
     // Update journal
@@ -93,7 +93,7 @@ export class JournalService {
         const journal = await this.prisma.journalHeader.findUnique({ where: { id }, include: { lines: true } });
         if (!journal) throw new NotFoundException('Journal not found');
         if (journal.status === JournalStatus.POSTED) {
-            throw new BadRequestException('Cannot update a posted journal');
+            throw new BadRequestException('لا يمكن تعديل قيد معتمد');
         }
 
         if (dto.lines) {
@@ -136,7 +136,7 @@ export class JournalService {
             },
         });
 
-        return { message: 'Journal updated successfully', updated };
+        return { message: 'تم تعديل القيد بنجاح', updated };
     }
 
     // Delete journal
@@ -144,7 +144,7 @@ export class JournalService {
         const journal = await this.prisma.journalHeader.findUnique({ where: { id } });
         if (!journal) throw new NotFoundException('Journal not found');
         if (journal.status === JournalStatus.POSTED) {
-            throw new BadRequestException('Cannot delete a posted journal');
+            throw new BadRequestException('لا يمكن حذف قيد معتمد');
         }
 
         const user = await this.prisma.user.findUnique({
@@ -164,7 +164,7 @@ export class JournalService {
             },
         });
 
-        return { message: 'Journal deleted successfully' };
+        return { message: 'تم حذف القيد بنجاح' };
     }
 
     // Get all journal headers
@@ -345,7 +345,7 @@ export class JournalService {
             },
         });
 
-        return { message: 'Journal posted successfully', journalId: id };
+        return { message: 'تم اعتماد القيد بنجاح', journalId: id };
     }
 
     // UNPOST JOURNAL
@@ -385,7 +385,7 @@ export class JournalService {
             },
         });
 
-        return { message: 'Journal unposted successfully', journalId: id };
+        return { message: 'تم الغاء اعتماد القيد بنجاح', journalId: id };
     }
 
     // Recursive account update helper

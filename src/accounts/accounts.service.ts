@@ -15,10 +15,10 @@ export class AccountsService {
         }
 
         const exists = await this.prisma.account.findUnique({ where: { code: dto.code } });
-        if (exists) throw new BadRequestException('Account code already exists');
+        if (exists) throw new BadRequestException('رمز الحساب موجود بالفعل');
 
         const account = await this.prisma.account.create({ data: dto });
-        return { message: 'Account created successfully', account };
+        return { message: 'تم انشاء الحساب بنجاح', account };
     }
 
     // UPDATE ACCOUNT
@@ -31,7 +31,7 @@ export class AccountsService {
             data: dto,
         });
 
-        return { message: 'Account updated successfully', account: updated };
+        return { message: 'تم تعديل الحساب بنجاح', account: updated };
     }
 
     // DELETE ACCOUNT
@@ -40,10 +40,10 @@ export class AccountsService {
         if (!account) throw new NotFoundException('Account not found');
 
         const hasChildren = await this.prisma.account.findFirst({ where: { parentId: id } });
-        if (hasChildren) throw new BadRequestException('Cannot delete an account with children');
+        if (hasChildren) throw new BadRequestException('لا يمكن حذف حساب لديه حسابات فرعية');
 
         await this.prisma.account.delete({ where: { id } });
-        return { message: 'Account deleted successfully' };
+        return { message: 'تم حذف الحساب بنجاح' };
     }
 
     // GET ALL ACCOUNTS

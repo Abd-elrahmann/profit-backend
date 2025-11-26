@@ -79,7 +79,7 @@ export class NotificationService {
         console.log(`✅ Notification ready to send:`, message);
 
         return {
-            message: 'Notification created successfully',
+            message: 'تم ارسال الإشعار بنجاح',
             data: notification,
         };
     }

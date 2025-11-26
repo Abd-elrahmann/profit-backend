@@ -39,10 +39,10 @@ export class AuthService {
   // Login
   async login(data: { email: string; password: string }) {
     const user = await this.prisma.user.findUnique({ where: { email: data.email } });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) throw new UnauthorizedException('خطأ في بيانات الدخول');
 
     const isMatch = await bcrypt.compare(data.password, user.password);
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+    if (!isMatch) throw new UnauthorizedException('كلمة السر غير صحيحة');
 
     // create audit log
     await this.prisma.auditLog.create({
@@ -95,7 +95,7 @@ export class AuthService {
     if (!user) throw new NotFoundException('User not found');
     if (data.phone && data.phone !== user.phone) {
       const phoneExists = await this.prisma.user.findUnique({ where: { phone: data.phone } });
-      if (phoneExists) throw new BadRequestException('Phone already in use');
+      if (phoneExists) throw new BadRequestException('رقم الهاتف مستخدم مسبقاً');
     }
 
     const updated = await this.prisma.user.update({
@@ -124,7 +124,7 @@ export class AuthService {
       },
     });
 
-    return { message: 'Profile updated successfully', user: updated };
+    return { message: 'تم تعديل البروفايل بنجاح', user: updated };
   }
 
   async uploadProfileImage(userId: number, file: Express.Multer.File) {
@@ -171,7 +171,7 @@ export class AuthService {
     });
 
     return { 
-      message: 'Profile image uploaded successfully', 
+      message: 'تم رفع صورة البروفايل بنجاح', 
       profileImage: publicPath,
       user: updatedUser
     };
@@ -182,15 +182,15 @@ export class AuthService {
     if (!user) throw new BadRequestException('User not found');
 
     const isOldPasswordCorrect = await bcrypt.compare(dto.oldPassword, user.password);
-    if (!isOldPasswordCorrect) throw new UnauthorizedException('Old password is incorrect');
+    if (!isOldPasswordCorrect) throw new UnauthorizedException('كلمة السر القديمة غير صحيحة');
 
     const isNewSameAsOld = await bcrypt.compare(dto.newPassword, user.password);
     if (isNewSameAsOld) {
-      throw new BadRequestException('New password cannot be the same as the old password');
+      throw new BadRequestException('كلمة السر الجديدة لا يمكن أن تكون نفس القديمة');
     }
 
     if (dto.newPassword !== dto.confirmPassword) {
-      throw new BadRequestException('New password and confirmation do not match');
+      throw new BadRequestException('كلمات السر غير متطابقة');
     }
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
@@ -200,10 +200,10 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    return { message: 'Password updated successfully' };
+    return { message: 'تم تحديث كلمة السر' };
   }
 
-  // 🟢 Request reset password (email)
+  // Request reset password (email)
   async requestResetPassword(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) throw new BadRequestException('User not found');
@@ -238,14 +238,14 @@ export class AuthService {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Reset Your Password',
-      text: `Click the link below to reset your password (expires in 10 minutes): ${resetLink}`,
+      subject: 'اعادة تعيين كلمة السر',
+      text: `اضغط على الرابط التالي لاعادة تعيين كلمة السر (ينتهي خلال 10 دقائق): ${resetLink}`,
     });
 
-    return { message: 'Password reset link sent to your email.' };
+    return { message: 'تم ارسال لينك اعادة تعيين كلمة السر بإيميلك.' };
   }
 
-  // 🟢 Reset password using token
+  // Reset password using token
   async resetPassword(data: { token: string; newPassword: string; confirmPassword: string }) {
     const hashedToken = crypto.createHash('sha256').update(data.token).digest('hex');
 
@@ -256,11 +256,11 @@ export class AuthService {
     if (!resetToken) throw new BadRequestException('Invalid or expired token');
     if (resetToken.expiresAt < new Date()) {
       await this.prisma.resetPasswordToken.delete({ where: { id: resetToken.id } });
-      throw new BadRequestException('Token has expired');
+      throw new BadRequestException('انتهى الرابط');
     }
 
     if (data.newPassword !== data.confirmPassword) {
-      throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException('كلمات السر غير متطابقة');
     }
 
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);
@@ -272,7 +272,7 @@ export class AuthService {
 
     await this.prisma.resetPasswordToken.deleteMany({ where: { userId: resetToken.userId } });
 
-    return { message: 'Password reset successfully.' };
+    return { message: 'تم اعادة تعيين كلمة السر بنجاح.' };
   }
 
   async getUserModulePermissions(userId: number, module: string) {

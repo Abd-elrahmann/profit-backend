@@ -145,7 +145,7 @@ export class RepaymentService {
             },
         });
 
-        return { message: 'Receipts uploaded successfully', fileUrls };
+        return { message: 'تم رفع الايصال بنجاح', fileUrls };
     }
 
     // Approve repayment
@@ -160,10 +160,10 @@ export class RepaymentService {
         if (!loan) throw new NotFoundException('Loan not found');
 
         if (loan.status === LoanStatus.PENDING)
-            throw new BadRequestException('loan is pending');
+            throw new BadRequestException('السلفة قيد الانتظار');
 
         if (repayment.status === PaymentStatus.PAID)
-            throw new BadRequestException('Repayment already approved');
+            throw new BadRequestException('الدفعة مدفوعة بالفعل');
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -191,7 +191,7 @@ export class RepaymentService {
             const journal = await this.journalService.createJournal(
                 {
                     reference: `REP-${repayment.id}`,
-                    description: `Repayment approval for loan #${loan.code}`,
+                    description: `الموافقة على سداد دفعة رقم ${repayment.id} للسلفة رقم ${loan.id}`,
                     type: 'GENERAL',
                     sourceType: JournalSourceType.REPAYMENT,
                     sourceId: repayment.id,
@@ -200,20 +200,20 @@ export class RepaymentService {
                             accountId: bankAccount.id,
                             debit: totalAmount,
                             credit: 0,
-                            description: `Repayment received from ${loan.client.name}`,
+                            description: `استلام سداد دفعة للسلفة رقم ${loan.id}`,
                         },
                         {
                             accountId: loansReceivable.id,
                             debit: 0,
                             credit: principalAmount,
-                            description: 'Loan principal repayment',
+                            description: 'سداد اصل السلفة',
                             clientId: loan.client.id,
                         },
                         {
                             accountId: loanIncome.id,
                             debit: 0,
                             credit: interestAmount,
-                            description: 'Loan interest income',
+                            description: 'دخل فوائد السلفة',
                         },
                     ],
                 },
@@ -327,7 +327,7 @@ export class RepaymentService {
             });
 
             return {
-                message: 'Repayment approved successfully',
+                message: 'تم الموافقة على السداد بنجاح',
                 repaymentId: id,
                 journalId: journal.journal.id,
             };
@@ -346,7 +346,7 @@ export class RepaymentService {
         if (!loan) throw new NotFoundException('Loan not found');
 
         if (loan.status === LoanStatus.PENDING)
-            throw new BadRequestException('loan is pending');
+            throw new BadRequestException('السلفة قيد الانتظار');
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -423,7 +423,7 @@ export class RepaymentService {
                 },
             });
 
-            return { message: 'Repayment rejected and journal removed', repaymentId: id };
+            return { message: 'تم رفض سداد الدفعة بنجاح', repaymentId: id };
         });
     }
 
@@ -439,10 +439,10 @@ export class RepaymentService {
         if (!loan) throw new NotFoundException('Loan not found');
 
         if (loan.status === LoanStatus.PENDING || LoanStatus.COMPLETED)
-            throw new BadRequestException('loan is not active');
+            throw new BadRequestException('السلفة غير نشطة');
 
         if (!dto.newDueDate)
-            throw new BadRequestException('New due date is required for postponing');
+            throw new BadRequestException('يجب تحديد تاريخ استحقاق جديد');
 
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
@@ -472,7 +472,7 @@ export class RepaymentService {
             },
         });
 
-        return { message: 'Repayment postponed successfully', repaymentId: id };
+        return { message: 'تم تأجيل سداد الدفعة بنجاح', repaymentId: id };
     }
 
     // Upload payment proof
@@ -528,7 +528,7 @@ export class RepaymentService {
             },
         });
 
-        return { message: 'Payment proof uploaded successfully', fileUrl: publicUrl };
+        return { message: 'تم رفع مستند اثبات السداد بنجاح', fileUrl: publicUrl };
     }
 
     // Mark repayment as partial paid
@@ -544,17 +544,17 @@ export class RepaymentService {
 
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status === LoanStatus.PENDING || loan.status === LoanStatus.COMPLETED)
-            throw new BadRequestException('Loan is not active');
+            throw new BadRequestException('السلفة غير نشطة');
 
         if (paidAmount <= 0)
-            throw new BadRequestException('Paid amount must be greater than 0');
+            throw new BadRequestException('المبلغ المدفوع يجب أن يكون أكبر من صفر');
 
         const currentPaid = repayment.paidAmount || 0;
         const newPaidAmount = currentPaid + paidAmount;
 
         if (newPaidAmount > repayment.amount)
             throw new BadRequestException(
-                `Paid amount exceeds installment amount. Max allowed: ${repayment.amount - currentPaid}`
+                `المبلغ المدفوع يتجاوز مبلغ الدفعة. الحد الأقصى المسموح به: ${repayment.amount - currentPaid}`
             );
 
         const remaining = parseFloat((repayment.amount - newPaidAmount).toFixed(2));
@@ -597,7 +597,7 @@ export class RepaymentService {
             await this.journalService.createJournal(
                 {
                     reference: `PARTIAL-${repayment.id}-${Date.now()}`,
-                    description: `Partial payment for repayment #${repayment.id}`,
+                    description: `سداد جزئي للدفعة رقم ${repayment.id} للسلفة رقم ${loan.id}`,
                     type: 'GENERAL',
                     sourceType: JournalSourceType.REPAYMENT,
                     sourceId: repayment.id,
@@ -606,20 +606,20 @@ export class RepaymentService {
                             accountId: bankAccount.id,
                             debit: paidAmount,
                             credit: 0,
-                            description: `Partial repayment received from ${loan.client.name}`,
+                            description: `استلام سداد جزئي للدفعة رقم ${repayment.id} للسلفة رقم ${loan.id}`,
                         },
                         {
                             accountId: loansReceivable.id,
                             debit: 0,
                             credit: principalPart,
-                            description: 'Partial principal repayment',
+                            description: 'سداد جزء من اصل السلفة',
                             clientId: loan.client.id,
                         },
                         {
                             accountId: loanIncome.id,
                             debit: 0,
                             credit: interestPart,
-                            description: 'Interest portion of partial payment',
+                            description: 'سداد جزء من دخل فوائد السلفة',
                         },
                     ],
                 },
@@ -689,7 +689,7 @@ export class RepaymentService {
             });
 
             return {
-                message: 'Partial payment recorded successfully',
+                message: 'تم تسجيل السداد الجزئي بنجاح',
                 repaymentId: id,
                 paidAmount: newPaidAmount,
                 remaining,
@@ -723,7 +723,7 @@ export class RepaymentService {
         );
 
         if (unpaidRepayments.length === 0)
-            throw new BadRequestException('No unpaid repayments to process.');
+            throw new BadRequestException('لا توجد دفعات للسداد');
 
         // Step 2: Calculate totals for unpaid repayments
         let totalRemainingPrincipal = 0;
@@ -741,7 +741,7 @@ export class RepaymentService {
         // Step 3: Validate discount
         if (earlyPaymentDiscount > totalRemainingInterest) {
             throw new BadRequestException(
-                `Discount cannot exceed remaining interest (${totalRemainingInterest.toFixed(2)})`,
+                `الخصم لا يمكن ان يتعدي باقي الفائدة (${totalRemainingInterest.toFixed(2)})`,
             );
         }
 
@@ -760,7 +760,7 @@ export class RepaymentService {
             const journal = await this.journalService.createJournal(
                 {
                     reference: `EARLY-${loan.id}`,
-                    description: `Early payment for Loan ${loan.code} with interest discount ${earlyPaymentDiscount}`,
+                    description: `سداد مبكر للسلفة رقم ${loan.code} بخصم مبلغ ${earlyPaymentDiscount}`,
                     type: 'GENERAL',
                     sourceType: JournalSourceType.LOAN,
                     sourceId: loan.id,
@@ -867,7 +867,7 @@ export class RepaymentService {
             });
 
             return {
-                message: 'Loan marked as early paid successfully',
+                message: 'تم تسجيل السداد المبكر بنجاح',
                 finalPayment: finalPayment.toFixed(2),
                 journalId: journal.journal.id,
             };
