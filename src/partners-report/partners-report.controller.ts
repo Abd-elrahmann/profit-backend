@@ -10,7 +10,7 @@ export class PartnersReportController {
     constructor(private readonly service: PartnersReportService) { }
 
     @Get(':page')
-    @Permissions('partner-report', 'canView')
+    @Permissions('partners', 'canView')
     getAllPartners(
         @Param('page', ParseIntPipe) page: number,
         @Query('limit') limit?: number) {
@@ -18,7 +18,7 @@ export class PartnersReportController {
     }
 
     @Get('partner/:id')
-    @Permissions('partner-report', 'canView')
+    @Permissions('partners', 'canView')
     getPartnerDetails(@Param('id', ParseIntPipe) id: number) {
         return this.service.getPartnerDetails(id);
     }

@@ -709,6 +709,17 @@ export class LoansService {
             await this.prisma.repayment.createMany({ data: repayments });
         }
 
+        // If amount changed, clear existing contracts to force regeneration
+        if (dto.amount && dto.amount !== loan.amount) {
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    DEBT_ACKNOWLEDGMENT: null,
+                    PROMISSORY_NOTE: null,
+                },
+            });
+        }
+
         // create audit log
         await this.prisma.auditLog.create({
             data: {
