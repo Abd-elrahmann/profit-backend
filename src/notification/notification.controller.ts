@@ -38,8 +38,8 @@ export class NotificationController {
         return this.notificationService.sendNotification(dto);
     }
 
-    @Get('decode-token')
-    decodeToken(@Query('token') token: string) {
+    @Post('decode-token')
+    decodeToken(@Body('token') token: string) {
         if (!token) {
             throw new BadRequestException('Token is required');
         }

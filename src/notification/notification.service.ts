@@ -28,21 +28,25 @@ export class NotificationService {
     private decryptShortToken(token: string) {
         const secret = process.env.PAYMENT_SECRET;
 
-        // Reverse Base64URL → Base64
-        const base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+        // Convert Base64URL → Base64
+        let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+
+        // Add padding back
+        while (base64.length % 4 !== 0) {
+            base64 += '=';
+        }
 
         try {
             const bytes = CryptoJS.AES.decrypt(base64, secret);
             const decrypted = bytes.toString(CryptoJS.enc.Utf8);
 
-            if (!decrypted) throw new Error("Invalid token");
+            if (!decrypted) throw new Error("Invalid token or wrong secret");
 
             return JSON.parse(decrypted);
         } catch (err) {
             throw new Error("Failed to decrypt token: " + err.message);
         }
     }
-
 
     // Replace placeholders in template
     private fillTemplate(template: string, context: Record<string, any>): string {
@@ -172,7 +176,6 @@ export class NotificationService {
         const data = this.decryptShortToken(token);
 
         return {
-            success: true,
             data,
         };
     }
