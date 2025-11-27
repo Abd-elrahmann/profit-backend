@@ -25,6 +25,7 @@ import { SavingModule } from './saving/saving.module';
 import { ClientReportModule } from './client-report/client-report.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PartnersReportModule } from './partners-report/partners-report.module';
+import { CompanyModule } from './companyProfit/company.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { PartnersReportModule } from './partners-report/partners-report.module';
     ClientReportModule,
     DashboardModule,
     PartnersReportModule,
+    CompanyModule,
     
   ],
   controllers: [AppController],

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "JournalSourceType" ADD VALUE 'COMPANY_PROFIT_WITHDRAWAL';
