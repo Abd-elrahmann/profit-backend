@@ -19,7 +19,7 @@ export class BankService {
         });
 
         // Prepare data with status based on limit
-        const createData = {
+        const createData: any = {
             ...data,
             status: data.limit > 0 ? 'Active' : 'Expired'
         };

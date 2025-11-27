@@ -1,13 +1,5 @@
 [
   {
-    "id": 4,
-    "name": "RECEIPT_VOUCHER",
-    "description": "Template for RECEIPT_VOUCHER agreements",
-    "content": "<h2 class=\"ql-direction-rtl ql-align-center\"><strong>سند القبض</strong></h2><p class=\"ql-direction-rtl ql-align-center\">رقم السند: <span style=\"background-color: rgb(224, 231, 255);\">{{رقم_السند}}</span></p><p class=\"ql-direction-rtl ql-align-center\"><strong>أقر أنا الموقع أدناه بأنني قد استلمت مبلغاً نقدياً من</strong></p><p class=\"ql-direction-rtl ql-align-center\"><strong>اسم المستلم</strong>{{اسم_المستلم}}<strong>رقم الهوية</strong>{{هوية_المستلم}}<strong>المبلغ رقماً</strong>{{المبلغ_رقما}} ريال سعودي<strong>المبلغ كتابة</strong>{{المبلغ_كتابة}}<strong>سبب الاستلام</strong>{{سبب_الاستلام}}<strong>التاريخ الهجري</strong>{{التاريخ_الهجري}}<strong>التاريخ الميلادي</strong>{{التاريخ_الميلادي}}<strong>وذلك مقابل البضاعة/الخدمة المذكورة أعلاه</strong></p><p class=\"ql-direction-rtl ql-align-center\"><strong>توقيع المستلم</strong></p><p class=\"ql-direction-rtl ql-align-center\">الاسم: {{اسم_المستلم}}</p><p class=\"ql-direction-rtl ql-align-center\">التاريخ: ___________________</p><p class=\"ql-direction-rtl ql-align-center\"><strong>توقيم المسلم</strong></p><p class=\"ql-direction-rtl ql-align-center\">الاسم: {{اسم_المسلم}}</p><p class=\"ql-direction-rtl ql-align-center\">التاريخ: ___________________</p>",
-    "createdAt": "2025-10-27T18:28:55.916Z",
-    "updatedAt": "2025-10-27T18:28:55.916Z"
-  },
-  {
     "id": 5,
     "name": "PAYMENT_VOUCHER",
     "description": "Template for PAYMENT_VOUCHER agreements",
