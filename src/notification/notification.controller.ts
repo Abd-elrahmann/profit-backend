@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, BadRequestException } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { SendNotificationDto } from './dto/notification.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
@@ -36,5 +36,13 @@ export class NotificationController {
     @Post('send')
     sendNotification(@Body() dto: SendNotificationDto) {
         return this.notificationService.sendNotification(dto);
+    }
+
+    @Get('decode-token')
+    decodeToken(@Query('token') token: string) {
+        if (!token) {
+            throw new BadRequestException('Token is required');
+        }
+        return this.notificationService.decodeToken(token);
     }
 }

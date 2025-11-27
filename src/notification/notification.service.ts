@@ -25,6 +25,25 @@ export class NotificationService {
         return encrypted.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
+    private decryptShortToken(token: string) {
+        const secret = process.env.PAYMENT_SECRET;
+
+        // Reverse Base64URL → Base64
+        const base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+
+        try {
+            const bytes = CryptoJS.AES.decrypt(base64, secret);
+            const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+
+            if (!decrypted) throw new Error("Invalid token");
+
+            return JSON.parse(decrypted);
+        } catch (err) {
+            throw new Error("Failed to decrypt token: " + err.message);
+        }
+    }
+
+
     // Replace placeholders in template
     private fillTemplate(template: string, context: Record<string, any>): string {
         return template.replace(/\{\{(.*?)\}\}/g, (_, key) => {
@@ -147,5 +166,14 @@ export class NotificationService {
             where: { clientId },
             orderBy: { createdAt: 'desc' },
         });
+    }
+
+    async decodeToken(token: string) {
+        const data = this.decryptShortToken(token);
+
+        return {
+            success: true,
+            data,
+        };
     }
 }
