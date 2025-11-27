@@ -805,10 +805,16 @@ export class LoansService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // 6. Update loan with file URL
+        // Generate unique debt acknowledgment number
+        const debtAcknowledgmentNumber = `ACK-${loanId}-${Date.now()}`;
+
+        // 6. Update loan with file URL and contract number
         await this.prisma.loan.update({
             where: { id: loanId },
-            data: { DEBT_ACKNOWLEDGMENT: publicUrl },
+            data: {
+                DEBT_ACKNOWLEDGMENT: publicUrl,
+                debtAcknowledgmentNumber: debtAcknowledgmentNumber
+            },
         });
 
         // 7. Create audit log
@@ -854,10 +860,16 @@ export class LoansService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Update loan with file URL
+        // Generate unique promissory note number
+        const promissoryNoteNumber = `NOTE-${loanId}-${Date.now()}`;
+
+        // Update loan with file URL and contract number
         await this.prisma.loan.update({
             where: { id: loanId },
-            data: { PROMISSORY_NOTE: publicUrl },
+            data: {
+                PROMISSORY_NOTE: publicUrl,
+                promissoryNoteNumber: promissoryNoteNumber
+            },
         });
 
         // Create audit log
