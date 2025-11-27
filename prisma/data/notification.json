@@ -115,5 +115,811 @@
     "sentAt": "2025-11-17T20:10:40.215Z",
     "scheduledAt": null,
     "createdAt": "2025-11-17T20:10:40.229Z"
+  },
+  {
+    "id": 97,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-23T14:28:47.162Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-23T14:28:47.163Z"
+  },
+  {
+    "id": 98,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋  نود تذكيرك بأن موعد سداد القسط رقم 1 من القرض رقم LN-20251117-001 قد اقترب.  💰 المبلغ المستحق: 3000 ريال 📅 تاريخ الاستحقاق: 2025-12-10  يرجى السداد في الموعد المحدد لتجنب أي تأخير.  🔗 يمكنك السداد أو عرض تفاصيل السداد من خلال الرابط التالي: http://localhost:3001/payment-receipt/49/438/youssef%20khaled  شكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-23T14:28:47.502Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-23T14:28:47.504Z"
+  },
+  {
+    "id": 99,
+    "title": "PAYMENT APPROVED",
+    "message": "عزيزي youssef khaled,\n\nتمت الموافقة على دفعتك الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001.\n\n💸 المبلغ المدفوع: 3000 ريال\n📅 تاريخ الدفع: \n\nشكرًا لالتزامك بالسداد 🙏",
+    "type": "PAYMENT_APPROVED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-24T14:20:29.216Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-24T14:20:29.226Z"
+  },
+  {
+    "id": 100,
+    "title": "PAYMENT APPROVED",
+    "message": "عزيزي youssef khaled,\n\nتمت الموافقة على دفعتك الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001.\n\n💸 المبلغ المدفوع: 3000 ريال\n📅 تاريخ الدفع: \n\nشكرًا لالتزامك بالسداد 🙏",
+    "type": "PAYMENT_APPROVED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-24T14:20:29.475Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-24T14:20:29.485Z"
+  },
+  {
+    "id": 101,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-24T14:22:30.594Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-24T14:22:30.595Z"
+  },
+  {
+    "id": 102,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-24T14:22:30.678Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-24T14:22:30.679Z"
+  },
+  {
+    "id": 103,
+    "title": "PAYMENT APPROVED",
+    "message": "عزيزي youssef khaled,\n\nتمت الموافقة على دفعتك الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001.\n\n💸 المبلغ المدفوع: 3000 ريال\n📅 تاريخ الدفع: \n\nشكرًا لالتزامك بالسداد 🙏",
+    "type": "PAYMENT_APPROVED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-24T15:27:12.432Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-24T15:27:12.433Z"
+  },
+  {
+    "id": 104,
+    "title": "PAYMENT APPROVED",
+    "message": "عزيزي youssef khaled,\n\nتمت الموافقة على دفعتك الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001.\n\n💸 المبلغ المدفوع: 3000 ريال\n📅 تاريخ الدفع: \n\nشكرًا لالتزامك بالسداد 🙏",
+    "type": "PAYMENT_APPROVED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-24T15:27:12.702Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-24T15:27:12.703Z"
+  },
+  {
+    "id": 105,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:28:36.127Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:28:36.134Z"
+  },
+  {
+    "id": 106,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋  نود تذكيرك بأن موعد سداد القسط رقم 1 من القرض رقم LN-20251117-001 قد اقترب.  💰 المبلغ المستحق: 3000 ريال 📅 تاريخ الاستحقاق: 2025-11-10  يرجى السداد في الموعد المحدد لتجنب أي تأخير.  🔗 يمكنك السداد أو عرض تفاصيل السداد من خلال الرابط التالي: http://localhost:3001/payment-receipt?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2FuSWQiOjQ5LCJyZXBheW1lbnRJZCI6NDM4LCJjbGllbnROYW1lIjoieW91c3NlZiBraGFsZWQiLCJpYXQiOjE3NjQxNjM3MTZ9.z3GiynSdSWLs7ef1tBq2vc2PhhP9i3hxBa_TgD2pfmo  شكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:28:36.431Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:28:36.435Z"
+  },
+  {
+    "id": 107,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:34:33.910Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:34:33.912Z"
+  },
+  {
+    "id": 108,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋  نود تذكيرك بأن موعد سداد القسط رقم 1 من القرض رقم LN-20251117-001 قد اقترب.  💰 المبلغ المستحق: 3000 ريال 📅 تاريخ الاستحقاق: 2025-11-10  يرجى السداد في الموعد المحدد لتجنب أي تأخير.  🔗 يمكنك السداد أو عرض تفاصيل السداد من خلال الرابط التالي: http://localhost:3001/payment-receipt?token=U2FsdGVkX18AY9usAaQyd1y3s1d24TTS-TpoZhp_m5QxXnsTR4uoVoDbUafD7WoNl0EffTbmJhFLwPVOzKpeFmkWqWdv0ngCZgJkeBR5e2w  شكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:34:34.117Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:34:34.119Z"
+  },
+  {
+    "id": 109,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:40:56.918Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:40:56.922Z"
+  },
+  {
+    "id": 110,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋  نود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.  💰 المبلغ المستحق: 3000 ريال 📅 تاريخ الاستحقاق: 2025-11-10  يرجى السداد في الموعد المحدد لتجنب أي تأخير.  🔗 رابط السداد: http://localhost:3001/payment-receipt?token=U2FsdGVkX1_Yb0ipotGnMApdq5rVuJGev5z7a1fc4kV3EbCvfd0qY2ayOkP9VMF9tZLmKr5wWWvde9GWZ3WR6ovddf09l9A8WAW4k9FsITA  شكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:40:57.006Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:40:57.009Z"
+  },
+  {
+    "id": 111,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:45:05.117Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:45:05.120Z"
+  },
+  {
+    "id": 112,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttp://localhost:3001/payment-receipt?token=U2FsdGVkX18R4wLyozubGP3pa5ckcsGTPa3cH6-kQu8NtHJv20pzUQn1vS7_i64F5Bir1QwTPmnWnsaUrrF7y1vWYogiCf3x4sYXuYib97M\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:45:05.205Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:45:05.208Z"
+  },
+  {
+    "id": 113,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:47:16.046Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:47:16.047Z"
+  },
+  {
+    "id": 114,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttp://localhost:3001/payment-receipt?token=U2FsdGVkX1_WNT3Ihc-ZqY-z28a50B602CWi6Cm8Xk6jtCyPJCSu3F_YIS8Z5WKy_nn0O_6QmHslKh2wX5IG3rEjO6eInO9hS5_hhAC1ke8\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:47:16.229Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:47:16.231Z"
+  },
+  {
+    "id": 115,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:48:43.374Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:48:43.388Z"
+  },
+  {
+    "id": 116,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX1_0-ycNYmxRXGIBlQFwWm7ActfLvhua-Yw7BIrXy1caaqaW026ynPefDRLitkHT5g_ngYxmptBCqwLofFoivi0iLXlV1_ptDRY\">اضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:48:43.572Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:48:43.587Z"
+  },
+  {
+    "id": 117,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:49:48.957Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:49:48.959Z"
+  },
+  {
+    "id": 118,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX19NrAc_yEbI2FOp-e09W0QdTvsXwKXZC1rfWOSsPlqq88kzCh7zqZbznZA1eHS2rgD3kHz7zuV5nLRUI15PE7VEfMaIFnsZoNM\">http://localhost:3001/payment-receipt?token=U2FsdGVkX19NrAc_yEbI2FOp-e09W0QdTvsXwKXZC1rfWOSsPlqq88kzCh7zqZbznZA1eHS2rgD3kHz7zuV5nLRUI15PE7VEfMaIFnsZoNM</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:49:49.049Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:49:49.050Z"
+  },
+  {
+    "id": 119,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:51:24.752Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:51:24.767Z"
+  },
+  {
+    "id": 120,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX1-SfzoP8ojdkmVaCiN-i6hlTAAwSupPBbwDmewqW784xqIiJAlrWr2t7eJKg7fyjwKuRo0rUWFc7ymfVPopwran-Th5xHfGcGw\">http://localhost:3001/payment-receipt?token=U2FsdGVkX1-SfzoP8ojdkmVaCiN-i6hlTAAwSupPBbwDmewqW784xqIiJAlrWr2t7eJKg7fyjwKuRo0rUWFc7ymfVPopwran-Th5xHfGcGw</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:51:24.885Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:51:24.899Z"
+  },
+  {
+    "id": 121,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:51:47.813Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:51:47.828Z"
+  },
+  {
+    "id": 122,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttp://localhost:3001/payment-receipt?token=U2FsdGVkX1-1cn9bv8bdw5t3GxnEo8gJEICt6VNrpcF36juTfO5dKC9iVWbzEalu2wAwUpuIEz0Lczcr186Y-MHEzs_EiE0h3F4mPULVExM\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:51:47.829Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:51:47.844Z"
+  },
+  {
+    "id": 123,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:55:15.765Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:55:15.768Z"
+  },
+  {
+    "id": 124,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX19t8je7shRb9UzhJJ7Yy33pyRQw6eguKzvUASUttocYwqrUPABjlyPce2fh6msVzezUE1rYlLlKUgzjv6oVSwNHxESDWEWhIo8\">اضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:55:15.963Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:55:15.967Z"
+  },
+  {
+    "id": 125,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:56:56.056Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:56:56.058Z"
+  },
+  {
+    "id": 126,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX19C_tu_1GnjGQa4StUzYt3I1hLv5KpPqEorgEjsf06-738xUITdGYLx9lE3TOoPmhYcHxIO4UxiAiKCq0urDir2JGVaOcPJ4OU\">اضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:56:56.089Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:56:56.091Z"
+  },
+  {
+    "id": 127,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T13:57:21.188Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:57:21.201Z"
+  },
+  {
+    "id": 128,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX18xqm9jWdBsDrWteJEeHnO8k69C6HVcwzNbkhnX2PSFGEWg1uCk1-MZFWiLyOvvV4J2KGOyE_KxGUSd1JGKJ3jGCSUFUM9804I\">اضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T13:57:21.311Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T13:57:21.324Z"
+  },
+  {
+    "id": 129,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:01:22.782Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:01:22.798Z"
+  },
+  {
+    "id": 130,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"https://localhost:3001/payment-receipt?token=U2FsdGVkX198mmRZDH5_gwDUG84wmsR7tboNRj9h2ELN0jt-qD0ZWQCoIDIRYcCDGtLEsxFN7HioAqSXQcDqzEZpDjNHFvOVSNHIGkeLVhg\">اضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:01:22.916Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:01:22.932Z"
+  },
+  {
+    "id": 131,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:02:15.423Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:02:15.440Z"
+  },
+  {
+    "id": 132,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://localhost:3001/payment-receipt?token=U2FsdGVkX18cHC06Ls9mqOmVoOPM3phYgrf8K6OmnlnQ2-oQatdf7PxVcNeju-dtZILEpci6WAKBadmltsTh4dKxD8OkSJRcd-PL_hgdQXQ\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:02:15.454Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:02:15.471Z"
+  },
+  {
+    "id": 133,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:03:47.303Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:03:47.304Z"
+  },
+  {
+    "id": 134,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://www.google.com/\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:03:47.477Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:03:47.479Z"
+  },
+  {
+    "id": 135,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:04:40.834Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:04:40.836Z"
+  },
+  {
+    "id": 136,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://localhost:3001/payment-receipt?token=U2FsdGVkX18AY9usAaQyd1y3s1d24TTS-TpoZhp_m5QxXnsTR4uoVoDbUafD7WoNl0EffTbmJhFLwPVOzKpeFmkWqWdv0ngCZgJkeBR5e2w\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:04:40.947Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:04:40.948Z"
+  },
+  {
+    "id": 137,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:05:38.276Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:05:38.289Z"
+  },
+  {
+    "id": 138,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://www.goooogle.com/\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:05:38.433Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:05:38.446Z"
+  },
+  {
+    "id": 139,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:06:37.843Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:06:37.847Z"
+  },
+  {
+    "id": 140,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://internal.iti.gov.eg/home\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:06:38.013Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:06:38.016Z"
+  },
+  {
+    "id": 141,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:07:02.945Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:07:02.954Z"
+  },
+  {
+    "id": 142,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://inteeernal.iti.gov.eg/home\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:07:03.031Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:07:03.041Z"
+  },
+  {
+    "id": 143,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:07:37.228Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:07:37.242Z"
+  },
+  {
+    "id": 144,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://inl.ii.gv/home\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:07:37.335Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:07:37.349Z"
+  },
+  {
+    "id": 145,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:09:05.899Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:09:05.900Z"
+  },
+  {
+    "id": 146,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 رابط السداد:\nhttps://localhost:3001/payment-receipt?token=U2FsdGVkX1_QYqX5CeLiog86qo1q8XGBFvN0ZmoaApbOW0bqso3OMMfBAEETUe5PDfKszv5JgrPnksO-7pcLGSeXz18j7dHtO4jIwR7E0B4\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:09:06.027Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:09:06.028Z"
+  },
+  {
+    "id": 147,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:11:59.061Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:11:59.065Z"
+  },
+  {
+    "id": 148,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"https://www.google.com/\"></a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:11:59.251Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:11:59.255Z"
+  },
+  {
+    "id": 149,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-26T14:13:06.324Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:13:06.327Z"
+  },
+  {
+    "id": 150,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"https://www.google.com/\">اضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-26T14:13:06.358Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-26T14:13:06.360Z"
+  },
+  {
+    "id": 151,
+    "title": "REPAYMENT LATE",
+    "message": "عزيزي youssef khaled,\n\nيبدو أنك لم تقم بسداد القسط رقم 1 من القرض رقم LN-20251117-001 المستحق بتاريخ 2025-11-10.\n\nيرجى السداد في أقرب وقت ممكن لتفادي أي غرامات تأخير.\n\n💰 المبلغ المستحق: 3000 ريال",
+    "type": "REPAYMENT_LATE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-27T11:23:43.501Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-27T11:23:43.502Z"
+  },
+  {
+    "id": 152,
+    "title": "Repayment Overdue Reminder",
+    "message": "You have overdue repayments pending. Please take action immediately.",
+    "type": "REPAYMENT_LATE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": null,
+    "scheduledAt": "2025-11-29T00:00:00.000Z",
+    "createdAt": "2025-11-27T11:23:45.863Z"
+  },
+  {
+    "id": 153,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-27T12:08:06.996Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-27T12:08:07.001Z"
+  },
+  {
+    "id": 154,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX1_oQyIv7KISi-xuH6C6p6MiEtNjGxnLzQfyYHYEMhvFGWUnlYtdNL1u2qNFOWk_g_tFJ2t9H01r0MJkeWiMMVRLQHEQ8jrMG0Y\">اضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-27T12:08:07.282Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-27T12:08:07.283Z"
+  },
+  {
+    "id": 155,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-27T12:09:40.965Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-27T12:09:40.966Z"
+  },
+  {
+    "id": 156,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX1-PfgNnwnB6RSLb0YuHnHnDJsMOcqJGCKeGnPwBRJafx-va_0xRBQoHjZYr8O6MoovDpuAaoxjEwlF-wF125djWU_AYXEe6xCU\">  http://localhost:3001/payment-receipt?token=U2FsdGVkX1-PfgNnwnB6RSLb0YuHnHnDJsMOcqJGCKeGnPwBRJafx-va_0xRBQoHjZYr8O6MoovDpuAaoxjEwlF-wF125djWU_AYXEe6xCUاضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-27T12:09:41.003Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-27T12:09:41.004Z"
+  },
+  {
+    "id": 157,
+    "title": "PAYMENT REJECTED",
+    "message": "عزيزي youssef khaled,\n\nنأسف لإبلاغك بأن الدفعة الخاصة بالقسط رقم 1 من القرض رقم LN-20251117-001 لم يتم اعتمادها.\n\nيرجى التواصل مع الإدارة لمعرفة السبب وإعادة الإرسال.",
+    "type": "PAYMENT_REJECTED",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "WHATSAPP",
+    "sentAt": "2025-11-27T12:39:13.643Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-27T12:39:13.644Z"
+  },
+  {
+    "id": 158,
+    "title": "REPAYMENT DUE",
+    "message": "مرحباً youssef khaled 👋\n\nنود تذكيرك بأن موعد سداد الدفعة رقم 1 من السلفة رقم LN-20251117-001 قد اقترب.\n\n💰 المبلغ المستحق: 3000 ريال\n📅 تاريخ الاستحقاق: 2025-11-10\n\nيرجى السداد في الموعد المحدد لتجنب أي تأخير.\n\n🔗 <a href=\"http://localhost:3001/payment-receipt?token=U2FsdGVkX1_lDrcJ7hfWsNPkmlocY6ntiJ3exOcuaETjZ_zZGF_CWzyRqJAKtu5eqRd9E4kBNLOlNhGwyD5XU65CEj6vIMrorsNSv_abvnU\">  http://localhost:3001/payment-receipt?token=U2FsdGVkX1_lDrcJ7hfWsNPkmlocY6ntiJ3exOcuaETjZ_zZGF_CWzyRqJAKtu5eqRd9E4kBNLOlNhGwyD5XU65CEj6vIMrorsNSv_abvnUاضغط هنا للسداد</a>\n\nشكراً لتعاملك معنا ❤️",
+    "type": "REPAYMENT_DUE",
+    "clientId": 1,
+    "loanId": 49,
+    "repaymentId": 438,
+    "channel": "TELEGRAM",
+    "sentAt": "2025-11-27T12:39:13.958Z",
+    "scheduledAt": null,
+    "createdAt": "2025-11-27T12:39:13.959Z"
   }
 ]

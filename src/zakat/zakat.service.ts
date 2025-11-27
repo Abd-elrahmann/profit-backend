@@ -379,7 +379,7 @@ export class ZakatService {
             const monthKey = date.toFormat('yyyy-LL');
 
             if (!acc[monthKey]) {
-                acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0 };
+                acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0, requiredZakat: 0 };
             }
 
             const mapped = {
@@ -402,9 +402,60 @@ export class ZakatService {
             acc[monthKey].totalBalance += entry.balance ?? 0;
 
             return acc;
-        }, {} as Record<string, { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number }>);
+        }, {} as Record<string, { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number, requiredZakat: number }>);
+        const zakatAccruals = await this.prisma.zakatAccrual.findMany({
+            where: {
+                ...(monthStart && monthEnd
+                    ? {
+                        year: Number(month?.split('-')[0]),
+                        month: Number(month?.split('-')[1]),
+                    }
+                    : {}),
+            },
+        });
 
-        // Return report
+        // If no journal entries, create the month entry manually
+        if (Object.keys(groupedByMonth).length === 0) {
+            // Determine which month to use
+            let monthKey: string;
+            let yearNum: number;
+            let monthNum: number;
+
+            if (month) {
+                [yearNum, monthNum] = month.split('-').map(Number);
+            } else {
+                const now = DateTime.now().setZone('Asia/Riyadh');
+                yearNum = now.year;
+                monthNum = now.month;
+            }
+
+            monthKey = `${yearNum}-${monthNum.toString().padStart(2, '0')}`;
+
+            const monthTotal = zakatAccruals
+                .filter((z) => z.year === yearNum && z.month === monthNum)
+                .reduce((sum, z) => sum + z.amount, 0);
+
+            groupedByMonth[monthKey] = {
+                entries: [],
+                totalDebit: 0,
+                totalCredit: 0,
+                totalBalance: 0,
+                requiredZakat: monthTotal,
+            };
+        }
+
+        // Merge required zakat per month
+        Object.keys(groupedByMonth).forEach((monthKey) => {
+            const [year, monthNum] = monthKey.split('-').map(Number);
+
+            const monthTotal = zakatAccruals
+                .filter((z) => z.year === year && z.month === monthNum)
+                .reduce((sum, z) => sum + z.amount, 0);
+
+            groupedByMonth[monthKey].requiredZakat = monthTotal;
+        });
+
+        // return final
         return {
             account: {
                 id: zakatAccount.id,

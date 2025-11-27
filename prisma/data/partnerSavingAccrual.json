@@ -1,0 +1,18 @@
+[
+  {
+    "id": 18,
+    "partnerId": 13,
+    "periodId": 1,
+    "accrualId": 7,
+    "savingAmount": "32",
+    "createdAt": "2025-11-24T13:09:42.573Z"
+  },
+  {
+    "id": 19,
+    "partnerId": 14,
+    "periodId": 1,
+    "accrualId": 8,
+    "savingAmount": "42",
+    "createdAt": "2025-11-24T13:09:42.610Z"
+  }
+]

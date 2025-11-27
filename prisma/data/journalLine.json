@@ -120,36 +120,6 @@
     "description": "Bank disbursement"
   },
   {
-    "id": 208,
-    "journalId": 86,
-    "accountId": 30,
-    "debit": 3000,
-    "credit": 0,
-    "balance": 3000,
-    "clientId": null,
-    "description": "Repayment received from youssef khaled"
-  },
-  {
-    "id": 209,
-    "journalId": 86,
-    "accountId": 46,
-    "debit": 0,
-    "credit": 2500,
-    "balance": -2500,
-    "clientId": 1,
-    "description": "Loan principal repayment"
-  },
-  {
-    "id": 210,
-    "journalId": 86,
-    "accountId": 47,
-    "debit": 0,
-    "credit": 500,
-    "balance": 500,
-    "clientId": null,
-    "description": "Loan interest income"
-  },
-  {
     "id": 211,
     "journalId": 87,
     "accountId": 30,
@@ -178,5 +148,145 @@
     "balance": 500,
     "clientId": null,
     "description": "دخل الفائدة بعد خصم السداد المبكر"
+  },
+  {
+    "id": 300,
+    "journalId": 128,
+    "accountId": 67,
+    "debit": 0,
+    "credit": 32,
+    "balance": 32,
+    "clientId": null,
+    "description": "تسجيل ادخار (10%)"
+  },
+  {
+    "id": 301,
+    "journalId": 128,
+    "accountId": 58,
+    "debit": 32,
+    "credit": 0,
+    "balance": -32,
+    "clientId": null,
+    "description": "خصم ادخار للشريك محمد"
+  },
+  {
+    "id": 302,
+    "journalId": 129,
+    "accountId": 67,
+    "debit": 0,
+    "credit": 42,
+    "balance": 42,
+    "clientId": null,
+    "description": "تسجيل ادخار (10%)"
+  },
+  {
+    "id": 303,
+    "journalId": 129,
+    "accountId": 60,
+    "debit": 42,
+    "credit": 0,
+    "balance": -42,
+    "clientId": null,
+    "description": "خصم ادخار للشريك youssef"
+  },
+  {
+    "id": 238,
+    "journalId": 92,
+    "accountId": 30,
+    "debit": 10000,
+    "credit": 0,
+    "balance": 10000,
+    "clientId": null,
+    "description": "إيداع نقدي لرأس المال"
+  },
+  {
+    "id": 239,
+    "journalId": 92,
+    "accountId": 63,
+    "debit": 0,
+    "credit": 10000,
+    "balance": 10000,
+    "clientId": null,
+    "description": "رأس مال ahmed"
+  },
+  {
+    "id": 240,
+    "journalId": 93,
+    "accountId": 30,
+    "debit": 20000,
+    "credit": 0,
+    "balance": 20000,
+    "clientId": null,
+    "description": "إيداع نقدي لرأس المال"
+  },
+  {
+    "id": 241,
+    "journalId": 93,
+    "accountId": 66,
+    "debit": 0,
+    "credit": 20000,
+    "balance": 20000,
+    "clientId": null,
+    "description": "رأس مال test"
+  },
+  {
+    "id": 244,
+    "journalId": 96,
+    "accountId": 64,
+    "debit": 0,
+    "credit": 125,
+    "balance": 125,
+    "clientId": null,
+    "description": "مصروف زكاة"
+  },
+  {
+    "id": 245,
+    "journalId": 96,
+    "accountId": 63,
+    "debit": 125,
+    "credit": 0,
+    "balance": -125,
+    "clientId": null,
+    "description": "التزام زكاة"
+  },
+  {
+    "id": 246,
+    "journalId": 97,
+    "accountId": 64,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "مصروف زكاة"
+  },
+  {
+    "id": 247,
+    "journalId": 97,
+    "accountId": 66,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "التزام زكاة"
+  },
+  {
+    "id": 274,
+    "journalId": 112,
+    "accountId": 64,
+    "debit": 375,
+    "credit": 0,
+    "balance": -375,
+    "clientId": null,
+    "description": "سحب مبلغ الزكاة من حساب الزكاة"
+  },
+  {
+    "id": 275,
+    "journalId": 112,
+    "accountId": 30,
+    "debit": 0,
+    "credit": 375,
+    "balance": -375,
+    "clientId": null,
+    "description": "سحب مبلغ الزكاة من الحساب البنكي"
   }
 ]

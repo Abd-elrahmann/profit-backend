@@ -3462,5 +3462,1509 @@
     "action": "CREATE",
     "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
     "createdAt": "2025-11-18T17:23:53.347Z"
+  },
+  {
+    "id": 436,
+    "userId": 1,
+    "screen": "Roles",
+    "action": "UPDATE",
+    "description": "المستخدم ادمن حدث الدور Admin",
+    "createdAt": "2025-11-20T11:11:21.935Z"
+  },
+  {
+    "id": 437,
+    "userId": 1,
+    "screen": "Roles",
+    "action": "UPDATE",
+    "description": "المستخدم ادمن حدث الدور Admin",
+    "createdAt": "2025-11-20T11:13:28.509Z"
+  },
+  {
+    "id": 453,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي ZAKAT-15-2025-11",
+    "createdAt": "2025-11-20T16:52:42.691Z"
+  },
+  {
+    "id": 455,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي ZAKAT-15-2025-11",
+    "createdAt": "2025-11-20T16:53:15.170Z"
+  },
+  {
+    "id": 498,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:20:24.165Z"
+  },
+  {
+    "id": 499,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-22T12:20:24.188Z"
+  },
+  {
+    "id": 500,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-22T12:20:24.196Z"
+  },
+  {
+    "id": 522,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-23T14:00:49.502Z"
+  },
+  {
+    "id": 553,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T13:04:02.059Z"
+  },
+  {
+    "id": 438,
+    "userId": 1,
+    "screen": "Auth",
+    "action": "UPDATE",
+    "description": "المستخدم ادمن قام بتحديث صورته الشخصية",
+    "createdAt": "2025-11-20T11:23:18.127Z"
+  },
+  {
+    "id": 454,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي ZAKAT-16-2025-11",
+    "createdAt": "2025-11-20T16:52:46.027Z"
+  },
+  {
+    "id": 456,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي ZAKAT-16-2025-11",
+    "createdAt": "2025-11-20T16:53:18.659Z"
+  },
+  {
+    "id": 475,
+    "userId": 1,
+    "screen": "Roles",
+    "action": "UPDATE",
+    "description": "المستخدم ادمن حدث الدور Admin",
+    "createdAt": "2025-11-21T19:02:43.794Z"
+  },
+  {
+    "id": 501,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-22T12:23:46.221Z"
+  },
+  {
+    "id": 523,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-23T14:06:18.284Z"
+  },
+  {
+    "id": 524,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-23T14:06:21.682Z"
+  },
+  {
+    "id": 554,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:04:02.119Z"
+  },
+  {
+    "id": 555,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:04:02.174Z"
+  },
+  {
+    "id": 556,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T13:04:02.203Z"
+  },
+  {
+    "id": 582,
+    "userId": 1,
+    "screen": "Roles",
+    "action": "UPDATE",
+    "description": "المستخدم ادمن حدث الدور Admin",
+    "createdAt": "2025-11-24T17:01:50.517Z"
+  },
+  {
+    "id": 594,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T13:51:42.308Z"
+  },
+  {
+    "id": 596,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T13:53:37.626Z"
+  },
+  {
+    "id": 609,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:06:38.404Z"
+  },
+  {
+    "id": 619,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-27T12:09:36.731Z"
+  },
+  {
+    "id": 439,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-15",
+    "createdAt": "2025-11-20T12:48:15.733Z"
+  },
+  {
+    "id": 476,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-15-2025",
+    "createdAt": "2025-11-21T19:28:01.444Z"
+  },
+  {
+    "id": 477,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-16-2025",
+    "createdAt": "2025-11-21T19:28:01.466Z"
+  },
+  {
+    "id": 478,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-13-2025",
+    "createdAt": "2025-11-21T19:28:01.477Z"
+  },
+  {
+    "id": 479,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-14-2025",
+    "createdAt": "2025-11-21T19:28:01.491Z"
+  },
+  {
+    "id": 481,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-13-2025",
+    "createdAt": "2025-11-21T19:28:44.996Z"
+  },
+  {
+    "id": 502,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-22T12:23:50.031Z"
+  },
+  {
+    "id": 525,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-23T14:06:32.298Z"
+  },
+  {
+    "id": 526,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-23T14:06:32.317Z"
+  },
+  {
+    "id": 527,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-23T14:06:40.449Z"
+  },
+  {
+    "id": 528,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-23T14:06:40.476Z"
+  },
+  {
+    "id": 529,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-23T14:06:40.486Z"
+  },
+  {
+    "id": 530,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-23T14:06:40.491Z"
+  },
+  {
+    "id": 557,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T13:07:01.408Z"
+  },
+  {
+    "id": 558,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:07:01.453Z"
+  },
+  {
+    "id": 559,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:07:01.475Z"
+  },
+  {
+    "id": 560,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:07:01.492Z"
+  },
+  {
+    "id": 561,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:07:01.512Z"
+  },
+  {
+    "id": 562,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T13:07:01.520Z"
+  },
+  {
+    "id": 563,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T13:07:12.258Z"
+  },
+  {
+    "id": 564,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:07:12.289Z"
+  },
+  {
+    "id": 565,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:07:12.341Z"
+  },
+  {
+    "id": 566,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T13:07:12.354Z"
+  },
+  {
+    "id": 583,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:28:36.859Z"
+  },
+  {
+    "id": 597,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:55:16.288Z"
+  },
+  {
+    "id": 599,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:56:56.375Z"
+  },
+  {
+    "id": 610,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:07:03.385Z"
+  },
+  {
+    "id": 621,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-27T12:39:14.311Z"
+  },
+  {
+    "id": 623,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ايصالات للسداد للدفعة رقم 438",
+    "createdAt": "2025-11-27T12:41:52.979Z"
+  },
+  {
+    "id": 440,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء شريك جديد: ahmed برأس مال 10000",
+    "createdAt": "2025-11-20T12:48:15.751Z"
+  },
+  {
+    "id": 441,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: ahmed",
+    "createdAt": "2025-11-20T12:48:21.223Z"
+  },
+  {
+    "id": 458,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-13-2025",
+    "createdAt": "2025-11-20T17:00:13.533Z"
+  },
+  {
+    "id": 459,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-13-2025",
+    "createdAt": "2025-11-20T17:00:21.403Z"
+  },
+  {
+    "id": 460,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-14-2025",
+    "createdAt": "2025-11-20T17:00:21.416Z"
+  },
+  {
+    "id": 461,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-15-2025",
+    "createdAt": "2025-11-20T17:00:21.425Z"
+  },
+  {
+    "id": 462,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-16-2025",
+    "createdAt": "2025-11-20T17:00:21.436Z"
+  },
+  {
+    "id": 472,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-14-2025",
+    "createdAt": "2025-11-20T17:03:05.099Z"
+  },
+  {
+    "id": 473,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-15-2025",
+    "createdAt": "2025-11-20T17:03:24.254Z"
+  },
+  {
+    "id": 474,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-16-2025",
+    "createdAt": "2025-11-20T17:03:32.207Z"
+  },
+  {
+    "id": 480,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-14-2025",
+    "createdAt": "2025-11-21T19:28:41.347Z"
+  },
+  {
+    "id": 482,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-16-2025",
+    "createdAt": "2025-11-21T19:28:48.283Z"
+  },
+  {
+    "id": 483,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-15-2025",
+    "createdAt": "2025-11-21T19:28:51.779Z"
+  },
+  {
+    "id": 503,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:24:05.802Z"
+  },
+  {
+    "id": 504,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-22T12:24:05.810Z"
+  },
+  {
+    "id": 505,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:24:19.528Z"
+  },
+  {
+    "id": 531,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-23T14:06:58.827Z"
+  },
+  {
+    "id": 532,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-23T14:07:03.359Z"
+  },
+  {
+    "id": 567,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T13:09:42.555Z"
+  },
+  {
+    "id": 568,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:09:42.588Z"
+  },
+  {
+    "id": 569,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:09:42.606Z"
+  },
+  {
+    "id": 570,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:09:42.621Z"
+  },
+  {
+    "id": 571,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:09:42.639Z"
+  },
+  {
+    "id": 572,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T13:09:42.648Z"
+  },
+  {
+    "id": 584,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:34:34.432Z"
+  },
+  {
+    "id": 598,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T13:56:50.293Z"
+  },
+  {
+    "id": 611,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:07:37.637Z"
+  },
+  {
+    "id": 622,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ايصالات للسداد للدفعة رقم 438",
+    "createdAt": "2025-11-27T12:40:52.558Z"
+  },
+  {
+    "id": 442,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-20T13:52:18.358Z"
+  },
+  {
+    "id": 443,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-20T13:52:18.372Z"
+  },
+  {
+    "id": 463,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-13-2025",
+    "createdAt": "2025-11-20T17:01:07.035Z"
+  },
+  {
+    "id": 464,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-14-2025",
+    "createdAt": "2025-11-20T17:01:21.048Z"
+  },
+  {
+    "id": 465,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-16-2025",
+    "createdAt": "2025-11-20T17:02:33.756Z"
+  },
+  {
+    "id": 466,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-15-2025",
+    "createdAt": "2025-11-20T17:02:39.418Z"
+  },
+  {
+    "id": 467,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-13-2025",
+    "createdAt": "2025-11-20T17:02:47.503Z"
+  },
+  {
+    "id": 468,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-14-2025",
+    "createdAt": "2025-11-20T17:02:47.515Z"
+  },
+  {
+    "id": 469,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-15-2025",
+    "createdAt": "2025-11-20T17:02:47.528Z"
+  },
+  {
+    "id": 470,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-YEAR-END-16-2025",
+    "createdAt": "2025-11-20T17:02:47.539Z"
+  },
+  {
+    "id": 471,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-YEAR-END-13-2025",
+    "createdAt": "2025-11-20T17:03:00.763Z"
+  },
+  {
+    "id": 484,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي ZAKAT-15-2025-11",
+    "createdAt": "2025-11-21T19:51:02.006Z"
+  },
+  {
+    "id": 506,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:29:25.001Z"
+  },
+  {
+    "id": 507,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-22T12:29:25.013Z"
+  },
+  {
+    "id": 508,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:29:36.330Z"
+  },
+  {
+    "id": 533,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-23T14:28:48.215Z"
+  },
+  {
+    "id": 573,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 438",
+    "createdAt": "2025-11-24T14:20:28.946Z"
+  },
+  {
+    "id": 585,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:40:57.301Z"
+  },
+  {
+    "id": 587,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:45:05.544Z"
+  },
+  {
+    "id": 600,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:57:21.610Z"
+  },
+  {
+    "id": 612,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:09:06.436Z"
+  },
+  {
+    "id": 624,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ايصالات للسداد للدفعة رقم 438",
+    "createdAt": "2025-11-27T12:59:50.247Z"
+  },
+  {
+    "id": 444,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-16",
+    "createdAt": "2025-11-20T16:39:16.404Z"
+  },
+  {
+    "id": 485,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي ZAKAT-15-2025-11",
+    "createdAt": "2025-11-21T19:51:09.081Z"
+  },
+  {
+    "id": 509,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:35:15.180Z"
+  },
+  {
+    "id": 510,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-22T12:35:15.197Z"
+  },
+  {
+    "id": 511,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:35:34.398Z"
+  },
+  {
+    "id": 512,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-22T12:35:34.425Z"
+  },
+  {
+    "id": 513,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-22T12:35:34.435Z"
+  },
+  {
+    "id": 514,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-22T12:35:34.437Z"
+  },
+  {
+    "id": 534,
+    "userId": 1,
+    "screen": "Roles",
+    "action": "UPDATE",
+    "description": "المستخدم ادمن حدث الدور Admin",
+    "createdAt": "2025-11-24T12:24:36.310Z"
+  },
+  {
+    "id": 574,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-438",
+    "createdAt": "2025-11-24T14:20:29.171Z"
+  },
+  {
+    "id": 575,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 438",
+    "createdAt": "2025-11-24T14:20:30.002Z"
+  },
+  {
+    "id": 576,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-24T14:22:30.961Z"
+  },
+  {
+    "id": 586,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T13:44:55.339Z"
+  },
+  {
+    "id": 601,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:01:23.239Z"
+  },
+  {
+    "id": 605,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:02:15.768Z"
+  },
+  {
+    "id": 613,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T14:11:28.334Z"
+  },
+  {
+    "id": 445,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء شريك جديد: test برأس مال 20000",
+    "createdAt": "2025-11-20T16:39:16.421Z"
+  },
+  {
+    "id": 446,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: test",
+    "createdAt": "2025-11-20T16:39:22.689Z"
+  },
+  {
+    "id": 486,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-WITHDRAW-64-2025-11",
+    "createdAt": "2025-11-21T20:13:33.155Z"
+  },
+  {
+    "id": 515,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-22T12:36:18.929Z"
+  },
+  {
+    "id": 535,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T12:47:17.471Z"
+  },
+  {
+    "id": 536,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T12:47:17.509Z"
+  },
+  {
+    "id": 537,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T12:47:17.559Z"
+  },
+  {
+    "id": 538,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T12:47:17.617Z"
+  },
+  {
+    "id": 577,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 438",
+    "createdAt": "2025-11-24T15:27:12.183Z"
+  },
+  {
+    "id": 588,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:47:16.607Z"
+  },
+  {
+    "id": 602,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T14:01:56.289Z"
+  },
+  {
+    "id": 603,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T14:01:59.275Z"
+  },
+  {
+    "id": 604,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T14:02:10.869Z"
+  },
+  {
+    "id": 614,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:11:59.696Z"
+  },
+  {
+    "id": 616,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:13:06.643Z"
+  },
+  {
+    "id": 448,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي ZAKAT-15-2025-11",
+    "createdAt": "2025-11-20T16:48:43.447Z"
+  },
+  {
+    "id": 487,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي ZAKAT-WITHDRAW-64-2025-11",
+    "createdAt": "2025-11-21T20:13:49.941Z"
+  },
+  {
+    "id": 488,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي ZAKAT-WITHDRAW-64-2025-11",
+    "createdAt": "2025-11-21T20:14:19.702Z"
+  },
+  {
+    "id": 516,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-22T12:36:24.607Z"
+  },
+  {
+    "id": 539,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T12:47:45.709Z"
+  },
+  {
+    "id": 540,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T12:47:45.735Z"
+  },
+  {
+    "id": 578,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-438",
+    "createdAt": "2025-11-24T15:27:12.383Z"
+  },
+  {
+    "id": 579,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 438",
+    "createdAt": "2025-11-24T15:27:13.087Z"
+  },
+  {
+    "id": 589,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T13:48:35.678Z"
+  },
+  {
+    "id": 591,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T13:49:44.784Z"
+  },
+  {
+    "id": 606,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:03:47.816Z"
+  },
+  {
+    "id": 615,
+    "userId": 1,
+    "screen": "Templates",
+    "action": "UPDATE",
+    "description": "قام ادمن بتحديث القالب REPAYMENT_DUE",
+    "createdAt": "2025-11-26T14:12:40.645Z"
+  },
+  {
+    "id": 449,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-15-2025-11",
+    "createdAt": "2025-11-20T16:49:32.001Z"
+  },
+  {
+    "id": 450,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي ZAKAT-16-2025-11",
+    "createdAt": "2025-11-20T16:49:32.027Z"
+  },
+  {
+    "id": 489,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:16:44.621Z"
+  },
+  {
+    "id": 490,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-22T12:16:44.638Z"
+  },
+  {
+    "id": 491,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:16:55.117Z"
+  },
+  {
+    "id": 492,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-22T12:16:55.150Z"
+  },
+  {
+    "id": 493,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-22T12:16:55.161Z"
+  },
+  {
+    "id": 496,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-22T12:19:14.797Z"
+  },
+  {
+    "id": 497,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-22T12:19:14.805Z"
+  },
+  {
+    "id": 517,
+    "userId": 1,
+    "screen": "Auth",
+    "action": "login",
+    "description": "المستخدم ادمن قام بتسجيل الدخول",
+    "createdAt": "2025-11-23T13:50:17.608Z"
+  },
+  {
+    "id": 541,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T12:50:28.169Z"
+  },
+  {
+    "id": 542,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T12:50:28.176Z"
+  },
+  {
+    "id": 543,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T12:50:30.781Z"
+  },
+  {
+    "id": 544,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T12:50:30.797Z"
+  },
+  {
+    "id": 580,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
+    "createdAt": "2025-11-24T16:49:50.333Z"
+  },
+  {
+    "id": 590,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:48:43.936Z"
+  },
+  {
+    "id": 592,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:49:49.347Z"
+  },
+  {
+    "id": 607,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:04:41.299Z"
+  },
+  {
+    "id": 617,
+    "userId": 1,
+    "screen": "Auth",
+    "action": "login",
+    "description": "المستخدم ادمن قام بتسجيل الدخول",
+    "createdAt": "2025-11-27T00:22:23.018Z"
+  },
+  {
+    "id": 451,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي ZAKAT-15-2025-11",
+    "createdAt": "2025-11-20T16:50:06.094Z"
+  },
+  {
+    "id": 452,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي ZAKAT-16-2025-11",
+    "createdAt": "2025-11-20T16:50:10.522Z"
+  },
+  {
+    "id": 494,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-22T12:18:31.158Z"
+  },
+  {
+    "id": 495,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-22T12:18:34.923Z"
+  },
+  {
+    "id": 518,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-23T13:52:07.172Z"
+  },
+  {
+    "id": 519,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-23T13:52:07.224Z"
+  },
+  {
+    "id": 520,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-23T13:52:07.245Z"
+  },
+  {
+    "id": 521,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-23T13:52:07.262Z"
+  },
+  {
+    "id": 545,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T12:59:25.858Z"
+  },
+  {
+    "id": 546,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بعكس توزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T12:59:25.873Z"
+  },
+  {
+    "id": 547,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1763477612955",
+    "createdAt": "2025-11-24T13:00:11.466Z"
+  },
+  {
+    "id": 548,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:00:11.507Z"
+  },
+  {
+    "id": 549,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-13-1",
+    "createdAt": "2025-11-24T13:00:11.524Z"
+  },
+  {
+    "id": 550,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:00:11.538Z"
+  },
+  {
+    "id": 551,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-14-1",
+    "createdAt": "2025-11-24T13:00:11.555Z"
+  },
+  {
+    "id": 552,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-11-24T13:00:11.559Z"
+  },
+  {
+    "id": 581,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251124-001 للعميل 1",
+    "createdAt": "2025-11-24T16:50:03.944Z"
+  },
+  {
+    "id": 593,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:51:25.224Z"
+  },
+  {
+    "id": 595,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T13:51:48.162Z"
+  },
+  {
+    "id": 608,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-26T14:05:38.866Z"
+  },
+  {
+    "id": 618,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-27T12:08:07.604Z"
+  },
+  {
+    "id": 620,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 438",
+    "createdAt": "2025-11-27T12:09:41.322Z"
+  },
+  {
+    "id": 435,
+    "userId": 1,
+    "screen": "Auth",
+    "action": "login",
+    "description": "المستخدم ادمن قام بتسجيل الدخول",
+    "createdAt": "2025-11-20T11:10:51.233Z"
   }
 ]

@@ -20,11 +20,13 @@
     "partnerId": 14,
     "disbursementJournalId": 85,
     "settlementJournalId": 87,
-    "DEBT_ACKNOWLEDGMENT": null,
+    "DEBT_ACKNOWLEDGMENT": "test",
     "PROMISSORY_NOTE": null,
     "SETTLEMENT": null,
+    "debtAcknowledgmentNumber": null,
+    "promissoryNoteNumber": null,
     "earlyPaidAmount": 9000,
     "earlyPaymentDiscount": 1000,
-    "newAmount": 3000
+    "newAmount": 11000
   }
 ]

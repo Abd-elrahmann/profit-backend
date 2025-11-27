@@ -1,31 +1,5 @@
 [
   {
-    "id": 47,
-    "partnerId": 13,
-    "loanId": 49,
-    "repaymentId": 438,
-    "rawShare": 200,
-    "companyCut": 40,
-    "partnerFinal": 160,
-    "isClosed": true,
-    "isDistributed": false,
-    "periodId": 1,
-    "createdAt": "2025-11-17T20:10:40.008Z"
-  },
-  {
-    "id": 48,
-    "partnerId": 14,
-    "loanId": 49,
-    "repaymentId": 438,
-    "rawShare": 300,
-    "companyCut": 90,
-    "partnerFinal": 210,
-    "isClosed": true,
-    "isDistributed": false,
-    "periodId": 1,
-    "createdAt": "2025-11-17T20:10:40.011Z"
-  },
-  {
     "id": 49,
     "partnerId": 13,
     "loanId": 49,
@@ -34,7 +8,7 @@
     "companyCut": 40,
     "partnerFinal": 160,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-11-17T20:15:08.785Z"
   },
@@ -47,7 +21,7 @@
     "companyCut": 90,
     "partnerFinal": 210,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-11-17T20:15:08.786Z"
   }
