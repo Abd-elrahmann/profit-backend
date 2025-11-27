@@ -5,6 +5,8 @@ import { NotificationType } from '@prisma/client';
 import { WhatsappService } from './api/whatsapp.service';
 import { TelegramService } from './api/telegram.service';
 import * as dotenv from 'dotenv';
+import * as jwt from 'jsonwebtoken';
+import * as CryptoJS from 'crypto-js';
 dotenv.config();
 
 @Injectable()
@@ -14,6 +16,23 @@ export class NotificationService {
         private readonly whatsappService: WhatsappService,
         private readonly telegramService: TelegramService,
     ) { }
+
+    // private generateSecurePaymentToken(payload: any) {
+    //     const secret = process.env.PAYMENT_SECRET;
+    //     if (!secret) {
+    //         throw new Error('PAYMENT_SECRET is not defined in environment variables');
+    //     }
+    //     return jwt.sign(payload, secret);
+    // }
+
+    private generateShortToken(data: any) {
+        const secret = process.env.PAYMENT_SECRET;
+        const json = JSON.stringify(data);
+
+        // AES encrypt and Base64URL encode
+        const encrypted = CryptoJS.AES.encrypt(json, secret).toString();
+        return encrypted.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
 
     // Replace placeholders in template
     private fillTemplate(template: string, context: Record<string, any>): string {
@@ -42,6 +61,23 @@ export class NotificationService {
             ? await this.prisma.repayment.findUnique({ where: { id: repaymentId } })
             : null;
 
+        const token = this.generateShortToken({
+            loanId: loan?.id,
+            repaymentId: repayment?.id,
+            clientName: client?.name,
+        });
+
+        // const rawToken = this.generateShortToken({
+        //     loanId: loan?.id,
+        //     repaymentId: repayment?.id,
+        //     clientName: client?.name,
+        // });
+
+        // // URL-encode the token so HTML mode won’t break
+        // const encodedToken = encodeURIComponent(rawToken);
+
+        // const paymentLink = `${process.env.FRONT}payment-receipt?token=${encodedToken}`;
+
         const context = {
             clientName: client?.name,
             loanCode: loan?.code,
@@ -49,9 +85,10 @@ export class NotificationService {
             dueDate: repayment?.dueDate?.toISOString().split('T')[0],
             paymentDate: repayment?.paymentDate?.toISOString().split('T')[0],
             repaymentNumber: repayment?.count,
-            paymentLink: repayment
-                ? `${process.env.FRONT}payment-receipt/${loan?.id}/${repayment?.id}/${encodeURIComponent(client?.name || '')}`
-                : '',
+            // paymentLink: repayment
+            //     ? `${process.env.FRONT}payment-receipt/${loan?.id}/${repayment?.id}/${encodeURIComponent(client?.name || '')}`
+            //     : '',
+            paymentLink: `${process.env.FRONT}payment-receipt?token=${token}`,
         };
 
         const message = this.fillTemplate(template.content, context);

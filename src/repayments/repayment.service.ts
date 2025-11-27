@@ -402,7 +402,7 @@ export class RepaymentService {
             // Send notification via Telegram
             try {
                 await this.notificationService.sendNotification({
-                    templateType: TemplateType.PAYMENT_REJECTED,
+                    templateType: TemplateType.REPAYMENT_DUE,
                     clientId: repayment.loan.clientId,
                     loanId: repayment.loan.id,
                     repaymentId: repayment.id,
