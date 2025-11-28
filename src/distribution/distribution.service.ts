@@ -73,6 +73,9 @@ export class DistributionService {
         const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });
         if (!savingAccount) throw new BadRequestException('حساب الادخار (20002) يجب ان يكون موجود');
 
+        const Bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        if (!Bank) throw new BadRequestException('bank is not existed');
+
         if (savingPercentage && savingPercentage > 0) {
             for (const acc of accruals) {
                 const partner = acc.partner;
@@ -98,7 +101,7 @@ export class DistributionService {
                         sourceId: savingRecord.id,
                         lines: [
                             {
-                                accountId: savingAccount.id,
+                                accountId: Bank.id,
                                 debit: 0,
                                 credit: savingAmount,
                                 description: `تسجيل ادخار (${savingPercentage}%)`,

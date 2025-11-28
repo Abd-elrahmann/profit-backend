@@ -358,6 +358,7 @@ model ZakatPayment {
   year       Int
   month      Int?
   amount     Float
+  PAYMENT_VOUCHER String?
   createdAt  DateTime  @default(now())
 }
 

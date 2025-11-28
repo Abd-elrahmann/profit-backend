@@ -358,6 +358,9 @@ export class JournalService {
         if (journal.status !== JournalStatus.POSTED)
             throw new BadRequestException('Only posted journals can be unposted');
 
+        if (journal.sourceType == "ZAKAT")
+            throw new BadRequestException('لا يمكن الغاء اعتماد قيد الزكاة')
+
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });

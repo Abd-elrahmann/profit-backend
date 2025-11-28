@@ -3,6 +3,11 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import moment from 'moment-timezone';
+import { DateTime } from 'luxon';
+import HijriDate from 'hijri-date/lib/safe';
+import * as fs from 'fs';
+import * as path from 'path';
+import puppeteer from 'puppeteer';
 
 @Injectable()
 export class ZakatSchedulerService {
@@ -10,6 +15,55 @@ export class ZakatSchedulerService {
 
     private round2(v: number) {
         return Math.round((v + Number.EPSILON) * 100) / 100;
+    }
+
+    private numberToArabicWords(num: number): string {
+        const ones = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
+        const tens = ['', 'عشرة', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+        const hundreds = ['', 'مائة', 'مائتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة'];
+
+        if (num === 0) return 'صفر';
+        if (num < 10) return ones[num];
+
+        let words = '';
+        const h = Math.floor(num / 100);
+        const t = Math.floor((num % 100) / 10);
+        const o = num % 10;
+
+        if (h > 0) words += hundreds[h] + ' ';
+        if (t > 1) {
+            words += tens[t] + ' ';
+            if (o > 0) words += 'و' + ones[o] + ' ';
+        } else if (t === 1) {
+            if (o === 0) words += 'عشرة';
+            else if (o === 1) words += 'أحد عشر';
+            else if (o === 2) words += 'اثنا عشر';
+            else words += ones[o] + ' عشر';
+        } else {
+            if (o > 0) words += ones[o] + ' ';
+        }
+
+        return words.trim();
+    }
+
+    private fillTemplate(template: string, context: Record<string, any>): string {
+        return template.replace(/\{\{(.*?)\}\}/g, (_, key) => {
+            const value = context[key.trim()];
+            return value !== undefined ? String(value) : '';
+        });
+    }
+
+    private async generatePdfFromHtml(html: string, filename: string): Promise<string> {
+        const dir = path.join(process.cwd(), 'uploads', 'zakat');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        const filePath = path.join(dir, filename);
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.pdf({ path: filePath, format: 'A4', printBackground: true });
+        await browser.close();
+
+        return filePath; // path to save in DB
     }
 
     constructor(
@@ -61,7 +115,7 @@ export class ZakatSchedulerService {
             });
 
             // 2) Create Journal Entry
-            await this.journalService.createJournal(
+            const journal = await this.journalService.createJournal(
                 {
                     reference: `ZAKAT-${partner.id}-${year}-${month}`,
                     description: `دفع زكاة شهرية لشريك ${partner.name}`,
@@ -88,12 +142,55 @@ export class ZakatSchedulerService {
                 1,
             );
 
-            // 3) Update partner yearly totals
+            await this.journalService.postJournal(journal.journal.id, 1)
+
+            const template = await this.prisma.template.findUnique({
+                where: { name: 'PAYMENT_VOUCHER' },
+            });
+
+            if (!template) {
+                this.logger.error('PAYMENT_VOUCHER template missing!');
+                continue;
+            }
+
+            const todayG = DateTime.now().setZone('Asia/Riyadh').toFormat('yyyy-MM-dd');
+            const todayH = new HijriDate();
+            const hijriDateFormatted = `${todayH.getFullYear()}-${todayH.getMonth() + 1}-${todayH.getDate()}`;
+
+            const context = {
+                رقم_السند: zakatPayment.id,
+                التاريخ_الهجري: hijriDateFormatted,
+                التاريخ_الميلادي: todayG,
+                سبب_الصرف: `دفع زكاة مستحقة لشهر ${month}-${year}`,
+                المبلغ_رقما: amount.toFixed(2),
+                المبلغ_كتابة: this.numberToArabicWords(amount),
+                اسم_المساهم: partner.name,
+                رقم_هوية_المساهم: partner.nationalId ?? '---',
+                اسم_المستلم: partner.name,
+                رقم_هوية_المستلم: partner.nationalId ?? '---',
+            };
+
+            const filledHtml = this.fillTemplate(template.content, context);
+
+            const pdfFilename = `zakat-${zakatPayment.id}.pdf`;
+            const pdfPath = await this.generatePdfFromHtml(filledHtml, pdfFilename);
+
+            const fileUrl = `${process.env.URL}uploads/zakat/${pdfFilename}`;
+
+            // تحديث zakatPayment لحفظ مسار الـ PDF
+            await this.prisma.zakatPayment.update({
+                where: { id: zakatPayment.id },
+                data: {
+                    PAYMENT_VOUCHER: fileUrl,
+                },
+            });
+
+            // Update partner yearly totals
             await this.prisma.partner.update({
                 where: { id: partner.id },
                 data: {
-                    capitalAmount: { decrement: amount},
-                    totalAmount: { decrement: amount},
+                    capitalAmount: { decrement: amount },
+                    totalAmount: { decrement: amount },
                     yearlyZakatPaid: {
                         increment: amount,
                     },
@@ -198,7 +295,7 @@ export class ZakatSchedulerService {
 
     // NEXT YEAR ZAKAT ACCRUAL JOB - runs every January 1st at 00:00 Riyadh time
     @Cron('0 0 1 1 *', {
-        timeZone: 'Asia/Riyadh', 
+        timeZone: 'Asia/Riyadh',
     })
     async runNextYearZakatAccruals() {
         const now = moment().tz('Asia/Riyadh');

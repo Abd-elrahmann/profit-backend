@@ -79,6 +79,7 @@ export class ZakatService {
                     return {
                         ...acc,
                         status,
+                        paymentVoucher: payment?.PAYMENT_VOUCHER
                     };
                 })
             );
@@ -224,7 +225,8 @@ export class ZakatService {
             const remainingMonths = 12 - startMonth + 1;
 
             const annualZakat = p.totalAmount * 0.025;
-            const monthlyZakat = annualZakat / remainingMonths;
+            const zakattofixed = Number(annualZakat.toFixed(2));
+            const monthlyZakat = zakattofixed / remainingMonths;
 
             // Sum zakat payments for this partner/year (filtered by year)
             const payments = await this.prisma.zakatPayment.aggregate({
