@@ -316,6 +316,7 @@ model PartnerTransaction {
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
+  PROFIT_WITHDRAWAL
 }
 
 model PartnerShareAccrual {
@@ -548,6 +549,7 @@ enum JournalSourceType {
   PARTNER
   PARTNER_TRANSACTION_WITHDRAWAL
   PARTNER_TRANSACTION_DEPOSIT
+  PARTNER_PROFIT_WITHDRAWAL
   PERIOD_CLOSING
   ZAKAT
   SAVING

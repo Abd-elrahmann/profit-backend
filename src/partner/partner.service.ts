@@ -365,7 +365,10 @@ export class PartnerService {
     async createPartnerTransaction(
         currentUser: number,
         partnerId: number,
-        dto: { type: 'DEPOSIT' | 'WITHDRAWAL'; amount: number; description?: string }
+        dto: {
+            type: 'DEPOSIT' | 'WITHDRAWAL' | 'PROFIT_WITHDRAWAL'
+            ; amount: number; description?: string
+        }
     ) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
@@ -391,6 +394,12 @@ export class PartnerService {
 
             if (partner.capitalAmount < dto.amount) {
                 throw new BadRequestException('رصيد رأس المال غير كافٍ للسحب.');
+            }
+        }
+
+        if (dto.type === 'PROFIT_WITHDRAWAL') {
+            if (partner.totalProfit < dto.amount) {
+                throw new BadRequestException('رصيد الأرباح غير كافٍ للسحب.');
             }
         }
 
@@ -446,12 +455,35 @@ export class PartnerService {
             journalDescription = `سحب نقدي من رأس مال الشريك ${partner.name}`;
         }
 
+        if (dto.type === 'PROFIT_WITHDRAWAL') {
+            journalLines = [
+                {
+                    accountId: partner.accountPayableId,
+                    debit: dto.amount,
+                    credit: 0,
+                    description: `سحب من أرباح الشريك ${partner.name}`,
+                },
+                {
+                    accountId: bank.id,
+                    debit: 0,
+                    credit: dto.amount,
+                    description: `صرف أرباح للشريك ${partner.name}`,
+                },
+            ];
+            journalDescription = `سحب أرباح للشريك ${partner.name}`;
+        }
+
         const journalDto = {
             reference,
             description: journalDescription,
             type: JournalType.GENERAL,
-            sourceType: dto.type === 'DEPOSIT' ? JournalSourceType.PARTNER_TRANSACTION_DEPOSIT : JournalSourceType.PARTNER_TRANSACTION_WITHDRAWAL,
-            sourceId: transaction.id,
+            sourceType:
+                dto.type === 'DEPOSIT'
+                    ? JournalSourceType.PARTNER_TRANSACTION_DEPOSIT
+                    : dto.type === 'WITHDRAWAL'
+                        ? JournalSourceType.PARTNER_TRANSACTION_WITHDRAWAL
+                        : JournalSourceType.PARTNER_PROFIT_WITHDRAWAL,
+
             lines: journalLines,
         };
 
@@ -461,14 +493,20 @@ export class PartnerService {
         // Post the Journal
         await this.journalService.postJournal(journal.journal.id, currentUser);
 
-        // update partner capitalAmount
         let newCapitalAmount = partner.capitalAmount;
         let newTotalAmount = partner.totalAmount;
+        let newProfitAmount = partner.totalProfit;
+
         if (dto.type === 'DEPOSIT') {
             newCapitalAmount += dto.amount;
             newTotalAmount += dto.amount;
-        } else {
+
+        } else if (dto.type === 'WITHDRAWAL') {
             newCapitalAmount -= dto.amount;
+            newTotalAmount -= dto.amount;
+
+        } else if (dto.type === 'PROFIT_WITHDRAWAL') {
+            newProfitAmount -= dto.amount;
             newTotalAmount -= dto.amount;
         }
 
@@ -476,7 +514,8 @@ export class PartnerService {
             where: { id: partnerId },
             data: {
                 capitalAmount: newCapitalAmount,
-                totalAmount: newTotalAmount
+                totalAmount: newTotalAmount,
+                totalProfit: newProfitAmount
             },
         });
 
@@ -491,7 +530,13 @@ export class PartnerService {
                 userId: currentUser,
                 screen: 'Partners',
                 action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بإنشاء معاملة ${dto.type === 'DEPOSIT' ? 'إيداع' : 'سحب'} بقيمة ${dto.amount} للشريك ${partner.name} (تم إنشاء وترحيل القيد المحاسبي بنجاح)`,
+                description: `قام المستخدم ${user?.name} بإنشاء معاملة ${dto.type === 'DEPOSIT'
+                    ? 'إيداع'
+                    : dto.type === 'WITHDRAWAL'
+                        ? 'سحب من رأس المال'
+                        : 'سحب من الأرباح'
+                    } بقيمة ${dto.amount} للشريك ${partner.name} (تم إنشاء وترحيل القيد المحاسبي بنجاح)`,
+
             },
         });
 
@@ -531,11 +576,15 @@ export class PartnerService {
         if (partner) {
             let newCapitalAmount = partner.capitalAmount;
             let newTotalAmount = partner.totalAmount;
+            let newTotalProfit = partner.totalProfit;
             if (transaction.type === 'DEPOSIT') {
                 newCapitalAmount -= transaction.amount;
                 newTotalAmount -= transaction.amount;
-            } else {
+            } else if (transaction.type === 'WITHDRAWAL'){
                 newCapitalAmount += transaction.amount;
+                newTotalAmount += transaction.amount;
+            } else if (transaction.type === 'PROFIT_WITHDRAWAL'){
+                newTotalProfit += transaction.amount;
                 newTotalAmount += transaction.amount;
             }
 
@@ -543,7 +592,8 @@ export class PartnerService {
                 where: { id: partner.id },
                 data: {
                     capitalAmount: newCapitalAmount,
-                    totalAmount: newTotalAmount
+                    totalAmount: newTotalAmount,
+                    totalProfit: newTotalProfit
                 },
             });
 

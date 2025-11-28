@@ -149,10 +149,10 @@ export class LoansService {
             } else {
                 const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
 
-                const totalCapital = activePartners.reduce((sum, p) => sum + p.capitalAmount, 0);
+                const totalCapital = activePartners.reduce((sum, p) => sum + p.totalAmount, 0);
 
                 for (const p of activePartners) {
-                    const percent = (p.capitalAmount / totalCapital) * 100;
+                    const percent = (p.totalAmount / totalCapital) * 100;
 
                     await this.prisma.loanPartnerShare.create({
                         data: {
