@@ -221,8 +221,10 @@ export class PartnerService {
             await tx.partner.delete({ where: { id } });
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountEquityId } })
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountPayableId } })
+            await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountSavingId } })
             await tx.account.delete({ where: { id: partner.accountPayableId } });
             await tx.account.delete({ where: { id: partner.accountEquityId } });
+            await tx.account.delete({ where: { id: partner.accountSavingId } });
         });
 
         // create audit log
@@ -668,7 +670,7 @@ export class PartnerService {
         page: number,
         filters?: {
             limit?: number;
-            type?: 'DEPOSIT' | 'WITHDRAWAL';
+            type?: 'DEPOSIT' | 'WITHDRAWAL' | 'PROFIT_WITHDRAWAL' | 'SAVING_WITHDRAWAL';
             search?: string;
             startDate?: string;
             endDate?: string;
