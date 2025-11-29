@@ -81,13 +81,17 @@ export class DistributionService {
                 const partner = acc.partner;
                 const totalProfit = Number(acc.totalProfit);
 
-                const savingAmount = (totalProfit * savingPercentage) / 100;
-
                 const partnerEquity = await this.prisma.account.findUnique({ where: { id: partner.accountEquityId } });
                 if (!partnerEquity) throw new BadRequestException('لا يوجد حساب رأس مال');
 
                 const partnerSaving = await this.prisma.account.findUnique({ where: { id: partner.accountSavingId } });
                 if (!partnerSaving) throw new BadRequestException('لا يوجد حساب ادخار');
+
+                let savingAmount = (totalProfit * savingPercentage) / 100;
+
+                if ((partnerEquity.balance - partnerSaving.balance) < savingAmount) {
+                    savingAmount = partnerEquity.balance - partnerSaving.balance
+                }
 
                 if (partnerEquity.balance > partnerSaving.balance) {
                     const savingRecord = await this.prisma.partnerSavingAccrual.create({
