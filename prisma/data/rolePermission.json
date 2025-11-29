@@ -250,5 +250,17 @@
     "canPost": true,
     "createdAt": "2025-11-25T17:11:49.426Z",
     "updatedAt": "2025-11-25T17:11:33.203Z"
+  },
+  {
+    "id": 279,
+    "roleId": 1,
+    "module": "company",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "createdAt": "2025-11-27T16:09:28.588Z",
+    "updatedAt": "2025-11-27T16:09:16.491Z"
   }
 ]

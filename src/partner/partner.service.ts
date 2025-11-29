@@ -59,6 +59,18 @@ export class PartnerService {
             },
         });
 
+        const savingAccount = await this.prisma.account.create({
+            data: {
+                name: `ادخار - ${dto.name}`,
+                code: await this.generateNextCode('2'),
+                parentId: liabilities.id,
+                type: 'LIABILITY',
+                nature: 'CREDIT',
+                accountBasicType: 'PARTNER_SAVING',
+                level: 2,
+            },
+        });
+
         const partner = await this.prisma.partner.create({
             data: {
                 name: dto.name,
@@ -74,6 +86,7 @@ export class PartnerService {
                 isActive: dto.isActive ?? false,
                 accountPayableId: payableAccount.id,
                 accountEquityId: equityAccount.id,
+                accountSavingId: savingAccount.id,
                 yearlyZakatRequired: dto.capitalAmount * 0.025,
                 yearlyZakatPaid: 0,
                 yearlyZakatBalance: 0,
@@ -192,7 +205,6 @@ export class PartnerService {
         }
 
         await this.prisma.$transaction(async (tx) => {
-            await tx.partner.delete({ where: { id } });
             await tx.journalLine.deleteMany({ where: { accountId: partner.accountPayableId } });
             await tx.journalLine.deleteMany({ where: { accountId: partner.accountEquityId } });
             await tx.journalHeader.deleteMany({
@@ -200,13 +212,19 @@ export class PartnerService {
                     lines: { some: { accountId: { in: [partner.accountPayableId, partner.accountEquityId] } } },
                 },
             });
-            await tx.account.delete({ where: { id: partner.accountPayableId } });
-            await tx.account.delete({ where: { id: partner.accountEquityId } });
             await tx.zakatAccrual.deleteMany({ where: { partnerId: id } });
             await tx.zakatPayment.deleteMany({ where: { partnerId: id } });
             await tx.partnerTransaction.deleteMany({ where: { partnerId: id } });
             await tx.partnerShareAccrual.deleteMany({ where: { partnerId: id } });
             await tx.partnerPeriodProfit.deleteMany({ where: { partnerId: id } });
+            await tx.loanPartnerShare.deleteMany({ where: { partnerId: id } })
+            await tx.partner.delete({ where: { id } });
+            await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountEquityId } })
+            await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountPayableId } })
+            await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountSavingId } })
+            await tx.account.delete({ where: { id: partner.accountPayableId } });
+            await tx.account.delete({ where: { id: partner.accountEquityId } });
+            await tx.account.delete({ where: { id: partner.accountSavingId } });
         });
 
         // create audit log
@@ -251,6 +269,7 @@ export class PartnerService {
             include: {
                 AccountPayable: true,
                 AccountEquity: true,
+                AccountSaving: true,
             },
         });
         const totalCapital = totalActiveCapital._sum.totalAmount || 0;
@@ -259,6 +278,7 @@ export class PartnerService {
         const enrichedPartners = partners.map(p => ({
             ...p,
             partnerProfitPercent: totalCapital > 0 ? Number(((p.totalAmount / totalCapital) * 100).toFixed(2)) : 0,
+            totalSaving: p.AccountSaving.balance,
         }));
 
         return {
@@ -276,6 +296,7 @@ export class PartnerService {
             include: {
                 AccountPayable: true,
                 AccountEquity: true,
+                AccountSaving: true,
                 loans: true,
                 transactions: true,
             },
@@ -293,6 +314,7 @@ export class PartnerService {
         return {
             ...partner,
             partnerProfitPercent,
+            totalSaving: partner.AccountSaving.balance,
         };
     }
 
@@ -366,13 +388,13 @@ export class PartnerService {
         currentUser: number,
         partnerId: number,
         dto: {
-            type: 'DEPOSIT' | 'WITHDRAWAL' | 'PROFIT_WITHDRAWAL'
+            type: 'DEPOSIT' | 'WITHDRAWAL' | 'PROFIT_WITHDRAWAL' | 'SAVING_WITHDRAWAL'
             ; amount: number; description?: string
         }
     ) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
-            include: { AccountEquity: true },
+            include: { AccountEquity: true, AccountSaving: true },
         });
         if (!partner) throw new NotFoundException('Partner not found');
 
@@ -382,6 +404,12 @@ export class PartnerService {
         if (dto.amount <= 0) throw new BadRequestException('المبلغ يجب أن يكون أكبر من صفر.');
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+
+        if (dto.type === 'SAVING_WITHDRAWAL') {
+            if (partner.AccountSaving.balance < dto.amount) {
+                throw new BadRequestException('رصيد التوفير غير كافٍ للسحب.');
+            }
+        }
 
         if (dto.type === 'WITHDRAWAL') {
             const monthsSinceCreation = DateTime.now()
@@ -417,6 +445,9 @@ export class PartnerService {
 
         const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
         if (!bank) throw new BadRequestException('Bank account (11000) must exist');
+
+        const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });
+        if (!savingAccount) throw new BadRequestException('saving Account (20002) must exist');
 
         let journalLines;
         let journalDescription;
@@ -473,6 +504,25 @@ export class PartnerService {
             journalDescription = `سحب أرباح للشريك ${partner.name}`;
         }
 
+        if (dto.type === 'SAVING_WITHDRAWAL') {
+            journalLines = [
+                {
+                    accountId: partner.accountSavingId,
+                    debit: dto.amount,
+                    credit: 0,
+                    description: `سحب من توفير الشريك ${partner.name}`,
+                },
+                {
+                    accountId: savingAccount.id,
+                    debit: 0,
+                    credit: dto.amount,
+                    description: `صرف من توفير الشريك ${partner.name}`,
+                },
+            ];
+
+            journalDescription = `سحب من التوفير للشريك ${partner.name}`;
+        }
+
         const journalDto = {
             reference,
             description: journalDescription,
@@ -482,7 +532,9 @@ export class PartnerService {
                     ? JournalSourceType.PARTNER_TRANSACTION_DEPOSIT
                     : dto.type === 'WITHDRAWAL'
                         ? JournalSourceType.PARTNER_TRANSACTION_WITHDRAWAL
-                        : JournalSourceType.PARTNER_PROFIT_WITHDRAWAL,
+                        : dto.type === 'PROFIT_WITHDRAWAL'
+                            ? JournalSourceType.PARTNER_PROFIT_WITHDRAWAL
+                            : JournalSourceType.PARTNER_SAVING_WITHDRAWAL,
 
             lines: journalLines,
         };
@@ -530,13 +582,11 @@ export class PartnerService {
                 userId: currentUser,
                 screen: 'Partners',
                 action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بإنشاء معاملة ${dto.type === 'DEPOSIT'
-                    ? 'إيداع'
-                    : dto.type === 'WITHDRAWAL'
-                        ? 'سحب من رأس المال'
-                        : 'سحب من الأرباح'
+                description: `قام المستخدم ${user?.name} بإنشاء معاملة ${dto.type === 'DEPOSIT' ? 'إيداع' :
+                        dto.type === 'WITHDRAWAL' ? 'سحب من رأس المال' :
+                            dto.type === 'PROFIT_WITHDRAWAL' ? 'سحب من الأرباح' :
+                                'سحب من التوفير'
                     } بقيمة ${dto.amount} للشريك ${partner.name} (تم إنشاء وترحيل القيد المحاسبي بنجاح)`,
-
             },
         });
 
@@ -580,10 +630,10 @@ export class PartnerService {
             if (transaction.type === 'DEPOSIT') {
                 newCapitalAmount -= transaction.amount;
                 newTotalAmount -= transaction.amount;
-            } else if (transaction.type === 'WITHDRAWAL'){
+            } else if (transaction.type === 'WITHDRAWAL') {
                 newCapitalAmount += transaction.amount;
                 newTotalAmount += transaction.amount;
-            } else if (transaction.type === 'PROFIT_WITHDRAWAL'){
+            } else if (transaction.type === 'PROFIT_WITHDRAWAL') {
                 newTotalProfit += transaction.amount;
                 newTotalAmount += transaction.amount;
             }
@@ -620,7 +670,7 @@ export class PartnerService {
         page: number,
         filters?: {
             limit?: number;
-            type?: 'DEPOSIT' | 'WITHDRAWAL';
+            type?: 'DEPOSIT' | 'WITHDRAWAL' | 'PROFIT_WITHDRAWAL' | 'SAVING_WITHDRAWAL';
             search?: string;
             startDate?: string;
             endDate?: string;
