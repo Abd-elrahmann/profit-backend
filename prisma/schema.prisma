@@ -282,12 +282,14 @@ model Partner {
   isActive         Boolean   @default(false)
   accountPayableId Int       @unique
   accountEquityId  Int       @unique
+  accountSavingId  Int       @unique
   yearlyZakatRequired Float? @default(0)
   yearlyZakatPaid     Float? @default(0)
   yearlyZakatBalance  Float? @default(0)
 
   AccountPayable Account @relation(name: "account_payable", references: [id], fields: [accountPayableId])
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
+  AccountSaving  Account @relation(name: "account_saving", references: [id], fields: [accountSavingId])
   loans Loan[]
   transactions PartnerTransaction[]
   profitAccruals PartnerShareAccrual[]
@@ -317,6 +319,7 @@ enum TransactionType {
   DEPOSIT
   WITHDRAWAL
   PROFIT_WITHDRAWAL
+  SAVING_WITHDRAWAL
 }
 
 model PartnerShareAccrual {
@@ -411,6 +414,7 @@ model Account {
   createdAt        DateTime          @default(now())
   partnerPayable   Partner?          @relation("account_payable")
   partnerEquity    Partner?          @relation("account_equity")
+  partnerSaving    Partner?          @relation("account_saving")
   accountsClosing  accountsClosing[]
 
   @@index([accountBasicType, code])
@@ -422,6 +426,7 @@ enum AccountBasicType {
   LOANS_RECEIVABLE
   PARTNER_PAYABLE
   PARTNER_EQUITY
+  PARTNER_SAVING
   LOAN_INCOME
   COMPANY_SHARES
   PARTNER_SHARES_EXPENSES
@@ -550,6 +555,7 @@ enum JournalSourceType {
   PARTNER_TRANSACTION_WITHDRAWAL
   PARTNER_TRANSACTION_DEPOSIT
   PARTNER_PROFIT_WITHDRAWAL
+  PARTNER_SAVING_WITHDRAWAL
   PERIOD_CLOSING
   ZAKAT
   SAVING

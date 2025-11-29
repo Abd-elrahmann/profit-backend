@@ -83,49 +83,69 @@ export class DistributionService {
 
                 const savingAmount = (totalProfit * savingPercentage) / 100;
 
-                const savingRecord = await this.prisma.partnerSavingAccrual.create({
-                    data: {
-                        partnerId: partner.id,
-                        periodId: periodId,
-                        accrualId: acc.id,
-                        savingAmount: savingAmount,
-                    },
-                });
+                const partnerEquity = await this.prisma.account.findUnique({ where: { id: partner.accountEquityId } });
+                if (!partnerEquity) throw new BadRequestException('لا يوجد حساب رأس مال');
 
-                const savingJournal = await this.journalService.createJournal(
-                    {
-                        reference: `SAVE-${partner.id}-${periodId}`,
-                        description: `ادخار بنسبة ${savingPercentage}% للشريك ${partner.name}`,
-                        type: 'GENERAL',
-                        sourceType: 'SAVING',
-                        sourceId: savingRecord.id,
-                        lines: [
-                            {
-                                accountId: Bank.id,
-                                debit: 0,
-                                credit: savingAmount,
-                                description: `تسجيل ادخار (${savingPercentage}%)`,
-                            },
-                            {
-                                accountId: partner.accountPayableId,
-                                debit: savingAmount,
-                                credit: 0,
-                                description: `خصم ادخار للشريك ${partner.name}`,
-                            },
-                        ],
-                    },
-                    userId,
-                );
-                await this.journalService.postJournal(savingJournal.journal.id, userId);
+                const partnerSaving = await this.prisma.account.findUnique({ where: { id: partner.accountSavingId } });
+                if (!partnerSaving) throw new BadRequestException('لا يوجد حساب ادخار');
 
-                // Decrease partner totalProfit and totalAmount by the saving amount
-                await this.prisma.partner.update({
-                    where: { id: partner.id },
-                    data: {
-                        totalProfit: { decrement: savingAmount },
-                        totalAmount: { decrement: savingAmount },
-                    },
-                });
+                if (partnerEquity.balance > partnerSaving.balance) {
+                    const savingRecord = await this.prisma.partnerSavingAccrual.create({
+                        data: {
+                            partnerId: partner.id,
+                            periodId: periodId,
+                            accrualId: acc.id,
+                            savingAmount: savingAmount,
+                        },
+                    });
+
+                    const savingJournal = await this.journalService.createJournal(
+                        {
+                            reference: `SAVE-${partner.id}-${periodId}`,
+                            description: `ادخار بنسبة ${savingPercentage}% للشريك ${partner.name}`,
+                            type: 'GENERAL',
+                            sourceType: 'SAVING',
+                            sourceId: savingRecord.id,
+                            lines: [
+                                {
+                                    accountId: partner.accountSavingId,
+                                    debit: 0,
+                                    credit: savingAmount,
+                                    description: `تسجيل ادخار (${savingPercentage}%)`,
+                                },
+                                {
+                                    accountId: partner.accountPayableId,
+                                    debit: savingAmount,
+                                    credit: 0,
+                                    description: `خصم ادخار للشريك ${partner.name}`,
+                                },
+                                {
+                                    accountId: Bank.id,
+                                    debit: 0,
+                                    credit: savingAmount,
+                                    description: `خصم ادخار للشريك ${partner.name}`,
+                                },
+                                {
+                                    accountId: savingAccount.id,
+                                    debit: savingAmount,
+                                    credit: 0,
+                                    description: `خصم ادخار للشريك ${partner.name}`,
+                                },
+                            ],
+                        },
+                        userId,
+                    );
+                    await this.journalService.postJournal(savingJournal.journal.id, userId);
+
+                    // Decrease partner totalProfit and totalAmount by the saving amount
+                    await this.prisma.partner.update({
+                        where: { id: partner.id },
+                        data: {
+                            totalProfit: { decrement: savingAmount },
+                            totalAmount: { decrement: savingAmount },
+                        },
+                    });
+                }
             }
         }
 
