@@ -242,7 +242,10 @@ export class LoansService {
 
     // Activate Loan
     async activateLoan(id: number, userId: number) {
-        const loan = await this.prisma.loan.findUnique({ where: { id } });
+        const loan = await this.prisma.loan.findUnique({
+            where: { id },
+            include: { repayments: true }
+        });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('فقط السلف المعلقة يمكن تفعيلها');
@@ -300,6 +303,51 @@ export class LoansService {
                 disbursementJournalId: journal.id,
             },
         });
+
+        const activationDate = new Date();
+
+        // 1) تحديث startDate
+        await this.prisma.loan.update({
+            where: { id },
+            data: { startDate: activationDate },
+        });
+
+        // 2) إعادة حساب تواريخ الأقساط بناءً على النوع
+        for (const repayment of loan.repayments) {
+            let newDueDate: Date;
+
+            if (loan.type === LoanType.DAILY) {
+                newDueDate = new Date(Date.UTC(
+                    activationDate.getUTCFullYear(),
+                    activationDate.getUTCMonth(),
+                    activationDate.getUTCDate() + repayment.count,
+                    0, 0, 0, 0
+                ));
+            } else if (loan.type === LoanType.WEEKLY) {
+                newDueDate = new Date(Date.UTC(
+                    activationDate.getUTCFullYear(),
+                    activationDate.getUTCMonth(),
+                    activationDate.getUTCDate() + repayment.count * 7,
+                    0, 0, 0, 0
+                ));
+            } else {
+                // Monthly loan
+                const month = activationDate.getUTCMonth() + repayment.count;
+                const day = loan.repaymentDay ?? activationDate.getUTCDate();
+                newDueDate = new Date(Date.UTC(
+                    activationDate.getUTCFullYear(),
+                    month,
+                    day,
+                    0, 0, 0, 0
+                ));
+            }
+
+            // Update repayment
+            await this.prisma.repayment.update({
+                where: { id: repayment.id },
+                data: { dueDate: newDueDate }
+            });
+        }
 
         await this.updateClientStatus(loan.clientId);
 
@@ -475,7 +523,7 @@ export class LoansService {
         return { total, page, limit, data: loans };
     }
 
-    async getLoanById(id: number, page: number , limit: number = 10) {
+    async getLoanById(id: number, page: number, limit: number = 10) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
             include: {
