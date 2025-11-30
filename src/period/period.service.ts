@@ -538,11 +538,19 @@ export class PeriodService {
             companyProfit = profitCalculation.companyProfit;
         }
 
+        // NEW — total period debit/credit/balance
+        const totalPeriodDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
+        const totalPeriodCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
+        const totalPeriodBalance = totalPeriodDebit - totalPeriodCredit;
+
         return {
             id: period.id,
             name: period.name,
             startDate: period.startDate,
             endDate: period.endDate,
+            totalDebit: totalPeriodDebit,
+            totalCredit: totalPeriodCredit,
+            totalBalance: totalPeriodBalance,
             journals,
             partnerProfits,
             companyProfit,

@@ -54,13 +54,17 @@ export class LoansController {
         @Query('clientName') clientName?: string,
         @Query('clientId') clientId?: number,
     ) {
-        return this.loansService.getAllLoans(page, +limit, { status, code, clientName , clientId});
+        return this.loansService.getAllLoans(page, +limit, { status, code, clientName, clientId });
     }
 
-    @Get(':id')
+    @Get(':id/:page')
     @Permissions('loans', 'canView')
-    getById(@Param('id', ParseIntPipe) id: number) {
-        return this.loansService.getLoanById(id);
+    getById(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('page', ParseIntPipe) page: number,
+        @Query('limit') limit = 10,
+    ) {
+        return this.loansService.getLoanById(id, page , +limit);
     }
 
     @Patch(':id')

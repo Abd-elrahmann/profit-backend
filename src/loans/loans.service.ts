@@ -475,12 +475,10 @@ export class LoansService {
         return { total, page, limit, data: loans };
     }
 
-    // Get single loan (with repayments)
-    async getLoanById(id: number) {
+    async getLoanById(id: number, page: number , limit: number = 10) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
             include: {
-                repayments: true,
                 client: true,
                 bankAccount: true,
                 partner: true,
@@ -489,6 +487,19 @@ export class LoansService {
             },
         });
         if (!loan) throw new NotFoundException('Loan not found');
+
+        // Count total repayments
+        const totalRepayments = await this.prisma.repayment.count({
+            where: { loanId: id },
+        });
+
+        // Fetch paginated repayments
+        const Repayments = await this.prisma.repayment.findMany({
+            where: { loanId: id },
+            orderBy: { dueDate: 'asc' },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
 
         const toSaudiTime = (date: Date | null | undefined) =>
             date
@@ -521,14 +532,17 @@ export class LoansService {
         let totalRemainingPrincipal = 0;
         let totalRemainingInterest = 0;
 
-        // Filter out fully paid repayments
-        const Repayments = loan.repayments;
-
         const formattedRepayments = Repayments.map((repayment) => {
-            // Round to 2 decimals
-            const remainingPrincipal = Number((Math.max(repayment.principalAmount - repayment.paidAmount), 0).toFixed(2));
+            const remainingPrincipal = Number(
+                Math.max(repayment.principalAmount - repayment.paidAmount, 0).toFixed(2)
+            );
+
             const remainingInterest = Number(
-                (repayment.amount - repayment.principalAmount - Math.max(repayment.paidAmount - repayment.principalAmount, 0)).toFixed(2)
+                (
+                    repayment.amount -
+                    repayment.principalAmount -
+                    Math.max(repayment.paidAmount - repayment.principalAmount, 0)
+                ).toFixed(2)
             );
 
             totalRemainingPrincipal += remainingPrincipal;
@@ -542,7 +556,6 @@ export class LoansService {
                 createdAt: toSaudiTime(repayment.createdAt),
                 remainingPrincipal,
                 remainingInterest,
-                // Make sure these are decimals as well
                 amount: Number(repayment.amount.toFixed(2)),
                 principalAmount: Number(repayment.principalAmount.toFixed(2)),
                 interestAmount: Number(repayment.interestAmount.toFixed(2)),
@@ -550,27 +563,24 @@ export class LoansService {
             };
         });
 
-        // Round totals as well
         const totalDue = Number((totalRemainingPrincipal + totalRemainingInterest).toFixed(2));
         totalRemainingPrincipal = Number(totalRemainingPrincipal.toFixed(2));
         totalRemainingInterest = Number(totalRemainingInterest.toFixed(2));
 
-        const { LoanPartnerShare, ...loanWithoutShare } = loan;
-
         return {
-            ...loanWithoutShare,
+            ...loan,
+            pagination: {
+                totalPages: Math.ceil(totalRepayments / limit),
+                limit,
+                page,
+                totalRepayments: totalRepayments,
+            },
             repayments: formattedRepayments,
             loanPartnerShare: loanPartnerShareName,
             totalRemainingPrincipal,
             totalRemainingInterest,
             totalDue,
-            amount: Number(loan.amount.toFixed(2)),
-            interestAmount: Number(loan.interestAmount.toFixed(2)),
-            totalAmount: Number(loan.totalAmount.toFixed(2)),
-            paymentAmount: Number(loan.paymentAmount.toFixed(2)),
-            newAmount: loan.newAmount ? Number(loan.newAmount.toFixed(2)) : null,
-            earlyPaymentDiscount: loan.earlyPaymentDiscount ? Number(loan.earlyPaymentDiscount.toFixed(2)) : null,
-            earlyPaidAmount: loan.earlyPaidAmount ? Number(loan.earlyPaidAmount.toFixed(2)) : null,
+
             client: {
                 ...loan.client,
                 birthDate: toDateOnly(loan.client.birthDate),

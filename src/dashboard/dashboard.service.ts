@@ -193,7 +193,7 @@ export class DashboardService {
 
         // Total loan amount
         const loanAmounts = await this.prisma.loan.aggregate({
-            _sum: { totalAmount: true , newAmount: true },
+            _sum: { totalAmount: true, newAmount: true },
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
@@ -207,7 +207,7 @@ export class DashboardService {
             loans: {
                 count: loansCount,
                 byStatus: loansByStatus,
-                totalAmount: loanAmounts._sum.newAmount? loanAmounts._sum.newAmount : loanAmounts._sum.totalAmount || 0,
+                totalAmount: loanAmounts._sum.newAmount ? loanAmounts._sum.newAmount : loanAmounts._sum.totalAmount || 0,
             },
             bank: {
                 balance: bankBalance,
@@ -252,8 +252,8 @@ export class DashboardService {
         const totalRemaining = Math.max(totalRepayment - totalPaid, 0);
 
         // Calculate collection percentage
-        const collectionPercentage = totalRepayment > 0 
-            ? Math.round((totalPaid / totalRepayment) * 100) 
+        const collectionPercentage = totalRepayment > 0
+            ? Math.round((totalPaid / totalRepayment) * 100)
             : 0;
 
         // Get bank balance (available for lending)
@@ -271,5 +271,62 @@ export class DashboardService {
             collectionPercentage,
             availableForLending,
         };
+    }
+
+    async getUpcomingRepayments(limit: number = 5) {
+        const now = moment().tz("Asia/Riyadh").toDate();
+
+        return await this.prisma.repayment.findMany({
+            where: {
+                OR: [
+                    {
+                        newDueDate: {
+                            gte: now,
+                        },
+                        status: "PENDING",
+                    },
+                    {
+                        dueDate: {
+                            gte: now,
+                        },
+                        status: "PENDING",
+                    },
+                ],
+            },
+            orderBy: [
+                { newDueDate: 'asc' },
+                { dueDate: 'asc' },
+            ],
+            take: limit,
+            include: {
+                loan: {
+                    select: {
+                        id: true,
+                        client: {
+                            select: { name: true },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    async getLastActions(limit: number = 5) {
+        const screensToShow = ["Distribution", "Loans", "Journals", "Partners" , "Repayments"];
+
+        return await this.prisma.auditLog.findMany({
+            where: {
+                screen: {
+                    in: screensToShow,
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: limit,
+            include: {
+                user: {
+                    select: { name: true },
+                },
+            },
+        });
     }
 }
