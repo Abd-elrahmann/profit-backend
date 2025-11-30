@@ -395,6 +395,7 @@ export class PeriodService {
         });
     }
 
+    // In your PeriodService - Fix the getPeriodDetails method
     async getPeriodDetails(periodId: number) {
         const period = await this.prisma.periodHeader.findUnique({
             where: { id: periodId },
@@ -495,7 +496,8 @@ export class PeriodService {
         let totalPartnerProfit = 0;
         let companyProfit = 0;
 
-        if (period.closingJournalId) {
+        // FIX: Use period.isClosed instead of period.closingJournalId
+        if (period.isClosed) { // CHANGED THIS LINE
             // For closed periods, use PartnerPeriodProfit data
             partnerProfits = period.PartnerPeriodProfit.map(ppp => ({
                 partnerId: ppp.partnerId,
@@ -530,6 +532,26 @@ export class PeriodService {
                 );
                 companyProfit = companyShareLines.reduce((sum, line) => sum + Number(line.credit), 0);
             }
+
+            // NEW — total period debit/credit/balance
+            const totalPeriodDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
+            const totalPeriodCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
+            const totalPeriodBalance = totalPeriodDebit - totalPeriodCredit;
+
+            return {
+                id: period.id,
+                name: period.name,
+                startDate: period.startDate,
+                endDate: period.endDate,
+                totalDebit: totalPeriodDebit,
+                totalCredit: totalPeriodCredit,
+                totalBalance: totalPeriodBalance,
+                journals,
+                partnerProfits,
+                companyProfit,
+                totalPartnerProfit,
+                isClosed: !!period.closingJournalId
+            };
         } else {
             // For open periods, calculate from journals and accruals
             const profitCalculation = await this.calculateOpenPeriodProfits(periodId);
@@ -538,27 +560,18 @@ export class PeriodService {
             companyProfit = profitCalculation.companyProfit;
         }
 
-        // NEW — total period debit/credit/balance
-        const totalPeriodDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
-        const totalPeriodCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
-        const totalPeriodBalance = totalPeriodDebit - totalPeriodCredit;
-
         return {
             id: period.id,
             name: period.name,
             startDate: period.startDate,
             endDate: period.endDate,
-            totalDebit: totalPeriodDebit,
-            totalCredit: totalPeriodCredit,
-            totalBalance: totalPeriodBalance,
             journals,
             partnerProfits,
             companyProfit,
             totalPartnerProfit,
-            isClosed: !!period.closingJournalId
+            isClosed: period.isClosed // CHANGED THIS LINE - Use the actual field from database
         };
     }
-
     private async calculateOpenPeriodProfits(periodId: number): Promise<{
         partnerProfits: Array<{
             partnerId: number;
