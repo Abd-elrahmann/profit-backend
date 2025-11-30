@@ -64,9 +64,22 @@ export class LoansService {
         if (bankAccount.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
 
         const principal = new Decimal(dto.amount);
-        const interestRate = new Decimal(dto.interestRate);
-        const totalAmount = principal.mul(interestRate.div(100).add(1));
-        const totalInterest = totalAmount.minus(principal);
+        let totalInterest: Decimal;
+        let totalAmount: Decimal;
+        let interestRate: Decimal | undefined;
+
+        if (dto.totalInterest != null) {
+            // User provided totalInterest directly
+            totalInterest = new Decimal(dto.totalInterest);
+            totalAmount = principal.plus(totalInterest);
+            interestRate = totalInterest.div(principal).mul(100);
+        } else if (dto.interestRate != null) {
+            interestRate = new Decimal(dto.interestRate);
+            totalAmount = principal.mul(interestRate.div(100).add(1));
+            totalInterest = totalAmount.minus(principal);
+        } else {
+            throw new BadRequestException('يجب ادخال مبلغ او نسبة الفائدة');
+        }
 
         const paymentAmount = new Decimal(dto.paymentAmount);
 

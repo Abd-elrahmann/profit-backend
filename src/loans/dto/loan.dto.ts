@@ -15,8 +15,13 @@ export class CreateLoanDto {
     @IsNumber()
     paymentAmount: number;
 
+    @IsOptional()
     @IsNumber()
     interestRate: number;
+
+    @IsOptional()
+    @IsNumber()
+    totalInterest: number;
 
     @IsEnum(LoanType)
     type: LoanType;
