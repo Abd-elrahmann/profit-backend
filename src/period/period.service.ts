@@ -496,9 +496,7 @@ export class PeriodService {
         let totalPartnerProfit = 0;
         let companyProfit = 0;
 
-        // FIX: Use period.isClosed instead of period.closingJournalId
-        if (period.isClosed) { // CHANGED THIS LINE
-            // For closed periods, use PartnerPeriodProfit data
+        if (period.isClosed) {
             partnerProfits = period.PartnerPeriodProfit.map(ppp => ({
                 partnerId: ppp.partnerId,
                 partnerName: ppp.partner.name,
@@ -558,20 +556,21 @@ export class PeriodService {
             partnerProfits = profitCalculation.partnerProfits;
             totalPartnerProfit = profitCalculation.totalPartnerProfit;
             companyProfit = profitCalculation.companyProfit;
-        }
 
-        return {
-            id: period.id,
-            name: period.name,
-            startDate: period.startDate,
-            endDate: period.endDate,
-            journals,
-            partnerProfits,
-            companyProfit,
-            totalPartnerProfit,
-            isClosed: period.isClosed // CHANGED THIS LINE - Use the actual field from database
-        };
+            return {
+                id: period.id,
+                name: period.name,
+                startDate: period.startDate,
+                endDate: period.endDate,
+                journals,
+                partnerProfits,
+                companyProfit,
+                totalPartnerProfit,
+                isClosed: period.isClosed
+            };
+        }
     }
+
     private async calculateOpenPeriodProfits(periodId: number): Promise<{
         partnerProfits: Array<{
             partnerId: number;
