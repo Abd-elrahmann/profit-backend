@@ -68,13 +68,12 @@ export class LoansService {
         let totalAmount: Decimal;
         let interestRate: Decimal | undefined;
 
-        if (dto.totalInterest != null) {
-            // User provided totalInterest directly
-            totalInterest = new Decimal(dto.totalInterest);
+        if (dto.TotalInterest != null) {
+            totalInterest = new Decimal(dto.TotalInterest);
             totalAmount = principal.plus(totalInterest);
             interestRate = totalInterest.div(principal).mul(100);
-        } else if (dto.interestRate != null) {
-            interestRate = new Decimal(dto.interestRate);
+        } else if (dto.InterestPercentage != null) {
+            interestRate = new Decimal(dto.InterestPercentage);
             totalAmount = principal.mul(interestRate.div(100).add(1));
             totalInterest = totalAmount.minus(principal);
         } else {
@@ -702,15 +701,31 @@ export class LoansService {
         }
 
         // If financial fields changed, regenerate repayments
-        if (dto.amount || dto.interestRate || dto.type || dto.repaymentDay) {
+        if (dto.amount || dto.InterestPercentage || dto.TotalInterest || dto.type || dto.repaymentDay) {
             // Delete existing repayments
             await this.prisma.repayment.deleteMany({ where: { loanId: id } });
 
             // Use Decimal for accurate calculations
             const principal = new Decimal(dto.amount || updated.amount);
-            const interestRate = new Decimal(dto.interestRate || updated.interestRate);
-            const totalAmount = principal.mul(interestRate.div(100).add(1)).toDecimalPlaces(2);
-            const totalInterest = totalAmount.minus(principal).toDecimalPlaces(2);
+            let totalInterest: Decimal;
+            let totalAmount: Decimal;
+            let interestRate: Decimal;
+
+            if (dto.TotalInterest != null) {
+                totalInterest = new Decimal(dto.TotalInterest);
+                totalAmount = principal.plus(totalInterest);
+                interestRate = totalInterest.div(principal).mul(100);
+            } else if (dto.InterestPercentage != null) {
+                interestRate = new Decimal(dto.InterestPercentage);
+                totalAmount = principal.mul(interestRate.div(100).add(1));
+                totalInterest = totalAmount.minus(principal);
+            } else if (updated.interestRate != null) {
+                interestRate = new Decimal(updated.interestRate);
+                totalAmount = principal.mul(interestRate.div(100).add(1));
+                totalInterest = totalAmount.minus(principal);
+            } else {
+                throw new BadRequestException('يجب ادخال مبلغ او نسبة الفائدة');
+            }
 
             // Update loan financials
             await this.prisma.loan.update({

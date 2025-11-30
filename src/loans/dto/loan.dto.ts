@@ -17,11 +17,11 @@ export class CreateLoanDto {
 
     @IsOptional()
     @IsNumber()
-    interestRate: number;
+    InterestPercentage: number;
 
     @IsOptional()
     @IsNumber()
-    totalInterest: number;
+    TotalInterest: number;
 
     @IsEnum(LoanType)
     type: LoanType;
@@ -51,7 +51,11 @@ export class UpdateLoanDto {
 
     @IsOptional()
     @IsNumber()
-    interestRate?: number;
+    InterestPercentage?: number;
+
+    @IsOptional()
+    @IsNumber()
+    TotalInterest: number;
 
     @IsOptional()
     @IsEnum(LoanStatus)
