@@ -395,162 +395,163 @@ export class PeriodService {
         });
     }
 
-    async getPeriodDetails(periodId: number) {
-        const period = await this.prisma.periodHeader.findUnique({
-            where: { id: periodId },
-            include: {
-                journals: {
-                    include: {
-                        lines: {
-                            include: {
-                                account: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        code: true,
-                                        accountBasicType: true,
-                                    }
-                                },
-                                client: {
-                                    select: {
-                                        id: true,
-                                        name: true
-                                    }
+  // In your PeriodService - Fix the getPeriodDetails method
+async getPeriodDetails(periodId: number) {
+    const period = await this.prisma.periodHeader.findUnique({
+        where: { id: periodId },
+        include: {
+            journals: {
+                include: {
+                    lines: {
+                        include: {
+                            account: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    code: true,
+                                    accountBasicType: true,
                                 }
-                            }
-                        },
-                        postedBy: {
-                            select: {
-                                id: true,
-                                name: true
+                            },
+                            client: {
+                                select: {
+                                    id: true,
+                                    name: true
+                                }
                             }
                         }
                     },
-                    orderBy: {
-                        date: 'desc'
+                    postedBy: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
                     }
                 },
-                PartnerPeriodProfit: {
-                    include: {
-                        partner: {
-                            select: {
-                                id: true,
-                                name: true,
-                                nationalId: true,
-                                phone: true,
-                                orgProfitPercent: true,
-                                accountPayableId: true
-                            }
+                orderBy: {
+                    date: 'desc'
+                }
+            },
+            PartnerPeriodProfit: {
+                include: {
+                    partner: {
+                        select: {
+                            id: true,
+                            name: true,
+                            nationalId: true,
+                            phone: true,
+                            orgProfitPercent: true,
+                            accountPayableId: true
                         }
                     }
                 }
             }
-        });
-
-        if (!period) {
-            throw new NotFoundException('Period not found');
         }
+    });
 
-        // --- NEW: Get savings for this period ---
-        const savings = await this.prisma.partnerSavingAccrual.findMany({
-            where: { periodId },
-            select: {
-                partnerId: true,
-                savingAmount: true
-            }
-        });
+    if (!period) {
+        throw new NotFoundException('Period not found');
+    }
 
-        const savingMap = new Map<number, number>();
-        savings.forEach(s => savingMap.set(s.partnerId, Number(s.savingAmount)));
+    // --- NEW: Get savings for this period ---
+    const savings = await this.prisma.partnerSavingAccrual.findMany({
+        where: { periodId },
+        select: {
+            partnerId: true,
+            savingAmount: true
+        }
+    });
 
-        // Calculate journal totals and transform data
-        const journals = period.journals.map(journal => {
-            const totalDebit = journal.lines.reduce((sum, line) => sum + Number(line.debit), 0);
-            const totalCredit = journal.lines.reduce((sum, line) => sum + Number(line.credit), 0);
+    const savingMap = new Map<number, number>();
+    savings.forEach(s => savingMap.set(s.partnerId, Number(s.savingAmount)));
+
+    // Calculate journal totals and transform data
+    const journals = period.journals.map(journal => {
+        const totalDebit = journal.lines.reduce((sum, line) => sum + Number(line.debit), 0);
+        const totalCredit = journal.lines.reduce((sum, line) => sum + Number(line.credit), 0);
+
+        return {
+            id: journal.id,
+            reference: journal.reference,
+            description: journal.description,
+            date: journal.date,
+            type: journal.type,
+            status: journal.status,
+            sourceType: journal.sourceType,
+            totalDebit,
+            totalCredit,
+            lines: journal.lines.map(line => ({
+                id: line.id,
+                accountId: line.accountId,
+                accountName: line.account.name,
+                debit: Number(line.debit),
+                credit: Number(line.credit),
+                description: line.description,
+                clientId: line.clientId,
+                clientName: line.client?.name
+            }))
+        };
+    });
+
+    let partnerProfits = [] as any[];
+    let totalPartnerProfit = 0;
+    let companyProfit = 0;
+
+    // FIX: Use period.isClosed instead of period.closingJournalId
+    if (period.isClosed) { // CHANGED THIS LINE
+        // For closed periods, use PartnerPeriodProfit data
+        partnerProfits = period.PartnerPeriodProfit.map(ppp => ({
+            partnerId: ppp.partnerId,
+            partnerName: ppp.partner.name,
+            partnerNationalId: ppp.partner.nationalId,
+            partnerPhone: ppp.partner.phone,
+            orgProfitPercent: ppp.partner.orgProfitPercent,
+            totalProfit: Number(ppp.totalProfit),
+            accountPayableId: ppp.partner.accountPayableId
+        }));
+
+        partnerProfits = partnerProfits.map(p => {
+            const savingAmount = savingMap.get(p.partnerId) ?? 0;
 
             return {
-                id: journal.id,
-                reference: journal.reference,
-                description: journal.description,
-                date: journal.date,
-                type: journal.type,
-                status: journal.status,
-                sourceType: journal.sourceType,
-                totalDebit,
-                totalCredit,
-                lines: journal.lines.map(line => ({
-                    id: line.id,
-                    accountId: line.accountId,
-                    accountName: line.account.name,
-                    debit: Number(line.debit),
-                    credit: Number(line.credit),
-                    description: line.description,
-                    clientId: line.clientId,
-                    clientName: line.client?.name
-                }))
+                ...p,
+                savingAmount,
+                totalAfterSaving: Math.round((p.totalProfit - savingAmount) * 100) / 100
             };
         });
 
-        let partnerProfits = [] as any[];
-        let totalPartnerProfit = 0;
-        let companyProfit = 0;
+        totalPartnerProfit = partnerProfits.reduce(
+            (sum, partner) => sum + (partner.totalAfterSaving ?? partner.totalProfit),
+            0
+        );
 
-        if (period.closingJournalId) {
-            // For closed periods, use PartnerPeriodProfit data
-            partnerProfits = period.PartnerPeriodProfit.map(ppp => ({
-                partnerId: ppp.partnerId,
-                partnerName: ppp.partner.name,
-                partnerNationalId: ppp.partner.nationalId,
-                partnerPhone: ppp.partner.phone,
-                orgProfitPercent: ppp.partner.orgProfitPercent,
-                totalProfit: Number(ppp.totalProfit),
-                accountPayableId: ppp.partner.accountPayableId
-            }));
-
-            partnerProfits = partnerProfits.map(p => {
-                const savingAmount = savingMap.get(p.partnerId) ?? 0;
-
-                return {
-                    ...p,
-                    savingAmount,
-                    totalAfterSaving: Math.round((p.totalProfit - savingAmount) * 100) / 100
-                };
-            });
-
-            totalPartnerProfit = partnerProfits.reduce(
-                (sum, partner) => sum + (partner.totalAfterSaving ?? partner.totalProfit),
-                0
+        // Calculate company profit from closing journal
+        const closingJournal = period.journals.find(j => j.id === period.closingJournalId);
+        if (closingJournal) {
+            const companyShareLines = closingJournal.lines.filter(line =>
+                line.account.accountBasicType === 'COMPANY_SHARES'
             );
-
-            // Calculate company profit from closing journal
-            const closingJournal = period.journals.find(j => j.id === period.closingJournalId);
-            if (closingJournal) {
-                const companyShareLines = closingJournal.lines.filter(line =>
-                    line.account.accountBasicType === 'COMPANY_SHARES'
-                );
-                companyProfit = companyShareLines.reduce((sum, line) => sum + Number(line.credit), 0);
-            }
-        } else {
-            // For open periods, calculate from journals and accruals
-            const profitCalculation = await this.calculateOpenPeriodProfits(periodId);
-            partnerProfits = profitCalculation.partnerProfits;
-            totalPartnerProfit = profitCalculation.totalPartnerProfit;
-            companyProfit = profitCalculation.companyProfit;
+            companyProfit = companyShareLines.reduce((sum, line) => sum + Number(line.credit), 0);
         }
-
-        return {
-            id: period.id,
-            name: period.name,
-            startDate: period.startDate,
-            endDate: period.endDate,
-            journals,
-            partnerProfits,
-            companyProfit,
-            totalPartnerProfit,
-            isClosed: !!period.closingJournalId
-        };
+    } else {
+        // For open periods, calculate from journals and accruals
+        const profitCalculation = await this.calculateOpenPeriodProfits(periodId);
+        partnerProfits = profitCalculation.partnerProfits;
+        totalPartnerProfit = profitCalculation.totalPartnerProfit;
+        companyProfit = profitCalculation.companyProfit;
     }
 
+    return {
+        id: period.id,
+        name: period.name,
+        startDate: period.startDate,
+        endDate: period.endDate,
+        journals,
+        partnerProfits,
+        companyProfit,
+        totalPartnerProfit,
+        isClosed: period.isClosed // CHANGED THIS LINE - Use the actual field from database
+    };
+}
     private async calculateOpenPeriodProfits(periodId: number): Promise<{
         partnerProfits: Array<{
             partnerId: number;
