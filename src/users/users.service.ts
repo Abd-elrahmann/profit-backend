@@ -111,6 +111,8 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
+    if (user.id == 1) throw new NotFoundException('cannot delete admin')
+
     const current = await this.prisma.user.findUnique({
       where: { id: currentUser },
     });
