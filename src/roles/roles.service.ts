@@ -203,4 +203,59 @@ export class RolesService {
 
         return { message: 'تم حذف الدور بنجاح' };
     }
+
+    async addDashboardPermissions(
+        currentUser: number,
+        roleId: number,
+        permissions: {
+            module: string;
+            canView?: boolean;
+        }[],
+    ) {
+        const role = await this.prisma.role.findUnique({ where: { id: roleId } });
+        if (!role) throw new NotFoundException('Role not found');
+
+        const permission = await this.prisma.rolePermission.findFirst({ where: { roleId: roleId, module: "dashboard", canView: true } });
+        if (!permission) throw new NotFoundException('ليس لديه صلاحيه للداشبورد ');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        return await this.prisma.$transaction(async (tx) => {
+            for (const p of permissions) {
+                const existing = await tx.rolePermission.findFirst({
+                    where: { roleId, module: p.module },
+                });
+
+                if (existing) {
+                    await tx.rolePermission.update({
+                        where: { id: existing.id },
+                        data: { canView: p.canView ?? false },
+                    });
+                } else {
+                    await tx.rolePermission.create({
+                        data: {
+                            roleId,
+                            module: p.module,
+                            canView: p.canView ?? false,
+                        },
+                    });
+                }
+            }
+
+            await tx.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Roles',
+                    action: 'UPDATE',
+                    description: `المستخدم ${user?.name} عدّل صلاحيات Dashboard للدور ${role.name}`,
+                },
+            });
+
+            return {
+                message: 'تم تحديث صلاحيات الداشبورد بنجاح',
+            };
+        });
+    }
 }
