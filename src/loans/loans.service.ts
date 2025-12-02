@@ -249,7 +249,19 @@ export class LoansService {
             },
         });
 
-        return { message: 'تم انشاء السلفة بنجاح', loan };
+        // Get loan with includes
+        const loanWithIncludes = await this.prisma.loan.findUnique({
+            where: { id: loan.id },
+            include: {
+                client: true,
+                bankAccount: true,
+                partner: true,
+                kafeel: { select: { name: true, nationalId: true, birthDate: true } },
+                LoanPartnerShare: { select: { partnerId: true, sharePercent: true } },
+            },
+        });
+
+        return { message: 'تم انشاء السلفة بنجاح', loan: loanWithIncludes };
     }
 
     // Activate Loan

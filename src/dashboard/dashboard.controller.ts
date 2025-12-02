@@ -10,7 +10,6 @@ export class DashboardController {
     constructor(private readonly dashboardService: DashboardService) { }
 
     @Get('client-stats')
-    @Permissions('dashboard-client', 'canView')
     async getClientStats(
         @Query('filter') filter?: 'daily' | 'monthly' | 'yearly',
     ) {
@@ -18,7 +17,6 @@ export class DashboardController {
     }
 
     @Get('partner-stats')
-    @Permissions('dashboard-partner', 'canView')
     async getPartnerStats(
         @Query('filter') filter?: 'daily' | 'monthly' | 'yearly'
     ) {
@@ -26,7 +24,6 @@ export class DashboardController {
     }
 
     @Get('loan-stats')
-    @Permissions('dashboard-loan', 'canView')
     getLoanAndBankStats(
         @Query('filter') filter?: 'daily' | 'monthly' | 'yearly'
     ) {
@@ -34,19 +31,16 @@ export class DashboardController {
     }
 
     @Get('monthly-collection')
-    @Permissions('dashboard-month', 'canView')
     async getMonthlyCollection() {
         return this.dashboardService.getMonthlyCollection();
     }
 
     @Get('Upcoming-Repayments')
-    @Permissions('dashboard-repayments', 'canView')
     async getUpcomingRepayments() {
         return this.dashboardService.getUpcomingRepayments();
     }
 
     @Get('Last-Actions')
-    @Permissions('dashboard-actions', 'canView')
     async getLastActions() {
         return this.dashboardService.getLastActions();
     }
