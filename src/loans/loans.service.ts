@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DateTime } from 'luxon';
 import * as dotenv from 'dotenv';
-
+import moment from "moment-hijri";
 dotenv.config();
 
 @Injectable()
@@ -50,6 +50,12 @@ export class LoansService {
             where: { id: clientId },
             data: { status: newStatus },
         });
+    }
+
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
     }
 
     // Create Loan
@@ -518,30 +524,40 @@ export class LoansService {
 
         const unformattedLoans = await this.prisma.loan.findMany({
             where,
-            include: { client: true, bankAccount: true, partner: true, kafeel: { select: { id: true, name: true } } },
+            include: {
+                client: true,
+                bankAccount: true,
+                partner: true,
+                kafeel: { select: { id: true, name: true } }
+            },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
         });
 
-        const loans = unformattedLoans.map((loan) => ({
-            ...loan,
-            createdAt: loan.createdAt
-                ? DateTime.fromJSDate(loan.createdAt)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd HH:mm:ss')
-                : null,
-            startDate: loan.startDate
-                ? DateTime.fromJSDate(loan.startDate)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd')
-                : null,
-            endDate: loan.endDate
-                ? DateTime.fromJSDate(loan.endDate)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd')
-                : null,
-        }));
+        const loans = unformattedLoans.map((loan) => {
+            const createdAt = loan.createdAt ? new Date(loan.createdAt) : null;
+            const startDate = loan.startDate ? new Date(loan.startDate) : null;
+            const endDate = loan.endDate ? new Date(loan.endDate) : null;
+
+            return {
+                ...loan,
+                createdAt: createdAt
+                    ? DateTime.fromJSDate(createdAt).setZone('Asia/Riyadh').toFormat('yyyy-LL-dd HH:mm:ss')
+                    : null,
+                startDate: startDate
+                    ? DateTime.fromJSDate(startDate).setZone('Asia/Riyadh').toFormat('yyyy-LL-dd')
+                    : null,
+                endDate: endDate
+                    ? DateTime.fromJSDate(endDate).setZone('Asia/Riyadh').toFormat('yyyy-LL-dd')
+                    : null,
+
+                // Hijri Dates
+                createdAtHijri: createdAt ? this.toHijri(createdAt) : null,
+                startDateHijri: startDate ? this.toHijri(startDate) : null,
+                endDateHijri: endDate ? this.toHijri(endDate) : null,
+            };
+        });
 
         const total = await this.prisma.loan.count({ where });
         return { total, page, limit, data: loans };
@@ -582,6 +598,11 @@ export class LoansService {
 
         const toDateOnly = (date: Date | null | undefined) =>
             date ? DateTime.fromJSDate(date).toFormat('yyyy-LL-dd') : null;
+
+        const toSaudiHijri = (date: Date | null | undefined) =>
+            date
+                ? this.toHijri(DateTime.fromJSDate(date).setZone('Asia/Riyadh').toJSDate())
+                : null;
 
         const getpartnername = async (partnerId: number) => {
             const partner = await this.prisma.partner.findUnique({ where: { id: partnerId } });
@@ -626,6 +647,10 @@ export class LoansService {
                 paymentDate: toSaudiTime(repayment.paymentDate),
                 newDueDate: toSaudiTime(repayment.newDueDate),
                 createdAt: toSaudiTime(repayment.createdAt),
+                dueDateHijri: toSaudiHijri(repayment.dueDate),
+                paymentDateHijri: toSaudiHijri(repayment.paymentDate),
+                newDueDateHijri: toSaudiHijri(repayment.newDueDate),
+                createdAtHijri: toSaudiHijri(repayment.createdAt),
                 remainingPrincipal,
                 remainingInterest,
                 amount: Number(repayment.amount.toFixed(2)),
@@ -641,6 +666,10 @@ export class LoansService {
 
         return {
             ...loan,
+            createdAtHijri: toSaudiHijri(loan.createdAt),
+            startDateHijri: loan.startDate ? toSaudiHijri(loan.startDate) : null,
+            endDateHijri: loan.endDate ? toSaudiHijri(loan.endDate) : null,
+
             pagination: {
                 totalPages: Math.ceil(totalRepayments / limit),
                 limit,
