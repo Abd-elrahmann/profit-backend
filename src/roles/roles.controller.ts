@@ -28,7 +28,7 @@ export class RolesController {
             }[];
         },
     ) {
-        return this.rolesService.createRole(req.user.id , body);
+        return this.rolesService.createRole(req.user.id, body);
     }
 
     // Get all roles
@@ -70,13 +70,32 @@ export class RolesController {
             }[];
         },
     ) {
-        return this.rolesService.updateRole(id, req.user.id , body);
+        return this.rolesService.updateRole(id, req.user.id, body);
     }
 
     // Delete a role
     @Delete(':id')
     @Permissions('roles', 'canDelete')
     deleteRole(@Req() req, @Param('id', ParseIntPipe) id: number) {
-        return this.rolesService.deleteRole(req.user.id , id);
+        return this.rolesService.deleteRole(req.user.id, id);
+    }
+
+    @Post(':id/dashboard-permissions')
+    @Permissions('roles', 'canUpdate')
+    async addDashboardPermissions(
+        @Req() req,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() body: {
+            permissions: {
+                module: string;
+                canView?: boolean;
+            }[];
+        },
+    ) {
+        return this.rolesService.addDashboardPermissions(
+            req.user.id,
+            id,
+            body.permissions,
+        );
     }
 }
