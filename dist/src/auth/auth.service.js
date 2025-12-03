@@ -78,6 +78,12 @@ let AuthService = class AuthService {
         const isMatch = await bcrypt.compare(data.password, user.password);
         if (!isMatch)
             throw new common_1.UnauthorizedException('كلمة السر غير صحيحة');
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+                isActive: true
+            }
+        });
         await this.prisma.auditLog.create({
             data: {
                 userId: user.id,
@@ -87,6 +93,24 @@ let AuthService = class AuthService {
             },
         });
         return this.generateToken(user);
+    }
+    async logout(userId) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            throw new common_1.NotFoundException('User not found');
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { isActive: false },
+        });
+        await this.prisma.auditLog.create({
+            data: {
+                userId: user.id,
+                screen: 'Auth',
+                action: 'logout',
+                description: `المستخدم ${user.name} قام بتسجيل الخروج`,
+            },
+        });
+        return { message: 'تم تسجيل الخروج بنجاح' };
     }
     async getProfile(userId) {
         const user = await this.prisma.user.findUnique({

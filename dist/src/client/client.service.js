@@ -543,10 +543,11 @@ let ClientService = class ClientService {
         let runningBalance = client.debit - client.credit;
         let totalDebit = 0;
         let totalCredit = 0;
+        const round = (n) => Math.round(n * 100) / 100;
         const detailedTransactions = transactions.map((t) => {
-            runningBalance += t.debit - t.credit;
-            totalDebit += t.debit;
-            totalCredit += t.credit;
+            runningBalance = round(runningBalance + t.debit - t.credit);
+            totalDebit = round(totalDebit + t.debit);
+            totalCredit = round(totalCredit + t.credit);
             return {
                 ...t,
                 date: toSaudiDate(t.date),
@@ -560,11 +561,11 @@ let ClientService = class ClientService {
             currentPage: page,
             totalTransactions: detailedTransactions.length,
             client,
-            openingBalance: client.debit - client.credit,
+            openingBalance: round(client.debit - client.credit),
             transactions: paginatedTransactions,
-            totalDebit,
-            totalCredit,
-            closingBalance: runningBalance,
+            totalDebit: round(totalDebit),
+            totalCredit: round(totalCredit),
+            closingBalance: round(runningBalance),
         };
     }
     async createKafeel(currentUser, clientId, dto, files) {

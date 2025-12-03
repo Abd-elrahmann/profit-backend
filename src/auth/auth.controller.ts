@@ -1,15 +1,15 @@
-import { 
-  Controller, 
-  Post, 
-  Body, 
-  Get, 
-  UseGuards, 
-  Req, 
-  Patch, 
-  Param, 
-  ParseIntPipe, 
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Req,
+  Patch,
+  Param,
+  ParseIntPipe,
   UseInterceptors,
-  UploadedFile 
+  UploadedFile
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
@@ -27,6 +27,12 @@ export class AuthController {
   @Post('login')
   login(@Body() body: { email: string; password: string }) {
     return this.authService.login(body);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  logout(@Req() req) {
+    return this.authService.logout(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -28,6 +28,9 @@ let AuthController = class AuthController {
     login(body) {
         return this.authService.login(body);
     }
+    logout(req) {
+        return this.authService.logout(req.user.id);
+    }
     profile(req) {
         return this.authService.getProfile(req.user.id);
     }
@@ -68,6 +71,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "logout", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
     (0, common_1.Get)('profile'),

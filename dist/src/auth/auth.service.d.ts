@@ -24,6 +24,9 @@ export declare class AuthService {
             profileImage: any;
         };
     }>;
+    logout(userId: number): Promise<{
+        message: string;
+    }>;
     getProfile(userId: number): Promise<{
         id: number;
         email: string;

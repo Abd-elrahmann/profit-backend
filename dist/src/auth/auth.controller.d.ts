@@ -22,6 +22,9 @@ export declare class AuthController {
             profileImage: any;
         };
     }>;
+    logout(req: any): Promise<{
+        message: string;
+    }>;
     profile(req: any): Promise<{
         id: number;
         email: string;
