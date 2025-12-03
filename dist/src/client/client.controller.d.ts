@@ -6,34 +6,34 @@ export declare class ClientController {
     createClient(req: any, dto: CreateClientDto, files: Record<string, Express.Multer.File[]>): Promise<{
         message: string;
         client: {
+            id: number;
             name: string;
             nationalId: string;
-            id: number;
         };
     }>;
     updateClientData(req: any, id: number, dto: UpdateClientDto): Promise<{
         message: string;
         client: {
-            name: string;
+            id: number;
             email: string | null;
             phone: string;
-            telegramChatId: string | null;
-            birthDate: Date;
-            address: string;
+            name: string;
+            createdAt: Date;
+            status: import("@prisma/client").$Enums.ClientStatus;
             nationalId: string;
+            birthDate: Date;
             city: string;
             district: string;
             employer: string;
             salary: number;
             obligations: number;
+            telegramChatId: string | null;
+            address: string;
             creationReason: string;
             debit: number;
             credit: number;
             balance: number;
-            status: import("@prisma/client").$Enums.ClientStatus;
             notes: string | null;
-            createdAt: Date;
-            id: number;
         };
     }>;
     updateKafeelData(req: any, kafeelId: number, dto: UpdateKafeelDto, files?: {
@@ -42,21 +42,21 @@ export declare class ClientController {
     }): Promise<{
         message: string;
         kafeel: {
-            name: string;
+            id: number;
             email: string | null;
             phone: string;
-            birthDate: Date;
+            name: string;
+            createdAt: Date;
             nationalId: string;
+            birthDate: Date;
             city: string;
             district: string;
             employer: string;
             salary: number;
             obligations: number;
-            createdAt: Date;
-            id: number;
-            clientId: number;
             kafeelIdImage: string | null;
             kafeelWorkCard: string | null;
+            clientId: number;
         };
     }>;
     updateClientDocuments(req: any, id: number, files: Record<string, Array<Express.Multer.File>>, deleteFields?: string | string[]): Promise<{
@@ -86,30 +86,30 @@ export declare class ClientController {
                 createdAt: Date;
             };
             kafeels: {
-                name: string;
+                id: number;
                 email: string | null;
                 phone: string;
-                birthDate: Date;
+                name: string;
+                createdAt: Date;
                 nationalId: string;
+                birthDate: Date;
                 city: string;
                 district: string;
                 employer: string;
                 salary: number;
                 obligations: number;
-                createdAt: Date;
-                id: number;
-                clientId: number;
                 kafeelIdImage: string | null;
                 kafeelWorkCard: string | null;
+                clientId: number;
             }[];
             documents: {
-                createdAt: Date;
                 id: number;
-                clientId: number;
+                createdAt: Date;
                 clientIdImage: string;
                 clientWorkCard: string | null;
                 salaryReport: string | null;
                 simaReport: string | null;
+                clientId: number;
             }[];
         }[];
     }>;
@@ -133,21 +133,21 @@ export declare class ClientController {
             createdAt: Date;
         };
         kafeels: {
-            name: string;
+            id: number;
             email: string | null;
             phone: string;
-            birthDate: Date;
+            name: string;
+            createdAt: Date;
             nationalId: string;
+            birthDate: Date;
             city: string;
             district: string;
             employer: string;
             salary: number;
             obligations: number;
-            createdAt: Date;
-            id: number;
-            clientId: number;
             kafeelIdImage: string | null;
             kafeelWorkCard: string | null;
+            clientId: number;
         }[];
         documents: ({
             clientIdImage: string;
@@ -176,12 +176,12 @@ export declare class ClientController {
         currentPage: number;
         totalTransactions: number;
         client: {
+            id: number;
             name: string;
             nationalId: string;
             debit: number;
             credit: number;
             balance: number;
-            id: number;
         };
         openingBalance: number;
         transactions: any[];
@@ -192,21 +192,21 @@ export declare class ClientController {
     createKafeel(req: any, clientId: number, dto: KafeelDto, files?: Record<string, Express.Multer.File[]>): Promise<{
         message: string;
         kafeel: {
-            name: string;
+            id: number;
             email: string | null;
             phone: string;
-            birthDate: Date;
+            name: string;
+            createdAt: Date;
             nationalId: string;
+            birthDate: Date;
             city: string;
             district: string;
             employer: string;
             salary: number;
             obligations: number;
-            createdAt: Date;
-            id: number;
-            clientId: number;
             kafeelIdImage: string | null;
             kafeelWorkCard: string | null;
+            clientId: number;
         };
     }>;
     deleteKafeel(req: any, kafeelId: number): Promise<{
