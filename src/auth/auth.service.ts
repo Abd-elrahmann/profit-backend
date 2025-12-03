@@ -44,6 +44,13 @@ export class AuthService {
     const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) throw new UnauthorizedException('كلمة السر غير صحيحة');
 
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: true
+      }
+    })
+
     // create audit log
     await this.prisma.auditLog.create({
       data: {
@@ -57,19 +64,42 @@ export class AuthService {
     return this.generateToken(user);
   }
 
+  async logout(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Set isActive = false
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: false },
+    });
+
+    // Create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        screen: 'Auth',
+        action: 'logout',
+        description: `المستخدم ${user.name} قام بتسجيل الخروج`,
+      },
+    });
+
+    return { message: 'تم تسجيل الخروج بنجاح' };
+  }
+
   // Profile
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        phone: true, 
-        roleId: true, 
-        isActive: true, 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        roleId: true,
+        isActive: true,
         createdAt: true,
-        profileImage: true 
+        profileImage: true
       },
     });
     return user;
@@ -79,14 +109,14 @@ export class AuthService {
   private generateToken(user: any) {
     const payload = { sub: user.id, email: user.email };
     const accessToken = this.jwtService.sign(payload);
-    return { 
-      accessToken, 
-      user: { 
-        id: user.id, 
-        name: user.name, 
+    return {
+      accessToken,
+      user: {
+        id: user.id,
+        name: user.name,
         email: user.email,
-        profileImage: user.profileImage 
-      } 
+        profileImage: user.profileImage
+      }
     };
   }
 
@@ -104,13 +134,13 @@ export class AuthService {
         name: data.name ?? user.name,
         phone: data.phone ?? user.phone,
       },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        phone: true, 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
         updatedAt: true,
-        profileImage: true 
+        profileImage: true
       },
     });
 
@@ -152,11 +182,11 @@ export class AuthService {
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: { profileImage: publicPath },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        profileImage: true 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profileImage: true
       },
     });
 
@@ -170,8 +200,8 @@ export class AuthService {
       },
     });
 
-    return { 
-      message: 'تم رفع صورة البروفايل بنجاح', 
+    return {
+      message: 'تم رفع صورة البروفايل بنجاح',
       profileImage: publicPath,
       user: updatedUser
     };
@@ -327,7 +357,7 @@ export class AuthService {
 
     // Extract unique module names from permissions
     const modules = [...new Set(user.role.permissions.map((perm) => perm.module))];
-    
+
     return modules;
   }
 }

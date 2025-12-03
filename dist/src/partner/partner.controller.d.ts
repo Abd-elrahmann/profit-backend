@@ -1,0 +1,346 @@
+import { PartnerService } from './partner.service';
+import { CreatePartnerDto, UpdatePartnerDto } from './dto/partner.dto';
+export declare class PartnerController {
+    private readonly partnerService;
+    constructor(partnerService: PartnerService);
+    create(req: any, dto: CreatePartnerDto): Promise<{
+        message: string;
+        partner: {
+            AccountPayable: {
+                id: number;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                type: import("@prisma/client").$Enums.AccountType;
+                debit: number;
+                credit: number;
+                balance: number;
+                code: string;
+                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+                nature: import("@prisma/client").$Enums.AccountNature;
+                parentId: number | null;
+                level: number;
+            };
+            AccountEquity: {
+                id: number;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                type: import("@prisma/client").$Enums.AccountType;
+                debit: number;
+                credit: number;
+                balance: number;
+                code: string;
+                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+                nature: import("@prisma/client").$Enums.AccountNature;
+                parentId: number | null;
+                level: number;
+            };
+        } & {
+            id: number;
+            email: string | null;
+            phone: string | null;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            nationalId: string;
+            address: string;
+            totalAmount: number;
+            orgProfitPercent: number;
+            capitalAmount: number;
+            contractSignedAt: Date | null;
+            mudarabahFileUrl: string | null;
+            totalProfit: number;
+            accountPayableId: number;
+            accountEquityId: number;
+            accountSavingId: number;
+            yearlyZakatRequired: number | null;
+            yearlyZakatPaid: number | null;
+            yearlyZakatBalance: number | null;
+        };
+    }>;
+    update(req: any, id: number, dto: UpdatePartnerDto): Promise<{
+        message: string;
+        partner: {
+            id: number;
+            email: string | null;
+            phone: string | null;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            nationalId: string;
+            address: string;
+            totalAmount: number;
+            orgProfitPercent: number;
+            capitalAmount: number;
+            contractSignedAt: Date | null;
+            mudarabahFileUrl: string | null;
+            totalProfit: number;
+            accountPayableId: number;
+            accountEquityId: number;
+            accountSavingId: number;
+            yearlyZakatRequired: number | null;
+            yearlyZakatPaid: number | null;
+            yearlyZakatBalance: number | null;
+        };
+    }>;
+    delete(req: any, id: number): Promise<{
+        message: string;
+    }>;
+    getAll(page: number, limit?: number, name?: string, nationalId?: string, isActive?: string): Promise<{
+        totalPartners: number;
+        totalPages: number;
+        currentPage: number;
+        partners: {
+            partnerProfitPercent: number;
+            totalSaving: number;
+            AccountPayable: {
+                id: number;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                type: import("@prisma/client").$Enums.AccountType;
+                debit: number;
+                credit: number;
+                balance: number;
+                code: string;
+                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+                nature: import("@prisma/client").$Enums.AccountNature;
+                parentId: number | null;
+                level: number;
+            };
+            AccountEquity: {
+                id: number;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                type: import("@prisma/client").$Enums.AccountType;
+                debit: number;
+                credit: number;
+                balance: number;
+                code: string;
+                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+                nature: import("@prisma/client").$Enums.AccountNature;
+                parentId: number | null;
+                level: number;
+            };
+            AccountSaving: {
+                id: number;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                type: import("@prisma/client").$Enums.AccountType;
+                debit: number;
+                credit: number;
+                balance: number;
+                code: string;
+                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+                nature: import("@prisma/client").$Enums.AccountNature;
+                parentId: number | null;
+                level: number;
+            };
+            id: number;
+            email: string | null;
+            phone: string | null;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            nationalId: string;
+            address: string;
+            totalAmount: number;
+            orgProfitPercent: number;
+            capitalAmount: number;
+            contractSignedAt: Date | null;
+            mudarabahFileUrl: string | null;
+            totalProfit: number;
+            accountPayableId: number;
+            accountEquityId: number;
+            accountSavingId: number;
+            yearlyZakatRequired: number | null;
+            yearlyZakatPaid: number | null;
+            yearlyZakatBalance: number | null;
+        }[];
+    }>;
+    getPartnerById(id: number): Promise<{
+        partnerProfitPercent: number;
+        totalSaving: number;
+        loans: {
+            id: number;
+            createdAt: Date;
+            type: import("@prisma/client").$Enums.LoanType;
+            status: import("@prisma/client").$Enums.LoanStatus;
+            clientId: number;
+            code: string;
+            kafeelId: number | null;
+            amount: number;
+            interestRate: number;
+            interestAmount: number;
+            totalAmount: number;
+            paymentAmount: number;
+            durationMonths: number;
+            startDate: Date;
+            endDate: Date | null;
+            repaymentDay: number | null;
+            bankAccountId: number | null;
+            partnerId: number | null;
+            disbursementJournalId: number | null;
+            settlementJournalId: number | null;
+            DEBT_ACKNOWLEDGMENT: string | null;
+            PROMISSORY_NOTE: string | null;
+            SETTLEMENT: string | null;
+            debtAcknowledgmentNumber: string | null;
+            promissoryNoteNumber: string | null;
+            earlyPaidAmount: number | null;
+            earlyPaymentDiscount: number | null;
+            newAmount: number | null;
+        }[];
+        AccountPayable: {
+            id: number;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            type: import("@prisma/client").$Enums.AccountType;
+            debit: number;
+            credit: number;
+            balance: number;
+            code: string;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            parentId: number | null;
+            level: number;
+        };
+        AccountEquity: {
+            id: number;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            type: import("@prisma/client").$Enums.AccountType;
+            debit: number;
+            credit: number;
+            balance: number;
+            code: string;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            parentId: number | null;
+            level: number;
+        };
+        AccountSaving: {
+            id: number;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            type: import("@prisma/client").$Enums.AccountType;
+            debit: number;
+            credit: number;
+            balance: number;
+            code: string;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            parentId: number | null;
+            level: number;
+        };
+        transactions: {
+            id: number;
+            createdAt: Date;
+            description: string | null;
+            date: Date;
+            reference: string | null;
+            type: import("@prisma/client").$Enums.TransactionType;
+            amount: number;
+            partnerId: number;
+            journalId: number | null;
+        }[];
+        id: number;
+        email: string | null;
+        phone: string | null;
+        name: string;
+        isActive: boolean;
+        createdAt: Date;
+        nationalId: string;
+        address: string;
+        totalAmount: number;
+        orgProfitPercent: number;
+        capitalAmount: number;
+        contractSignedAt: Date | null;
+        mudarabahFileUrl: string | null;
+        totalProfit: number;
+        accountPayableId: number;
+        accountEquityId: number;
+        accountSavingId: number;
+        yearlyZakatRequired: number | null;
+        yearlyZakatPaid: number | null;
+        yearlyZakatBalance: number | null;
+    }>;
+    uploadMudarabahFile(req: any, id: number, file: Express.Multer.File): Promise<{
+        message: string;
+        path: string;
+    }>;
+    createTransaction(req: any, partnerId: number, dto: {
+        type: 'DEPOSIT' | 'WITHDRAWAL';
+        amount: number;
+        description?: string;
+    }): Promise<{
+        message: string;
+        transaction: {
+            id: number;
+            createdAt: Date;
+            description: string | null;
+            date: Date;
+            reference: string | null;
+            type: import("@prisma/client").$Enums.TransactionType;
+            amount: number;
+            partnerId: number;
+            journalId: number | null;
+        };
+        journal: {
+            message: string;
+            journal: {
+                lines: {
+                    id: number;
+                    description: string | null;
+                    debit: number;
+                    credit: number;
+                    balance: number;
+                    clientId: number | null;
+                    accountId: number;
+                    journalId: number;
+                }[];
+            } & {
+                id: number;
+                createdAt: Date;
+                description: string | null;
+                date: Date;
+                postedById: number | null;
+                reference: string | null;
+                type: import("@prisma/client").$Enums.JournalType;
+                status: import("@prisma/client").$Enums.JournalStatus;
+                sourceId: number | null;
+                sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
+                periodId: number | null;
+            };
+        };
+    }>;
+    deleteTransaction(req: any, id: number): Promise<{
+        message: string;
+    } | undefined>;
+    getTransactions(partnerId: number, page: number, limit?: number, type?: 'DEPOSIT' | 'WITHDRAWAL', search?: string, startDate?: string, endDate?: string): Promise<{
+        totalTransactions: number;
+        totalPages: number;
+        currentPage: number;
+        limit: number;
+        transactions: {
+            date: string;
+            partner: {
+                name: string;
+            };
+            id: number;
+            createdAt: Date;
+            description: string | null;
+            reference: string | null;
+            type: import("@prisma/client").$Enums.TransactionType;
+            amount: number;
+            partnerId: number;
+            journalId: number | null;
+        }[];
+    }>;
+}
