@@ -33,12 +33,18 @@ let JournalController = class JournalController {
     delete(req, id) {
         return this.journalService.deleteJournal(req.user.id, id);
     }
-    getAll(page, limit, search, status, type) {
+    getAll(page, limit, search, status, type, reference, description, sourceType, postedByName, dateFrom, dateTo) {
         return this.journalService.getAllJournals(page, {
             limit: Number(limit) || 10,
             search,
             status,
             type,
+            reference,
+            description,
+            sourceType,
+            postedByName,
+            dateFrom,
+            dateTo,
         });
     }
     getById(id) {
@@ -89,8 +95,14 @@ __decorate([
     __param(2, (0, common_1.Query)('search')),
     __param(3, (0, common_1.Query)('status')),
     __param(4, (0, common_1.Query)('type')),
+    __param(5, (0, common_1.Query)('reference')),
+    __param(6, (0, common_1.Query)('description')),
+    __param(7, (0, common_1.Query)('sourceType')),
+    __param(8, (0, common_1.Query)('postedByName')),
+    __param(9, (0, common_1.Query)('dateFrom')),
+    __param(10, (0, common_1.Query)('dateTo')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, String, String, String]),
+    __metadata("design:paramtypes", [Number, Number, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], JournalController.prototype, "getAll", null);
 __decorate([

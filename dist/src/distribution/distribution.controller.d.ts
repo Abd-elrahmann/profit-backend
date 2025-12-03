@@ -32,16 +32,16 @@ export declare class DistributionController {
         }[];
         distributionJournal: {
             id: number;
-            createdAt: Date;
+            reference: string | null;
             description: string | null;
             date: Date;
-            postedById: number | null;
-            reference: string | null;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
+            postedById: number | null;
             periodId: number | null;
+            createdAt: Date;
         } | null;
     }[]>;
 }

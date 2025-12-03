@@ -534,7 +534,12 @@ let PeriodService = class PeriodService {
             };
         }
         if (filters?.isClosed !== undefined) {
-            where.isClosed = filters.isClosed;
+            if (typeof filters.isClosed === 'string') {
+                where.isClosed = filters.isClosed === 'true';
+            }
+            else {
+                where.isClosed = Boolean(filters.isClosed);
+            }
         }
         where.journals = {
             some: {}

@@ -153,7 +153,7 @@ let JournalService = class JournalService {
         return { message: 'تم حذف القيد بنجاح' };
     }
     async getAllJournals(page = 1, params) {
-        const { limit = 10, search, status, type } = params;
+        const { limit = 10, search, status, type, reference, description, sourceType, postedByName, dateFrom, dateTo } = params;
         const skip = (page - 1) * limit;
         const where = {};
         where.NOT = [
@@ -164,6 +164,7 @@ let JournalService = class JournalService {
                 ]
             }
         ];
+        const orConditions = [];
         if (search) {
             const searchUpper = search.toUpperCase();
             const sourceTypeMatches = [];
@@ -185,11 +186,7 @@ let JournalService = class JournalService {
             if (searchUpper.includes('CLOSING') || searchUpper.includes('إقفال')) {
                 sourceTypeMatches.push(client_1.JournalSourceType.PERIOD_CLOSING);
             }
-            const orConditions = [
-                { reference: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
-                { postedBy: { name: { contains: search, mode: 'insensitive' } } },
-            ];
+            orConditions.push({ reference: { contains: search, mode: 'insensitive' } }, { description: { contains: search, mode: 'insensitive' } }, { postedBy: { name: { contains: search, mode: 'insensitive' } } });
             if (sourceTypeMatches.length > 0) {
                 const sourceTypeConditions = sourceTypeMatches.map((type) => {
                     if (type === client_1.JournalSourceType.PERIOD_CLOSING) {
@@ -204,12 +201,46 @@ let JournalService = class JournalService {
                 });
                 orConditions.push(...sourceTypeConditions);
             }
+        }
+        if (reference) {
+            orConditions.push({ reference: { contains: reference, mode: 'insensitive' } });
+        }
+        if (description) {
+            orConditions.push({ description: { contains: description, mode: 'insensitive' } });
+        }
+        if (postedByName) {
+            orConditions.push({ postedBy: { name: { contains: postedByName, mode: 'insensitive' } } });
+        }
+        if (sourceType) {
+            const sourceTypeValue = sourceType;
+            if (sourceTypeValue === client_1.JournalSourceType.PERIOD_CLOSING) {
+                orConditions.push({
+                    AND: [
+                        { sourceType: sourceTypeValue },
+                        { status: 'POSTED' }
+                    ]
+                });
+            }
+            else {
+                orConditions.push({ sourceType: sourceTypeValue });
+            }
+        }
+        if (orConditions.length > 0) {
             where.OR = orConditions;
         }
         if (status)
             where.status = status;
         if (type)
             where.type = type;
+        if (dateFrom || dateTo) {
+            where.date = {};
+            if (dateFrom) {
+                where.date.gte = new Date(dateFrom);
+            }
+            if (dateTo) {
+                where.date.lte = new Date(dateTo);
+            }
+        }
         const [unformmatedjournals, total] = await Promise.all([
             this.prisma.journalHeader.findMany({
                 where,

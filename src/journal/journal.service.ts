@@ -175,8 +175,14 @@ export class JournalService {
             search?: string;
             status?: string;
             type?: string;
+            reference?: string;
+            description?: string;
+            sourceType?: string;
+            postedByName?: string;
+            dateFrom?: string;
+            dateTo?: string;
         }) {
-        const { limit = 10, search, status, type } = params;
+        const { limit = 10, search, status, type, reference, description, sourceType, postedByName, dateFrom, dateTo } = params;
         const skip = (page - 1) * limit;
 
         const where: any = {};
@@ -190,6 +196,10 @@ export class JournalService {
             }
         ];
 
+        // Handle search parameters
+        const orConditions: any[] = [];
+
+        // Handle general search parameter
         if (search) {
             const searchUpper = search.toUpperCase();
             // Try to match enum values for sourceType
@@ -214,11 +224,11 @@ export class JournalService {
                 sourceTypeMatches.push(JournalSourceType.PERIOD_CLOSING);
             }
 
-            const orConditions: any[] = [
+            orConditions.push(
                 { reference: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
                 { postedBy: { name: { contains: search, mode: 'insensitive' } } },
-            ];
+            );
 
             // Add sourceType search if there are matches
             if (sourceTypeMatches.length > 0) {
@@ -236,12 +246,49 @@ export class JournalService {
 
                 orConditions.push(...sourceTypeConditions);
             }
+        }
 
+        // Handle individual search parameters
+        if (reference) {
+            orConditions.push({ reference: { contains: reference, mode: 'insensitive' } });
+        }
+        if (description) {
+            orConditions.push({ description: { contains: description, mode: 'insensitive' } });
+        }
+        if (postedByName) {
+            orConditions.push({ postedBy: { name: { contains: postedByName, mode: 'insensitive' } } });
+        }
+        if (sourceType) {
+            const sourceTypeValue = sourceType as JournalSourceType;
+            if (sourceTypeValue === JournalSourceType.PERIOD_CLOSING) {
+                orConditions.push({
+                    AND: [
+                        { sourceType: sourceTypeValue },
+                        { status: 'POSTED' }
+                    ]
+                });
+            } else {
+                orConditions.push({ sourceType: sourceTypeValue });
+            }
+        }
+
+        if (orConditions.length > 0) {
             where.OR = orConditions;
         }
 
         if (status) where.status = status as any;
         if (type) where.type = type as any;
+
+        // Handle date range filtering
+        if (dateFrom || dateTo) {
+            where.date = {};
+            if (dateFrom) {
+                where.date.gte = new Date(dateFrom);
+            }
+            if (dateTo) {
+                where.date.lte = new Date(dateTo);
+            }
+        }
 
         const [unformmatedjournals, total] = await Promise.all([
             this.prisma.journalHeader.findMany({

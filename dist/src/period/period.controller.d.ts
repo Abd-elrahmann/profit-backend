@@ -85,12 +85,12 @@ export declare class PeriodController {
         currentPage: number;
         periods: {
             id: number;
-            name: string;
-            createdAt: Date;
-            startDate: Date;
-            endDate: Date | null;
             openingJournalId: number | null;
             closingJournalId: number | null;
+            name: string;
+            startDate: Date;
+            endDate: Date | null;
+            createdAt: Date;
             isClosed: boolean;
         }[];
     }>;

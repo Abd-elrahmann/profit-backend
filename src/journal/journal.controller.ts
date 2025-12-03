@@ -36,12 +36,24 @@ export class JournalController {
         @Query('search') search?: string,
         @Query('status') status?: string,
         @Query('type') type?: string,
+        @Query('reference') reference?: string,
+        @Query('description') description?: string,
+        @Query('sourceType') sourceType?: string,
+        @Query('postedByName') postedByName?: string,
+        @Query('dateFrom') dateFrom?: string,
+        @Query('dateTo') dateTo?: string,
     ) {
         return this.journalService.getAllJournals(page, {
             limit: Number(limit) || 10,
             search,
             status,
             type,
+            reference,
+            description,
+            sourceType,
+            postedByName,
+            dateFrom,
+            dateTo,
         });
     }
 
