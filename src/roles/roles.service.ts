@@ -17,6 +17,7 @@ export class RolesService {
             canUpdate?: boolean;
             canDelete?: boolean;
             canPost?: boolean;
+            canExport?: boolean;
         }[];
     }) {
         const exists = await this.prisma.role.findUnique({ where: { name: data.name } });
@@ -38,6 +39,7 @@ export class RolesService {
                         canUpdate: p.canUpdate ?? false,
                         canDelete: p.canDelete ?? false,
                         canPost: p.canPost ?? false,
+                        canExport: p.canExport ?? false,
                     })),
                 },
             },
@@ -109,6 +111,7 @@ export class RolesService {
                 canUpdate: p.canUpdate,
                 canDelete: p.canDelete,
                 canPost: p.canPost,
+                canExport: p.canExport,
             })),
         };
     }
@@ -127,6 +130,7 @@ export class RolesService {
                 canUpdate?: boolean;
                 canDelete?: boolean;
                 canPost?: boolean;
+                canExport?: boolean;
             }[];
         },
     ) {
@@ -157,6 +161,7 @@ export class RolesService {
                         canUpdate: p.canUpdate ?? false,
                         canDelete: p.canDelete ?? false,
                         canPost: p.canPost ?? false,
+                        canExport: p.canExport ?? false,
                     })),
                 });
             }

@@ -45,6 +45,7 @@ model RolePermission {
   canUpdate Boolean  @default(false)
   canDelete Boolean  @default(false)
   canPost   Boolean  @default(false)
+  canExport Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

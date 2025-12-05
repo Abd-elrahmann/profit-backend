@@ -12,22 +12,22 @@ export declare class JournalController {
                 debit: number;
                 credit: number;
                 balance: number;
-                accountId: number;
                 clientId: number | null;
+                accountId: number;
                 journalId: number;
             }[];
         } & {
             id: number;
-            reference: string | null;
+            createdAt: Date;
             description: string | null;
             date: Date;
+            postedById: number | null;
+            reference: string | null;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
-            postedById: number | null;
             periodId: number | null;
-            createdAt: Date;
         };
     }>;
     update(req: any, id: number, dto: UpdateJournalDto): Promise<{
@@ -39,22 +39,22 @@ export declare class JournalController {
                 debit: number;
                 credit: number;
                 balance: number;
-                accountId: number;
                 clientId: number | null;
+                accountId: number;
                 journalId: number;
             }[];
         } & {
             id: number;
-            reference: string | null;
+            createdAt: Date;
             description: string | null;
             date: Date;
+            postedById: number | null;
+            reference: string | null;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
-            postedById: number | null;
             periodId: number | null;
-            createdAt: Date;
         };
     }>;
     delete(req: any, id: number): Promise<{
@@ -70,17 +70,17 @@ export declare class JournalController {
             createdAt: string | null;
             postedBy: {
                 id: number;
-                name: string;
                 email: string;
+                name: string;
             } | null;
             id: number;
-            reference: string | null;
             description: string | null;
+            postedById: number | null;
+            reference: string | null;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
-            postedById: number | null;
             periodId: number | null;
         }[];
     }>;
@@ -92,46 +92,46 @@ export declare class JournalController {
         };
         postedBy: {
             id: number;
-            name: string;
             email: string;
+            name: string;
         } | null;
         lines: ({
             client: {
                 id: number;
-                status: import("@prisma/client").$Enums.ClientStatus;
-                createdAt: Date;
-                name: string;
-                debit: number;
-                credit: number;
-                balance: number;
                 email: string | null;
                 phone: string;
-                telegramChatId: string | null;
-                birthDate: Date;
-                address: string;
+                name: string;
+                createdAt: Date;
+                status: import("@prisma/client").$Enums.ClientStatus;
                 nationalId: string;
+                birthDate: Date;
                 city: string;
                 district: string;
                 employer: string;
                 salary: number;
                 obligations: number;
+                telegramChatId: string | null;
+                address: string;
                 creationReason: string;
+                debit: number;
+                credit: number;
+                balance: number;
                 notes: string | null;
             } | null;
             account: {
                 id: number;
-                type: import("@prisma/client").$Enums.AccountType;
-                createdAt: Date;
                 name: string;
+                isActive: boolean;
+                createdAt: Date;
+                type: import("@prisma/client").$Enums.AccountType;
                 debit: number;
                 credit: number;
                 balance: number;
                 code: string;
+                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+                nature: import("@prisma/client").$Enums.AccountNature;
                 parentId: number | null;
                 level: number;
-                isActive: boolean;
-                nature: import("@prisma/client").$Enums.AccountNature;
-                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
             };
         } & {
             id: number;
@@ -139,21 +139,21 @@ export declare class JournalController {
             debit: number;
             credit: number;
             balance: number;
-            accountId: number;
             clientId: number | null;
+            accountId: number;
             journalId: number;
         })[];
         id: number;
-        reference: string | null;
+        createdAt: Date;
         description: string | null;
         date: Date;
+        postedById: number | null;
+        reference: string | null;
         type: import("@prisma/client").$Enums.JournalType;
         status: import("@prisma/client").$Enums.JournalStatus;
         sourceId: number | null;
         sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
-        postedById: number | null;
         periodId: number | null;
-        createdAt: Date;
     }>;
     postJournal(id: number, req: any): Promise<{
         message: string;

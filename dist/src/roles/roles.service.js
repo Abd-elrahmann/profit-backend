@@ -37,6 +37,7 @@ let RolesService = class RolesService {
                         canUpdate: p.canUpdate ?? false,
                         canDelete: p.canDelete ?? false,
                         canPost: p.canPost ?? false,
+                        canExport: p.canExport ?? false,
                     })),
                 },
             },
@@ -100,6 +101,7 @@ let RolesService = class RolesService {
                 canUpdate: p.canUpdate,
                 canDelete: p.canDelete,
                 canPost: p.canPost,
+                canExport: p.canExport,
             })),
         };
     }
@@ -126,6 +128,7 @@ let RolesService = class RolesService {
                         canUpdate: p.canUpdate ?? false,
                         canDelete: p.canDelete ?? false,
                         canPost: p.canPost ?? false,
+                        canExport: p.canExport ?? false,
                     })),
                 });
             }

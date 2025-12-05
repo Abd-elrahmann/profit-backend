@@ -27,6 +27,7 @@ export declare class RolesController {
                 canUpdate: boolean;
                 canDelete: boolean;
                 canPost: boolean;
+                canExport: boolean;
             }[];
         } & {
             id: number;
@@ -52,6 +53,7 @@ export declare class RolesController {
                 canUpdate: boolean;
                 canDelete: boolean;
                 canPost: boolean;
+                canExport: boolean;
             }[];
             id: number;
             name: string;
@@ -73,6 +75,7 @@ export declare class RolesController {
             canUpdate: boolean;
             canDelete: boolean;
             canPost: boolean;
+            canExport: boolean;
         }[];
     }>;
     updateRole(req: any, id: number, body: {

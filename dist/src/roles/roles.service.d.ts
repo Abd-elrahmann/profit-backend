@@ -12,6 +12,7 @@ export declare class RolesService {
             canUpdate?: boolean;
             canDelete?: boolean;
             canPost?: boolean;
+            canExport?: boolean;
         }[];
     }): Promise<{
         message: string;
@@ -27,6 +28,7 @@ export declare class RolesService {
                 canUpdate: boolean;
                 canDelete: boolean;
                 canPost: boolean;
+                canExport: boolean;
             }[];
         } & {
             id: number;
@@ -55,6 +57,7 @@ export declare class RolesService {
                 canUpdate: boolean;
                 canDelete: boolean;
                 canPost: boolean;
+                canExport: boolean;
             }[];
             id: number;
             name: string;
@@ -76,6 +79,7 @@ export declare class RolesService {
             canUpdate: boolean;
             canDelete: boolean;
             canPost: boolean;
+            canExport: boolean;
         }[];
     }>;
     updateRole(id: number, currentUser: any, data: {
@@ -88,6 +92,7 @@ export declare class RolesService {
             canUpdate?: boolean;
             canDelete?: boolean;
             canPost?: boolean;
+            canExport?: boolean;
         }[];
     }): Promise<{
         message: string;

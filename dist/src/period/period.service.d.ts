@@ -95,12 +95,12 @@ export declare class PeriodService {
         currentPage: number;
         periods: {
             id: number;
-            openingJournalId: number | null;
-            closingJournalId: number | null;
             name: string;
+            createdAt: Date;
             startDate: Date;
             endDate: Date | null;
-            createdAt: Date;
+            openingJournalId: number | null;
+            closingJournalId: number | null;
             isClosed: boolean;
         }[];
     }>;
