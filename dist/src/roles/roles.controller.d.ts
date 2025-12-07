@@ -12,6 +12,7 @@ export declare class RolesController {
             canUpdate?: boolean;
             canDelete?: boolean;
             canPost?: boolean;
+            canExport?: boolean;
         }[];
     }): Promise<{
         message: string;
@@ -88,6 +89,7 @@ export declare class RolesController {
             canUpdate?: boolean;
             canDelete?: boolean;
             canPost?: boolean;
+            canExport?: boolean;
         }[];
     }): Promise<{
         message: string;

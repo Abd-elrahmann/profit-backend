@@ -318,6 +318,8 @@ let AuthService = class AuthService {
             permissionsList.push('Delete');
         if (permission.canPost)
             permissionsList.push('Post');
+        if (permission.canExport)
+            permissionsList.push('Export');
         return permissionsList;
     }
     async getUserModules(userId) {

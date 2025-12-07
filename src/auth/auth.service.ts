@@ -333,6 +333,7 @@ export class AuthService {
     if (permission.canUpdate) permissionsList.push('Update');
     if (permission.canDelete) permissionsList.push('Delete');
     if (permission.canPost) permissionsList.push('Post');
+    if (permission.canExport) permissionsList.push('Export');
 
     return permissionsList;
   }

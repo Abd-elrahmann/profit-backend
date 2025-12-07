@@ -25,6 +25,7 @@ export class RolesController {
                 canUpdate?: boolean;
                 canDelete?: boolean;
                 canPost?: boolean;
+                canExport?: boolean;
             }[];
         },
     ) {
@@ -67,6 +68,7 @@ export class RolesController {
                 canUpdate?: boolean;
                 canDelete?: boolean;
                 canPost?: boolean;
+                canExport?: boolean;
             }[];
         },
     ) {
