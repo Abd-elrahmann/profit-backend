@@ -53,7 +53,7 @@ export class RolesController {
 
     // Update a role
     @Patch(':id')
-    @Permissions('roles', 'canUpdate')
+    //@Permissions('roles', 'canUpdate')
     updateRole(
         @Req() req,
         @Param('id', ParseIntPipe) id: number,
