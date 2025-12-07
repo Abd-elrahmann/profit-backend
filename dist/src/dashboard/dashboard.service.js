@@ -156,18 +156,31 @@ let DashboardService = class DashboardService {
             }
         }
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
-        const loansCount = await this.prisma.loan.count({
+        const loans = await this.prisma.loan.findMany({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
+            include: {
+                repayments: {
+                    select: { dueDate: true, paymentDate: true, status: true }
+                }
+            }
         });
-        const loansByStatusRaw = await this.prisma.loan.groupBy({
-            by: ['status'],
-            _count: { status: true },
-            where: dateFilter ? { createdAt: dateFilter } : undefined,
+        function computeLoanStatus(loan) {
+            if (loan.status === "COMPLETED") {
+                return "COMPLETED";
+            }
+            if (loan.status === "ACTIVE") {
+                const overdue = loan.repayments.some(r => r.status === "OVERDUE");
+                if (overdue)
+                    return "OVERDUE";
+            }
+            return loan.status;
+        }
+        const loansByStatus = {};
+        loans.forEach(loan => {
+            const finalStatus = computeLoanStatus(loan);
+            loansByStatus[finalStatus] = (loansByStatus[finalStatus] || 0) + 1;
         });
-        const loansByStatus = loansByStatusRaw.reduce((acc, row) => {
-            acc[row.status] = row._count.status;
-            return acc;
-        }, {});
+        const loansCount = loans.length;
         const loanAmounts = await this.prisma.loan.aggregate({
             _sum: { totalAmount: true, newAmount: true },
             where: dateFilter ? { createdAt: dateFilter } : undefined,
@@ -180,7 +193,9 @@ let DashboardService = class DashboardService {
             loans: {
                 count: loansCount,
                 byStatus: loansByStatus,
-                totalAmount: loanAmounts._sum.newAmount ? loanAmounts._sum.newAmount : loanAmounts._sum.totalAmount || 0,
+                totalAmount: loanAmounts._sum.newAmount
+                    ? loanAmounts._sum.newAmount
+                    : loanAmounts._sum.totalAmount || 0,
             },
             bank: {
                 balance: bankBalance,

@@ -424,6 +424,7 @@ model Account {
 enum AccountBasicType {
   BANK
   CASH
+  EXPENSES
   LOANS_RECEIVABLE
   PARTNER_PAYABLE
   PARTNER_EQUITY
@@ -561,6 +562,7 @@ enum JournalSourceType {
   ZAKAT
   SAVING
   COMPANY_PROFIT_WITHDRAWAL
+  EXPENSES
   OTHER
 }
 

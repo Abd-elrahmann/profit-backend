@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 
-@UseGuards(JwtAuthGuard,PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('journals')
 export class JournalController {
     constructor(private readonly journalService: JournalService) { }
@@ -19,13 +19,13 @@ export class JournalController {
     @Patch(':id')
     @Permissions('journals', 'canUpdate')
     update(@Req() req, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateJournalDto) {
-        return this.journalService.updateJournal(req.user.id , id, dto);
+        return this.journalService.updateJournal(req.user.id, id, dto);
     }
 
     @Delete(':id')
     @Permissions('journals', 'canDelete')
     delete(@Req() req, @Param('id', ParseIntPipe) id: number) {
-        return this.journalService.deleteJournal(req.user.id , id);
+        return this.journalService.deleteJournal(req.user.id, id);
     }
 
     @Get('all/:page')
@@ -73,6 +73,21 @@ export class JournalController {
     @Post(':id/unpost')
     @Permissions('journals', 'canPost')
     async unpostJournal(@Req() req, @Param('id', ParseIntPipe) id: number) {
-        return this.journalService.unpostJournal(req.user.id , id);
+        return this.journalService.unpostJournal(req.user.id, id);
     }
+
+    // POST MULTIPLE JOURNALS
+    @Post('post-multiple')
+    @Permissions('journals', 'canPost')
+    async postMultiple(@Body('ids') ids: number[], @Req() req) {
+        return this.journalService.postMultipleJournals(ids, req.user.id);
+    }
+
+    // UNPOST MULTIPLE JOURNALS
+    @Post('unpost-multiple')
+    @Permissions('journals', 'canPost')
+    async unpostMultiple(@Body('ids') ids: number[], @Req() req) {
+        return this.journalService.unpostMultipleJournals(ids, req.user.id);
+    }
+
 }

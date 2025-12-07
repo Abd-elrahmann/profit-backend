@@ -175,4 +175,6 @@ export declare class JournalService {
         journalId: number;
     }>;
     private updateAccountHierarchy;
+    postMultipleJournals(ids: number[], userId: number): Promise<any[]>;
+    unpostMultipleJournals(ids: number[], userId: number): Promise<any[]>;
 }

@@ -163,4 +163,6 @@ export declare class JournalController {
         message: string;
         journalId: number;
     }>;
+    postMultiple(ids: number[], req: any): Promise<any[]>;
+    unpostMultiple(ids: number[], req: any): Promise<any[]>;
 }

@@ -50,6 +50,14 @@ let RepaymentController = class RepaymentController {
         const result = await this.repaymentService.markLoanAsEarlyPaid(id, earlyPaymentDiscount, req.user.id);
         return result;
     }
+    async approveMany(req, body) {
+        const dto = { notes: body.notes };
+        return this.repaymentService.approveMany(req.user.id, body.ids, dto);
+    }
+    async rejectMany(req, body) {
+        const dto = { notes: body.notes };
+        return this.repaymentService.rejectMany(req.user.id, body.ids, dto);
+    }
 };
 exports.RepaymentController = RepaymentController;
 __decorate([
@@ -131,6 +139,24 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, Number]),
     __metadata("design:returntype", Promise)
 ], RepaymentController.prototype, "markAsEarlyPaid", null);
+__decorate([
+    (0, common_1.Post)('approve-many'),
+    (0, permissions_decorator_1.Permissions)('repayments', 'canPost'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], RepaymentController.prototype, "approveMany", null);
+__decorate([
+    (0, common_1.Post)('reject-many'),
+    (0, permissions_decorator_1.Permissions)('repayments', 'canPost'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], RepaymentController.prototype, "rejectMany", null);
 exports.RepaymentController = RepaymentController = __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('repayments'),

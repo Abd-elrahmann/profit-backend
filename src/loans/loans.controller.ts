@@ -64,7 +64,15 @@ export class LoansController {
         @Param('page', ParseIntPipe) page: number,
         @Query('limit') limit = 10,
     ) {
-        return this.loansService.getLoanById(id, page , +limit);
+        return this.loansService.getLoanById(id, page, +limit);
+    }
+
+    @Get(':id')
+    @Permissions('loans', 'canView')
+    getByIdwithoutpage(
+        @Param('id', ParseIntPipe) id: number,
+    ) {
+        return this.loansService.getLoanById(id, 1, 10);
     }
 
     @Patch(':id')

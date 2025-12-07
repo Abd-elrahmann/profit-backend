@@ -16,7 +16,9 @@ export declare class PeriodController {
         id: number;
         name: string;
         startDate: Date;
+        startDateHijri: any;
         endDate: Date | null;
+        endDateHijri: any;
         totalDebit: number;
         totalCredit: number;
         totalBalance: number;
@@ -25,6 +27,7 @@ export declare class PeriodController {
             reference: string | null;
             description: string | null;
             date: Date;
+            dateHijri: any;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
@@ -49,12 +52,15 @@ export declare class PeriodController {
         id: number;
         name: string;
         startDate: Date;
+        startDateHijri: any;
         endDate: Date | null;
+        endDateHijri: any;
         journals: {
             id: number;
             reference: string | null;
             description: string | null;
             date: Date;
+            dateHijri: any;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
@@ -84,6 +90,8 @@ export declare class PeriodController {
         totalPages: number;
         currentPage: number;
         periods: {
+            startDateHijri: any;
+            endDateHijri: any;
             id: number;
             name: string;
             createdAt: Date;

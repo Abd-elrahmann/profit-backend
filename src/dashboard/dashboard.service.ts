@@ -170,26 +170,43 @@ export class DashboardService {
 
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
-        // -------------------------
-        // 🔹 LOANS STATISTICS
-        // -------------------------
-
-        // Total loans
-        const loansCount = await this.prisma.loan.count({
+        // Load loans with repayment status
+        const loans = await this.prisma.loan.findMany({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
+            include: {
+                repayments: {
+                    select: { dueDate: true, paymentDate: true, status: true }
+                }
+            }
         });
 
-        // Group by status
-        const loansByStatusRaw = await this.prisma.loan.groupBy({
-            by: ['status'],
-            _count: { status: true },
-            where: dateFilter ? { createdAt: dateFilter } : undefined,
+        // Compute final status
+        function computeLoanStatus(loan) {
+            // If loan is completed → return completed as-is
+            if (loan.status === "COMPLETED") {
+                return "COMPLETED";
+            }
+
+            // Only check overdue if status is ACTIVE
+            if (loan.status === "ACTIVE") {
+                const overdue = loan.repayments.some(r => r.status === "OVERDUE");
+
+                if (overdue) return "OVERDUE";
+            }
+
+            // Otherwise return original status
+            return loan.status;
+        }
+
+        // Count loans by final status
+        const loansByStatus: Record<string, number> = {};
+        loans.forEach(loan => {
+            const finalStatus = computeLoanStatus(loan);
+            loansByStatus[finalStatus] = (loansByStatus[finalStatus] || 0) + 1;
         });
 
-        const loansByStatus = loansByStatusRaw.reduce((acc, row) => {
-            acc[row.status] = row._count.status;
-            return acc;
-        }, {} as Record<string, number>);
+        // Count total loans
+        const loansCount = loans.length;
 
         // Total loan amount
         const loanAmounts = await this.prisma.loan.aggregate({
@@ -197,6 +214,7 @@ export class DashboardService {
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
+        // Bank balance
         const bankAccounts = await this.prisma.account.findUnique({
             where: { code: "11000" },
         });
@@ -207,7 +225,10 @@ export class DashboardService {
             loans: {
                 count: loansCount,
                 byStatus: loansByStatus,
-                totalAmount: loanAmounts._sum.newAmount ? loanAmounts._sum.newAmount : loanAmounts._sum.totalAmount || 0,
+                totalAmount:
+                    loanAmounts._sum.newAmount
+                        ? loanAmounts._sum.newAmount
+                        : loanAmounts._sum.totalAmount || 0,
             },
             bank: {
                 balance: bankBalance,
@@ -312,7 +333,7 @@ export class DashboardService {
     }
 
     async getLastActions(limit: number = 5) {
-        const screensToShow = ["Distribution", "Loans", "Journals", "Partners" , "Repayments"];
+        const screensToShow = ["Distribution", "Loans", "Journals", "Partners", "Repayments"];
 
         return await this.prisma.auditLog.findMany({
             where: {

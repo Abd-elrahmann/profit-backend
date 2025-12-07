@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { JournalSourceType } from '@prisma/client';
+import moment from "moment-hijri";
 
 type JournalLineDto = {
     accountId: number;
@@ -16,6 +17,13 @@ export class PeriodService {
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
     ) { }
+
+    private toHijri(date?: Date | null) {
+        if (!date) return null;
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY');
+    }
 
     async closePeriod(periodId: number, closingUserId: number) {
         return await this.prisma.$transaction(async (tx) => {
@@ -395,7 +403,7 @@ export class PeriodService {
         });
     }
 
-    // In your PeriodService - Fix the getPeriodDetails method
+    // Get details of a single period
     async getPeriodDetails(periodId: number) {
         const period = await this.prisma.periodHeader.findUnique({
             where: { id: periodId },
@@ -413,23 +421,13 @@ export class PeriodService {
                                     }
                                 },
                                 client: {
-                                    select: {
-                                        id: true,
-                                        name: true
-                                    }
+                                    select: { id: true, name: true }
                                 }
                             }
                         },
-                        postedBy: {
-                            select: {
-                                id: true,
-                                name: true
-                            }
-                        }
+                        postedBy: { select: { id: true, name: true } }
                     },
-                    orderBy: {
-                        date: 'desc'
-                    }
+                    orderBy: { date: 'desc' }
                 },
                 PartnerPeriodProfit: {
                     include: {
@@ -448,17 +446,12 @@ export class PeriodService {
             }
         });
 
-        if (!period) {
-            throw new NotFoundException('Period not found');
-        }
+        if (!period) throw new NotFoundException('Period not found');
 
-        // --- NEW: Get savings for this period ---
+        // --- Get savings for this period ---
         const savings = await this.prisma.partnerSavingAccrual.findMany({
             where: { periodId },
-            select: {
-                partnerId: true,
-                savingAmount: true
-            }
+            select: { partnerId: true, savingAmount: true }
         });
 
         const savingMap = new Map<number, number>();
@@ -474,6 +467,7 @@ export class PeriodService {
                 reference: journal.reference,
                 description: journal.description,
                 date: journal.date,
+                dateHijri: this.toHijri(journal.date),
                 type: journal.type,
                 status: journal.status,
                 sourceType: journal.sourceType,
@@ -509,7 +503,6 @@ export class PeriodService {
 
             partnerProfits = partnerProfits.map(p => {
                 const savingAmount = savingMap.get(p.partnerId) ?? 0;
-
                 return {
                     ...p,
                     savingAmount,
@@ -531,7 +524,7 @@ export class PeriodService {
                 companyProfit = companyShareLines.reduce((sum, line) => sum + Number(line.credit), 0);
             }
 
-            // NEW — total period debit/credit/balance
+            // Total period debit/credit/balance
             const totalPeriodDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
             const totalPeriodCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
             const totalPeriodBalance = totalPeriodDebit - totalPeriodCredit;
@@ -540,7 +533,9 @@ export class PeriodService {
                 id: period.id,
                 name: period.name,
                 startDate: period.startDate,
+                startDateHijri: this.toHijri(period.startDate),
                 endDate: period.endDate,
+                endDateHijri: this.toHijri(period.endDate),
                 totalDebit: totalPeriodDebit,
                 totalCredit: totalPeriodCredit,
                 totalBalance: totalPeriodBalance,
@@ -551,7 +546,7 @@ export class PeriodService {
                 isClosed: !!period.closingJournalId
             };
         } else {
-            // For open periods, calculate from journals and accruals
+            // Open periods
             const profitCalculation = await this.calculateOpenPeriodProfits(periodId);
             partnerProfits = profitCalculation.partnerProfits;
             totalPartnerProfit = profitCalculation.totalPartnerProfit;
@@ -561,7 +556,9 @@ export class PeriodService {
                 id: period.id,
                 name: period.name,
                 startDate: period.startDate,
+                startDateHijri: this.toHijri(period.startDate),
                 endDate: period.endDate,
+                endDateHijri: this.toHijri(period.endDate),
                 journals,
                 partnerProfits,
                 companyProfit,
@@ -655,46 +652,17 @@ export class PeriodService {
         const skip = (page - 1) * limit;
 
         const where: any = {};
-
-        // SEARCH BY NAME
-        if (filters?.name) {
-            where.name = { contains: filters.name, mode: 'insensitive' };
-        }
-
-        // FILTER BY START DATE
-        if (filters?.startDate) {
-            where.startDate = { gte: new Date(filters.startDate) };
-        }
-
-        // FILTER BY END DATE
-        if (filters?.endDate) {
-            where.endDate = {
-                lte: new Date(filters.endDate + "T23:59:59"),
-            };
-        }
-
-        // FILTER BY CLOSED STATUS
+        if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
+        if (filters?.startDate) where.startDate = { gte: new Date(filters.startDate) };
+        if (filters?.endDate) where.endDate = { lte: new Date(filters.endDate + "T23:59:59") };
         if (filters?.isClosed !== undefined) {
-            if (typeof filters.isClosed === 'string') {
-                where.isClosed = filters.isClosed === 'true';
-            } else {
-                where.isClosed = Boolean(filters.isClosed);
-            }
+            where.isClosed = typeof filters.isClosed === 'string' ? filters.isClosed === 'true' : Boolean(filters.isClosed);
         }
 
-        where.journals = {
-            some: {}
-        };
-
-        // COUNT TOTAL RECORDS
         const totalPeriods = await this.prisma.periodHeader.count({ where });
         const totalPages = Math.ceil(totalPeriods / limit);
+        if (page > totalPages && totalPeriods > 0) throw new NotFoundException("Page not found");
 
-        if (page > totalPages && totalPeriods > 0) {
-            throw new NotFoundException("Page not found");
-        }
-
-        // FETCH PERIOD DATA
         const periods = await this.prisma.periodHeader.findMany({
             where,
             skip,
@@ -706,7 +674,11 @@ export class PeriodService {
             totalPeriods,
             totalPages,
             currentPage: page,
-            periods,
+            periods: periods.map(p => ({
+                ...p,
+                startDateHijri: this.toHijri(p.startDate),
+                endDateHijri: this.toHijri(p.endDate),
+            })),
         };
     }
 }

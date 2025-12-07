@@ -347,21 +347,39 @@ export class DistributionService {
             // Get saving map for this period
             const periodSavingMap = savingMap.get(p.id) || new Map<number, number>();
 
+            const round = (v: number) => Math.round(v * 100) / 100;
+            
             // Build partner list with saving
             const partners = p.PartnerPeriodProfit.map(pp => {
-                const savingAmount = periodSavingMap.get(pp.partnerId) ?? 0;
+                const savingAmount = round(periodSavingMap.get(pp.partnerId) ?? 0);
+                const finalProfit = round(Number(pp.totalProfit)); // already AFTER company cut
+
+                const orgCutPercent = Number(pp.partner.orgProfitPercent || 0);
+
+                // Compute raw before company cut
+                const rawProfit = orgCutPercent === 0
+                    ? finalProfit
+                    : round(finalProfit / (1 - orgCutPercent / 100));
+
+                // Company cut value
+                const companyCut = round(rawProfit - finalProfit);
 
                 return {
                     partnerId: pp.partnerId,
                     partnerName: pp.partner.name,
                     nationalId: pp.partner.nationalId,
                     phone: pp.partner.phone,
-                    orgProfitPercent: pp.partner.orgProfitPercent,
-                    totalProfit: Number(pp.totalProfit),
+                    orgProfitPercent: orgCutPercent,
+
+                    rawProfit,
+                    companyCut,
+                    finalProfit,
+
                     savingAmount,
-                    totalAfterSaving: Number(pp.totalProfit) - savingAmount
+                    totalAfterSaving: round(finalProfit - savingAmount),
                 };
             });
+
 
             return {
                 periodId: p.id,

@@ -57,6 +57,12 @@ let JournalController = class JournalController {
     async unpostJournal(req, id) {
         return this.journalService.unpostJournal(req.user.id, id);
     }
+    async postMultiple(ids, req) {
+        return this.journalService.postMultipleJournals(ids, req.user.id);
+    }
+    async unpostMultiple(ids, req) {
+        return this.journalService.unpostMultipleJournals(ids, req.user.id);
+    }
 };
 exports.JournalController = JournalController;
 __decorate([
@@ -131,6 +137,24 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], JournalController.prototype, "unpostJournal", null);
+__decorate([
+    (0, common_1.Post)('post-multiple'),
+    (0, permissions_decorator_1.Permissions)('journals', 'canPost'),
+    __param(0, (0, common_1.Body)('ids')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array, Object]),
+    __metadata("design:returntype", Promise)
+], JournalController.prototype, "postMultiple", null);
+__decorate([
+    (0, common_1.Post)('unpost-multiple'),
+    (0, permissions_decorator_1.Permissions)('journals', 'canPost'),
+    __param(0, (0, common_1.Body)('ids')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array, Object]),
+    __metadata("design:returntype", Promise)
+], JournalController.prototype, "unpostMultiple", null);
 exports.JournalController = JournalController = __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('journals'),

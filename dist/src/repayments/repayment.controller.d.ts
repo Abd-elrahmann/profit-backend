@@ -120,4 +120,12 @@ export declare class RepaymentController {
         finalPayment: string;
         journalId: number;
     }>;
+    approveMany(req: any, body: {
+        ids: number[];
+        notes?: string;
+    }): Promise<any>;
+    rejectMany(req: any, body: {
+        ids: number[];
+        notes?: string;
+    }): Promise<any>;
 }

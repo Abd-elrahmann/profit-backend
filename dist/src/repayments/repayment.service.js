@@ -257,12 +257,33 @@ let RepaymentService = class RepaymentService {
                 throw new common_1.BadRequestException('No open period found. Please create a period first.');
             }
             const periodId = currentPeriod.id;
+            const totalInterest = interestAmount;
+            const totalRepayments = await tx.repayment.count({
+                where: { loanId: loan.id },
+            });
+            let repaymentIndex = await tx.repayment.count({
+                where: { loanId: loan.id, id: { lt: repayment.id } },
+            });
             for (const ps of partnerShares) {
                 const sharePercent = Number(ps.sharePercent || 0);
                 const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
-                const rawShare = Number(((interestAmount * sharePercent) / 100).toFixed(2));
-                const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
-                const partnerFinal = rawShare - companyCut;
+                const totalRawShareFinal = Number(((loan.interestAmount * sharePercent) / 100).toFixed(2));
+                const totalCompanyCutFinal = Number(((totalRawShareFinal * orgCutPercent) / 100).toFixed(2));
+                let rawShare = Number(((interestAmount * sharePercent) / 100).toFixed(2));
+                let companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
+                let partnerFinal = rawShare - companyCut;
+                const isLastRepayment = repaymentIndex + 1 === totalRepayments;
+                if (isLastRepayment) {
+                    const prev = await tx.partnerShareAccrual.aggregate({
+                        where: { loanId: loan.id, partnerId: ps.partnerId },
+                        _sum: { rawShare: true, companyCut: true },
+                    });
+                    const prevRaw = prev._sum.rawShare || 0;
+                    const prevCut = prev._sum.companyCut || 0;
+                    rawShare = Number((totalRawShareFinal - prevRaw).toFixed(2));
+                    companyCut = Number((totalCompanyCutFinal - prevCut).toFixed(2));
+                    partnerFinal = Number((rawShare - companyCut).toFixed(2));
+                }
                 await tx.partnerShareAccrual.create({
                     data: {
                         periodId: periodId,
@@ -330,7 +351,7 @@ let RepaymentService = class RepaymentService {
                 repaymentId: id,
                 journalId: journal.journal.id,
             };
-        });
+        }, { timeout: 20000 });
     }
     async rejectRepayment(currentUser, id, dto) {
         const repayment = await this.prisma.repayment.findUnique({
@@ -408,7 +429,7 @@ let RepaymentService = class RepaymentService {
                 },
             });
             return { message: 'تم رفض سداد الدفعة بنجاح', repaymentId: id };
-        });
+        }, { timeout: 20000 });
     }
     async postponeRepayment(currentUser, id, dto) {
         const repayment = await this.prisma.repayment.findUnique({
@@ -719,11 +740,19 @@ let RepaymentService = class RepaymentService {
                 for (const ps of partnerShares) {
                     const sharePercent = Number(ps.sharePercent || 0);
                     const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
-                    const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
-                    const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
-                    const partnerFinal = rawShare - companyCut;
+                    const totalRawShareFinal = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
+                    const totalCompanyCutFinal = Number(((totalRawShareFinal * orgCutPercent) / 100).toFixed(2));
+                    const totalPartnerFinal = Number((totalRawShareFinal - totalCompanyCutFinal).toFixed(2));
                     await tx.partnerShareAccrual.create({
-                        data: { periodId: periodId, loanId: loan.id, repaymentId: null, partnerId: ps.partnerId, rawShare, companyCut, partnerFinal },
+                        data: {
+                            periodId: periodId,
+                            loanId: loan.id,
+                            repaymentId: null,
+                            partnerId: ps.partnerId,
+                            rawShare: totalRawShareFinal,
+                            companyCut: totalCompanyCutFinal,
+                            partnerFinal: totalPartnerFinal,
+                        },
                     });
                 }
             }
@@ -752,6 +781,36 @@ let RepaymentService = class RepaymentService {
                 journalId: journal.journal.id,
             };
         });
+    }
+    async approveMany(currentUser, ids, dto) {
+        if (!ids || ids.length === 0)
+            throw new common_1.BadRequestException('No repayment IDs provided');
+        const results = [];
+        for (const id of ids) {
+            try {
+                const res = await this.approveRepayment(currentUser, id, dto);
+                results.push({ id, status: 'success', message: res.message, journalId: res.journalId });
+            }
+            catch (error) {
+                results.push({ id, status: 'failed', message: error.message });
+            }
+        }
+        return results;
+    }
+    async rejectMany(currentUser, ids, dto) {
+        if (!ids || ids.length === 0)
+            throw new common_1.BadRequestException('No repayment IDs provided');
+        const results = [];
+        for (const id of ids) {
+            try {
+                const res = await this.rejectRepayment(currentUser, id, dto);
+                results.push({ id, status: 'success', message: res.message });
+            }
+            catch (error) {
+                results.push({ id, status: 'failed', message: error.message });
+            }
+        }
+        return results;
     }
 };
 exports.RepaymentService = RepaymentService;

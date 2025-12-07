@@ -8,18 +8,29 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PeriodService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const journal_service_1 = require("../journal/journal.service");
 const client_1 = require("@prisma/client");
+const moment_hijri_1 = __importDefault(require("moment-hijri"));
 let PeriodService = class PeriodService {
     prisma;
     journalService;
     constructor(prisma, journalService) {
         this.prisma = prisma;
         this.journalService = journalService;
+    }
+    toHijri(date) {
+        if (!date)
+            return null;
+        return (0, moment_hijri_1.default)(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY');
     }
     async closePeriod(periodId, closingUserId) {
         return await this.prisma.$transaction(async (tx) => {
@@ -343,23 +354,13 @@ let PeriodService = class PeriodService {
                                     }
                                 },
                                 client: {
-                                    select: {
-                                        id: true,
-                                        name: true
-                                    }
+                                    select: { id: true, name: true }
                                 }
                             }
                         },
-                        postedBy: {
-                            select: {
-                                id: true,
-                                name: true
-                            }
-                        }
+                        postedBy: { select: { id: true, name: true } }
                     },
-                    orderBy: {
-                        date: 'desc'
-                    }
+                    orderBy: { date: 'desc' }
                 },
                 PartnerPeriodProfit: {
                     include: {
@@ -377,15 +378,11 @@ let PeriodService = class PeriodService {
                 }
             }
         });
-        if (!period) {
+        if (!period)
             throw new common_1.NotFoundException('Period not found');
-        }
         const savings = await this.prisma.partnerSavingAccrual.findMany({
             where: { periodId },
-            select: {
-                partnerId: true,
-                savingAmount: true
-            }
+            select: { partnerId: true, savingAmount: true }
         });
         const savingMap = new Map();
         savings.forEach(s => savingMap.set(s.partnerId, Number(s.savingAmount)));
@@ -397,6 +394,7 @@ let PeriodService = class PeriodService {
                 reference: journal.reference,
                 description: journal.description,
                 date: journal.date,
+                dateHijri: this.toHijri(journal.date),
                 type: journal.type,
                 status: journal.status,
                 sourceType: journal.sourceType,
@@ -448,7 +446,9 @@ let PeriodService = class PeriodService {
                 id: period.id,
                 name: period.name,
                 startDate: period.startDate,
+                startDateHijri: this.toHijri(period.startDate),
                 endDate: period.endDate,
+                endDateHijri: this.toHijri(period.endDate),
                 totalDebit: totalPeriodDebit,
                 totalCredit: totalPeriodCredit,
                 totalBalance: totalPeriodBalance,
@@ -468,7 +468,9 @@ let PeriodService = class PeriodService {
                 id: period.id,
                 name: period.name,
                 startDate: period.startDate,
+                startDateHijri: this.toHijri(period.startDate),
                 endDate: period.endDate,
+                endDateHijri: this.toHijri(period.endDate),
                 journals,
                 partnerProfits,
                 companyProfit,
@@ -522,33 +524,19 @@ let PeriodService = class PeriodService {
         const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
         const where = {};
-        if (filters?.name) {
+        if (filters?.name)
             where.name = { contains: filters.name, mode: 'insensitive' };
-        }
-        if (filters?.startDate) {
+        if (filters?.startDate)
             where.startDate = { gte: new Date(filters.startDate) };
-        }
-        if (filters?.endDate) {
-            where.endDate = {
-                lte: new Date(filters.endDate + "T23:59:59"),
-            };
-        }
+        if (filters?.endDate)
+            where.endDate = { lte: new Date(filters.endDate + "T23:59:59") };
         if (filters?.isClosed !== undefined) {
-            if (typeof filters.isClosed === 'string') {
-                where.isClosed = filters.isClosed === 'true';
-            }
-            else {
-                where.isClosed = Boolean(filters.isClosed);
-            }
+            where.isClosed = typeof filters.isClosed === 'string' ? filters.isClosed === 'true' : Boolean(filters.isClosed);
         }
-        where.journals = {
-            some: {}
-        };
         const totalPeriods = await this.prisma.periodHeader.count({ where });
         const totalPages = Math.ceil(totalPeriods / limit);
-        if (page > totalPages && totalPeriods > 0) {
+        if (page > totalPages && totalPeriods > 0)
             throw new common_1.NotFoundException("Page not found");
-        }
         const periods = await this.prisma.periodHeader.findMany({
             where,
             skip,
@@ -559,7 +547,11 @@ let PeriodService = class PeriodService {
             totalPeriods,
             totalPages,
             currentPage: page,
-            periods,
+            periods: periods.map(p => ({
+                ...p,
+                startDateHijri: this.toHijri(p.startDate),
+                endDateHijri: this.toHijri(p.endDate),
+            })),
         };
     }
 };

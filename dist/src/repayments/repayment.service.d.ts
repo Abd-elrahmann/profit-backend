@@ -125,4 +125,6 @@ export declare class RepaymentService {
         finalPayment: string;
         journalId: number;
     }>;
+    approveMany(currentUser: number, ids: number[], dto: RepaymentDto): Promise<any>;
+    rejectMany(currentUser: number, ids: number[], dto: RepaymentDto): Promise<any>;
 }

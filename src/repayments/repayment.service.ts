@@ -246,13 +246,46 @@ export class RepaymentService {
             }
             const periodId = currentPeriod.id;
 
-            for (const ps of partnerShares) {
+            const totalInterest = interestAmount;
 
+            const totalRepayments = await tx.repayment.count({
+                where: { loanId: loan.id },
+            });
+
+            let repaymentIndex = await tx.repayment.count({
+                where: { loanId: loan.id, id: { lt: repayment.id } },
+            });
+
+            // Process each partner
+            for (const ps of partnerShares) {
                 const sharePercent = Number(ps.sharePercent || 0);
                 const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
-                const rawShare = Number(((interestAmount * sharePercent) / 100).toFixed(2));
-                const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
-                const partnerFinal = rawShare - companyCut;
+
+                // theoretical totals
+                const totalRawShareFinal = Number(((loan.interestAmount * sharePercent) / 100).toFixed(2));
+                const totalCompanyCutFinal = Number(((totalRawShareFinal * orgCutPercent) / 100).toFixed(2));
+
+                // compute normally
+                let rawShare = Number(((interestAmount * sharePercent) / 100).toFixed(2));
+                let companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
+                let partnerFinal = rawShare - companyCut;
+
+                const isLastRepayment = repaymentIndex + 1 === totalRepayments;
+
+                if (isLastRepayment) {
+                    // sum previous accruals
+                    const prev = await tx.partnerShareAccrual.aggregate({
+                        where: { loanId: loan.id, partnerId: ps.partnerId },
+                        _sum: { rawShare: true, companyCut: true },
+                    });
+
+                    const prevRaw = prev._sum.rawShare || 0;
+                    const prevCut = prev._sum.companyCut || 0;
+
+                    rawShare = Number((totalRawShareFinal - prevRaw).toFixed(2));
+                    companyCut = Number((totalCompanyCutFinal - prevCut).toFixed(2));
+                    partnerFinal = Number((rawShare - companyCut).toFixed(2));
+                }
 
                 await tx.partnerShareAccrual.create({
                     data: {
@@ -331,7 +364,7 @@ export class RepaymentService {
                 repaymentId: id,
                 journalId: journal.journal.id,
             };
-        });
+        }, { timeout: 20000 });
     }
 
     // Reject repayment   
@@ -424,7 +457,7 @@ export class RepaymentService {
             });
 
             return { message: 'تم رفض سداد الدفعة بنجاح', repaymentId: id };
-        });
+        }, { timeout: 20000 });
     }
 
     // Postpone repayment
@@ -830,15 +863,25 @@ export class RepaymentService {
 
             if (realizedInterest > 0) {
                 for (const ps of partnerShares) {
+
                     const sharePercent = Number(ps.sharePercent || 0);
                     const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
 
-                    const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
-                    const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
-                    const partnerFinal = rawShare - companyCut;
+                    // theoretical totals
+                    const totalRawShareFinal = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
+                    const totalCompanyCutFinal = Number(((totalRawShareFinal * orgCutPercent) / 100).toFixed(2));
+                    const totalPartnerFinal = Number((totalRawShareFinal - totalCompanyCutFinal).toFixed(2));
 
                     await tx.partnerShareAccrual.create({
-                        data: { periodId: periodId, loanId: loan.id, repaymentId: null, partnerId: ps.partnerId, rawShare, companyCut, partnerFinal },
+                        data: {
+                            periodId: periodId,
+                            loanId: loan.id,
+                            repaymentId: null,
+                            partnerId: ps.partnerId,
+                            rawShare: totalRawShareFinal,
+                            companyCut: totalCompanyCutFinal,
+                            partnerFinal: totalPartnerFinal,
+                        },
                     });
                 }
             }
@@ -872,5 +915,41 @@ export class RepaymentService {
                 journalId: journal.journal.id,
             };
         });
+    }
+
+    // Approve multiple repayments
+    async approveMany(currentUser: number, ids: number[], dto: RepaymentDto) {
+        if (!ids || ids.length === 0) throw new BadRequestException('No repayment IDs provided');
+
+        const results = [] as any;
+
+        for (const id of ids) {
+            try {
+                const res = await this.approveRepayment(currentUser, id, dto);
+                results.push({ id, status: 'success', message: res.message, journalId: res.journalId });
+            } catch (error: any) {
+                results.push({ id, status: 'failed', message: error.message });
+            }
+        }
+
+        return results;
+    }
+
+    // Reject multiple repayments
+    async rejectMany(currentUser: number, ids: number[], dto: RepaymentDto) {
+        if (!ids || ids.length === 0) throw new BadRequestException('No repayment IDs provided');
+
+        const results = [] as any;
+
+        for (const id of ids) {
+            try {
+                const res = await this.rejectRepayment(currentUser, id, dto);
+                results.push({ id, status: 'success', message: res.message });
+            } catch (error: any) {
+                results.push({ id, status: 'failed', message: error.message });
+            }
+        }
+
+        return results;
     }
 }

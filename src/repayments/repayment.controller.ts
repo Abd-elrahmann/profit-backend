@@ -113,4 +113,26 @@ export class RepaymentController {
         );
         return result;
     }
+
+    // Approve multiple repayments
+    @Post('approve-many')
+    @Permissions('repayments', 'canPost')
+    async approveMany(
+        @Req() req,
+        @Body() body: { ids: number[]; notes?: string },
+    ) {
+        const dto: RepaymentDto = { notes: body.notes };
+        return this.repaymentService.approveMany(req.user.id, body.ids, dto);
+    }
+
+    // Reject multiple repayments
+    @Post('reject-many')
+    @Permissions('repayments', 'canPost')
+    async rejectMany(
+        @Req() req,
+        @Body() body: { ids: number[]; notes?: string },
+    ) {
+        const dto: RepaymentDto = { notes: body.notes };
+        return this.repaymentService.rejectMany(req.user.id, body.ids, dto);
+    }
 }

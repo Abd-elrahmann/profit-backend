@@ -287,17 +287,26 @@ let DistributionService = class DistributionService {
                 .filter(l => l.account.accountBasicType === 'COMPANY_SHARES')
                 .reduce((sum, l) => sum + Number(l.credit), 0);
             const periodSavingMap = savingMap.get(p.id) || new Map();
+            const round = (v) => Math.round(v * 100) / 100;
             const partners = p.PartnerPeriodProfit.map(pp => {
-                const savingAmount = periodSavingMap.get(pp.partnerId) ?? 0;
+                const savingAmount = round(periodSavingMap.get(pp.partnerId) ?? 0);
+                const finalProfit = round(Number(pp.totalProfit));
+                const orgCutPercent = Number(pp.partner.orgProfitPercent || 0);
+                const rawProfit = orgCutPercent === 0
+                    ? finalProfit
+                    : round(finalProfit / (1 - orgCutPercent / 100));
+                const companyCut = round(rawProfit - finalProfit);
                 return {
                     partnerId: pp.partnerId,
                     partnerName: pp.partner.name,
                     nationalId: pp.partner.nationalId,
                     phone: pp.partner.phone,
-                    orgProfitPercent: pp.partner.orgProfitPercent,
-                    totalProfit: Number(pp.totalProfit),
+                    orgProfitPercent: orgCutPercent,
+                    rawProfit,
+                    companyCut,
+                    finalProfit,
                     savingAmount,
-                    totalAfterSaving: Number(pp.totalProfit) - savingAmount
+                    totalAfterSaving: round(finalProfit - savingAmount),
                 };
             });
             return {

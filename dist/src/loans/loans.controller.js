@@ -40,6 +40,9 @@ let LoansController = class LoansController {
     getById(id, page, limit = 10) {
         return this.loansService.getLoanById(id, page, +limit);
     }
+    getByIdwithoutpage(id) {
+        return this.loansService.getLoanById(id, 1, 10);
+    }
     update(req, id, dto) {
         return this.loansService.updateLoan(req.user.id, id, dto);
     }
@@ -107,6 +110,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number, Object]),
     __metadata("design:returntype", void 0)
 ], LoansController.prototype, "getById", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    (0, permissions_decorator_1.Permissions)('loans', 'canView'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LoansController.prototype, "getByIdwithoutpage", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, permissions_decorator_1.Permissions)('loans', 'canUpdate'),

@@ -4,6 +4,7 @@ export declare class PeriodService {
     private readonly prisma;
     private readonly journalService;
     constructor(prisma: PrismaService, journalService: JournalService);
+    private toHijri;
     closePeriod(periodId: number, closingUserId: number): Promise<{
         message: string;
         periodId: number;
@@ -19,7 +20,9 @@ export declare class PeriodService {
         id: number;
         name: string;
         startDate: Date;
+        startDateHijri: any;
         endDate: Date | null;
+        endDateHijri: any;
         totalDebit: number;
         totalCredit: number;
         totalBalance: number;
@@ -28,6 +31,7 @@ export declare class PeriodService {
             reference: string | null;
             description: string | null;
             date: Date;
+            dateHijri: any;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
@@ -52,12 +56,15 @@ export declare class PeriodService {
         id: number;
         name: string;
         startDate: Date;
+        startDateHijri: any;
         endDate: Date | null;
+        endDateHijri: any;
         journals: {
             id: number;
             reference: string | null;
             description: string | null;
             date: Date;
+            dateHijri: any;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
@@ -94,6 +101,8 @@ export declare class PeriodService {
         totalPages: number;
         currentPage: number;
         periods: {
+            startDateHijri: any;
+            endDateHijri: any;
             id: number;
             name: string;
             createdAt: Date;

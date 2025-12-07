@@ -26,7 +26,9 @@ export declare class DistributionController {
             nationalId: string;
             phone: string | null;
             orgProfitPercent: number;
-            totalProfit: number;
+            rawProfit: number;
+            companyCut: number;
+            finalProfit: number;
             savingAmount: number;
             totalAfterSaving: number;
         }[];

@@ -406,6 +406,76 @@ let JournalService = class JournalService {
             await this.updateAccountHierarchy(tx, account.parentId, debitChange, creditChange, action);
         }
     }
+    async postMultipleJournals(ids, userId) {
+        const journals = await this.prisma.journalHeader.findMany({
+            where: { id: { in: ids } },
+            include: { lines: true },
+        });
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        return this.prisma.$transaction(async (tx) => {
+            const results = [];
+            for (const journal of journals) {
+                if (journal.status === client_1.JournalStatus.POSTED) {
+                    results.push({ journalId: journal.id, status: 'already posted' });
+                    continue;
+                }
+                for (const line of journal.lines) {
+                    await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'POST', line.clientId || undefined);
+                }
+                await tx.journalHeader.update({
+                    where: { id: journal.id },
+                    data: { status: 'POSTED', postedById: userId },
+                });
+                await tx.auditLog.create({
+                    data: {
+                        userId,
+                        screen: 'Journals',
+                        action: 'POST',
+                        description: `قام المستخدم ${user?.name} باعتماد قيد يومية برقم مرجعي ${journal.reference}`,
+                    },
+                });
+                results.push({ journalId: journal.id, status: 'posted' });
+            }
+            return results;
+        });
+    }
+    async unpostMultipleJournals(ids, userId) {
+        const journals = await this.prisma.journalHeader.findMany({
+            where: { id: { in: ids } },
+            include: { lines: true },
+        });
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        return this.prisma.$transaction(async (tx) => {
+            const results = [];
+            for (const journal of journals) {
+                if (journal.status !== client_1.JournalStatus.POSTED) {
+                    results.push({ journalId: journal.id, status: 'not posted' });
+                    continue;
+                }
+                if (journal.sourceType === 'ZAKAT') {
+                    results.push({ journalId: journal.id, status: 'cannot unpost ZAKAT' });
+                    continue;
+                }
+                for (const line of journal.lines) {
+                    await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'UNPOST', line.clientId || undefined);
+                }
+                await tx.journalHeader.update({
+                    where: { id: journal.id },
+                    data: { status: 'DRAFT' },
+                });
+                await tx.auditLog.create({
+                    data: {
+                        userId,
+                        screen: 'Journals',
+                        action: 'UNPOST',
+                        description: `قام المستخدم ${user?.name} بإلغاء اعتماد قيد يومية برقم مرجعي ${journal.reference}`,
+                    },
+                });
+                results.push({ journalId: journal.id, status: 'unposted' });
+            }
+            return results;
+        });
+    }
 };
 exports.JournalService = JournalService;
 exports.JournalService = JournalService = __decorate([

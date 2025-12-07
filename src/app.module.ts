@@ -26,6 +26,7 @@ import { ClientReportModule } from './client-report/client-report.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PartnersReportModule } from './partners-report/partners-report.module';
 import { CompanyModule } from './companyProfit/company.module';
+import { ExpenseModule } from './expenses/expense.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { CompanyModule } from './companyProfit/company.module';
     DashboardModule,
     PartnersReportModule,
     CompanyModule,
+    ExpenseModule,
     
   ],
   controllers: [AppController],
