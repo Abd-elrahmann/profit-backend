@@ -159,6 +159,8 @@ export class PartnersReportService {
                 name: partner.name,
                 nationalId: partner.nationalId,
                 phone: partner.phone,
+                address: partner.address,
+                email: partner.email,
                 orgProfitPercent: partner.orgProfitPercent,
                 capitalAmount: partner.capitalAmount,
                 totalProfit: partner.totalProfit,

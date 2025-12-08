@@ -47,7 +47,7 @@ export declare class PeriodController {
         partnerProfits: any[];
         companyProfit: number;
         totalPartnerProfit: number;
-        isClosed: boolean;
+        isClosed: true;
     } | {
         id: number;
         name: string;

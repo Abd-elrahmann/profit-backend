@@ -543,7 +543,7 @@ export class PeriodService {
                 partnerProfits,
                 companyProfit,
                 totalPartnerProfit,
-                isClosed: !!period.closingJournalId
+                isClosed: period.isClosed
             };
         } else {
             // Open periods

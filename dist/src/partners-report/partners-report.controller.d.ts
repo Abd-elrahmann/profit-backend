@@ -32,6 +32,8 @@ export declare class PartnersReportController {
             name: string;
             nationalId: string;
             phone: string | null;
+            address: string;
+            email: string | null;
             orgProfitPercent: number;
             capitalAmount: number;
             totalProfit: number;
