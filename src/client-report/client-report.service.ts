@@ -30,23 +30,38 @@ export class ClientReportService {
             if (!filters?.status) return true;
 
             const loans = c.loans;
-            const totalRepayments = loans.reduce(
-                (sum, loan) => sum + loan.repayments.length,
-                0
-            );
-            const remainingRepayments = loans.reduce(
+            
+            // Calculate remaining amount (financial remaining, not repayment count)
+            const totalDebit = loans.reduce(
                 (sum, loan) =>
-                    sum +
-                    loan.repayments.filter((r) => r.status === 'PENDING').length,
+                    Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100,
                 0
             );
 
+            const totalPaid = loans.reduce(
+                (sum, loan) =>
+                    Math.round(
+                        (
+                            sum +
+                            loan.repayments.reduce(
+                                (rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100,
+                                0
+                            )
+                        ) * 100
+                    ) / 100,
+                0
+            );
+
+            const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
+
             if (filters.status === 'COMPLETE') {
-                return remainingRepayments === 0;
+                // العملاء المسددين: المبلغ المتبقي <= 0
+                return remaining <= 0;
             }
 
             if (filters.status === 'ACTIVE') {
-                return remainingRepayments > 0;
+                // العملاء المديونين: المبلغ المتبقي > 0
+                return remaining > 0;
             }
 
             return true;
@@ -102,10 +117,38 @@ export class ClientReportService {
                 remainingRepayments += loan.repayments.filter((r) => r.status === 'PENDING').length;
             });
 
+            // Calculate total discounts
+            const totalDiscounts = loans.reduce(
+                (sum, loan) =>
+                    Math.round(
+                        (sum + (loan.earlyPaymentDiscount ?? 0)) * 100
+                    ) / 100,
+                0
+            );
+
+            // Calculate total interest paid
+            const totalInterestPaid = loans.reduce(
+                (sum, loan) =>
+                    Math.round(
+                        (
+                            sum +
+                            loan.repayments.reduce(
+                                (rSum, r) =>
+                                    Math.round(
+                                        (rSum + (r.interestAmount ?? 0)) * 100
+                                    ) / 100,
+                                0
+                            )
+                        ) * 100
+                    ) / 100,
+                0
+            );
+
             return {
                 id: c.id,
                 name: c.name,
                 phone: c.phone,
+                address: c.address,
                 note: c.notes,
                 createdAt,
 
@@ -126,6 +169,8 @@ export class ClientReportService {
                     totalDebit,
                     totalPaid,
                     remaining,
+                    totalDiscounts,
+                    totalInterestPaid,
                 },
             };
         });
@@ -295,6 +340,28 @@ export class ClientReportService {
             },
 
             loans,
+        };
+    }
+
+    async updateClientNote(clientId: number, note: string) {
+        const client = await this.prisma.client.findUnique({
+            where: { id: clientId },
+        });
+
+        if (!client) throw new BadRequestException('Client not found');
+
+        const updatedClient = await this.prisma.client.update({
+            where: { id: clientId },
+            data: { notes: note },
+        });
+
+        return {
+            success: true,
+            message: 'Note updated successfully',
+            client: {
+                id: updatedClient.id,
+                notes: updatedClient.notes,
+            },
         };
     }
 }

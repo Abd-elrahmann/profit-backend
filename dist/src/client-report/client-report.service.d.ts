@@ -12,6 +12,7 @@ export declare class ClientReportService {
             id: number;
             name: string;
             phone: string;
+            address: string;
             note: string | null;
             createdAt: string | null;
             loansSummary: {
@@ -29,6 +30,8 @@ export declare class ClientReportService {
                 totalDebit: number;
                 totalPaid: number;
                 remaining: number;
+                totalDiscounts: number;
+                totalInterestPaid: number;
             };
         }[];
     }>;
@@ -71,5 +74,13 @@ export declare class ClientReportService {
             endDate: Date | null;
             status: import("@prisma/client").$Enums.LoanStatus;
         }[];
+    }>;
+    updateClientNote(clientId: number, note: string): Promise<{
+        success: boolean;
+        message: string;
+        client: {
+            id: number;
+            notes: string | null;
+        };
     }>;
 }

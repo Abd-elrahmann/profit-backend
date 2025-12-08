@@ -30,6 +30,9 @@ let ClientReportController = class ClientReportController {
     getClientDetails(clientId) {
         return this.reportService.getClientDetails(clientId);
     }
+    updateClientNote(clientId, note) {
+        return this.reportService.updateClientNote(clientId, note);
+    }
 };
 exports.ClientReportController = ClientReportController;
 __decorate([
@@ -50,6 +53,15 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], ClientReportController.prototype, "getClientDetails", null);
+__decorate([
+    (0, common_1.Patch)('client/:clientId/note'),
+    (0, permissions_decorator_1.Permissions)('client-report', 'canUpdate'),
+    __param(0, (0, common_1.Param)('clientId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('note')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:returntype", void 0)
+], ClientReportController.prototype, "updateClientNote", null);
 exports.ClientReportController = ClientReportController = __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('client-report'),

@@ -7,7 +7,7 @@ export declare class CreateLoanDto {
     InterestPercentage: number;
     TotalInterest: number;
     type: LoanType;
-    startDate: string;
+    startDate?: string;
     repaymentDay?: number;
     bankAccountId?: number;
     partnerId?: number;
@@ -24,5 +24,5 @@ export declare class UpdateLoanDto {
     partnerId?: number;
     clientId?: number;
     kafeelId?: number;
-    startDate: string;
+    startDate?: string;
 }

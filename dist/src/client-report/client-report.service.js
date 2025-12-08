@@ -36,14 +36,15 @@ let ClientReportService = class ClientReportService {
             if (!filters?.status)
                 return true;
             const loans = c.loans;
-            const totalRepayments = loans.reduce((sum, loan) => sum + loan.repayments.length, 0);
-            const remainingRepayments = loans.reduce((sum, loan) => sum +
-                loan.repayments.filter((r) => r.status === 'PENDING').length, 0);
+            const totalDebit = loans.reduce((sum, loan) => Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100, 0);
+            const totalPaid = loans.reduce((sum, loan) => Math.round((sum +
+                loan.repayments.reduce((rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100, 0)) * 100) / 100, 0);
+            const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
             if (filters.status === 'COMPLETE') {
-                return remainingRepayments === 0;
+                return remaining <= 0;
             }
             if (filters.status === 'ACTIVE') {
-                return remainingRepayments > 0;
+                return remaining > 0;
             }
             return true;
         });
@@ -70,10 +71,14 @@ let ClientReportService = class ClientReportService {
                 paidRepayments += loan.repayments.filter((r) => r.status === 'PAID' || r.status === 'EARLY_PAID').length;
                 remainingRepayments += loan.repayments.filter((r) => r.status === 'PENDING').length;
             });
+            const totalDiscounts = loans.reduce((sum, loan) => Math.round((sum + (loan.earlyPaymentDiscount ?? 0)) * 100) / 100, 0);
+            const totalInterestPaid = loans.reduce((sum, loan) => Math.round((sum +
+                loan.repayments.reduce((rSum, r) => Math.round((rSum + (r.interestAmount ?? 0)) * 100) / 100, 0)) * 100) / 100, 0);
             return {
                 id: c.id,
                 name: c.name,
                 phone: c.phone,
+                address: c.address,
                 note: c.notes,
                 createdAt,
                 loansSummary: {
@@ -91,6 +96,8 @@ let ClientReportService = class ClientReportService {
                     totalDebit,
                     totalPaid,
                     remaining,
+                    totalDiscounts,
+                    totalInterestPaid,
                 },
             };
         });
@@ -175,6 +182,25 @@ let ClientReportService = class ClientReportService {
                 totalInterestPaid,
             },
             loans,
+        };
+    }
+    async updateClientNote(clientId, note) {
+        const client = await this.prisma.client.findUnique({
+            where: { id: clientId },
+        });
+        if (!client)
+            throw new common_1.BadRequestException('Client not found');
+        const updatedClient = await this.prisma.client.update({
+            where: { id: clientId },
+            data: { notes: note },
+        });
+        return {
+            success: true,
+            message: 'Note updated successfully',
+            client: {
+                id: updatedClient.id,
+                notes: updatedClient.notes,
+            },
         };
     }
 };

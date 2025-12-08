@@ -26,8 +26,9 @@ export class CreateLoanDto {
     @IsEnum(LoanType)
     type: LoanType;
 
+    @IsOptional()
     @IsDateString()
-    startDate: string;
+    startDate?: string;
 
     @IsOptional()
     @IsNumber()
@@ -87,5 +88,5 @@ export class UpdateLoanDto {
 
     @IsOptional()
     @IsDateString()
-    startDate: string;
+    startDate?: string;
 }
