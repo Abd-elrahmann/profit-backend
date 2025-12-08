@@ -2,7 +2,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class ClientReportService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    getAllClients(page: number, limit?: number): Promise<{
+    getAllClients(page: number, limit?: number, filters?: {
+        status?: 'ACTIVE' | 'COMPLETE';
+    }): Promise<{
         page: number;
         limit: number;
         totalClients: number;
@@ -11,11 +13,23 @@ export declare class ClientReportService {
             name: string;
             phone: string;
             note: string | null;
-            loansCount: number;
-            repaymentsCount: number;
-            totalDebit: number;
-            totalPaid: number;
-            remaining: number;
+            createdAt: string | null;
+            loansSummary: {
+                loansCount: number;
+                activeLoans: number;
+                completedLoans: number;
+                overdueLoans: number;
+            };
+            repaymentSummary: {
+                totalRepayments: number;
+                paidRepayments: number;
+                remainingRepayments: number;
+            };
+            financials: {
+                totalDebit: number;
+                totalPaid: number;
+                remaining: number;
+            };
         }[];
     }>;
     getClientDetails(clientId: number): Promise<{

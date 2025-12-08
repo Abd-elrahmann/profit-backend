@@ -82,6 +82,7 @@ export class PartnerService {
                 capitalAmount: dto.capitalAmount,
                 totalAmount: dto.capitalAmount,
                 contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : null,
+                createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
                 mudarabahFileUrl: dto.mudarabahFileUrl,
                 isActive: dto.isActive ?? false,
                 accountPayableId: payableAccount.id,
@@ -161,11 +162,24 @@ export class PartnerService {
             where: { id: currentUser },
         });
 
+        if (dto.joinDistribute === false) {
+            dto.isActive = false;
+        }
+
+        if (dto.isActive === true) {
+            dto.joinDistribute = true;
+        }
+
         const updated = await this.prisma.partner.update({
             where: { id },
             data: {
                 ...dto,
-                contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : partner.contractSignedAt,
+                contractSignedAt: dto.contractSignedAt
+                    ? new Date(dto.contractSignedAt)
+                    : partner.contractSignedAt,
+                createdAt: dto.createdAt
+                    ? new Date(dto.createdAt)
+                    : partner.createdAt,
             },
         });
 
@@ -179,7 +193,10 @@ export class PartnerService {
             },
         });
 
-        return { message: 'تم تحديث بيانات المساهم بنجاح', partner: updated };
+        return {
+            message: 'تم تحديث بيانات المساهم بنجاح',
+            partner: updated,
+        };
     }
 
     // DELETE PARTNER
@@ -301,20 +318,61 @@ export class PartnerService {
                 transactions: true,
             },
         });
+
         if (!partner) throw new NotFoundException('Partner not found');
 
-        const totalActiveCapital = await this.prisma.partner.aggregate({
-            _sum: { totalAmount: true },
-            where: { isActive: true },
-        });
+        // Convert to Saudi Time (local helper)
+        const toSaudi = (date: Date | null) => {
+            if (!date) return null;
+            return DateTime.fromJSDate(date)
+                .setZone("Asia/Riyadh")
+                .toFormat("yyyy-LL-dd HH:mm:ss");
+        };
 
-        const totalCapital = totalActiveCapital._sum.totalAmount || 0;
-        const partnerProfitPercent = totalCapital > 0 ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2)) : 0;
+        let totalCapital = 0;
+        let partnerProfitPercent = 0;
+
+        if (partner.isActive) {
+            const activePartners = await this.prisma.partner.findMany({
+                where: { isActive: true },
+                select: { totalAmount: true }
+            });
+
+            totalCapital = activePartners.reduce((sum, p) => sum + p.totalAmount, 0);
+
+            partnerProfitPercent = totalCapital > 0
+                ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2))
+                : 0;
+        }
+
+        // CASE 2: INACTIVE BUT joinDistribute = TRUE
+        else if (!partner.isActive && partner.joinDistribute === true) {
+            const inactiveJoined = await this.prisma.partner.findMany({
+                where: {
+                    isActive: false,
+                    joinDistribute: true,
+                },
+                select: { totalAmount: true }
+            });
+
+            totalCapital = inactiveJoined.reduce((sum, p) => sum + p.totalAmount, 0);
+
+            partnerProfitPercent = totalCapital > 0
+                ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2))
+                : 0;
+        }
+
+        else {
+            totalCapital = 0;
+            partnerProfitPercent = 0;
+        }
 
         return {
             ...partner,
+            createdAt: toSaudi(partner.createdAt),
+            contractSignedAt: toSaudi(partner.contractSignedAt),
             partnerProfitPercent,
-            totalSaving: partner.AccountSaving.balance,
+            totalSaving: partner.AccountSaving?.balance ?? 0,
         };
     }
 
@@ -583,9 +641,9 @@ export class PartnerService {
                 screen: 'Partners',
                 action: 'CREATE',
                 description: `قام المستخدم ${user?.name} بإنشاء معاملة ${dto.type === 'DEPOSIT' ? 'إيداع' :
-                        dto.type === 'WITHDRAWAL' ? 'سحب من رأس المال' :
-                            dto.type === 'PROFIT_WITHDRAWAL' ? 'سحب من الأرباح' :
-                                'سحب من التوفير'
+                    dto.type === 'WITHDRAWAL' ? 'سحب من رأس المال' :
+                        dto.type === 'PROFIT_WITHDRAWAL' ? 'سحب من الأرباح' :
+                            'سحب من التوفير'
                     } بقيمة ${dto.amount} للشريك ${partner.name} (تم إنشاء وترحيل القيد المحاسبي بنجاح)`,
             },
         });

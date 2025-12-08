@@ -14,9 +14,12 @@ export class ClientReportController {
     getAllClients(
         @Param('page', ParseIntPipe) page: number,
         @Query('limit') limit?: number,
+        @Query('status') status?: 'ACTIVE' | 'COMPLETE',
     ) {
-        return this.reportService.getAllClients(page, limit);
+        const filters = status ? { status } : undefined;
+        return this.reportService.getAllClients(page, limit, filters);
     }
+
 
     @Get('client/:clientId')
     @Permissions('client-report', 'canView')

@@ -84,4 +84,8 @@ export class UpdateLoanDto {
     @IsOptional()
     @IsNumber()
     kafeelId?: number;
+
+    @IsOptional()
+    @IsDateString()
+    startDate: string;
 }

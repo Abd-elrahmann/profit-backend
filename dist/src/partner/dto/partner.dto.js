@@ -20,6 +20,7 @@ class CreatePartnerDto {
     orgProfitPercent;
     capitalAmount;
     contractSignedAt;
+    createdAt;
     mudarabahFileUrl;
     isActive;
 }
@@ -61,6 +62,11 @@ __decorate([
 ], CreatePartnerDto.prototype, "contractSignedAt", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreatePartnerDto.prototype, "createdAt", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreatePartnerDto.prototype, "mudarabahFileUrl", void 0);
@@ -78,8 +84,10 @@ class UpdatePartnerDto {
     orgProfitPercent;
     capitalAmount;
     contractSignedAt;
+    createdAt;
     mudarabahFileUrl;
     isActive;
+    joinDistribute;
 }
 exports.UpdatePartnerDto = UpdatePartnerDto;
 __decorate([
@@ -124,6 +132,11 @@ __decorate([
 ], UpdatePartnerDto.prototype, "contractSignedAt", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdatePartnerDto.prototype, "createdAt", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdatePartnerDto.prototype, "mudarabahFileUrl", void 0);
@@ -132,4 +145,9 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdatePartnerDto.prototype, "isActive", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdatePartnerDto.prototype, "joinDistribute", void 0);
 //# sourceMappingURL=partner.dto.js.map

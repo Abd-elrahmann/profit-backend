@@ -7,6 +7,7 @@ export declare class CreatePartnerDto {
     orgProfitPercent: number;
     capitalAmount: number;
     contractSignedAt?: string;
+    createdAt?: string;
     mudarabahFileUrl?: string;
     isActive?: boolean;
 }
@@ -19,6 +20,8 @@ export declare class UpdatePartnerDto {
     orgProfitPercent?: number;
     capitalAmount?: number;
     contractSignedAt?: string;
+    createdAt?: string;
     mudarabahFileUrl?: string;
     isActive?: boolean;
+    joinDistribute?: boolean;
 }

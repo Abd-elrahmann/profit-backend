@@ -29,6 +29,10 @@ export class CreatePartnerDto {
     contractSignedAt?: string;
 
     @IsOptional()
+    @IsDateString()
+    createdAt?: string;
+
+    @IsOptional()
     @IsString()
     mudarabahFileUrl?: string;
 
@@ -71,10 +75,18 @@ export class UpdatePartnerDto {
     contractSignedAt?: string;
 
     @IsOptional()
+    @IsDateString()
+    createdAt?: string;
+
+    @IsOptional()
     @IsString()
     mudarabahFileUrl?: string;
 
     @IsOptional()
     @IsBoolean()
     isActive?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    joinDistribute?: boolean;
 }

@@ -118,6 +118,7 @@ let PartnerService = class PartnerService {
                 capitalAmount: dto.capitalAmount,
                 totalAmount: dto.capitalAmount,
                 contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : null,
+                createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
                 mudarabahFileUrl: dto.mudarabahFileUrl,
                 isActive: dto.isActive ?? false,
                 accountPayableId: payableAccount.id,
@@ -186,11 +187,22 @@ let PartnerService = class PartnerService {
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });
+        if (dto.joinDistribute === false) {
+            dto.isActive = false;
+        }
+        if (dto.isActive === true) {
+            dto.joinDistribute = true;
+        }
         const updated = await this.prisma.partner.update({
             where: { id },
             data: {
                 ...dto,
-                contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : partner.contractSignedAt,
+                contractSignedAt: dto.contractSignedAt
+                    ? new Date(dto.contractSignedAt)
+                    : partner.contractSignedAt,
+                createdAt: dto.createdAt
+                    ? new Date(dto.createdAt)
+                    : partner.createdAt,
             },
         });
         await this.prisma.auditLog.create({
@@ -201,7 +213,10 @@ let PartnerService = class PartnerService {
                 description: `قام المستخدم ${user?.name} بتحديث بيانات الشريك: ${partner.name}`,
             },
         });
-        return { message: 'تم تحديث بيانات المساهم بنجاح', partner: updated };
+        return {
+            message: 'تم تحديث بيانات المساهم بنجاح',
+            partner: updated,
+        };
     }
     async deletePartner(currentUser, id) {
         const partner = await this.prisma.partner.findUnique({
@@ -309,16 +324,48 @@ let PartnerService = class PartnerService {
         });
         if (!partner)
             throw new common_1.NotFoundException('Partner not found');
-        const totalActiveCapital = await this.prisma.partner.aggregate({
-            _sum: { totalAmount: true },
-            where: { isActive: true },
-        });
-        const totalCapital = totalActiveCapital._sum.totalAmount || 0;
-        const partnerProfitPercent = totalCapital > 0 ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2)) : 0;
+        const toSaudi = (date) => {
+            if (!date)
+                return null;
+            return luxon_1.DateTime.fromJSDate(date)
+                .setZone("Asia/Riyadh")
+                .toFormat("yyyy-LL-dd HH:mm:ss");
+        };
+        let totalCapital = 0;
+        let partnerProfitPercent = 0;
+        if (partner.isActive) {
+            const activePartners = await this.prisma.partner.findMany({
+                where: { isActive: true },
+                select: { totalAmount: true }
+            });
+            totalCapital = activePartners.reduce((sum, p) => sum + p.totalAmount, 0);
+            partnerProfitPercent = totalCapital > 0
+                ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2))
+                : 0;
+        }
+        else if (!partner.isActive && partner.joinDistribute === true) {
+            const inactiveJoined = await this.prisma.partner.findMany({
+                where: {
+                    isActive: false,
+                    joinDistribute: true,
+                },
+                select: { totalAmount: true }
+            });
+            totalCapital = inactiveJoined.reduce((sum, p) => sum + p.totalAmount, 0);
+            partnerProfitPercent = totalCapital > 0
+                ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2))
+                : 0;
+        }
+        else {
+            totalCapital = 0;
+            partnerProfitPercent = 0;
+        }
         return {
             ...partner,
+            createdAt: toSaudi(partner.createdAt),
+            contractSignedAt: toSaudi(partner.contractSignedAt),
             partnerProfitPercent,
-            totalSaving: partner.AccountSaving.balance,
+            totalSaving: partner.AccountSaving?.balance ?? 0,
         };
     }
     async uploadMudarabahFile(currentUser, id, file) {

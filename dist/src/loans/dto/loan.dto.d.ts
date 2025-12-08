@@ -24,4 +24,5 @@ export declare class UpdateLoanDto {
     partnerId?: number;
     clientId?: number;
     kafeelId?: number;
+    startDate: string;
 }

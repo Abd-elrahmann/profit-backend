@@ -12,14 +12,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClientReportService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const luxon_1 = require("luxon");
 let ClientReportService = class ClientReportService {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async getAllClients(page, limit = 20) {
+    async getAllClients(page, limit = 20, filters) {
         const skip = (page - 1) * limit;
-        const clients = await this.prisma.client.findMany({
+        const allClients = await this.prisma.client.findMany({
             skip,
             take: limit,
             orderBy: { id: 'asc' },
@@ -31,26 +32,69 @@ let ClientReportService = class ClientReportService {
                 },
             },
         });
-        const result = clients.map((c) => {
-            const loansCount = c.loans.length;
-            const totalDebit = c.loans.reduce((sum, loan) => Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100, 0);
-            const totalPaid = c.loans.reduce((sum, loan) => Math.round((sum +
+        const filteredClients = allClients.filter((c) => {
+            if (!filters?.status)
+                return true;
+            const loans = c.loans;
+            const totalRepayments = loans.reduce((sum, loan) => sum + loan.repayments.length, 0);
+            const remainingRepayments = loans.reduce((sum, loan) => sum +
+                loan.repayments.filter((r) => r.status === 'PENDING').length, 0);
+            if (filters.status === 'COMPLETE') {
+                return remainingRepayments === 0;
+            }
+            if (filters.status === 'ACTIVE') {
+                return remainingRepayments > 0;
+            }
+            return true;
+        });
+        const result = filteredClients.map((c) => {
+            const loans = c.loans;
+            const loansCount = loans.length;
+            const activeLoans = loans.filter((l) => l.status === 'ACTIVE').length;
+            const completedLoans = loans.filter((l) => l.status === 'COMPLETED').length;
+            const overdueLoans = loans.filter((l) => l.repayments.some((r) => r.status === 'OVERDUE')).length;
+            const createdAt = c.createdAt
+                ? luxon_1.DateTime.fromJSDate(c.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null;
+            const totalDebit = loans.reduce((sum, loan) => Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100, 0);
+            const totalPaid = loans.reduce((sum, loan) => Math.round((sum +
                 loan.repayments.reduce((rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100, 0)) * 100) / 100, 0);
             const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
-            const repaymentsCount = c.loans.reduce((cnt, loan) => cnt + loan.repayments.length, 0);
+            let totalRepayments = 0;
+            let paidRepayments = 0;
+            let remainingRepayments = 0;
+            loans.forEach((loan) => {
+                totalRepayments += loan.repayments.length;
+                paidRepayments += loan.repayments.filter((r) => r.status === 'PAID' || r.status === 'EARLY_PAID').length;
+                remainingRepayments += loan.repayments.filter((r) => r.status === 'PENDING').length;
+            });
             return {
                 id: c.id,
                 name: c.name,
                 phone: c.phone,
                 note: c.notes,
-                loansCount,
-                repaymentsCount,
-                totalDebit,
-                totalPaid,
-                remaining,
+                createdAt,
+                loansSummary: {
+                    loansCount,
+                    activeLoans,
+                    completedLoans,
+                    overdueLoans,
+                },
+                repaymentSummary: {
+                    totalRepayments,
+                    paidRepayments,
+                    remainingRepayments,
+                },
+                financials: {
+                    totalDebit,
+                    totalPaid,
+                    remaining,
+                },
             };
         });
-        const total = await this.prisma.client.count();
+        const total = result.length;
         return {
             page,
             limit,

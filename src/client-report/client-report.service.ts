@@ -1,14 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class ClientReportService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async getAllClients(page: number, limit = 20) {
+    async getAllClients(
+        page: number,
+        limit = 20,
+        filters?: { status?: 'ACTIVE' | 'COMPLETE' }
+    ) {
         const skip = (page - 1) * limit;
 
-        const clients = await this.prisma.client.findMany({
+        const allClients = await this.prisma.client.findMany({
             skip,
             take: limit,
             orderBy: { id: 'asc' },
@@ -21,29 +26,61 @@ export class ClientReportService {
             },
         });
 
-        const result = clients.map((c) => {
-            const loansCount = c.loans.length;
+        const filteredClients = allClients.filter((c) => {
+            if (!filters?.status) return true;
 
-            // --- TOTAL DEBIT ---
-            const totalDebit = c.loans.reduce(
+            const loans = c.loans;
+            const totalRepayments = loans.reduce(
+                (sum, loan) => sum + loan.repayments.length,
+                0
+            );
+            const remainingRepayments = loans.reduce(
                 (sum, loan) =>
-                    Math.round(
-                        (sum + (loan.newAmount ?? loan.totalAmount)) * 100
-                    ) / 100,
+                    sum +
+                    loan.repayments.filter((r) => r.status === 'PENDING').length,
                 0
             );
 
-            // --- TOTAL PAID ---
-            const totalPaid = c.loans.reduce(
+            if (filters.status === 'COMPLETE') {
+                return remainingRepayments === 0;
+            }
+
+            if (filters.status === 'ACTIVE') {
+                return remainingRepayments > 0;
+            }
+
+            return true;
+        });
+
+        const result = filteredClients.map((c) => {
+            const loans = c.loans;
+
+            const loansCount = loans.length;
+            const activeLoans = loans.filter((l) => l.status === 'ACTIVE').length;
+            const completedLoans = loans.filter((l) => l.status === 'COMPLETED').length;
+            const overdueLoans = loans.filter((l) =>
+                l.repayments.some((r) => r.status === 'OVERDUE')
+            ).length;
+
+            const createdAt = c.createdAt
+                ? DateTime.fromJSDate(c.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null;
+
+            const totalDebit = loans.reduce(
+                (sum, loan) =>
+                    Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100,
+                0
+            );
+
+            const totalPaid = loans.reduce(
                 (sum, loan) =>
                     Math.round(
                         (
                             sum +
                             loan.repayments.reduce(
-                                (rSum, r) =>
-                                    Math.round(
-                                        (rSum + r.paidAmount) * 100
-                                    ) / 100,
+                                (rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100,
                                 0
                             )
                         ) * 100
@@ -51,28 +88,49 @@ export class ClientReportService {
                 0
             );
 
-            // --- REMAINING ---
             const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
 
-            const repaymentsCount = c.loans.reduce(
-                (cnt, loan) => cnt + loan.repayments.length,
-                0
-            );
+            let totalRepayments = 0;
+            let paidRepayments = 0;
+            let remainingRepayments = 0;
+
+            loans.forEach((loan) => {
+                totalRepayments += loan.repayments.length;
+                paidRepayments += loan.repayments.filter(
+                    (r) => r.status === 'PAID' || r.status === 'EARLY_PAID'
+                ).length;
+                remainingRepayments += loan.repayments.filter((r) => r.status === 'PENDING').length;
+            });
 
             return {
                 id: c.id,
                 name: c.name,
                 phone: c.phone,
                 note: c.notes,
-                loansCount,
-                repaymentsCount,
-                totalDebit,
-                totalPaid,
-                remaining,
+                createdAt,
+
+                loansSummary: {
+                    loansCount,
+                    activeLoans,
+                    completedLoans,
+                    overdueLoans,
+                },
+
+                repaymentSummary: {
+                    totalRepayments,
+                    paidRepayments,
+                    remainingRepayments,
+                },
+
+                financials: {
+                    totalDebit,
+                    totalPaid,
+                    remaining,
+                },
             };
         });
 
-        const total = await this.prisma.client.count();
+        const total = result.length;
 
         return {
             page,

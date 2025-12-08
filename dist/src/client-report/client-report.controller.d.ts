@@ -2,7 +2,7 @@ import { ClientReportService } from './client-report.service';
 export declare class ClientReportController {
     private readonly reportService;
     constructor(reportService: ClientReportService);
-    getAllClients(page: number, limit?: number): Promise<{
+    getAllClients(page: number, limit?: number, status?: 'ACTIVE' | 'COMPLETE'): Promise<{
         page: number;
         limit: number;
         totalClients: number;
@@ -11,11 +11,23 @@ export declare class ClientReportController {
             name: string;
             phone: string;
             note: string | null;
-            loansCount: number;
-            repaymentsCount: number;
-            totalDebit: number;
-            totalPaid: number;
-            remaining: number;
+            createdAt: string | null;
+            loansSummary: {
+                loansCount: number;
+                activeLoans: number;
+                completedLoans: number;
+                overdueLoans: number;
+            };
+            repaymentSummary: {
+                totalRepayments: number;
+                paidRepayments: number;
+                remainingRepayments: number;
+            };
+            financials: {
+                totalDebit: number;
+                totalPaid: number;
+                remaining: number;
+            };
         }[];
     }>;
     getClientDetails(clientId: number): Promise<{

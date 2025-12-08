@@ -281,6 +281,7 @@ model Partner {
   contractSignedAt DateTime?
   mudarabahFileUrl String?
   isActive         Boolean   @default(false)
+  joinDistribute   Boolean   @default(true)
   accountPayableId Int       @unique
   accountEquityId  Int       @unique
   accountSavingId  Int       @unique

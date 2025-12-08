@@ -23,8 +23,9 @@ let ClientReportController = class ClientReportController {
     constructor(reportService) {
         this.reportService = reportService;
     }
-    getAllClients(page, limit) {
-        return this.reportService.getAllClients(page, limit);
+    getAllClients(page, limit, status) {
+        const filters = status ? { status } : undefined;
+        return this.reportService.getAllClients(page, limit, filters);
     }
     getClientDetails(clientId) {
         return this.reportService.getClientDetails(clientId);
@@ -36,8 +37,9 @@ __decorate([
     (0, permissions_decorator_1.Permissions)('client-report', 'canView'),
     __param(0, (0, common_1.Param)('page', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('status')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, String]),
     __metadata("design:returntype", void 0)
 ], ClientReportController.prototype, "getAllClients", null);
 __decorate([
