@@ -96,14 +96,14 @@ export class AccountsService {
         options: { from?: string; to?: string; limit?: number } = {}
     ) {
         const { from, to, limit = 10 } = options;
-    
+
         // Step 1: Get the account with children
         const account = await this.prisma.account.findUnique({
             where: { id },
             include: { children: true },
         });
         if (!account) throw new NotFoundException('Account not found');
-    
+
         // Step 2: Build date filter (Saudi timezone)
         const dateFilter: any = {};
         if (from) {
@@ -118,7 +118,7 @@ export class AccountsService {
                 .toJSDate();
             dateFilter.lte = saudiTo;
         }
-    
+
         // Step 3: Count total matching journals
         const totalJournals = await this.prisma.journalHeader.count({
             where: {
@@ -127,7 +127,7 @@ export class AccountsService {
                 ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
             },
         });
-    
+
         // Step 4: Fetch journals with pagination
         const journals = await this.prisma.journalHeader.findMany({
             where: {
@@ -149,7 +149,7 @@ export class AccountsService {
             skip: (page - 1) * limit,
             take: limit,
         });
-    
+
         // Step 5: Calculate period-specific totals
         const periodTotals = await this.prisma.journalLine.aggregate({
             where: {
@@ -164,10 +164,10 @@ export class AccountsService {
                 credit: true,
             },
         });
-    
+
         const periodDebit = periodTotals._sum?.debit || 0;
         const periodCredit = periodTotals._sum?.credit || 0;
-        
+
         // Calculate period balance based on account nature
         let periodBalance = 0;
         if (account.nature === 'DEBIT') {
@@ -175,7 +175,7 @@ export class AccountsService {
         } else {
             periodBalance = periodCredit - periodDebit;
         }
-    
+
         // Step 6: Format response
         const formattedJournals = journals.map((j) => ({
             id: j.id,
@@ -197,7 +197,7 @@ export class AccountsService {
                 account: l.account,
             })),
         }));
-    
+
         // Step 7: Return result with period-specific balances
         return {
             totalPages: Math.ceil(totalJournals / limit),
@@ -290,6 +290,13 @@ export class AccountsService {
         if (!bankAccount)
             throw new NotFoundException('Bank account with code 11000 not found');
 
+        const loansAccount = await this.prisma.account.findUnique({
+            where: { code: '12000' }
+        });
+
+        if (!loansAccount)
+            throw new NotFoundException('loans account with code 12000 not found');
+
         // Step 3: Group journal entries by month (Saudi timezone)
         const groupedByMonth = bankAccount.entries.reduce(
             (acc, entry) => {
@@ -354,6 +361,8 @@ export class AccountsService {
                 credit: bankAccount.credit,
                 balance: bankAccount.balance,
             },
+            loansBalance: loansAccount.balance,
+            total: bankAccount.balance + loansAccount.balance,
             totalJournalEntries: bankAccount.entries.length,
             journalsByMonth: groupedByMonth,
             repayments: {

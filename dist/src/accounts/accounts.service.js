@@ -240,6 +240,11 @@ let AccountsService = class AccountsService {
         });
         if (!bankAccount)
             throw new common_1.NotFoundException('Bank account with code 11000 not found');
+        const loansAccount = await this.prisma.account.findUnique({
+            where: { code: '12000' }
+        });
+        if (!loansAccount)
+            throw new common_1.NotFoundException('loans account with code 12000 not found');
         const groupedByMonth = bankAccount.entries.reduce((acc, entry) => {
             const date = luxon_1.DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
             const monthKey = date.toFormat('yyyy-LL');
@@ -287,6 +292,8 @@ let AccountsService = class AccountsService {
                 credit: bankAccount.credit,
                 balance: bankAccount.balance,
             },
+            loansBalance: loansAccount.balance,
+            total: bankAccount.balance + loansAccount.balance,
             totalJournalEntries: bankAccount.entries.length,
             journalsByMonth: groupedByMonth,
             repayments: {

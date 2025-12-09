@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
+import { threadId } from 'worker_threads';
 
 @Injectable()
 export class ExpenseService {
@@ -23,6 +24,9 @@ export class ExpenseService {
 
         if (!bankAccount || !expensesAccount)
             throw new BadRequestException('Missing required accounts setup');
+
+        if (amount > bankAccount.balance)
+            throw new BadRequestException('رصيد الصندوق غير كافي')
 
         const journal = await this.journalService.createJournal(
             {

@@ -29,6 +29,8 @@ let ExpenseService = class ExpenseService {
         });
         if (!bankAccount || !expensesAccount)
             throw new common_1.BadRequestException('Missing required accounts setup');
+        if (amount > bankAccount.balance)
+            throw new common_1.BadRequestException('رصيد الصندوق غير كافي');
         const journal = await this.journalService.createJournal({
             reference: `EXP-${Date.now()}`,
             description,
