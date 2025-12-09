@@ -236,7 +236,7 @@ let LoansService = class LoansService {
             });
         }
         const repayments = [];
-        const startDate = new Date(dto.startDate);
+        const startDate = new Date(dto.startDate || new Date());
         let remainingPrincipal = principal;
         let remainingInterest = totalInterest;
         for (let i = 1; i <= months; i++) {

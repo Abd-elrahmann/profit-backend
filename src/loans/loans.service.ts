@@ -221,7 +221,7 @@ export class LoansService {
         }
 
         const repayments: Prisma.RepaymentCreateManyInput[] = [];
-        const startDate = new Date(dto.startDate);
+        const startDate = new Date(dto.startDate || new Date());
 
         let remainingPrincipal = principal;
         let remainingInterest = totalInterest;
