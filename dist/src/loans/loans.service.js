@@ -729,16 +729,19 @@ let LoansService = class LoansService {
             else {
                 throw new common_1.BadRequestException('يجب ادخال مبلغ او نسبة الفائدة');
             }
+            const financialUpdateData = {
+                amount: Number(principal.toFixed(2)),
+                interestRate: Number(interestRate.toFixed(2)),
+                interestAmount: Number(totalInterest.toFixed(2)),
+                totalAmount: Number(totalAmount.toFixed(2)),
+                startDate: dto.startDate ? new Date(dto.startDate) : loan.startDate,
+            };
+            if (dto.kafeelId !== undefined) {
+                financialUpdateData.kafeelId = dto.kafeelId;
+            }
             await this.prisma.loan.update({
                 where: { id },
-                data: {
-                    kafeelId: Number(dto.kafeelId),
-                    amount: Number(principal.toFixed(2)),
-                    interestRate: Number(interestRate.toFixed(2)),
-                    interestAmount: Number(totalInterest.toFixed(2)),
-                    totalAmount: Number(totalAmount.toFixed(2)),
-                    startDate: dto.startDate ? new Date(dto.startDate) : loan.startDate,
-                },
+                data: financialUpdateData,
             });
             const paymentAmount = new library_1.Decimal(dto.paymentAmount || updated.paymentAmount);
             const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
