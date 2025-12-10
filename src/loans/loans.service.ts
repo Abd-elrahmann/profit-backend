@@ -757,30 +757,49 @@ export class LoansService {
             data: loanUpdateData,
         });
 
+        // Recalculate partner shares if partnerId changed
         if (dto.partnerId) {
-            const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
+            const partner = await this.prisma.partner.findUnique({
+                where: { id: dto.partnerId },
+                select: { id: true, totalAmount: true, isActive: true, joinDistribute: true },
+            });
+
             if (!partner) throw new NotFoundException('Partner not found');
 
             await this.prisma.loanPartnerShare.deleteMany({ where: { loanId: loan.id } });
 
-            if (partner.isActive === false) {
-                // inactive → all share to this partner
-                await this.prisma.loanPartnerShare.upsert({
-                    where: { loanId_partnerId: { loanId: loan.id, partnerId: partner.id } },
-                    update: { sharePercent: 100, isActive: false },
-                    create: { loanId: loan.id, partnerId: partner.id, sharePercent: 100, isActive: false },
-                });
-            } else {
-                // active partner → calculate shares for all active partners
-                const activePartners = await this.prisma.partner.findMany({ where: { isActive: true } });
-                const totalCapital = activePartners.reduce((sum, p) => sum + Number(p.capitalAmount), 0);
+            const allPartners = await this.prisma.partner.findMany({
+                select: { id: true, totalAmount: true, isActive: true, joinDistribute: true },
+            });
+
+            if (partner.isActive) {
+                const activePartners = allPartners.filter(p => p.isActive);
+                const totalActiveCapital = activePartners.reduce((sum, p) => sum + p.totalAmount, 0);
 
                 for (const p of activePartners) {
-                    const percent = (Number(p.capitalAmount) / totalCapital) * 100;
-                    await this.prisma.loanPartnerShare.upsert({
-                        where: { loanId_partnerId: { loanId: loan.id, partnerId: p.id } },
-                        update: { sharePercent: percent, isActive: true },
-                        create: { loanId: loan.id, partnerId: p.id, sharePercent: percent, isActive: true },
+                    const percent = totalActiveCapital > 0 ? (p.totalAmount / totalActiveCapital) * 100 : 0;
+                    await this.prisma.loanPartnerShare.create({
+                        data: {
+                            loanId: loan.id,
+                            partnerId: p.id,
+                            sharePercent: Number(percent.toFixed(2)),
+                            isActive: true,
+                        },
+                    });
+                }
+            } else {
+                const inactiveJoinPartners = allPartners.filter(p => !p.isActive && p.joinDistribute);
+                const totalInactiveCapital = inactiveJoinPartners.reduce((sum, p) => sum + p.totalAmount, 0);
+
+                for (const p of inactiveJoinPartners) {
+                    const percent = totalInactiveCapital > 0 ? (p.totalAmount / totalInactiveCapital) * 100 : 0;
+                    await this.prisma.loanPartnerShare.create({
+                        data: {
+                            loanId: loan.id,
+                            partnerId: p.id,
+                            sharePercent: Number(percent.toFixed(2)),
+                            isActive: false,
+                        },
                     });
                 }
             }
@@ -826,53 +845,53 @@ export class LoansService {
                 },
             });
 
-            // Determine number of installments
-            const repaymentCount =
-                updated.type === LoanType.DAILY
-                    ? updated.durationMonths * 30
-                    : updated.type === LoanType.WEEKLY
-                        ? updated.durationMonths * 4
-                        : updated.durationMonths;
+            // Payment amount
+            const paymentAmount = new Decimal(dto.paymentAmount || updated.paymentAmount);
 
-            // Calculate installment amount
-            const installmentAmount = totalAmount.div(repaymentCount).toDecimalPlaces(2);
-            const startDate = new Date(updated.startDate);
+            // Calculate installments
+            const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
+            const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
+            const months = fullMonths;
+            const hasRemainder = lastPayment.gt(0);
+
             let remainingPrincipal = principal;
             let remainingInterest = totalInterest;
 
             const repayments: Prisma.RepaymentCreateManyInput[] = [];
+            const startDate = new Date(dto.startDate || updated.startDate);
 
-            for (let i = 1; i <= repaymentCount; i++) {
+            for (let i = 1; i <= months; i++) {
                 const dueDate = new Date(startDate);
-                if (updated.type === LoanType.DAILY) dueDate.setDate(startDate.getDate() + i);
-                else if (updated.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
-                else {
-                    dueDate.setMonth(startDate.getMonth() + i);
-                    if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
+                dueDate.setMonth(startDate.getMonth() + i);
+                if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
+
+                let amount = paymentAmount;
+                if (i === months && hasRemainder) {
+                    amount = paymentAmount.plus(lastPayment);
                 }
 
                 let principalAmount: Decimal;
                 let interestAmount: Decimal;
-                // Last installment takes remaining amounts
-                if (i === repaymentCount) {
+
+                if (i === months && hasRemainder) {
                     principalAmount = remainingPrincipal;
                     interestAmount = remainingInterest;
                 } else {
                     const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
-                    interestAmount = installmentAmount.mul(interestRatio).toDecimalPlaces(2);
-                    principalAmount = installmentAmount.minus(interestAmount).toDecimalPlaces(2);
+                    interestAmount = amount.mul(interestRatio).toDecimalPlaces(2);
+                    principalAmount = amount.minus(interestAmount).toDecimalPlaces(2);
                 }
 
-                remainingPrincipal = remainingPrincipal.minus(principalAmount).toDecimalPlaces(2);
-                remainingInterest = remainingInterest.minus(interestAmount).toDecimalPlaces(2);
+                remainingPrincipal = remainingPrincipal.minus(principalAmount);
+                remainingInterest = remainingInterest.minus(interestAmount);
 
                 repayments.push({
+                    loanId: id,
                     count: i,
-                    loanId: updated.id,
-                    clientId: dto.clientId || loan.clientId,
+                    clientId: dto.clientId || updated.clientId,
                     dueDate,
-                    amount: Number(installmentAmount.toFixed(2)),
-                    remaining: Number(installmentAmount.toFixed(2)),
+                    amount: Number(amount.toFixed(2)),
+                    remaining: Number(amount.toFixed(2)),
                     principalAmount: Number(principalAmount.toFixed(2)),
                     interestAmount: Number(interestAmount.toFixed(2)),
                     status: 'PENDING',
