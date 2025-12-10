@@ -12,17 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClientReportService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const luxon_1 = require("luxon");
 let ClientReportService = class ClientReportService {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
     async getAllClients(page, limit = 20, filters) {
-        const skip = (page - 1) * limit;
         const allClients = await this.prisma.client.findMany({
-            skip,
-            take: limit,
             orderBy: { id: 'asc' },
             include: {
                 loans: {
@@ -32,37 +28,47 @@ let ClientReportService = class ClientReportService {
                 },
             },
         });
-        const filteredClients = allClients.filter((c) => {
+        const processedClients = allClients.map((c) => {
+            const loans = c.loans;
+            const totalDebit = loans.reduce((sum, loan) => {
+                const debit = loan.newAmount && loan.newAmount > 0
+                    ? loan.newAmount
+                    : loan.totalAmount;
+                return Math.round((sum + debit) * 100) / 100;
+            }, 0);
+            const totalPaid = loans.reduce((sum, loan) => {
+                const paid = loan.repayments.reduce((rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100, 0);
+                return Math.round((sum + paid) * 100) / 100;
+            }, 0);
+            const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
+            return {
+                client: c,
+                loans,
+                totalDebit,
+                totalPaid,
+                remaining,
+            };
+        });
+        const filtered = processedClients.filter((obj) => {
             if (!filters?.status)
                 return true;
-            const loans = c.loans;
-            const totalDebit = loans.reduce((sum, loan) => Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100, 0);
-            const totalPaid = loans.reduce((sum, loan) => Math.round((sum +
-                loan.repayments.reduce((rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100, 0)) * 100) / 100, 0);
-            const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
             if (filters.status === 'COMPLETE') {
-                return remaining <= 0;
+                return obj.remaining <= 0;
             }
             if (filters.status === 'ACTIVE') {
-                return remaining > 0;
+                return obj.remaining > 0;
             }
             return true;
         });
-        const result = filteredClients.map((c) => {
-            const loans = c.loans;
+        const totalClients = filtered.length;
+        const start = (page - 1) * limit;
+        const paginated = filtered.slice(start, start + limit);
+        const result = paginated.map((obj) => {
+            const { client: c, loans, totalDebit, totalPaid, remaining } = obj;
             const loansCount = loans.length;
             const activeLoans = loans.filter((l) => l.status === 'ACTIVE').length;
             const completedLoans = loans.filter((l) => l.status === 'COMPLETED').length;
             const overdueLoans = loans.filter((l) => l.repayments.some((r) => r.status === 'OVERDUE')).length;
-            const createdAt = c.createdAt
-                ? luxon_1.DateTime.fromJSDate(c.createdAt)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd HH:mm:ss')
-                : null;
-            const totalDebit = loans.reduce((sum, loan) => Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100, 0);
-            const totalPaid = loans.reduce((sum, loan) => Math.round((sum +
-                loan.repayments.reduce((rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100, 0)) * 100) / 100, 0);
-            const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
             let totalRepayments = 0;
             let paidRepayments = 0;
             let remainingRepayments = 0;
@@ -73,14 +79,15 @@ let ClientReportService = class ClientReportService {
             });
             const totalDiscounts = loans.reduce((sum, loan) => Math.round((sum + (loan.earlyPaymentDiscount ?? 0)) * 100) / 100, 0);
             const totalInterestPaid = loans.reduce((sum, loan) => Math.round((sum +
-                loan.repayments.reduce((rSum, r) => Math.round((rSum + (r.interestAmount ?? 0)) * 100) / 100, 0)) * 100) / 100, 0);
+                loan.repayments.reduce((rSum, r) => Math.round(((rSum + (r.interestAmount ?? 0)) * 100)) /
+                    100, 0)) * 100) / 100, 0);
             return {
                 id: c.id,
                 name: c.name,
                 phone: c.phone,
                 address: c.address,
                 note: c.notes,
-                createdAt,
+                createdAt: c.createdAt,
                 loansSummary: {
                     loansCount,
                     activeLoans,
@@ -101,11 +108,10 @@ let ClientReportService = class ClientReportService {
                 },
             };
         });
-        const total = result.length;
         return {
             page,
             limit,
-            totalClients: total,
+            totalClients,
             data: result,
         };
     }

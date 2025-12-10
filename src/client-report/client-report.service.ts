@@ -11,11 +11,7 @@ export class ClientReportService {
         limit = 20,
         filters?: { status?: 'ACTIVE' | 'COMPLETE' }
     ) {
-        const skip = (page - 1) * limit;
-
         const allClients = await this.prisma.client.findMany({
-            skip,
-            take: limit,
             orderBy: { id: 'asc' },
             include: {
                 loans: {
@@ -26,49 +22,58 @@ export class ClientReportService {
             },
         });
 
-        const filteredClients = allClients.filter((c) => {
-            if (!filters?.status) return true;
-
+        const processedClients = allClients.map((c) => {
             const loans = c.loans;
-            
-            // Calculate remaining amount (financial remaining, not repayment count)
-            const totalDebit = loans.reduce(
-                (sum, loan) =>
-                    Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100,
-                0
-            );
 
-            const totalPaid = loans.reduce(
-                (sum, loan) =>
-                    Math.round(
-                        (
-                            sum +
-                            loan.repayments.reduce(
-                                (rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100,
-                                0
-                            )
-                        ) * 100
-                    ) / 100,
-                0
-            );
+            // SAFE total debit calculation
+            const totalDebit = loans.reduce((sum, loan) => {
+                const debit =
+                    loan.newAmount && loan.newAmount > 0
+                        ? loan.newAmount
+                        : loan.totalAmount;
+                return Math.round((sum + debit) * 100) / 100;
+            }, 0);
+
+            // Total paid calculation
+            const totalPaid = loans.reduce((sum, loan) => {
+                const paid = loan.repayments.reduce(
+                    (rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100,
+                    0
+                );
+                return Math.round((sum + paid) * 100) / 100;
+            }, 0);
 
             const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
 
+            return {
+                client: c,
+                loans,
+                totalDebit,
+                totalPaid,
+                remaining,
+            };
+        });
+
+        const filtered = processedClients.filter((obj) => {
+            if (!filters?.status) return true;
+
             if (filters.status === 'COMPLETE') {
-                // العملاء المسددين: المبلغ المتبقي <= 0
-                return remaining <= 0;
+                return obj.remaining <= 0;
             }
 
             if (filters.status === 'ACTIVE') {
-                // العملاء المديونين: المبلغ المتبقي > 0
-                return remaining > 0;
+                return obj.remaining > 0;
             }
 
             return true;
         });
 
-        const result = filteredClients.map((c) => {
-            const loans = c.loans;
+        const totalClients = filtered.length;
+        const start = (page - 1) * limit;
+        const paginated = filtered.slice(start, start + limit);
+
+        const result = paginated.map((obj) => {
+            const { client: c, loans, totalDebit, totalPaid, remaining } = obj;
 
             const loansCount = loans.length;
             const activeLoans = loans.filter((l) => l.status === 'ACTIVE').length;
@@ -76,34 +81,6 @@ export class ClientReportService {
             const overdueLoans = loans.filter((l) =>
                 l.repayments.some((r) => r.status === 'OVERDUE')
             ).length;
-
-            const createdAt = c.createdAt
-                ? DateTime.fromJSDate(c.createdAt)
-                    .setZone('Asia/Riyadh')
-                    .toFormat('yyyy-LL-dd HH:mm:ss')
-                : null;
-
-            const totalDebit = loans.reduce(
-                (sum, loan) =>
-                    Math.round((sum + (loan.newAmount ?? loan.totalAmount)) * 100) / 100,
-                0
-            );
-
-            const totalPaid = loans.reduce(
-                (sum, loan) =>
-                    Math.round(
-                        (
-                            sum +
-                            loan.repayments.reduce(
-                                (rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100,
-                                0
-                            )
-                        ) * 100
-                    ) / 100,
-                0
-            );
-
-            const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
 
             let totalRepayments = 0;
             let paidRepayments = 0;
@@ -114,19 +91,19 @@ export class ClientReportService {
                 paidRepayments += loan.repayments.filter(
                     (r) => r.status === 'PAID' || r.status === 'EARLY_PAID'
                 ).length;
-                remainingRepayments += loan.repayments.filter((r) => r.status === 'PENDING').length;
+                remainingRepayments += loan.repayments.filter(
+                    (r) => r.status === 'PENDING'
+                ).length;
             });
 
-            // Calculate total discounts
+            // Discounts
             const totalDiscounts = loans.reduce(
                 (sum, loan) =>
-                    Math.round(
-                        (sum + (loan.earlyPaymentDiscount ?? 0)) * 100
-                    ) / 100,
+                    Math.round((sum + (loan.earlyPaymentDiscount ?? 0)) * 100) / 100,
                 0
             );
 
-            // Calculate total interest paid
+            // Interest paid
             const totalInterestPaid = loans.reduce(
                 (sum, loan) =>
                     Math.round(
@@ -134,9 +111,8 @@ export class ClientReportService {
                             sum +
                             loan.repayments.reduce(
                                 (rSum, r) =>
-                                    Math.round(
-                                        (rSum + (r.interestAmount ?? 0)) * 100
-                                    ) / 100,
+                                    Math.round(((rSum + (r.interestAmount ?? 0)) * 100)) /
+                                    100,
                                 0
                             )
                         ) * 100
@@ -150,7 +126,7 @@ export class ClientReportService {
                 phone: c.phone,
                 address: c.address,
                 note: c.notes,
-                createdAt,
+                createdAt: c.createdAt,
 
                 loansSummary: {
                     loansCount,
@@ -175,15 +151,14 @@ export class ClientReportService {
             };
         });
 
-        const total = result.length;
-
         return {
             page,
             limit,
-            totalClients: total,
+            totalClients,
             data: result,
         };
     }
+
 
     async getClientDetails(clientId: number) {
         const client = await this.prisma.client.findUnique({

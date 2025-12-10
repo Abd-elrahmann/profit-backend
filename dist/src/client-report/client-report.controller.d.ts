@@ -12,7 +12,7 @@ export declare class ClientReportController {
             phone: string;
             address: string;
             note: string | null;
-            createdAt: string | null;
+            createdAt: Date;
             loansSummary: {
                 loansCount: number;
                 activeLoans: number;

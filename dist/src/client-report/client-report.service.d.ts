@@ -14,7 +14,7 @@ export declare class ClientReportService {
             phone: string;
             address: string;
             note: string | null;
-            createdAt: string | null;
+            createdAt: Date;
             loansSummary: {
                 loansCount: number;
                 activeLoans: number;
