@@ -132,11 +132,10 @@ let LoansService = class LoansService {
             throw new common_1.BadRequestException('يجب ادخال مبلغ او نسبة الفائدة');
         }
         const paymentAmount = new library_1.Decimal(dto.paymentAmount);
-        const fullMonths = totalAmount.div(paymentAmount).floor();
+        const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
         const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
-        let months = fullMonths.toNumber();
-        if (lastPayment.gt(0))
-            months += 1;
+        let months = fullMonths;
+        const hasRemainder = lastPayment.gt(0);
         const bank = await this.prisma.account.findFirst({
             where: { accountBasicType: 'BANK' },
         });
@@ -251,8 +250,9 @@ let LoansService = class LoansService {
                     dueDate.setDate(dto.repaymentDay);
             }
             let amount = paymentAmount;
-            if (i === months && lastPayment.gt(0))
-                amount = lastPayment;
+            if (i === months && lastPayment.gt(0)) {
+                amount = paymentAmount.plus(lastPayment);
+            }
             let principalAmount;
             let interestAmount;
             if (i === months && lastPayment.gt(0)) {
@@ -634,9 +634,34 @@ let LoansService = class LoansService {
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });
+        const loanUpdateData = {};
+        if (dto.amount !== undefined)
+            loanUpdateData.amount = dto.amount;
+        if (dto.paymentAmount !== undefined)
+            loanUpdateData.paymentAmount = dto.paymentAmount;
+        if (dto.type !== undefined)
+            loanUpdateData.type = dto.type;
+        if (dto.startDate !== undefined)
+            loanUpdateData.startDate = new Date(dto.startDate);
+        if (dto.repaymentDay !== undefined)
+            loanUpdateData.repaymentDay = dto.repaymentDay;
+        if (dto.bankAccountId !== undefined)
+            loanUpdateData.bankAccountId = dto.bankAccountId;
+        if (dto.partnerId !== undefined)
+            loanUpdateData.partnerId = dto.partnerId;
+        if (dto.clientId !== undefined)
+            loanUpdateData.clientId = dto.clientId;
+        if (dto.kafeelId !== undefined)
+            loanUpdateData.kafeelId = dto.kafeelId;
+        if (dto.InterestPercentage !== undefined) {
+            loanUpdateData.interestRate = dto.InterestPercentage;
+        }
+        if (dto.TotalInterest !== undefined) {
+            loanUpdateData.interestAmount = dto.TotalInterest;
+        }
         const updated = await this.prisma.loan.update({
             where: { id },
-            data: dto,
+            data: loanUpdateData,
         });
         if (dto.partnerId) {
             const partner = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
