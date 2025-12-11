@@ -13,6 +13,14 @@ exports.RolesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const luxon_1 = require("luxon");
+const DASHBOARD_SECTIONS = [
+    'client-stats',
+    'partner-stats',
+    'loan-stats',
+    'monthly-collection',
+    'Upcoming-Repayments',
+    'Last-Actions',
+];
 let RolesService = class RolesService {
     prisma;
     constructor(prisma) {
@@ -208,6 +216,30 @@ let RolesService = class RolesService {
                 message: 'تم تحديث صلاحيات الداشبورد بنجاح',
             };
         });
+    }
+    async getDashboardPermissions(roleId) {
+        const role = await this.prisma.role.findUnique({ where: { id: roleId } });
+        if (!role)
+            throw new common_1.NotFoundException('Role not found');
+        const basePermission = await this.prisma.rolePermission.findFirst({
+            where: { roleId: roleId, module: 'dashboard', canView: true },
+        });
+        if (!basePermission)
+            throw new common_1.NotFoundException('ليس لديه صلاحيه للداشبورد ');
+        const existing = await this.prisma.rolePermission.findMany({
+            where: {
+                roleId,
+                module: { in: DASHBOARD_SECTIONS },
+            },
+        });
+        const normalized = DASHBOARD_SECTIONS.map((module) => {
+            const found = existing.find((p) => p.module.toLowerCase() === module.toLowerCase());
+            return {
+                module,
+                canView: found?.canView ?? false,
+            };
+        });
+        return { permissions: normalized };
     }
 };
 exports.RolesService = RolesService;

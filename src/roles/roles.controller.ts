@@ -82,6 +82,13 @@ export class RolesController {
         return this.rolesService.deleteRole(req.user.id, id);
     }
 
+    @Get(':id/dashboard-permissions')
+    async getDashboardPermissions(
+        @Param('id', ParseIntPipe) id: number,
+    ) {
+        return this.rolesService.getDashboardPermissions(id);
+    }
+
     @Post(':id/dashboard-permissions')
     @Permissions('roles', 'canUpdate')
     async addDashboardPermissions(

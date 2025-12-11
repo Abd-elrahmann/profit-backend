@@ -41,6 +41,9 @@ let RolesController = class RolesController {
     deleteRole(req, id) {
         return this.rolesService.deleteRole(req.user.id, id);
     }
+    async getDashboardPermissions(id) {
+        return this.rolesService.getDashboardPermissions(id);
+    }
     async addDashboardPermissions(req, id, body) {
         return this.rolesService.addDashboardPermissions(req.user.id, id, body.permissions);
     }
@@ -90,6 +93,13 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", void 0)
 ], RolesController.prototype, "deleteRole", null);
+__decorate([
+    (0, common_1.Get)(':id/dashboard-permissions'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], RolesController.prototype, "getDashboardPermissions", null);
 __decorate([
     (0, common_1.Post)(':id/dashboard-permissions'),
     (0, permissions_decorator_1.Permissions)('roles', 'canUpdate'),
