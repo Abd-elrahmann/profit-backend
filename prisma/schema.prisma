@@ -282,6 +282,8 @@ model Partner {
   mudarabahFileUrl String?
   isActive         Boolean   @default(false)
   joinDistribute   Boolean   @default(true)
+  WithdrawingStatus PartnerStatus @default(ACTIVE)
+  isFrozen         Boolean @default(false)
   accountPayableId Int       @unique
   accountEquityId  Int       @unique
   accountSavingId  Int       @unique
@@ -300,8 +302,41 @@ model Partner {
   ZakatAccrual ZakatAccrual[]
   ZakatPayment ZakatPayment[]
   PartnerSavingAccrual PartnerSavingAccrual[]
+  PartnerWithdrawalSchedule PartnerWithdrawalSchedule[]
+  PartnerWithdrawal PartnerWithdrawal[]
 
   createdAt DateTime @default(now())
+}
+
+enum PartnerStatus {
+  ACTIVE
+  WITHDRAWING
+  WITHDRAWN
+}
+
+model PartnerWithdrawalSchedule {
+  id Int @id @default(autoincrement())
+  partnerId Int
+  month Int
+  year Int
+  amount Float
+  isPaid Boolean @default(false)
+  createdAt DateTime @default(now())
+  paidAt DateTime?
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+}
+
+model PartnerWithdrawal {
+  id Int @id @default(autoincrement())
+  partnerId Int
+  totalCapital Float
+  defaultShare Float
+  remainingCapital Float
+  savingAmount Float
+  createdAt DateTime @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id])
 }
 
 model PartnerTransaction {
@@ -435,6 +470,7 @@ enum AccountBasicType {
   PARTNER_SHARES_EXPENSES
   ZAKAT_EXPENSES
   SAVINGS
+  LOSSES
   OTHER
 }
 
@@ -564,6 +600,8 @@ enum JournalSourceType {
   SAVING
   COMPANY_PROFIT_WITHDRAWAL
   EXPENSES
+  LOSSES
+  PARTNER_WITHDRAWING
   OTHER
 }
 
@@ -587,11 +625,10 @@ model Template {
 model TemplateVariable {
   id          Int        @id @default(autoincrement())
   templateId  Int
-  key         String     // مثل: {{اسم_العميل}}
-  description String?    // مثل: "اسم العميل"
-  group       String?    // جديد: مثل "بيانات الأطراف", "البيانات المالية"
+  key         String 
+  description String?  
+  group       String?
   createdAt   DateTime   @default(now())
-  
   template    Template   @relation(fields: [templateId], references: [id])
   
   @@unique([templateId, key])
@@ -611,7 +648,7 @@ enum TemplateType {
   MUDARABAH
   PROMISSORY_NOTE
   DEBT_ACKNOWLEDGMENT
-  RECEIPT_VOUCHER
+  WITHDRAWAL_RECEIPT
   PAYMENT_VOUCHER
   SETTLEMENT
   PAYMENT_PROOF

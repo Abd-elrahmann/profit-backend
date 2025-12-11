@@ -52,7 +52,21 @@ export declare class DashboardService {
         totalPaid: number;
         totalRemaining: number;
         collectionPercentage: number;
-        availableForLending: number;
+        bankAccount: {
+            id: number;
+            name: string;
+            debit: number;
+            credit: number;
+            balance: number;
+            code: string;
+        } | null;
+        loansBalance: number;
+        total: number;
+        repaymentsSummary: {
+            totalAmount: number;
+            paidUntilNow: number;
+            remaining: number;
+        };
     }>;
     getUpcomingRepayments(limit?: number): Promise<({
         loan: {

@@ -5,6 +5,7 @@ coverage
 npm-debug.log
 .DS_Store
 dist
+tsconfig.build.tsconfig.json
 # Editor
 .vscode
 .idea

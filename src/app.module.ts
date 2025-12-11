@@ -27,6 +27,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PartnersReportModule } from './partners-report/partners-report.module';
 import { CompanyModule } from './companyProfit/company.module';
 import { ExpenseModule } from './expenses/expense.module';
+import { PartnerWithdrawModule } from './partner-withdraw/partner-withdraw.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ExpenseModule } from './expenses/expense.module';
     PartnersReportModule,
     CompanyModule,
     ExpenseModule,
+    PartnerWithdrawModule,
     
   ],
   controllers: [AppController],

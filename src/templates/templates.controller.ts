@@ -21,7 +21,6 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
-  // 🔥 NEW: Get all templates
   @Get()
   @Permissions('templates', 'canView')
   async getAllTemplates() {
