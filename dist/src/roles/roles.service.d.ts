@@ -18,10 +18,9 @@ export declare class RolesService {
         message: string;
         role: {
             permissions: {
-                id: number;
-                roleId: number;
                 createdAt: Date;
                 updatedAt: Date;
+                id: number;
                 module: string;
                 canView: boolean;
                 canAdd: boolean;
@@ -29,13 +28,14 @@ export declare class RolesService {
                 canDelete: boolean;
                 canPost: boolean;
                 canExport: boolean;
+                roleId: number;
             }[];
         } & {
-            id: number;
             name: string;
+            description: string | null;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
+            id: number;
         };
     }>;
     getRoles(filters?: {
@@ -47,10 +47,9 @@ export declare class RolesService {
             createdAt: string | null;
             updatedAt: string | null;
             permissions: {
-                id: number;
-                roleId: number;
                 createdAt: Date;
                 updatedAt: Date;
+                id: number;
                 module: string;
                 canView: boolean;
                 canAdd: boolean;
@@ -58,10 +57,11 @@ export declare class RolesService {
                 canDelete: boolean;
                 canPost: boolean;
                 canExport: boolean;
+                roleId: number;
             }[];
-            id: number;
             name: string;
             description: string | null;
+            id: number;
         }[];
     }>;
     getUserPermissions(userId: number): Promise<{
@@ -97,11 +97,11 @@ export declare class RolesService {
     }): Promise<{
         message: string;
         role: {
-            id: number;
             name: string;
+            description: string | null;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
+            id: number;
         };
     }>;
     deleteRole(currentUser: any, id: number): Promise<{
@@ -112,5 +112,11 @@ export declare class RolesService {
         canView?: boolean;
     }[]): Promise<{
         message: string;
+    }>;
+    getDashboardPermissions(roleId: number): Promise<{
+        permissions: {
+            module: string;
+            canView: boolean;
+        }[];
     }>;
 }

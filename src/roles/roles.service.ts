@@ -2,6 +2,15 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { DateTime } from 'luxon';
 
+const DASHBOARD_SECTIONS = [
+    'client-stats',
+    'partner-stats',
+    'loan-stats',
+    'monthly-collection',
+    'Upcoming-Repayments',
+    'Last-Actions',
+];
+
 @Injectable()
 export class RolesService {
     constructor(private prisma: PrismaService) { }
@@ -262,5 +271,32 @@ export class RolesService {
                 message: 'تم تحديث صلاحيات الداشبورد بنجاح',
             };
         });
+    }
+
+    async getDashboardPermissions(roleId: number) {
+        const role = await this.prisma.role.findUnique({ where: { id: roleId } });
+        if (!role) throw new NotFoundException('Role not found');
+
+        const basePermission = await this.prisma.rolePermission.findFirst({
+            where: { roleId: roleId, module: 'dashboard', canView: true },
+        });
+        if (!basePermission) throw new NotFoundException('ليس لديه صلاحيه للداشبورد ');
+
+        const existing = await this.prisma.rolePermission.findMany({
+            where: {
+                roleId,
+                module: { in: DASHBOARD_SECTIONS },
+            },
+        });
+
+        const normalized = DASHBOARD_SECTIONS.map((module) => {
+            const found = existing.find((p) => p.module.toLowerCase() === module.toLowerCase());
+            return {
+                module,
+                canView: found?.canView ?? false,
+            };
+        });
+
+        return { permissions: normalized };
     }
 }
