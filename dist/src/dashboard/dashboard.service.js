@@ -234,15 +234,39 @@ let DashboardService = class DashboardService {
             : 0;
         const bankAccount = await this.prisma.account.findUnique({
             where: { code: "11000" },
+            select: {
+                id: true,
+                name: true,
+                code: true,
+                debit: true,
+                credit: true,
+                balance: true,
+            },
         });
-        const availableForLending = bankAccount?.balance || 0;
+        const loansAccount = await this.prisma.account.findUnique({
+            where: { code: "12000" },
+            select: { balance: true },
+        });
+        const monthRepayments = await this.prisma.repayment.findMany({
+            select: { amount: true, paidAmount: true },
+        });
+        const totalAmount = monthRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
+        const paidUntilNow = monthRepayments.reduce((sum, r) => sum + Number(r.paidAmount), 0);
+        const remaining = totalAmount - paidUntilNow;
         return {
             range: { startDate, endDate },
             totalRepayment,
             totalPaid,
             totalRemaining,
             collectionPercentage,
-            availableForLending,
+            bankAccount,
+            loansBalance: loansAccount?.balance || 0,
+            total: (bankAccount?.balance || 0) + (loansAccount?.balance || 0),
+            repaymentsSummary: {
+                totalAmount,
+                paidUntilNow,
+                remaining,
+            },
         };
     }
     async getUpcomingRepayments(limit = 5) {
