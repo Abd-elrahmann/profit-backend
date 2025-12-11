@@ -49,6 +49,8 @@ export declare class LoansController {
                 mudarabahFileUrl: string | null;
                 joinDistribute: boolean;
                 totalProfit: number;
+                WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
+                isFrozen: boolean;
                 accountPayableId: number;
                 accountEquityId: number;
                 accountSavingId: number;
@@ -163,6 +165,8 @@ export declare class LoansController {
                 mudarabahFileUrl: string | null;
                 joinDistribute: boolean;
                 totalProfit: number;
+                WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
+                isFrozen: boolean;
                 accountPayableId: number;
                 accountEquityId: number;
                 accountSavingId: number;
@@ -296,6 +300,8 @@ export declare class LoansController {
             mudarabahFileUrl: string | null;
             joinDistribute: boolean;
             totalProfit: number;
+            WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
+            isFrozen: boolean;
             accountPayableId: number;
             accountEquityId: number;
             accountSavingId: number;
@@ -435,6 +441,8 @@ export declare class LoansController {
             mudarabahFileUrl: string | null;
             joinDistribute: boolean;
             totalProfit: number;
+            WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
+            isFrozen: boolean;
             accountPayableId: number;
             accountEquityId: number;
             accountSavingId: number;

@@ -35,6 +35,7 @@ const dashboard_module_1 = require("./dashboard/dashboard.module");
 const partners_report_module_1 = require("./partners-report/partners-report.module");
 const company_module_1 = require("./companyProfit/company.module");
 const expense_module_1 = require("./expenses/expense.module");
+const partner_withdraw_module_1 = require("./partner-withdraw/partner-withdraw.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -68,6 +69,7 @@ exports.AppModule = AppModule = __decorate([
             partners_report_module_1.PartnersReportModule,
             company_module_1.CompanyModule,
             expense_module_1.ExpenseModule,
+            partner_withdraw_module_1.PartnerWithdrawModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
