@@ -75,7 +75,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], JournalController.prototype, "create", null);
 __decorate([
-    (0, common_1.Patch)(':id'),
+    (0, common_1.Put)(':id'),
     (0, permissions_decorator_1.Permissions)('journals', 'canUpdate'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),

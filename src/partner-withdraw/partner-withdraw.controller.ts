@@ -1,6 +1,5 @@
 import { Controller, Post, Param, ParseIntPipe, Body, Req, UseGuards, Get } from '@nestjs/common';
 import { PartnerWithdrawService } from './partner-withdraw.service';
-import { PartnerWithdrawalScheduler } from './partner-withdraw.scheduler';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
@@ -10,16 +9,15 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class PartnerWithdrawController {
     constructor(
         private readonly service: PartnerWithdrawService,
-        private readonly scheduler: PartnerWithdrawalScheduler,
     ) { }
 
     @Post(':partnerId')
     withdrawPartner(
         @Req() req,
         @Param('partnerId', ParseIntPipe) partnerId: number,
-        @Body('months') months?: number,
+        @Body('amount') amount: number,
     ) {
-        return this.service.withdrawPartner(partnerId, months, req.user.id);
+        return this.service.withdrawPartner(partnerId, amount, req.user.id);
     }
 
     @Get('details/:partnerId')
@@ -29,13 +27,29 @@ export class PartnerWithdrawController {
         return this.service.getWithdrawalDetails(partnerId);
     }
 
-    @Get('run-scheduler')
-    async runMonthlyScheduler() {
-        try {
-            await this.scheduler.handleMonthlyWithdrawals();
-            return { message: '✔ تم تنفيذ جدول صرف المساهمين بنجاح' };
-        } catch (err) {
-            return { message: '❌ فشل تنفيذ الجدول', error: err.message };
-        }
+    @Post('approve/:scheduleId')
+    approveWithdrawalPayment(
+        @Req() req,
+        @Param('scheduleId', ParseIntPipe) scheduleId: number,
+    ) {
+        return this.service.approveWithdrawalPayment(req.user.id, scheduleId);
+    }
+
+    @Post('reject/:scheduleId')
+    rejectWithdrawalPayment(
+        @Req() req,
+        @Param('scheduleId', ParseIntPipe) scheduleId: number,
+    ) {
+        return this.service.rejectWithdrawalPayment(req.user.id, scheduleId);
+    }
+
+    @Post('partial/:scheduleId')
+    async partialPayment(
+        @Req() req,
+        @Param('scheduleId', ParseIntPipe) scheduleId: number,
+        @Body('paidAmount') paidAmount: number,
+    ) {
+        const currentUser = req.user.id;
+        return this.service.partialPayWithdrawal(currentUser, scheduleId, paidAmount);
     }
 }

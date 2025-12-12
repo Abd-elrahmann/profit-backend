@@ -1,4 +1,4 @@
-import { Controller, Post, Patch, Delete, Get, Body, Param, ParseIntPipe, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Patch, Delete, Get, Body, Param, ParseIntPipe, Query, Req, UseGuards, Put } from '@nestjs/common';
 import { JournalService } from './journal.service';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
@@ -16,7 +16,7 @@ export class JournalController {
         return this.journalService.createJournal(dto, req.user.id);
     }
 
-    @Patch(':id')
+    @Put(':id')
     @Permissions('journals', 'canUpdate')
     update(@Req() req, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateJournalDto) {
         return this.journalService.updateJournal(req.user.id, id, dto);

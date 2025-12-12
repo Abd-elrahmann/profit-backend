@@ -29,4 +29,15 @@ export declare class ExpenseController {
             date: Date;
         }[];
     }>;
+    updateExpense(req: any, journalId: number, body: {
+        amount: number;
+        description: string;
+    }): Promise<{
+        message: string;
+        journalId: number;
+    }>;
+    deleteExpense(req: any, journalId: number): Promise<{
+        message: string;
+        journalId: number;
+    }>;
 }

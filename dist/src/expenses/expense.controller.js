@@ -28,6 +28,12 @@ let ExpenseController = class ExpenseController {
     async getExpensesAccount(page, limit = 10) {
         return this.expenseService.getExpensesAccountData(page, +limit);
     }
+    async updateExpense(req, journalId, body) {
+        return this.expenseService.updateExpense(req.user.id, journalId, body.amount, body.description);
+    }
+    async deleteExpense(req, journalId) {
+        return this.expenseService.deleteExpense(req.user.id, journalId);
+    }
 };
 exports.ExpenseController = ExpenseController;
 __decorate([
@@ -46,6 +52,23 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], ExpenseController.prototype, "getExpensesAccount", null);
+__decorate([
+    (0, common_1.Patch)(':journalId'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('journalId', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Object]),
+    __metadata("design:returntype", Promise)
+], ExpenseController.prototype, "updateExpense", null);
+__decorate([
+    (0, common_1.Delete)(':journalId'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('journalId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], ExpenseController.prototype, "deleteExpense", null);
 exports.ExpenseController = ExpenseController = __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('expenses'),

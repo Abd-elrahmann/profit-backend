@@ -6,37 +6,37 @@ export declare class AccountsController {
     create(dto: CreateAccountDto): Promise<{
         message: string;
         account: {
-            id: number;
             name: string;
-            isActive: boolean;
-            createdAt: Date;
-            type: import("@prisma/client").$Enums.AccountType;
-            debit: number;
-            credit: number;
-            balance: number;
             code: string;
-            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
-            nature: import("@prisma/client").$Enums.AccountNature;
-            parentId: number | null;
+            type: import("@prisma/client").$Enums.AccountType;
             level: number;
+            isActive: boolean;
+            credit: number;
+            debit: number;
+            balance: number;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            createdAt: Date;
+            id: number;
+            parentId: number | null;
         };
     }>;
     update(id: number, dto: UpdateAccountDto): Promise<{
         message: string;
         account: {
-            id: number;
             name: string;
-            isActive: boolean;
-            createdAt: Date;
-            type: import("@prisma/client").$Enums.AccountType;
-            debit: number;
-            credit: number;
-            balance: number;
             code: string;
-            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
-            nature: import("@prisma/client").$Enums.AccountNature;
-            parentId: number | null;
+            type: import("@prisma/client").$Enums.AccountType;
             level: number;
+            isActive: boolean;
+            credit: number;
+            debit: number;
+            balance: number;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            createdAt: Date;
+            id: number;
+            parentId: number | null;
         };
     }>;
     delete(id: number): Promise<{
@@ -47,23 +47,29 @@ export declare class AccountsController {
         page: number;
         limit: number;
         accounts: {
-            id: number;
             name: string;
-            isActive: boolean;
-            createdAt: Date;
-            type: import("@prisma/client").$Enums.AccountType;
-            debit: number;
-            credit: number;
-            balance: number;
             code: string;
-            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
-            nature: import("@prisma/client").$Enums.AccountNature;
-            parentId: number | null;
+            type: import("@prisma/client").$Enums.AccountType;
             level: number;
+            isActive: boolean;
+            credit: number;
+            debit: number;
+            balance: number;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            createdAt: Date;
+            id: number;
+            parentId: number | null;
         }[];
     }>;
     getTree(): Promise<any[]>;
-    getBankAccountReport(month?: string): Promise<{
+    getBankAccountReport(page: number, month?: string, limit?: number): Promise<{
+        pagination: {
+            page: number;
+            limit: number;
+            totalJournals: number;
+            totalPages: number;
+        };
         account: {
             id: number;
             name: string;
@@ -88,34 +94,34 @@ export declare class AccountsController {
     }>;
     getAccountDetails(id: number): Promise<{
         children: {
-            id: number;
             name: string;
-            isActive: boolean;
-            createdAt: Date;
-            type: import("@prisma/client").$Enums.AccountType;
-            debit: number;
-            credit: number;
-            balance: number;
             code: string;
-            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
-            nature: import("@prisma/client").$Enums.AccountNature;
-            parentId: number | null;
+            type: import("@prisma/client").$Enums.AccountType;
             level: number;
+            isActive: boolean;
+            credit: number;
+            debit: number;
+            balance: number;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            createdAt: Date;
+            id: number;
+            parentId: number | null;
         }[];
     } & {
-        id: number;
         name: string;
-        isActive: boolean;
-        createdAt: Date;
-        type: import("@prisma/client").$Enums.AccountType;
-        debit: number;
-        credit: number;
-        balance: number;
         code: string;
-        accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
-        nature: import("@prisma/client").$Enums.AccountNature;
-        parentId: number | null;
+        type: import("@prisma/client").$Enums.AccountType;
         level: number;
+        isActive: boolean;
+        credit: number;
+        debit: number;
+        balance: number;
+        nature: import("@prisma/client").$Enums.AccountNature;
+        accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+        createdAt: Date;
+        id: number;
+        parentId: number | null;
     }>;
     getAccountById(id: number, page: number, from?: string, to?: string, limit?: string): Promise<{
         totalPages: number;
@@ -126,30 +132,30 @@ export declare class AccountsController {
             debit: number;
             credit: number;
             children: {
-                id: number;
                 name: string;
-                isActive: boolean;
-                createdAt: Date;
-                type: import("@prisma/client").$Enums.AccountType;
-                debit: number;
-                credit: number;
-                balance: number;
                 code: string;
-                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
-                nature: import("@prisma/client").$Enums.AccountNature;
-                parentId: number | null;
+                type: import("@prisma/client").$Enums.AccountType;
                 level: number;
+                isActive: boolean;
+                credit: number;
+                debit: number;
+                balance: number;
+                nature: import("@prisma/client").$Enums.AccountNature;
+                accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+                createdAt: Date;
+                id: number;
+                parentId: number | null;
             }[];
-            id: number;
             name: string;
-            isActive: boolean;
-            createdAt: Date;
-            type: import("@prisma/client").$Enums.AccountType;
             code: string;
-            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
-            nature: import("@prisma/client").$Enums.AccountNature;
-            parentId: number | null;
+            type: import("@prisma/client").$Enums.AccountType;
             level: number;
+            isActive: boolean;
+            nature: import("@prisma/client").$Enums.AccountNature;
+            accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
+            createdAt: Date;
+            id: number;
+            parentId: number | null;
         };
         totalJournals: number;
         journals: {
@@ -171,9 +177,9 @@ export declare class AccountsController {
                     name: string;
                 } | null;
                 account: {
-                    id: number;
                     name: string;
                     code: string;
+                    id: number;
                 };
             }[];
         }[];

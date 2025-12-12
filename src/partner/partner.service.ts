@@ -162,8 +162,8 @@ export class PartnerService {
             where: { id: currentUser },
         });
 
-        if (dto.joinDistribute === false) {
-            dto.isActive = false;
+        if (dto.isActive === false) {
+            dto.joinDistribute = false;
         }
 
         if (dto.isActive === true) {

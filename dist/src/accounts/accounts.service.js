@@ -208,71 +208,95 @@ let AccountsService = class AccountsService {
         });
         return roots;
     }
-    async getBankAccountReport(month) {
+    async getBankAccountReport(month, page = 1, limit = 20) {
+        const skip = (page - 1) * limit;
         let monthStart;
         let monthEnd;
         if (month) {
-            const [year, monthNum] = month.split('-').map(Number);
-            monthStart = luxon_1.DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' }).startOf('day').toUTC().toJSDate();
-            monthEnd = luxon_1.DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' }).endOf('month').endOf('day').toUTC().toJSDate();
+            const [year, monthNum] = month.split("-").map(Number);
+            monthStart = luxon_1.DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: "Asia/Riyadh" }).startOf("day").toUTC().toJSDate();
+            monthEnd = luxon_1.DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: "Asia/Riyadh" }).endOf("month").endOf("day").toUTC().toJSDate();
         }
         const bankAccount = await this.prisma.account.findUnique({
-            where: { code: '11000' },
+            where: { code: "11000" },
             include: {
                 entries: {
                     where: {
                         journal: {
-                            status: 'POSTED',
-                            ...(monthStart && monthEnd ? { date: { gte: monthStart, lte: monthEnd } } : {}),
+                            status: "POSTED",
+                            ...(monthStart &&
+                                monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
                         },
                     },
                     include: {
                         journal: {
                             include: {
-                                postedBy: { select: { id: true, name: true, email: true } },
+                                postedBy: {
+                                    select: { id: true, name: true, email: true },
+                                },
                             },
                         },
                         client: { select: { id: true, name: true } },
                     },
-                    orderBy: { id: 'desc' },
+                    orderBy: { id: "desc" },
+                    skip,
+                    take: limit,
                 },
             },
         });
         if (!bankAccount)
-            throw new common_1.NotFoundException('Bank account with code 11000 not found');
+            throw new common_1.NotFoundException("Bank account 11000 not found");
+        const totalJournals = await this.prisma.journalLine.count({
+            where: {
+                accountId: bankAccount.id,
+                journal: {
+                    status: "POSTED",
+                    ...(monthStart &&
+                        monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
+                },
+            },
+        });
+        const totalPages = Math.ceil(totalJournals / limit);
         const loansAccount = await this.prisma.account.findUnique({
-            where: { code: '12000' }
+            where: { code: "12000" },
         });
         if (!loansAccount)
-            throw new common_1.NotFoundException('loans account with code 12000 not found');
-        const groupedByMonth = bankAccount.entries.reduce((acc, entry) => {
-            const date = luxon_1.DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
-            const monthKey = date.toFormat('yyyy-LL');
+            throw new common_1.NotFoundException("Loans account 12000 not found");
+        const groupedByMonth = bankAccount.entries.reduce((acc, line) => {
+            const date = luxon_1.DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
+            const monthKey = date.toFormat("yyyy-LL");
             if (!acc[monthKey]) {
-                acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0 };
+                acc[monthKey] = {
+                    entries: [],
+                    totalDebit: 0,
+                    totalCredit: 0,
+                    totalBalance: 0,
+                };
             }
-            const mapped = {
-                id: entry.journal.id,
+            acc[monthKey].entries.push({
+                id: line.journal.id,
                 date: date.toISO(),
-                reference: entry.journal.reference,
-                description: entry.description ?? entry.journal.description,
-                debit: entry.debit,
-                credit: entry.credit,
-                balance: entry.balance,
-                client: entry.client ? entry.client.name : null,
-                postedBy: entry.journal.postedBy?.name ?? null,
-                status: entry.journal.status,
-                type: entry.journal.type,
-            };
-            acc[monthKey].entries.push(mapped);
-            acc[monthKey].totalDebit += entry.debit ?? 0;
-            acc[monthKey].totalCredit += entry.credit ?? 0;
-            acc[monthKey].totalBalance += entry.balance ?? 0;
+                reference: line.journal.reference,
+                description: line.description ?? line.journal.description,
+                debit: line.debit,
+                credit: line.credit,
+                balance: line.balance,
+                client: line.client ? line.client.name : null,
+                postedBy: line.journal.postedBy?.name ?? null,
+                status: line.journal.status,
+                type: line.journal.type,
+            });
+            acc[monthKey].totalDebit += line.debit ?? 0;
+            acc[monthKey].totalCredit += line.credit ?? 0;
+            acc[monthKey].totalBalance += line.balance ?? 0;
             return acc;
         }, {});
         const repaymentFilter = {};
         if (monthStart && monthEnd) {
-            repaymentFilter.dueDate = { gte: monthStart, lte: monthEnd };
+            repaymentFilter.dueDate = {
+                gte: monthStart,
+                lte: monthEnd,
+            };
         }
         const repayments = await this.prisma.repayment.findMany({
             where: repaymentFilter,
@@ -281,9 +305,15 @@ let AccountsService = class AccountsService {
                 paidAmount: true,
             },
         });
-        const totalAmount = repayments.reduce((sum, r) => sum + Number(r.amount), 0);
-        const paidUntilNow = repayments.reduce((sum, r) => sum + Number(r.paidAmount), 0);
+        const totalAmount = repayments.reduce((sum, x) => sum + Number(x.amount), 0);
+        const paidUntilNow = repayments.reduce((sum, x) => sum + Number(x.paidAmount), 0);
         return {
+            pagination: {
+                page,
+                limit,
+                totalJournals,
+                totalPages,
+            },
             account: {
                 id: bankAccount.id,
                 name: bankAccount.name,
@@ -294,7 +324,7 @@ let AccountsService = class AccountsService {
             },
             loansBalance: loansAccount.balance,
             total: bankAccount.balance + loansAccount.balance,
-            totalJournalEntries: bankAccount.entries.length,
+            totalJournalEntries: totalJournals,
             journalsByMonth: groupedByMonth,
             repayments: {
                 totalAmount,

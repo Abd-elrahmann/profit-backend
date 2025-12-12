@@ -320,7 +320,12 @@ model PartnerWithdrawalSchedule {
   month Int
   year Int
   amount Float
+  paidAmount Float   @default(0)
+  remaining  Float   @default(0)
+  status     String  @default("PENDING") 
   isPaid Boolean @default(false)
+  carryAmount Float?
+  carryFromId Int?
   createdAt DateTime @default(now())
   paidAt DateTime?
 

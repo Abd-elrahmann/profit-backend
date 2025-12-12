@@ -96,6 +96,81 @@ let ExpenseService = class ExpenseService {
             })),
         };
     }
+    async updateExpense(userId, journalId, newAmount, newDescription) {
+        const journal = await this.prisma.journalHeader.findUnique({
+            where: { id: journalId },
+            include: { lines: true },
+        });
+        if (!journal)
+            throw new common_1.BadRequestException("القيد غير موجود");
+        if (journal.sourceType !== "EXPENSES")
+            throw new common_1.BadRequestException("هذا القيد ليس من نوع المصروفات");
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { code: "11000" },
+        });
+        const expensesAccount = await this.prisma.account.findUnique({
+            where: { code: "51000" },
+        });
+        if (!bankAccount || !expensesAccount)
+            throw new common_1.BadRequestException("Missing account setup");
+        const currentCreditInBank = journal.lines
+            .filter(line => line.accountId === bankAccount.id)
+            .reduce((sum, line) => sum + line.credit, 0);
+        const effectiveBankBalance = bankAccount.balance + currentCreditInBank;
+        if (newAmount > effectiveBankBalance) {
+            throw new common_1.BadRequestException("رصيد الصندوق غير كافي بعد التعديل");
+        }
+        await this.journalService.unpostJournal(userId, journalId);
+        await this.prisma.journalHeader.update({
+            where: { id: journalId },
+            data: {
+                description: newDescription,
+                reference: `EXP-${journalId}-${Date.now()}`,
+                lines: {
+                    deleteMany: {},
+                    create: [
+                        {
+                            accountId: expensesAccount.id,
+                            debit: newAmount,
+                            credit: 0,
+                            description: newDescription,
+                        },
+                        {
+                            accountId: bankAccount.id,
+                            debit: 0,
+                            credit: newAmount,
+                            description: newDescription,
+                        },
+                    ],
+                },
+            },
+        });
+        await this.journalService.postJournal(journalId, userId);
+        return {
+            message: "تم تعديل قيد المصروفات بنجاح",
+            journalId,
+        };
+    }
+    async deleteExpense(userId, journalId) {
+        const journal = await this.prisma.journalHeader.findUnique({
+            where: { id: journalId },
+        });
+        if (!journal)
+            throw new common_1.BadRequestException("القيد غير موجود");
+        if (journal.sourceType !== "EXPENSES")
+            throw new common_1.BadRequestException("هذا القيد ليس من نوع المصروفات");
+        await this.journalService.unpostJournal(userId, journalId);
+        await this.prisma.journalLine.deleteMany({
+            where: { journalId: journalId },
+        });
+        await this.prisma.journalHeader.delete({
+            where: { id: journalId },
+        });
+        return {
+            message: "تم حذف قيد المصروفات بنجاح",
+            journalId,
+        };
+    }
 };
 exports.ExpenseService = ExpenseService;
 exports.ExpenseService = ExpenseService = __decorate([
