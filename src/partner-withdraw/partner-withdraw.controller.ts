@@ -1,8 +1,9 @@
-import { Controller, Post, Param, ParseIntPipe, Body, Req, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Param, ParseIntPipe, Body, Req, UseGuards, Get, UploadedFile, UseInterceptors, Query } from '@nestjs/common';
 import { PartnerWithdrawService } from './partner-withdraw.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('partner-withdraw')
@@ -51,5 +52,23 @@ export class PartnerWithdrawController {
     ) {
         const currentUser = req.user.id;
         return this.service.partialPayWithdrawal(currentUser, scheduleId, paidAmount);
+    }
+
+    @Get('all-withdrawing/:page')
+    getAllWithdrawingPartners(
+        @Param('page', ParseIntPipe) page: number,
+        @Query('limit') limit = 10,
+    ) {
+        return this.service.getAllWithdrawingPartners(page, +limit);
+    }
+
+    @Post('upload-receipt/:partnerId')
+    @UseInterceptors(FileInterceptor('file'))
+    uploadWithdrawalReceipt(
+        @Req() req,
+        @Param('partnerId', ParseIntPipe) partnerId: number,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.service.uploadWithdrawalReceipt(req.user.id, partnerId, file);
     }
 }

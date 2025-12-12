@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class PartnerWithdrawService {
@@ -612,5 +614,113 @@ export class PartnerWithdrawService {
                 forwarded: totalToForward,
             };
         });
+    }
+
+    async getAllWithdrawingPartners(page: number = 1, limit: number = 10) {
+        const skip = (page - 1) * limit;
+
+        const [partners, total] = await this.prisma.$transaction([
+            this.prisma.partner.findMany({
+                where: {
+                    WithdrawingStatus: {
+                        in: ['WITHDRAWING', 'WITHDRAWN'],
+                    },
+                },
+                include: {
+                    AccountSaving: true,
+                    PartnerWithdrawal: true,
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.partner.count({
+                where: {
+                    WithdrawingStatus: {
+                        in: ['WITHDRAWING', 'WITHDRAWN'],
+                    },
+                },
+            }),
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            page,
+            limit,
+            total,
+            totalPages,
+            data: partners.map(partner => ({
+                id: partner.id,
+                name: partner.name,
+                nationalId: partner.nationalId,
+                totalAmount: partner.totalAmount,
+                savings: partner.AccountSaving?.balance ?? 0,
+                withdrawingStatus: partner.WithdrawingStatus,
+                isFrozen: partner.isFrozen,
+                withdrawalRequest: partner.PartnerWithdrawal?.[0] ?? null,
+            })),
+        };
+    }
+
+    // UPLOAD WITHDRAWAL RECEIPT FILE
+    async uploadWithdrawalReceipt(currentUser: number, partnerId: number, file: Express.Multer.File) {
+        const withdrawal = await this.prisma.partnerWithdrawal.findFirst({
+            where: { partnerId: partnerId },
+            include: { partner: true },
+        });
+
+        if (!withdrawal) throw new NotFoundException('Withdrawal request not found');
+        if (!file) throw new BadRequestException('No file uploaded');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        const partner = withdrawal.partner;
+        if (!partner) throw new NotFoundException('Associated partner not found');
+
+        const uploadDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId, 'withdrawals');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        // Delete existing receipt if exists
+        if (withdrawal.WITHDRAWAL_RECEIPT) {
+            try {
+                let existingRelative = withdrawal.WITHDRAWAL_RECEIPT;
+                if (existingRelative.startsWith('http')) {
+                    existingRelative = decodeURI(existingRelative.replace(process.env.URL || '', ''));
+                }
+                const existingFull = path.join(process.cwd(), existingRelative);
+                if (fs.existsSync(existingFull)) fs.unlinkSync(existingFull);
+            } catch (err) {
+                console.warn('Could not remove old withdrawal receipt file:', err.message);
+            }
+        }
+
+        // Save new file
+        const filePath = path.join(uploadDir, file.originalname);
+        fs.writeFileSync(filePath, file.buffer);
+
+        // Build public URL
+        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+
+        // Update DB
+        await this.prisma.partnerWithdrawal.update({
+            where: { id: withdrawal.id },
+            data: { WITHDRAWAL_RECEIPT: publicUrl },
+        });
+
+        // Create audit log
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'PartnerWithdrawals',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل مستند صرف المساهم: ${partner.name}`,
+            },
+        });
+
+        return { message: 'تم رفع مستند السحب بنجاح', path: publicUrl };
     }
 }

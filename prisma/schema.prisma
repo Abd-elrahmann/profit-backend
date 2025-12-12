@@ -339,6 +339,7 @@ model PartnerWithdrawal {
   defaultShare Float
   remainingCapital Float
   savingAmount Float
+  WITHDRAWAL_RECEIPT String?
   createdAt DateTime @default(now())
 
   partner Partner @relation(fields: [partnerId], references: [id])
