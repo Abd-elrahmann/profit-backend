@@ -13,6 +13,7 @@ exports.ExpenseService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const journal_service_1 = require("../journal/journal.service");
+const client_1 = require("@prisma/client");
 let ExpenseService = class ExpenseService {
     prisma;
     journalService;
@@ -120,7 +121,10 @@ let ExpenseService = class ExpenseService {
         if (newAmount > effectiveBankBalance) {
             throw new common_1.BadRequestException("رصيد الصندوق غير كافي بعد التعديل");
         }
-        await this.journalService.unpostJournal(userId, journalId);
+        const isPosted = journal.status === client_1.JournalStatus.POSTED;
+        if (isPosted) {
+            await this.journalService.unpostJournal(userId, journalId);
+        }
         await this.prisma.journalHeader.update({
             where: { id: journalId },
             data: {
@@ -145,7 +149,9 @@ let ExpenseService = class ExpenseService {
                 },
             },
         });
-        await this.journalService.postJournal(journalId, userId);
+        if (isPosted) {
+            await this.journalService.postJournal(journalId, userId);
+        }
         return {
             message: "تم تعديل قيد المصروفات بنجاح",
             journalId,
