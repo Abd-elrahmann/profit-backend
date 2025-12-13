@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
+import { JournalStatus } from '@prisma/client';
 
 @Injectable()
 export class ExpenseService {
@@ -140,7 +141,12 @@ export class ExpenseService {
             throw new BadRequestException("رصيد الصندوق غير كافي بعد التعديل");
         }
 
-        await this.journalService.unpostJournal(userId, journalId);
+        // Check if journal is posted - only unpost if it's already posted
+        const isPosted = journal.status === JournalStatus.POSTED;
+        
+        if (isPosted) {
+            await this.journalService.unpostJournal(userId, journalId);
+        }
 
         await this.prisma.journalHeader.update({
             where: { id: journalId },
@@ -167,7 +173,10 @@ export class ExpenseService {
             },
         });
 
-        await this.journalService.postJournal(journalId, userId);
+        // Only post if it was previously posted
+        if (isPosted) {
+            await this.journalService.postJournal(journalId, userId);
+        }
 
         return {
             message: "تم تعديل قيد المصروفات بنجاح",

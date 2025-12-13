@@ -29,6 +29,7 @@ export class PartnerWithdrawController {
     }
 
     @Post('approve/:scheduleId')
+    @Permissions('partners-withdraw', 'canPost')
     approveWithdrawalPayment(
         @Req() req,
         @Param('scheduleId', ParseIntPipe) scheduleId: number,
@@ -37,6 +38,7 @@ export class PartnerWithdrawController {
     }
 
     @Post('reject/:scheduleId')
+    @Permissions('partners-withdraw', 'canPost')
     rejectWithdrawalPayment(
         @Req() req,
         @Param('scheduleId', ParseIntPipe) scheduleId: number,
@@ -45,6 +47,7 @@ export class PartnerWithdrawController {
     }
 
     @Post('partial/:scheduleId')
+    @Permissions('partners-withdraw', 'canPost')
     async partialPayment(
         @Req() req,
         @Param('scheduleId', ParseIntPipe) scheduleId: number,
