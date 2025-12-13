@@ -187,8 +187,8 @@ let PartnerService = class PartnerService {
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });
-        if (dto.joinDistribute === false) {
-            dto.isActive = false;
+        if (dto.isActive === false) {
+            dto.joinDistribute = false;
         }
         if (dto.isActive === true) {
             dto.joinDistribute = true;

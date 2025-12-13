@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get, Query, Param, ParseIntPipe, Patch, Delete } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -29,5 +29,29 @@ export class ExpenseController {
     @Query('limit') limit = 10,
   ) {
     return this.expenseService.getExpensesAccountData(page, +limit);
+  }
+
+  @Patch(':journalId')
+  // @Permissions('expenses', 'canUpdate')
+  async updateExpense(
+    @Req() req,
+    @Param('journalId', ParseIntPipe) journalId: number,
+    @Body() body: { amount: number; description: string },
+  ) {
+    return this.expenseService.updateExpense(
+      req.user.id,
+      journalId,
+      body.amount,
+      body.description,
+    );
+  }
+
+  @Delete(':journalId')
+  // @Permissions('expenses', 'canDelete')
+  async deleteExpense(
+    @Req() req,
+    @Param('journalId', ParseIntPipe) journalId: number,
+  ) {
+    return this.expenseService.deleteExpense(req.user.id, journalId);
   }
 }

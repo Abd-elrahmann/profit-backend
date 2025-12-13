@@ -63,7 +63,13 @@ export declare class AccountsController {
         }[];
     }>;
     getTree(): Promise<any[]>;
-    getBankAccountReport(month?: string): Promise<{
+    getBankAccountReport(page: number, month?: string, limit?: number): Promise<{
+        pagination: {
+            page: number;
+            limit: number;
+            totalJournals: number;
+            totalPages: number;
+        };
         account: {
             id: number;
             name: string;

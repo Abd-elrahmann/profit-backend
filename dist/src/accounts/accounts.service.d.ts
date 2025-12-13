@@ -164,7 +164,13 @@ export declare class AccountsService {
         };
     }>;
     getAccountsTree(): Promise<any[]>;
-    getBankAccountReport(month?: string): Promise<{
+    getBankAccountReport(month?: string, page?: number, limit?: number): Promise<{
+        pagination: {
+            page: number;
+            limit: number;
+            totalJournals: number;
+            totalPages: number;
+        };
         account: {
             id: number;
             name: string;

@@ -39,8 +39,8 @@ let AccountsController = class AccountsController {
     getTree() {
         return this.accountsService.getAccountsTree();
     }
-    getBankAccountReport(month) {
-        return this.accountsService.getBankAccountReport(month);
+    getBankAccountReport(page, month, limit = 10) {
+        return this.accountsService.getBankAccountReport(month, page, +limit);
     }
     getAccountDetails(id) {
         return this.accountsService.getAccountDetails(id);
@@ -92,11 +92,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AccountsController.prototype, "getTree", null);
 __decorate([
-    (0, common_1.Get)('bank'),
+    (0, common_1.Get)('bank/:page'),
     (0, permissions_decorator_1.Permissions)('treasury', 'canView'),
-    __param(0, (0, common_1.Query)('month')),
+    __param(0, (0, common_1.Param)('page', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('month')),
+    __param(2, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Number, String, Object]),
     __metadata("design:returntype", void 0)
 ], AccountsController.prototype, "getBankAccountReport", null);
 __decorate([

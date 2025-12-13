@@ -50,10 +50,14 @@ export class AccountsController {
         return this.accountsService.getAccountsTree();
     }
 
-    @Get('bank')
+    @Get('bank/:page')
     @Permissions('treasury', 'canView')
-    getBankAccountReport(@Query('month') month?: string) {
-        return this.accountsService.getBankAccountReport(month);
+    getBankAccountReport(
+        @Param('page', ParseIntPipe) page: number,
+        @Query('month') month?: string,
+        @Query('limit') limit = 10,
+    ) {
+        return this.accountsService.getBankAccountReport(month , page , +limit);
     }
 
     @Get(':id')

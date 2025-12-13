@@ -243,88 +243,108 @@ export class AccountsService {
     }
 
     // GET BANK ACCOUNT WITH ALL JOURNALS AND REPAYMENTS
-    async getBankAccountReport(month?: string) {
-        // Step 1: Build Saudi timezone-aware date filter
+    async getBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
+        const skip = (page - 1) * limit;
+
         let monthStart: Date | undefined;
         let monthEnd: Date | undefined;
 
         if (month) {
-            const [year, monthNum] = month.split('-').map(Number);
+            const [year, monthNum] = month.split("-").map(Number);
 
-            // Start and end in Riyadh timezone, then convert to UTC
             monthStart = DateTime.fromObject(
                 { year, month: monthNum, day: 1 },
-                { zone: 'Asia/Riyadh' }
-            ).startOf('day').toUTC().toJSDate();
+                { zone: "Asia/Riyadh" }
+            ).startOf("day").toUTC().toJSDate();
 
             monthEnd = DateTime.fromObject(
                 { year, month: monthNum, day: 1 },
-                { zone: 'Asia/Riyadh' }
-            ).endOf('month').endOf('day').toUTC().toJSDate();
+                { zone: "Asia/Riyadh" }
+            ).endOf("month").endOf("day").toUTC().toJSDate();
         }
 
-        // Step 2: Fetch bank account and journal entries
         const bankAccount = await this.prisma.account.findUnique({
-            where: { code: '11000' },
+            where: { code: "11000" },
             include: {
                 entries: {
                     where: {
                         journal: {
-                            status: 'POSTED',
-                            ...(monthStart && monthEnd ? { date: { gte: monthStart, lte: monthEnd } } : {}),
+                            status: "POSTED",
+                            ...(monthStart &&
+                                monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
                         },
                     },
                     include: {
                         journal: {
                             include: {
-                                postedBy: { select: { id: true, name: true, email: true } },
+                                postedBy: {
+                                    select: { id: true, name: true, email: true },
+                                },
                             },
                         },
                         client: { select: { id: true, name: true } },
                     },
-                    orderBy: { id: 'desc' },
+                    orderBy: { id: "desc" },
+                    skip,
+                    take: limit,
                 },
             },
         });
 
         if (!bankAccount)
-            throw new NotFoundException('Bank account with code 11000 not found');
+            throw new NotFoundException("Bank account 11000 not found");
+
+        const totalJournals = await this.prisma.journalLine.count({
+            where: {
+                accountId: bankAccount.id,
+                journal: {
+                    status: "POSTED",
+                    ...(monthStart &&
+                        monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
+                },
+            },
+        });
+
+        const totalPages = Math.ceil(totalJournals / limit);
 
         const loansAccount = await this.prisma.account.findUnique({
-            where: { code: '12000' }
+            where: { code: "12000" },
         });
 
         if (!loansAccount)
-            throw new NotFoundException('loans account with code 12000 not found');
+            throw new NotFoundException("Loans account 12000 not found");
 
-        // Step 3: Group journal entries by month (Saudi timezone)
         const groupedByMonth = bankAccount.entries.reduce(
-            (acc, entry) => {
-                const date = DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
-                const monthKey = date.toFormat('yyyy-LL');
+            (acc, line) => {
+                const date = DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
+                const monthKey = date.toFormat("yyyy-LL");
 
                 if (!acc[monthKey]) {
-                    acc[monthKey] = { entries: [], totalDebit: 0, totalCredit: 0, totalBalance: 0 };
+                    acc[monthKey] = {
+                        entries: [],
+                        totalDebit: 0,
+                        totalCredit: 0,
+                        totalBalance: 0,
+                    };
                 }
 
-                const mapped = {
-                    id: entry.journal.id,
+                acc[monthKey].entries.push({
+                    id: line.journal.id,
                     date: date.toISO(),
-                    reference: entry.journal.reference,
-                    description: entry.description ?? entry.journal.description,
-                    debit: entry.debit,
-                    credit: entry.credit,
-                    balance: entry.balance,
-                    client: entry.client ? entry.client.name : null,
-                    postedBy: entry.journal.postedBy?.name ?? null,
-                    status: entry.journal.status,
-                    type: entry.journal.type,
-                };
+                    reference: line.journal.reference,
+                    description: line.description ?? line.journal.description,
+                    debit: line.debit,
+                    credit: line.credit,
+                    balance: line.balance,
+                    client: line.client ? line.client.name : null,
+                    postedBy: line.journal.postedBy?.name ?? null,
+                    status: line.journal.status,
+                    type: line.journal.type,
+                });
 
-                acc[monthKey].entries.push(mapped);
-                acc[monthKey].totalDebit += entry.debit ?? 0;
-                acc[monthKey].totalCredit += entry.credit ?? 0;
-                acc[monthKey].totalBalance += entry.balance ?? 0;
+                acc[monthKey].totalDebit += line.debit ?? 0;
+                acc[monthKey].totalCredit += line.credit ?? 0;
+                acc[monthKey].totalBalance += line.balance ?? 0;
 
                 return acc;
             },
@@ -334,10 +354,12 @@ export class AccountsService {
             >
         );
 
-        // Step 4: Calculate repayment totals (filter by month if provided)
         const repaymentFilter: any = {};
         if (monthStart && monthEnd) {
-            repaymentFilter.dueDate = { gte: monthStart, lte: monthEnd };
+            repaymentFilter.dueDate = {
+                gte: monthStart,
+                lte: monthEnd,
+            };
         }
 
         const repayments = await this.prisma.repayment.findMany({
@@ -348,11 +370,19 @@ export class AccountsService {
             },
         });
 
-        const totalAmount = repayments.reduce((sum, r) => sum + Number(r.amount), 0);
-        const paidUntilNow = repayments.reduce((sum, r) => sum + Number(r.paidAmount), 0);
+        const totalAmount = repayments.reduce((sum, x) => sum + Number(x.amount), 0);
+        const paidUntilNow = repayments.reduce(
+            (sum, x) => sum + Number(x.paidAmount),
+            0
+        );
 
-        // Step 5: Return full report
         return {
+            pagination: {
+                page,
+                limit,
+                totalJournals,
+                totalPages,
+            },
             account: {
                 id: bankAccount.id,
                 name: bankAccount.name,
@@ -363,7 +393,7 @@ export class AccountsService {
             },
             loansBalance: loansAccount.balance,
             total: bankAccount.balance + loansAccount.balance,
-            totalJournalEntries: bankAccount.entries.length,
+            totalJournalEntries: totalJournals,
             journalsByMonth: groupedByMonth,
             repayments: {
                 totalAmount,

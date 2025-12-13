@@ -28,4 +28,12 @@ export declare class ExpenseService {
             date: Date;
         }[];
     }>;
+    updateExpense(userId: number, journalId: number, newAmount: number, newDescription: string): Promise<{
+        message: string;
+        journalId: number;
+    }>;
+    deleteExpense(userId: number, journalId: number): Promise<{
+        message: string;
+        journalId: number;
+    }>;
 }
