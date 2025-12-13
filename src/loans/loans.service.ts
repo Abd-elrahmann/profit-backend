@@ -407,11 +407,20 @@ export class LoansService {
 
         await this.updateClientStatus(loan.clientId);
 
-        if (loan.partnerId) {
-            const partner = await this.prisma.partner.findUnique({ where: { id: loan.partnerId } });
-            if (partner && !partner.isActive) {
+        const loanPartners = await this.prisma.loanPartnerShare.findMany({
+            where: { loanId: loan.id },
+            select: {
+                partnerId: true,
+                partner: {
+                    select: { isActive: true },
+                },
+            },
+        });
+
+        for (const lp of loanPartners) {
+            if (!lp.partner.isActive) {
                 await this.prisma.partner.update({
-                    where: { id: partner.id },
+                    where: { id: lp.partnerId },
                     data: { isActive: true },
                 });
             }
@@ -501,14 +510,18 @@ export class LoansService {
 
             await this.updateClientStatus(loan.clientId);
 
-            if (loan.partnerId) {
-                const loanPartnerShare = await tx.loanPartnerShare.findFirst({
-                    where: { loanId: loan.id, partnerId: loan.partnerId },
-                });
+            const loanPartnerShares = await tx.loanPartnerShare.findMany({
+                where: { loanId: loan.id },
+                select: {
+                    partnerId: true,
+                    isActive: true,
+                },
+            });
 
-                if (loanPartnerShare && loanPartnerShare.isActive === false) {
+            for (const lps of loanPartnerShares) {
+                if (lps.isActive === false) {
                     await tx.partner.update({
-                        where: { id: loan.partnerId },
+                        where: { id: lps.partnerId },
                         data: { isActive: false },
                     });
                 }
@@ -840,12 +853,12 @@ export class LoansService {
                 totalAmount: Number(totalAmount.toFixed(2)),
                 startDate: dto.startDate ? new Date(dto.startDate) : loan.startDate,
             };
-            
+
             // Only update kafeelId if it's explicitly provided in dto
             if (dto.kafeelId !== undefined) {
                 financialUpdateData.kafeelId = dto.kafeelId;
             }
-            
+
             await this.prisma.loan.update({
                 where: { id },
                 data: financialUpdateData,

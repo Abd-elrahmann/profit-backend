@@ -66,16 +66,48 @@ export class NotificationScheduler {
         }
 
         const allRepayments = loans.flatMap(l => l.repayments);
-        const overdue = allRepayments.filter(
-            r => r.status === 'OVERDUE' || (r.status !== 'PAID' && r.dueDate < new Date()),
+        const nowUtc = new Date();
+
+        const fullyPaidStatuses = ['PAID', 'EARLY_PAID', 'COMPLETED' , 'PARTIAL_PAID'];
+
+        const unpaidRepayments = allRepayments.filter(r => !fullyPaidStatuses.includes(r.status));
+        const overdueRepayments = unpaidRepayments.filter(r => r.dueDate < nowUtc);
+
+        const hasSixOverdueRepayments = overdueRepayments.length >= 6;
+
+        // Paid repayments
+        const paidRepayments = allRepayments.filter(
+            r => fullyPaidStatuses.includes(r.status) && r.paymentDate
         );
-        const unpaid = allRepayments.filter(r => r.status !== 'PAID');
+
+        let hasSixMonthsDelay = false;
+
+        if (paidRepayments.length > 0) {
+            const lastPaidDate = paidRepayments
+                .map(r => r.paymentDate!)
+                .sort((a, b) => b.getTime() - a.getTime())[0];
+
+            const sixMonthsAfterLastPaid = new Date(lastPaidDate);
+            sixMonthsAfterLastPaid.setUTCMonth(sixMonthsAfterLastPaid.getUTCMonth() + 6);
+
+            hasSixMonthsDelay = nowUtc >= sixMonthsAfterLastPaid;
+
+        } else if (unpaidRepayments.length > 0) {
+            const firstDueDate = unpaidRepayments
+                .map(r => r.dueDate)
+                .sort((a, b) => a.getTime() - b.getTime())[0];
+
+            const sixMonthsAfterFirstDue = new Date(firstDueDate);
+            sixMonthsAfterFirstDue.setUTCMonth(sixMonthsAfterFirstDue.getUTCMonth() + 6);
+
+            hasSixMonthsDelay = nowUtc >= sixMonthsAfterFirstDue;
+        }
 
         let newStatus: any = 'نشط';
 
-        if (overdue.length > 0) {
+        if (hasSixOverdueRepayments || hasSixMonthsDelay) {
             newStatus = 'متعثر';
-        } else if (unpaid.length === 0) {
+        } else if (unpaidRepayments.length === 0) {
             newStatus = 'منتهي';
         }
 

@@ -240,9 +240,10 @@ let PartnerService = class PartnerService {
         await this.prisma.$transaction(async (tx) => {
             await tx.journalLine.deleteMany({ where: { accountId: partner.accountPayableId } });
             await tx.journalLine.deleteMany({ where: { accountId: partner.accountEquityId } });
+            await tx.journalLine.deleteMany({ where: { accountId: partner.accountSavingId } });
             await tx.journalHeader.deleteMany({
                 where: {
-                    lines: { some: { accountId: { in: [partner.accountPayableId, partner.accountEquityId] } } },
+                    lines: { some: { accountId: { in: [partner.accountPayableId, partner.accountEquityId, partner.accountSavingId] } } },
                 },
             });
             await tx.zakatAccrual.deleteMany({ where: { partnerId: id } });
@@ -251,6 +252,8 @@ let PartnerService = class PartnerService {
             await tx.partnerShareAccrual.deleteMany({ where: { partnerId: id } });
             await tx.partnerPeriodProfit.deleteMany({ where: { partnerId: id } });
             await tx.loanPartnerShare.deleteMany({ where: { partnerId: id } });
+            await tx.partnerWithdrawalSchedule.deleteMany({ where: { partnerId: id } });
+            await tx.partnerWithdrawal.deleteMany({ where: { partnerId: id } });
             await tx.partner.delete({ where: { id } });
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountEquityId } });
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountPayableId } });
@@ -360,12 +363,25 @@ let PartnerService = class PartnerService {
             totalCapital = 0;
             partnerProfitPercent = 0;
         }
+        const calculateDuration = (from) => {
+            const start = luxon_1.DateTime.fromJSDate(from, { zone: 'utc' });
+            const now = luxon_1.DateTime.utc();
+            const diff = now.diff(start, ['years', 'months', 'days']).toObject();
+            return {
+                years: Math.floor(diff.years || 0),
+                months: Math.floor(diff.months || 0),
+                days: Math.floor(diff.days || 0),
+                totalDays: Math.floor(now.diff(start, 'days').days),
+            };
+        };
+        const duration = calculateDuration(partner.createdAt);
         return {
             ...partner,
             createdAt: toSaudi(partner.createdAt),
             contractSignedAt: toSaudi(partner.contractSignedAt),
             partnerProfitPercent,
             totalSaving: partner.AccountSaving?.balance ?? 0,
+            duration,
         };
     }
     async uploadMudarabahFile(currentUser, id, file) {

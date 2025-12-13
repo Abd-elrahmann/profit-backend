@@ -373,11 +373,19 @@ let LoansService = class LoansService {
             });
         }
         await this.updateClientStatus(loan.clientId);
-        if (loan.partnerId) {
-            const partner = await this.prisma.partner.findUnique({ where: { id: loan.partnerId } });
-            if (partner && !partner.isActive) {
+        const loanPartners = await this.prisma.loanPartnerShare.findMany({
+            where: { loanId: loan.id },
+            select: {
+                partnerId: true,
+                partner: {
+                    select: { isActive: true },
+                },
+            },
+        });
+        for (const lp of loanPartners) {
+            if (!lp.partner.isActive) {
                 await this.prisma.partner.update({
-                    where: { id: partner.id },
+                    where: { id: lp.partnerId },
                     data: { isActive: true },
                 });
             }
@@ -446,13 +454,17 @@ let LoansService = class LoansService {
                 },
             });
             await this.updateClientStatus(loan.clientId);
-            if (loan.partnerId) {
-                const loanPartnerShare = await tx.loanPartnerShare.findFirst({
-                    where: { loanId: loan.id, partnerId: loan.partnerId },
-                });
-                if (loanPartnerShare && loanPartnerShare.isActive === false) {
+            const loanPartnerShares = await tx.loanPartnerShare.findMany({
+                where: { loanId: loan.id },
+                select: {
+                    partnerId: true,
+                    isActive: true,
+                },
+            });
+            for (const lps of loanPartnerShares) {
+                if (lps.isActive === false) {
                     await tx.partner.update({
-                        where: { id: loan.partnerId },
+                        where: { id: lps.partnerId },
                         data: { isActive: false },
                     });
                 }
