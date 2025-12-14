@@ -1,4 +1,4 @@
-import { Controller, Post, Param, ParseIntPipe, Body, Req, UseGuards, Get, UploadedFile, UseInterceptors, Query } from '@nestjs/common';
+import { Controller, Post, Param, ParseIntPipe, Body, Req, UseGuards, Get, UploadedFile, UseInterceptors, Query, Patch } from '@nestjs/common';
 import { PartnerWithdrawService } from './partner-withdraw.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -19,6 +19,19 @@ export class PartnerWithdrawController {
         @Body('amount') amount: number,
     ) {
         return this.service.withdrawPartner(partnerId, amount, req.user.id);
+    }
+
+    @Patch(':partnerId')
+    async updateWithdrawalAmount(
+        @Req() req,
+        @Param('partnerId', ParseIntPipe) partnerId: number,
+        @Body('amount') amount: number,
+    ) {
+        return this.service.updateWithdrawalMonthlyAmount(
+            req.user.id,
+            partnerId,
+            amount,
+        );
     }
 
     @Get('details/:partnerId')

@@ -321,13 +321,30 @@ export class PartnerWithdrawService {
     async approveWithdrawalPayment(currentUser: number, scheduleId: number) {
         const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
             where: { id: scheduleId },
-            include: { partner: true },
+            include: {
+                partner: {
+                    include: {
+                        PartnerWithdrawal: {
+                            select: { id: true },
+                            take: 1,
+                            orderBy: { createdAt: 'desc' },
+                        },
+                    },
+                },
+            },
         });
+
         if (!schedule) throw new NotFoundException('جدول السحب غير موجود');
         if (schedule.isPaid) throw new BadRequestException('الدفعة مدفوعة بالفعل');
 
         const partner = schedule.partner;
         if (!partner) throw new NotFoundException('المستثمر المرتبط غير موجود');
+
+        const withdrawalId = schedule.partner.PartnerWithdrawal?.[0]?.id;
+
+        if (!withdrawalId) {
+            throw new NotFoundException('لا يوجد طلب انسحاب مرتبط بهذا المستثمر');
+        }
 
         // compute amounts
         const carry = parseFloat((schedule.carryAmount || 0).toFixed(2));
@@ -352,7 +369,7 @@ export class PartnerWithdrawService {
                         description: `صرف مبلغ محمول من جدول ${schedule.carryFromId} إلى جدول ${schedule.id} (جزء قديم)`,
                         type: 'GENERAL',
                         sourceType: 'PARTNER_WITHDRAWING',
-                        sourceId: schedule.id,
+                        sourceId: withdrawalId,
                         lines: [
                             {
                                 accountId: partner.accountEquityId,
@@ -381,7 +398,7 @@ export class PartnerWithdrawService {
                         description: `صرف الدفعة لجدول انسحاب ${schedule.id} (مبلغ جديد)`,
                         type: 'GENERAL',
                         sourceType: 'PARTNER_WITHDRAWING',
-                        sourceId: schedule.id,
+                        sourceId: withdrawalId,
                         lines: [
                             {
                                 accountId: partner.accountEquityId,
@@ -448,19 +465,39 @@ export class PartnerWithdrawService {
     async rejectWithdrawalPayment(currentUser: number, scheduleId: number) {
         const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
             where: { id: scheduleId },
-            include: { partner: true },
+            include: {
+                partner: {
+                    include: {
+                        PartnerWithdrawal: {
+                            select: { id: true },
+                            take: 1,
+                            orderBy: { createdAt: 'desc' },
+                        },
+                    },
+                },
+            },
         });
+
         if (!schedule) throw new NotFoundException('جدول السحب غير موجود');
 
-        if (!schedule.isPaid && (!schedule.paidAmount || schedule.paidAmount === 0)) {
-            throw new BadRequestException('الدفعة غير مدفوعة أو لا توجد دفعات لتراجعها');
+        // if (!schedule.isPaid && (!schedule.paidAmount || schedule.paidAmount === 0)) {
+        //     throw new BadRequestException('الدفعة غير مدفوعة أو لا توجد دفعات لتراجعها');
+        // }
+
+        const withdrawalId = schedule.partner.PartnerWithdrawal?.[0]?.id;
+
+        if (!withdrawalId) {
+            throw new NotFoundException('لا يوجد طلب انسحاب مرتبط بهذا المستثمر');
         }
 
         return await this.prisma.$transaction(async (tx) => {
             const ownJournals = await tx.journalHeader.findMany({
                 where: {
                     sourceType: 'PARTNER_WITHDRAWING',
-                    sourceId: schedule.id,
+                    OR: [
+                        { reference: { contains: `PW-APPR-${schedule.id}-` } },
+                        { reference: { contains: `PW-PARTIAL-${schedule.id}-` } },
+                    ],
                 },
             });
 
@@ -497,10 +534,8 @@ export class PartnerWithdrawService {
 
             const carryJournalRecord = carryJournals[0];
             let restoreCarryAmount = 0;
-            let restoreCarryFromId = null as any;
             if (carryJournalRecord) {
                 restoreCarryAmount = carryPaid;
-                restoreCarryFromId = carryJournalRecord.sourceId || 0;
             }
 
             const restoredRemaining = parseFloat(((schedule.amount ?? 0)).toFixed(2));
@@ -514,7 +549,6 @@ export class PartnerWithdrawService {
                     isPaid: false,
                     paidAt: null,
                     carryAmount: restoreCarryAmount,
-                    carryFromId: restoreCarryFromId,
                 },
             });
 
@@ -525,15 +559,19 @@ export class PartnerWithdrawService {
 
             for (const fs of forwardedSchedules) {
                 const forwardedAmt = fs.carryAmount || 0;
-                if (!forwardedAmt || forwardedAmt <= 0) continue;
-                await tx.partnerWithdrawalSchedule.update({
-                    where: { id: fs.id },
-                    data: {
-                        carryAmount: 0,
-                        carryFromId: null,
-                        remaining: parseFloat(((fs.remaining ?? 0)).toFixed(2)),
-                    },
-                });
+                if (fs.amount === 0) {
+                    await tx.partnerWithdrawalSchedule.delete({
+                        where: { id: fs.id },
+                    });
+                } else {
+                    await tx.partnerWithdrawalSchedule.update({
+                        where: { id: fs.id },
+                        data: {
+                            carryAmount: 0,
+                            carryFromId: null,
+                        },
+                    });
+                }
             }
 
             // audit log
@@ -587,7 +625,17 @@ export class PartnerWithdrawService {
 
         const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
             where: { id: scheduleId },
-            include: { partner: true },
+            include: {
+                partner: {
+                    include: {
+                        PartnerWithdrawal: {
+                            select: { id: true },
+                            take: 1,
+                            orderBy: { createdAt: 'desc' },
+                        },
+                    },
+                },
+            },
         });
         if (!schedule) throw new NotFoundException('جدول السحب غير موجود');
         if (schedule.isPaid) throw new BadRequestException('الدفعة مدفوعة بالفعل');
@@ -595,6 +643,12 @@ export class PartnerWithdrawService {
         const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
         if (!bankAccount) throw new BadRequestException('BANK account not found');
         if (!schedule.partner?.accountEquityId) throw new BadRequestException('Partner equity account not configured');
+
+        const withdrawalId = schedule.partner.PartnerWithdrawal?.[0]?.id;
+
+        if (!withdrawalId) {
+            throw new NotFoundException('لا يوجد طلب انسحاب مرتبط بهذا المستثمر');
+        }
 
         let remainingToAllocate = parseFloat(paidAmount.toFixed(2));
 
@@ -624,7 +678,7 @@ export class PartnerWithdrawService {
                         description: `سداد جزئي لمبلغ محمول من جدول ${schedule.carryFromId} إلى جدول ${schedule.id}`,
                         type: 'GENERAL',
                         sourceType: 'PARTNER_WITHDRAWING',
-                        sourceId: schedule.id,
+                        sourceId: withdrawalId,
                         lines: [
                             { accountId: schedule.partner.accountEquityId, debit: allocatedToCarry, credit: 0, description: 'سداد جزء محمول' },
                             { accountId: bankAccount.id, debit: 0, credit: allocatedToCarry, description: 'صرف جزء محمول' },
@@ -647,7 +701,7 @@ export class PartnerWithdrawService {
                         description: `سداد جزئي لجدول انسحاب ${schedule.id}`,
                         type: 'GENERAL',
                         sourceType: 'PARTNER_WITHDRAWING',
-                        sourceId: schedule.id,
+                        sourceId: withdrawalId,
                         lines: [
                             { accountId: schedule.partner.accountEquityId, debit: allocatedToOwn, credit: 0, description: 'سداد جزئي' },
                             { accountId: bankAccount.id, debit: 0, credit: allocatedToOwn, description: 'صرف جزئي' },
@@ -668,7 +722,6 @@ export class PartnerWithdrawService {
                     paidAmount: parseFloat(((schedule.paidAmount || 0) + allocatedToCarry + allocatedToOwn).toFixed(2)),
                     remaining: 0,
                     carryAmount: 0,
-                    carryFromId: null,
                     status: 'PAID',
                     isPaid: true,
                     paidAt: new Date(),
@@ -838,7 +891,7 @@ export class PartnerWithdrawService {
         // Generate filename: "مخالصة مالية" with original file extension
         const fileExt = path.parse(file.originalname).ext || '.pdf';
         const fileName = `مخالصة مالية${fileExt}`;
-        
+
         // Save new file
         const filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, file.buffer);
@@ -864,5 +917,102 @@ export class PartnerWithdrawService {
         });
 
         return { message: 'تم رفع مستند السحب بنجاح', path: publicUrl };
+    }
+
+    async updateWithdrawalMonthlyAmount(
+        currentUser: number,
+        partnerId: number,
+        newMonthlyAmount: number,
+    ) {
+        if (!newMonthlyAmount || newMonthlyAmount <= 0) {
+            throw new BadRequestException('قيمة القسط الجديد غير صحيحة');
+        }
+
+        const partner = await this.prisma.partner.findUnique({
+            where: { id: partnerId },
+            include: {
+                PartnerWithdrawal: true,
+            },
+        });
+
+        if (!partner) throw new NotFoundException('المستثمر غير موجود');
+
+        if (partner.WithdrawingStatus !== 'WITHDRAWING') {
+            throw new BadRequestException('لا يمكن تعديل السحب إلا أثناء حالة WITHDRAWING');
+        }
+
+        const withdrawal = await this.prisma.partnerWithdrawal.findFirst({
+            where: { partnerId },
+        });
+
+        if (!withdrawal)
+            throw new NotFoundException('لا يوجد طلب انسحاب لهذا المستثمر');
+
+        const paidCount = await this.prisma.partnerWithdrawalSchedule.count({
+            where: {
+                partnerId,
+                isPaid: true,
+            },
+        });
+
+        if (paidCount > 0) {
+            throw new BadRequestException(
+                'لا يمكن تعديل مبلغ السحب بعد وجود دفعات مدفوعة'
+            );
+        }
+
+        return await this.prisma.$transaction(async (tx) => {
+            // حذف كل الجداول الحالية
+            await tx.partnerWithdrawalSchedule.deleteMany({
+                where: { partnerId },
+            });
+
+            let remaining = parseFloat(withdrawal.remainingCapital.toFixed(2));
+            const startDate = new Date();
+            let monthIndex = 1;
+            const newSchedule = [] as any;
+
+            while (remaining > 0) {
+                const amount =
+                    remaining - newMonthlyAmount > 0
+                        ? newMonthlyAmount
+                        : remaining;
+
+                const payDate = new Date(startDate);
+                payDate.setMonth(startDate.getMonth() + monthIndex);
+
+                const s = await tx.partnerWithdrawalSchedule.create({
+                    data: {
+                        partnerId,
+                        year: payDate.getFullYear(),
+                        month: payDate.getMonth() + 1,
+                        amount,
+                        paidAmount: 0,
+                        remaining: amount,
+                        status: 'PENDING',
+                        isPaid: false,
+                    },
+                });
+
+                newSchedule.push(s);
+                remaining = parseFloat((remaining - amount).toFixed(2));
+                monthIndex++;
+            }
+
+            await tx.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'PartnerWithdrawals',
+                    action: 'UPDATE',
+                    description: `تعديل مبلغ السحب الشهري للمستثمر ${partner.name} إلى ${newMonthlyAmount}`,
+                },
+            });
+
+            return {
+                message: 'تم تعديل مبلغ السحب وإعادة إنشاء الجدول بنجاح',
+                monthlyAmount: newMonthlyAmount,
+                schedule: newSchedule,
+            };
+        });
     }
 }

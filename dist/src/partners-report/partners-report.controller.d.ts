@@ -95,8 +95,8 @@ export declare class PartnersReportController {
                 createdAt: Date;
                 periodId: number;
                 partnerId: number;
-                accrualId: number;
                 savingAmount: import("@prisma/client/runtime/library").Decimal;
+                accrualId: number;
             }[];
         } & {
             id: number;
