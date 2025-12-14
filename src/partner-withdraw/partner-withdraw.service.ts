@@ -303,7 +303,9 @@ export class PartnerWithdrawService {
             partner: {
                 id: partner.id,
                 name: partner.name,
+                nationalId: partner.nationalId,
                 totalCapital: partner.totalAmount,
+                totalProfit: partner.totalProfit,
                 savings: savingsAmount,
                 withdrawingStatus: partner.WithdrawingStatus,
                 isFrozen: partner.isFrozen,
@@ -667,7 +669,7 @@ export class PartnerWithdrawService {
                     remaining: 0,
                     carryAmount: 0,
                     carryFromId: null,
-                    status: totalToForward === 0 ? 'PAID' : 'PARTIAL_PAID',
+                    status: 'PAID',
                     isPaid: true,
                     paidAt: new Date(),
                 },
@@ -833,8 +835,12 @@ export class PartnerWithdrawService {
             }
         }
 
+        // Generate filename: "مخالصة مالية" with original file extension
+        const fileExt = path.parse(file.originalname).ext || '.pdf';
+        const fileName = `مخالصة مالية${fileExt}`;
+        
         // Save new file
-        const filePath = path.join(uploadDir, file.originalname);
+        const filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, file.buffer);
 
         // Build public URL

@@ -188,6 +188,7 @@ export declare class PartnerService {
             days: number;
             totalDays: number;
         };
+        withdrawalReceipt: string | null;
         AccountPayable: {
             name: string;
             isActive: boolean;
@@ -239,6 +240,7 @@ export declare class PartnerService {
             id: number;
             code: string;
             type: import("@prisma/client").$Enums.LoanType;
+            partnerId: number | null;
             clientId: number;
             kafeelId: number | null;
             amount: number;
@@ -251,7 +253,6 @@ export declare class PartnerService {
             endDate: Date | null;
             repaymentDay: number | null;
             bankAccountId: number | null;
-            partnerId: number | null;
             disbursementJournalId: number | null;
             settlementJournalId: number | null;
             DEBT_ACKNOWLEDGMENT: string | null;
@@ -267,12 +268,22 @@ export declare class PartnerService {
             createdAt: Date;
             id: number;
             type: import("@prisma/client").$Enums.TransactionType;
-            amount: number;
             partnerId: number;
+            amount: number;
             date: Date;
             reference: string | null;
             description: string | null;
             journalId: number | null;
+        }[];
+        PartnerWithdrawal: {
+            createdAt: Date;
+            id: number;
+            partnerId: number;
+            totalCapital: number;
+            defaultShare: number;
+            remainingCapital: number;
+            savingAmount: number;
+            WITHDRAWAL_RECEIPT: string | null;
         }[];
         name: string;
         nationalId: string;
@@ -311,8 +322,8 @@ export declare class PartnerService {
             createdAt: Date;
             id: number;
             type: import("@prisma/client").$Enums.TransactionType;
-            amount: number;
             partnerId: number;
+            amount: number;
             date: Date;
             reference: string | null;
             description: string | null;
@@ -368,8 +379,8 @@ export declare class PartnerService {
             createdAt: Date;
             id: number;
             type: import("@prisma/client").$Enums.TransactionType;
-            amount: number;
             partnerId: number;
+            amount: number;
             reference: string | null;
             description: string | null;
             journalId: number | null;

@@ -323,6 +323,7 @@ let PartnerService = class PartnerService {
                 AccountSaving: true,
                 loans: true,
                 transactions: true,
+                PartnerWithdrawal: true,
             },
         });
         if (!partner)
@@ -382,6 +383,7 @@ let PartnerService = class PartnerService {
             partnerProfitPercent,
             totalSaving: partner.AccountSaving?.balance ?? 0,
             duration,
+            withdrawalReceipt: partner.PartnerWithdrawal?.[0]?.WITHDRAWAL_RECEIPT || null,
         };
     }
     async uploadMudarabahFile(currentUser, id, file) {
