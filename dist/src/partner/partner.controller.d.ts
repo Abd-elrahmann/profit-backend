@@ -93,7 +93,7 @@ export declare class PartnerController {
     delete(req: any, id: number): Promise<{
         message: string;
     }>;
-    getAll(page: number, limit?: number, name?: string, nationalId?: string, isActive?: string): Promise<{
+    getAll(page: number, limit?: number, name?: string, nationalId?: string, status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'): Promise<{
         totalPartners: number;
         totalPages: number;
         currentPage: number;

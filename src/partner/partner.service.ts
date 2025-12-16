@@ -261,15 +261,31 @@ export class PartnerService {
     }
 
     // GET ALL PARTNERS (with pagination + filters)
-    async getAllPartners(page = 1, filters?: { limit?: number; name?: string; nationalId?: string; isActive?: boolean }) {
+    async getAllPartners(page = 1, filters?: { limit?: number; name?: string; nationalId?: string; status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; }) {
         const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
 
         const where: any = {};
         if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId) where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
-        if (filters?.isActive !== undefined) where.isActive = filters.isActive;
+        if (filters?.status) {
+            switch (filters.status) {
+                case 'ACTIVE':
+                    where.isActive = true;
+                    where.isFrozen = false;
+                    break;
 
+                case 'INACTIVE':
+                    where.isActive = false;
+                    where.isFrozen = false;
+                    break;
+
+                case 'FROZEN':
+                    where.isActive = false;
+                    where.isFrozen = true;
+                    break;
+            }
+        }
         const totalPartners = await this.prisma.partner.count({ where });
         const totalPages = Math.ceil(totalPartners / limit);
 
@@ -487,7 +503,7 @@ export class PartnerService {
 
         if (dto.type === 'SAVING_WITHDRAWAL') {
             if (partner.AccountSaving.balance < dto.amount) {
-                throw new BadRequestException('رصيد التوفير غير كافٍ للسحب.');
+                throw new BadRequestException(`رصيد توفير الشريك غير كافٍ للسحب. الرصيد الحالي: ${partner.AccountSaving.balance}`);
             }
         }
 

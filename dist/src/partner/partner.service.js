@@ -280,8 +280,22 @@ let PartnerService = class PartnerService {
             where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId)
             where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
-        if (filters?.isActive !== undefined)
-            where.isActive = filters.isActive;
+        if (filters?.status) {
+            switch (filters.status) {
+                case 'ACTIVE':
+                    where.isActive = true;
+                    where.isFrozen = false;
+                    break;
+                case 'INACTIVE':
+                    where.isActive = false;
+                    where.isFrozen = false;
+                    break;
+                case 'FROZEN':
+                    where.isActive = false;
+                    where.isFrozen = true;
+                    break;
+            }
+        }
         const totalPartners = await this.prisma.partner.count({ where });
         const totalPages = Math.ceil(totalPartners / limit);
         if (page > totalPages && totalPartners > 0)
@@ -452,7 +466,7 @@ let PartnerService = class PartnerService {
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
         if (dto.type === 'SAVING_WITHDRAWAL') {
             if (partner.AccountSaving.balance < dto.amount) {
-                throw new common_1.BadRequestException('رصيد التوفير غير كافٍ للسحب.');
+                throw new common_1.BadRequestException(`رصيد توفير الشريك غير كافٍ للسحب. الرصيد الحالي: ${partner.AccountSaving.balance}`);
             }
         }
         if (dto.type === 'WITHDRAWAL') {

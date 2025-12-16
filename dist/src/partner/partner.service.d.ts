@@ -99,7 +99,7 @@ export declare class PartnerService {
         limit?: number;
         name?: string;
         nationalId?: string;
-        isActive?: boolean;
+        status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN';
     }): Promise<{
         totalPartners: number;
         totalPages: number;

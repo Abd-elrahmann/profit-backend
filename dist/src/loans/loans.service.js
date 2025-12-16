@@ -445,6 +445,7 @@ let LoansService = class LoansService {
                     where: { id: { in: allJournalIds } },
                 });
             }
+            await tx.repayment.deleteMany({ where: { loanId: id } });
             await tx.loan.update({
                 where: { id },
                 data: {

@@ -54,11 +54,11 @@ export declare class DashboardController {
         collectionPercentage: number;
         bankAccount: {
             id: number;
-            code: string;
             name: string;
-            credit: number;
             debit: number;
+            credit: number;
             balance: number;
+            code: string;
         } | null;
         loansBalance: number;
         total: number;
@@ -70,43 +70,43 @@ export declare class DashboardController {
     }>;
     getUpcomingRepayments(): Promise<({
         loan: {
-            id: number;
             client: {
                 name: string;
             };
+            id: number;
         };
     } & {
-        createdAt: Date;
-        principalAmount: number;
-        interestAmount: number;
-        dueDate: Date;
-        newDueDate: Date | null;
-        count: number;
         id: number;
-        loanId: number;
+        createdAt: Date;
+        attachments: string[];
+        status: import("@prisma/client").$Enums.PaymentStatus;
+        notes: string | null;
         clientId: number;
         amount: number;
+        interestAmount: number;
+        count: number;
+        loanId: number;
+        dueDate: Date;
         remaining: number;
         paidAmount: number;
+        principalAmount: number;
         paymentDate: Date | null;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        attachments: string[];
         PaymentProof: string | null;
         reviewStatus: string | null;
-        notes: string | null;
         postponeApproved: boolean | null;
         postponeReason: string | null;
+        newDueDate: Date | null;
     })[]>;
     getLastActions(): Promise<({
         user: {
             name: string;
         };
     } & {
-        createdAt: Date;
         id: number;
-        userId: number;
+        createdAt: Date;
         screen: string;
         action: string;
         description: string | null;
+        userId: number;
     })[]>;
 }

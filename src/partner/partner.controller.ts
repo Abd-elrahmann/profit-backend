@@ -50,13 +50,13 @@ export class PartnerController {
         @Query('limit') limit?: number,
         @Query('name') name?: string,
         @Query('nationalId') nationalId?: string,
-        @Query('isActive') isActive?: string,
+        @Query('status') status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN',
     ) {
         return this.partnerService.getAllPartners(page, {
             limit,
             name,
             nationalId,
-            isActive: isActive ? isActive === 'true' : undefined,
+            status,
         });
     }
 
