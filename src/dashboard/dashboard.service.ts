@@ -238,62 +238,6 @@ export class DashboardService {
         };
     }
 
-    // async getMonthlyCollection() {
-    //     const now = moment().tz("Asia/Riyadh");
-
-    //     const startDate = now.clone().startOf('month').toDate();
-    //     const endDate = now.clone().endOf('month').toDate();
-
-    //     const dateFilter = { gte: startDate, lte: endDate };
-
-    //     const dueAgg = await this.prisma.repayment.aggregate({
-    //         _sum: {
-    //             principalAmount: true,
-    //             interestAmount: true,
-    //         },
-    //         where: {
-    //             OR: [
-    //                 { newDueDate: dateFilter },
-    //                 { dueDate: dateFilter },
-    //             ],
-    //         },
-    //     });
-
-    //     const totalRepayment =
-    //         (dueAgg._sum.principalAmount || 0) +
-    //         (dueAgg._sum.interestAmount || 0);
-
-    //     const paidAgg = await this.prisma.repayment.aggregate({
-    //         _sum: { paidAmount: true },
-    //         where: { paymentDate: dateFilter },
-    //     });
-
-    //     const totalPaid = paidAgg._sum.paidAmount || 0;
-
-    //     const totalRemaining = Math.max(totalRepayment - totalPaid, 0);
-
-    //     // Calculate collection percentage
-    //     const collectionPercentage = totalRepayment > 0
-    //         ? Math.round((totalPaid / totalRepayment) * 100)
-    //         : 0;
-
-    //     // Get bank balance (available for lending)
-    //     const bankAccount = await this.prisma.account.findUnique({
-    //         where: { code: "11000" },
-    //     });
-
-    //     const availableForLending = bankAccount?.balance || 0;
-
-    //     return {
-    //         range: { startDate, endDate },
-    //         totalRepayment,
-    //         totalPaid,
-    //         totalRemaining,
-    //         collectionPercentage,
-    //         availableForLending,
-    //     };
-    // }
-
     async getMonthlyCollection() {
         const now = moment().tz("Asia/Riyadh");
 
