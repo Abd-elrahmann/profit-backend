@@ -28,7 +28,8 @@ let ClientReportService = class ClientReportService {
                 },
             },
         });
-        const processedClients = allClients.map((c) => {
+        const clientsWithLoans = allClients.filter((c) => c.loans.length > 0);
+        const processedClients = clientsWithLoans.map((c) => {
             const loans = c.loans;
             const totalDebit = loans.reduce((sum, loan) => {
                 const debit = loan.newAmount && loan.newAmount > 0
