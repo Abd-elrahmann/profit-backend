@@ -1,12 +1,5 @@
 [
   {
-    "id": 2,
-    "name": "موظف",
-    "description": "رؤية فقط",
-    "createdAt": "2025-12-05T00:15:24.825Z",
-    "updatedAt": "2025-12-10T15:52:44.643Z"
-  },
-  {
     "id": 1,
     "name": "Admin",
     "description": "Full access role",

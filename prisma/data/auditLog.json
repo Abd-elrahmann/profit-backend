@@ -1061,9 +1061,6 @@
     "screen": "Clients",
     "action": "DELETE",
     "description": "المستخدم ادمن حذف العميل: youssef khaled",
-<<<<<<< HEAD
-    "createdAt": "2025-12-16T09:06:34.829Z"
-=======
     "createdAt": "2025-12-07T17:47:24.308Z"
   },
   {
@@ -5849,6 +5846,5 @@
     "action": "POST",
     "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 117",
     "createdAt": "2026-04-17T12:32:19.390Z"
->>>>>>> 92506984721f6ac05fd865de99a7f425c6532d46
   }
 ]

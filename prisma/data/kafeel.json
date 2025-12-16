@@ -1,0 +1,19 @@
+[
+  {
+    "id": 1,
+    "clientId": 1,
+    "name": "Ali Saleh",
+    "nationalId": "2098765432122",
+    "birthDate": "1985-05-15T00:00:00.000Z",
+    "city": "Riyadh",
+    "district": "Al-Sulaymaniyah",
+    "employer": "SABIC",
+    "salary": 10000,
+    "obligations": 3000,
+    "phone": "0555555556",
+    "email": "ali@gmail.com",
+    "kafeelIdImage": null,
+    "kafeelWorkCard": null,
+    "createdAt": "2025-11-11T22:20:19.126Z"
+  }
+]
