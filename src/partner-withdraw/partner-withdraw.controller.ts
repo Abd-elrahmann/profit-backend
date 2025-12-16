@@ -21,6 +21,15 @@ export class PartnerWithdrawController {
         return this.service.withdrawPartner(partnerId, amount, req.user.id);
     }
 
+    @Get('preview/:partnerId')
+    async previewDefaultShare(
+        @Param('partnerId') partnerId: number,
+    ) {
+        return this.service.previewPartnerDefaultShare(
+            Number(partnerId),
+        );
+    }
+
     @Patch(':partnerId')
     async updateWithdrawalAmount(
         @Req() req,

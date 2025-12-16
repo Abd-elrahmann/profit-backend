@@ -11,6 +11,69 @@ export class PartnerWithdrawService {
         private journalService: JournalService,
     ) { }
 
+    async previewPartnerDefaultShare(partnerId: number) {
+        const partner = await this.prisma.partner.findUnique({
+            where: { id: partnerId },
+            select: {
+                id: true,
+                name: true,
+                orgProfitPercent: true,
+            },
+        });
+
+        if (!partner) throw new NotFoundException('المستثمر غير موجود');
+
+        const partnerDefaultedLoans = await this.prisma.loanPartnerShare.findMany({
+            where: {
+                partnerId: partner.id,
+                loan: {
+                    status: 'ACTIVE',
+                    client: {
+                        status: 'متعثر',
+                    },
+                },
+            },
+            select: {
+                sharePercent: true,
+                loan: {
+                    select: {
+                        repayments: {
+                            where: { remaining: { gt: 0 } },
+                            select: { remaining: true },
+                        },
+                    },
+                },
+            },
+        });
+
+        let partnerDefaultsBase = 0;
+
+        for (const lps of partnerDefaultedLoans) {
+            const loanRemaining = lps.loan.repayments.reduce(
+                (sum, r) => sum + (r.remaining || 0),
+                0,
+            );
+
+            partnerDefaultsBase += loanRemaining * (lps.sharePercent / 100);
+        }
+
+        const partnerOperationalRatio =
+            (100 - partner.orgProfitPercent) / 100;
+
+        const partnerDefaultShare = parseFloat(
+            (partnerDefaultsBase * partnerOperationalRatio).toFixed(2)
+        );
+
+        return {
+            partnerId: partner.id,
+            partnerName: partner.name,
+            defaultsBase: parseFloat(partnerDefaultsBase.toFixed(2)),
+            orgProfitPercent: partner.orgProfitPercent,
+            operationalRatio: partnerOperationalRatio,
+            partnerDefaultShare,
+        };
+    }
+
     async withdrawPartner(
         partnerId: number,
         monthlyAmount: number,

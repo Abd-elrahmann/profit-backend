@@ -14,11 +14,11 @@
     "salary": 8000,
     "obligations": 1500,
     "creationReason": "New loan request",
-    "debit": 0,
+    "debit": 20000,
     "credit": 0,
-    "balance": 0,
+    "balance": 20000,
     "status": "نشط",
-    "notes": "High salary, low obligations",
+    "notes": "High salary, obligations",
     "createdAt": "2025-10-27T18:31:51.944Z"
   }
 ]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": 37,
+    "partnerId": 3,
+    "month": 1,
+    "year": 2026,
+    "amount": 2000,
+    "paidAmount": 0,
+    "remaining": 2000,
+    "status": "PENDING",
+    "isPaid": false,
+    "carryAmount": null,
+    "carryFromId": null,
+    "createdAt": "2025-12-16T12:00:49.507Z",
+    "paidAt": null
+  },
+  {
+    "id": 38,
+    "partnerId": 3,
+    "month": 2,
+    "year": 2026,
+    "amount": 2000,
+    "paidAmount": 0,
+    "remaining": 2000,
+    "status": "PENDING",
+    "isPaid": false,
+    "carryAmount": null,
+    "carryFromId": null,
+    "createdAt": "2025-12-16T12:00:49.510Z",
+    "paidAt": null
+  },
+  {
+    "id": 39,
+    "partnerId": 3,
+    "month": 3,
+    "year": 2026,
+    "amount": 1200,
+    "paidAmount": 0,
+    "remaining": 1200,
+    "status": "PENDING",
+    "isPaid": false,
+    "carryAmount": null,
+    "carryFromId": null,
+    "createdAt": "2025-12-16T12:00:49.513Z",
+    "paidAt": null
+  }
+]

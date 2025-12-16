@@ -3,7 +3,7 @@ export declare class ClientReportService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     getAllClients(page: number, limit?: number, filters?: {
-        status?: 'ACTIVE' | 'COMPLETE';
+        status?: 'ACTIVE' | 'COMPLETE' | 'نشط' | 'منتهي';
     }): Promise<{
         page: number;
         limit: number;

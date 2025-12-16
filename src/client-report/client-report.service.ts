@@ -9,7 +9,7 @@ export class ClientReportService {
     async getAllClients(
         page: number,
         limit = 20,
-        filters?: { status?: 'ACTIVE' | 'COMPLETE' }
+        filters?: { status?: 'ACTIVE' | 'COMPLETE' | 'نشط' | 'منتهي' },
     ) {
         const allClients = await this.prisma.client.findMany({
             orderBy: { id: 'asc' },
@@ -22,7 +22,10 @@ export class ClientReportService {
             },
         });
 
-        const processedClients = allClients.map((c) => {
+        // Filter out clients with no loans
+        const clientsWithLoans = allClients.filter((c) => c.loans.length > 0);
+
+        const processedClients = clientsWithLoans.map((c) => {
             const loans = c.loans;
 
             // SAFE total debit calculation
