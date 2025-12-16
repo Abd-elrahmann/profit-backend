@@ -234,6 +234,7 @@ export class PartnerService {
             await tx.zakatPayment.deleteMany({ where: { partnerId: id } });
             await tx.partnerTransaction.deleteMany({ where: { partnerId: id } });
             await tx.partnerShareAccrual.deleteMany({ where: { partnerId: id } });
+            await tx.partnerSavingAccrual.deleteMany({ where: { partnerId: id } });
             await tx.partnerPeriodProfit.deleteMany({ where: { partnerId: id } });
             await tx.loanPartnerShare.deleteMany({ where: { partnerId: id } });
             await tx.partnerWithdrawalSchedule.deleteMany({ where: { partnerId: id } });

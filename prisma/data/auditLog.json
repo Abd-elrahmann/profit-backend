@@ -1,0 +1,18 @@
+[
+  {
+    "id": 275,
+    "userId": 1,
+    "screen": "Clients",
+    "action": "DELETE",
+    "description": "المستخدم ادمن حذف العميل: abdlrahman mohammed",
+    "createdAt": "2025-12-16T09:06:32.570Z"
+  },
+  {
+    "id": 276,
+    "userId": 1,
+    "screen": "Clients",
+    "action": "DELETE",
+    "description": "المستخدم ادمن حذف العميل: youssef khaled",
+    "createdAt": "2025-12-16T09:06:34.829Z"
+  }
+]
