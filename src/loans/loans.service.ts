@@ -1103,25 +1103,12 @@ export class LoansService {
 
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
-            include: { client: true, repayments: true },
+            include: { client: true },
         });
         if (!loan) throw new NotFoundException('Loan not found');
 
-        // التحقق من أن كل الأقساط مدفوعة (PAID أو EARLY_PAID)
-        const allRepaymentsPaid = loan.repayments.every(
-            (repayment) => repayment.status === 'PAID' || repayment.status === 'EARLY_PAID'
-        );
-
-        if (loan.status !== LoanStatus.COMPLETED && !allRepaymentsPaid) {
+        if (loan.status !== LoanStatus.COMPLETED) {
             throw new BadRequestException('فقط السلف المكتملة يمكن تحميل ملف التسوية لها');
-        }
-
-        // تحديث حالة السلفة إلى COMPLETED إذا كانت كل الأقساط مدفوعة
-        if (allRepaymentsPaid && loan.status !== LoanStatus.COMPLETED) {
-            await this.prisma.loan.update({
-                where: { id: loanId },
-                data: { status: LoanStatus.COMPLETED, endDate: new Date() },
-            });
         }
 
         const client = loan.client;
