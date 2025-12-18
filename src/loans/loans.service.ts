@@ -629,6 +629,18 @@ export class LoansService {
             },
         });
 
+        // Calculate total paid amount and remaining amount across ALL repayments
+        const allRepaymentsAggregation = await this.prisma.repayment.aggregate({
+            where: { loanId: id },
+            _sum: {
+                paidAmount: true,
+                remaining: true,
+            },
+        });
+
+        const totalPaidAmount = Number(allRepaymentsAggregation._sum.paidAmount || 0);
+        const totalRemainingAmount = Number(allRepaymentsAggregation._sum.remaining || 0);
+
         // Fetch paginated repayments
         const Repayments = await this.prisma.repayment.findMany({
             where: { loanId: id },
@@ -724,6 +736,8 @@ export class LoansService {
                 page,
                 totalRepayments: totalRepayments,
                 paidRepayments: paidRepayments,
+                totalPaidAmount: totalPaidAmount,
+                totalRemainingAmount: totalRemainingAmount,
             },
             repayments: formattedRepayments,
             loanPartnerShare: loanPartnerShareName,
