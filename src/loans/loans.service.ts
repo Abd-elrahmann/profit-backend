@@ -621,6 +621,14 @@ export class LoansService {
             where: { loanId: id },
         });
 
+        // Count paid repayments (PAID or EARLY_PAID)
+        const paidRepayments = await this.prisma.repayment.count({
+            where: { 
+                loanId: id,
+                status: { in: ['PAID', 'EARLY_PAID'] }
+            },
+        });
+
         // Fetch paginated repayments
         const Repayments = await this.prisma.repayment.findMany({
             where: { loanId: id },
@@ -715,6 +723,7 @@ export class LoansService {
                 limit,
                 page,
                 totalRepayments: totalRepayments,
+                paidRepayments: paidRepayments,
             },
             repayments: formattedRepayments,
             loanPartnerShare: loanPartnerShareName,
