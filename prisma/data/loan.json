@@ -1,0 +1,32 @@
+[
+  {
+    "id": 15,
+    "code": "LN-20251219-001",
+    "clientId": 1,
+    "kafeelId": 1,
+    "amount": 10000,
+    "interestRate": 15,
+    "interestAmount": 1500,
+    "totalAmount": 11500,
+    "paymentAmount": 1000,
+    "durationMonths": 11,
+    "type": "MONTHLY",
+    "status": "PENDING",
+    "startDate": "2025-12-19T00:00:00.000Z",
+    "endDate": null,
+    "repaymentDay": 27,
+    "createdAt": "2025-12-19T12:52:20.540Z",
+    "bankAccountId": 1,
+    "partnerId": 8,
+    "disbursementJournalId": null,
+    "settlementJournalId": null,
+    "DEBT_ACKNOWLEDGMENT": "http://localhost:3000/uploads/clients/3030109020/%D8%A5%D9%82%D8%B1%D8%A7%D8%B1%20%D8%A7%D9%84%D8%AF%D9%8A%D9%86%20-%20LN-20251219-001.pdf",
+    "PROMISSORY_NOTE": "http://localhost:3000/uploads/clients/3030109020/%D8%B3%D9%86%D8%AF%20%D9%84%D8%A3%D9%85%D8%B1%20-%20LN-20251219-001.pdf",
+    "SETTLEMENT": null,
+    "debtAcknowledgmentNumber": "ACK-15-1766148753128",
+    "promissoryNoteNumber": "NOTE-15-1766148754765",
+    "earlyPaidAmount": 0,
+    "earlyPaymentDiscount": 0,
+    "newAmount": 0
+  }
+]

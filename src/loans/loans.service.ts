@@ -1041,7 +1041,7 @@ export class LoansService {
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
         // Generate unique debt acknowledgment number
-        const debtAcknowledgmentNumber = `ACK-${loanId}-${Date.now()}`;
+        const debtAcknowledgmentNumber = `ACK-${loanId}`;
 
         // 6. Update loan with file URL and contract number
         await this.prisma.loan.update({
@@ -1096,7 +1096,7 @@ export class LoansService {
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
         // Generate unique promissory note number
-        const promissoryNoteNumber = `NOTE-${loanId}-${Date.now()}`;
+        const promissoryNoteNumber = `NOTE-${loanId}`;
 
         // Update loan with file URL and contract number
         await this.prisma.loan.update({

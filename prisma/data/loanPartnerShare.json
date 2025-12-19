@@ -1,0 +1,9 @@
+[
+  {
+    "id": 23,
+    "loanId": 15,
+    "partnerId": 8,
+    "sharePercent": 100,
+    "isActive": false
+  }
+]

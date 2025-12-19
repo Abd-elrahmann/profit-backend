@@ -1,0 +1,93 @@
+[
+  {
+    "id": 158,
+    "reference": "CAP-5",
+    "description": "إيداع رأس مال الشريك Abdelrahman Mohamed",
+    "date": "2025-12-19T02:40:32.259Z",
+    "type": "OPENING",
+    "status": "DRAFT",
+    "sourceId": 5,
+    "sourceType": "PARTNER",
+    "postedById": null,
+    "periodId": 1,
+    "createdAt": "2025-12-19T02:40:32.259Z"
+  },
+  {
+    "id": 159,
+    "reference": "CAP-6",
+    "description": "إيداع رأس مال الشريك Yousef khaled",
+    "date": "2025-12-19T02:54:30.871Z",
+    "type": "OPENING",
+    "status": "DRAFT",
+    "sourceId": 6,
+    "sourceType": "PARTNER",
+    "postedById": null,
+    "periodId": 1,
+    "createdAt": "2025-12-19T02:54:30.871Z"
+  },
+  {
+    "id": 160,
+    "reference": "CAP-7",
+    "description": "إيداع رأس مال الشريك عبد الرحمن محمد",
+    "date": "2025-12-19T03:08:11.251Z",
+    "type": "OPENING",
+    "status": "DRAFT",
+    "sourceId": 7,
+    "sourceType": "PARTNER",
+    "postedById": null,
+    "periodId": 1,
+    "createdAt": "2025-12-19T03:08:11.251Z"
+  },
+  {
+    "id": 161,
+    "reference": "CAP-8",
+    "description": "إيداع رأس مال الشريك عبد الرحمن محمد",
+    "date": "2025-12-19T03:43:46.269Z",
+    "type": "OPENING",
+    "status": "DRAFT",
+    "sourceId": 8,
+    "sourceType": "PARTNER",
+    "postedById": null,
+    "periodId": 1,
+    "createdAt": "2025-12-19T03:43:46.269Z"
+  },
+  {
+    "id": 151,
+    "reference": "DEFAULT-3-1765886386202",
+    "description": "خصم نصيب المساهم (يوسف) من خسائر التعثر",
+    "date": "2025-12-16T11:59:46.378Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 3,
+    "sourceType": "PARTNER_WITHDRAWING",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-16T11:59:46.378Z"
+  },
+  {
+    "id": 103,
+    "reference": "CAP-3",
+    "description": "إيداع رأس مال الشريك يوسف",
+    "date": "2025-12-13T17:04:56.478Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 3,
+    "sourceType": "PARTNER",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-13T17:04:56.478Z"
+  },
+  {
+    "id": 104,
+    "reference": "CAP-4",
+    "description": "إيداع رأس مال الشريك عبد الرحمن",
+    "date": "2025-12-13T17:05:40.137Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 4,
+    "sourceType": "PARTNER",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-13T17:05:40.137Z"
+  }
+]

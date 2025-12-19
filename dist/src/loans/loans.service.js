@@ -895,7 +895,7 @@ let LoansService = class LoansService {
         fs.writeFileSync(filePath, file.buffer);
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
-        const debtAcknowledgmentNumber = `ACK-${loanId}-${Date.now()}`;
+        const debtAcknowledgmentNumber = `ACK-${loanId}`;
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
@@ -933,7 +933,7 @@ let LoansService = class LoansService {
         fs.writeFileSync(filePath, file.buffer);
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
-        const promissoryNoteNumber = `NOTE-${loanId}-${Date.now()}`;
+        const promissoryNoteNumber = `NOTE-${loanId}`;
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
