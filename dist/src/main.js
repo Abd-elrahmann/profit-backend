@@ -46,11 +46,22 @@ const dotenv = __importStar(require("dotenv"));
 const bodyParser = __importStar(require("body-parser"));
 const path = __importStar(require("path"));
 const path_1 = require("path");
-const path_2 = require("path");
+const fs = __importStar(require("fs"));
+function ensureDirExists(dirPath) {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+        console.log(`Created directory: ${dirPath}`);
+    }
+}
 async function bootstrap() {
-    console.log('Static uploads path:', (0, path_1.join)(__dirname, '..', 'uploads'));
-    console.log('File absolute path:', path.join(process.cwd(), 'uploads/partners/30301090200415/3.png'));
     dotenv.config();
+    const uploadsPath = (0, path_1.resolve)('./uploads');
+    ensureDirExists(uploadsPath);
+    ensureDirExists(path.join(uploadsPath, 'partners'));
+    ensureDirExists(path.join(uploadsPath, 'clients'));
+    ensureDirExists(path.join(uploadsPath, 'profiles'));
+    ensureDirExists(path.join(uploadsPath, 'temp'));
+    ensureDirExists(path.join(uploadsPath, 'zakat'));
     const app = await core_1.NestFactory.create(app_module_1.AppModule, {});
     app.enableCors();
     app.useGlobalPipes(new common_1.ValidationPipe({
@@ -62,7 +73,7 @@ async function bootstrap() {
     app.useStaticAssets(path.join(__dirname, '..', 'public'), {
         prefix: '/api/public',
     });
-    app.useStaticAssets((0, path_2.resolve)('./uploads'), {
+    app.useStaticAssets((0, path_1.resolve)('./uploads'), {
         prefix: '/uploads',
     });
     app.setGlobalPrefix('/api');

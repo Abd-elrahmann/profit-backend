@@ -54,11 +54,11 @@ export declare class DashboardService {
         collectionPercentage: number;
         bankAccount: {
             id: number;
-            name: string;
-            debit: number;
-            credit: number;
-            balance: number;
             code: string;
+            name: string;
+            credit: number;
+            debit: number;
+            balance: number;
         } | null;
         loansBalance: number;
         total: number;
@@ -67,46 +67,51 @@ export declare class DashboardService {
             paidUntilNow: number;
             remaining: number;
         };
+        currentMonth: {
+            totalAmount: number;
+            paidUntilNow: number;
+            remaining: number;
+        };
     }>;
     getUpcomingRepayments(limit?: number): Promise<({
         loan: {
+            id: number;
             client: {
                 name: string;
             };
-            id: number;
         };
     } & {
-        id: number;
         createdAt: Date;
-        attachments: string[];
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        notes: string | null;
+        principalAmount: number;
+        interestAmount: number;
+        dueDate: Date;
+        newDueDate: Date | null;
+        count: number;
+        id: number;
+        loanId: number;
         clientId: number;
         amount: number;
-        interestAmount: number;
-        count: number;
-        loanId: number;
-        dueDate: Date;
         remaining: number;
         paidAmount: number;
-        principalAmount: number;
         paymentDate: Date | null;
+        status: import("@prisma/client").$Enums.PaymentStatus;
+        attachments: string[];
         PaymentProof: string | null;
         reviewStatus: string | null;
+        notes: string | null;
         postponeApproved: boolean | null;
         postponeReason: string | null;
-        newDueDate: Date | null;
     })[]>;
     getLastActions(limit?: number): Promise<({
         user: {
             name: string;
         };
     } & {
-        id: number;
         createdAt: Date;
+        id: number;
+        userId: number;
         screen: string;
         action: string;
         description: string | null;
-        userId: number;
     })[]>;
 }

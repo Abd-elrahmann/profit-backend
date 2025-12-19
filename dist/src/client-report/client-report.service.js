@@ -30,34 +30,39 @@ let ClientReportService = class ClientReportService {
         });
         const clientsWithLoans = allClients.filter((c) => c.loans.length > 0);
         const processedClients = clientsWithLoans.map((c) => {
-            const loans = c.loans;
-            const totalDebit = loans.reduce((sum, loan) => {
+            const allLoans = c.loans;
+            const activeLoans = allLoans.filter((l) => l.status === 'ACTIVE');
+            const loansForFinancials = filters?.status === 'ACTIVE'
+                ? activeLoans
+                : allLoans;
+            const totalDebit = loansForFinancials.reduce((sum, loan) => {
                 const debit = loan.newAmount && loan.newAmount > 0
                     ? loan.newAmount
                     : loan.totalAmount;
                 return Math.round((sum + debit) * 100) / 100;
             }, 0);
-            const totalPaid = loans.reduce((sum, loan) => {
+            const totalPaid = loansForFinancials.reduce((sum, loan) => {
                 const paid = loan.repayments.reduce((rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100, 0);
                 return Math.round((sum + paid) * 100) / 100;
             }, 0);
             const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
             return {
                 client: c,
-                loans,
+                loansForFinancials,
                 totalDebit,
                 totalPaid,
                 remaining,
             };
         });
-        const filtered = processedClients.filter((obj) => {
+        const filtered = processedClients.filter(({ client }) => {
+            const loans = client.loans;
             if (!filters?.status)
                 return true;
-            if (filters.status === 'COMPLETE') {
-                return obj.remaining <= 0;
-            }
             if (filters.status === 'ACTIVE') {
-                return obj.remaining > 0;
+                return loans.some((l) => l.status === 'ACTIVE');
+            }
+            if (filters.status === 'COMPLETE') {
+                return loans.every((l) => l.status === 'COMPLETED');
             }
             return true;
         });
@@ -65,7 +70,8 @@ let ClientReportService = class ClientReportService {
         const start = (page - 1) * limit;
         const paginated = filtered.slice(start, start + limit);
         const result = paginated.map((obj) => {
-            const { client: c, loans, totalDebit, totalPaid, remaining } = obj;
+            const { client: c, loansForFinancials, totalDebit, totalPaid, remaining } = obj;
+            const loans = c.loans;
             const loansCount = loans.length;
             const activeLoans = loans.filter((l) => l.status === 'ACTIVE').length;
             const completedLoans = loans.filter((l) => l.status === 'COMPLETED').length;

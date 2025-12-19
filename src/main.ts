@@ -13,18 +13,31 @@ import * as bodyParser from 'body-parser';
 import * as path from 'path';
 import { join } from 'path';
 import { resolve } from 'path';
+import * as fs from 'fs';
+
+function ensureDirExists(dirPath: string) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+    console.log(`Created directory: ${dirPath}`);
+  }
+}
 
 async function bootstrap() {
 
-  console.log('Static uploads path:', join(__dirname, '..', 'uploads'));
-  console.log('File absolute path:', path.join(process.cwd(), 'uploads/partners/30301090200415/3.png'));
-
   dotenv.config();
 
+  const uploadsPath = resolve('./uploads');
+
+  ensureDirExists(uploadsPath);
+
+  ensureDirExists(path.join(uploadsPath, 'partners'));
+  ensureDirExists(path.join(uploadsPath, 'clients'));
+  ensureDirExists(path.join(uploadsPath, 'profiles'));
+  ensureDirExists(path.join(uploadsPath, 'temp'));
+  ensureDirExists(path.join(uploadsPath, 'zakat'));
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
 
   app.enableCors();
-
 
   app.useGlobalPipes(
     new ValidationPipe({

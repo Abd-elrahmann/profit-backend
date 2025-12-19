@@ -263,6 +263,16 @@ export class DashboardService {
             (dueAgg._sum.principalAmount || 0) +
             (dueAgg._sum.interestAmount || 0);
 
+        const currentMonthpaid = await this.prisma.repayment.aggregate({
+            _sum: { paidAmount: true },
+            where: {
+                OR: [
+                    { newDueDate: dateFilter },
+                    { dueDate: dateFilter },
+                ],
+            },
+        });
+
         const paidAgg = await this.prisma.repayment.aggregate({
             _sum: { paidAmount: true },
             where: { paymentDate: dateFilter },
@@ -271,9 +281,13 @@ export class DashboardService {
         const totalPaid = paidAgg._sum.paidAmount || 0;
         const totalRemaining = Math.max(totalRepayment - totalPaid, 0);
 
-        const collectionPercentage = totalRepayment > 0
+        let collectionPercentage = totalRepayment > 0
             ? Math.round((totalPaid / totalRepayment) * 100)
             : 0;
+
+        if (totalPaid >= totalRepayment) {
+            collectionPercentage = 100;
+        }
 
         const bankAccount = await this.prisma.account.findUnique({
             where: { code: "11000" },
@@ -323,6 +337,11 @@ export class DashboardService {
                 totalAmount,
                 paidUntilNow,
                 remaining,
+            },
+            currentMonth: {
+                totalAmount: totalRepayment,
+                paidUntilNow: currentMonthpaid._sum.paidAmount || 0,
+                remaining: Math.max(totalRepayment - (currentMonthpaid._sum.paidAmount || 0), 0),
             },
         };
     }
