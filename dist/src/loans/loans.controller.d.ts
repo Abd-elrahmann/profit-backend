@@ -219,6 +219,9 @@ export declare class LoansController {
             limit: number;
             page: number;
             totalRepayments: number;
+            paidRepayments: number;
+            totalPaidAmount: number;
+            totalRemainingAmount: number;
         };
         repayments: {
             dueDate: string | null;
@@ -360,6 +363,9 @@ export declare class LoansController {
             limit: number;
             page: number;
             totalRepayments: number;
+            paidRepayments: number;
+            totalPaidAmount: number;
+            totalRemainingAmount: number;
         };
         repayments: {
             dueDate: string | null;

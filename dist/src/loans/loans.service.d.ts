@@ -223,6 +223,9 @@ export declare class LoansService {
             limit: number;
             page: number;
             totalRepayments: number;
+            paidRepayments: number;
+            totalPaidAmount: number;
+            totalRemainingAmount: number;
         };
         repayments: {
             dueDate: string | null;
