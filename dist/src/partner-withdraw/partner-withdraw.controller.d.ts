@@ -7,12 +7,12 @@ export declare class PartnerWithdrawController {
         withdrawal: {
             id: number;
             createdAt: Date;
-            partnerId: number;
-            WITHDRAWAL_RECEIPT: string | null;
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
+            WITHDRAWAL_RECEIPT: string | null;
+            partnerId: number;
         };
         schedule: any;
         savingsAmount: number;
@@ -46,23 +46,23 @@ export declare class PartnerWithdrawController {
         withdrawal: {
             id: number;
             createdAt: Date;
-            partnerId: number;
-            WITHDRAWAL_RECEIPT: string | null;
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
+            WITHDRAWAL_RECEIPT: string | null;
+            partnerId: number;
         };
         schedule: {
             id: number;
             createdAt: Date;
-            year: number;
-            status: string;
-            amount: number;
             partnerId: number;
             month: number;
-            remaining: number;
+            year: number;
+            amount: number;
             paidAmount: number;
+            remaining: number;
+            status: string;
             isPaid: boolean;
             carryAmount: number | null;
             carryFromId: number | null;
@@ -71,25 +71,25 @@ export declare class PartnerWithdrawController {
         journals: ({
             lines: {
                 id: number;
-                description: string | null;
-                debit: number;
                 credit: number;
+                debit: number;
                 balance: number;
-                clientId: number | null;
-                accountId: number;
+                description: string | null;
                 journalId: number;
+                accountId: number;
+                clientId: number | null;
             }[];
         } & {
             id: number;
             createdAt: Date;
-            description: string | null;
-            date: Date;
-            postedById: number | null;
-            reference: string | null;
             type: import("@prisma/client").$Enums.JournalType;
             status: import("@prisma/client").$Enums.JournalStatus;
+            reference: string | null;
+            description: string | null;
+            date: Date;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
+            postedById: number | null;
             periodId: number | null;
         })[];
     }>;
@@ -98,13 +98,13 @@ export declare class PartnerWithdrawController {
         schedule: {
             id: number;
             createdAt: Date;
-            year: number;
-            status: string;
-            amount: number;
             partnerId: number;
             month: number;
-            remaining: number;
+            year: number;
+            amount: number;
             paidAmount: number;
+            remaining: number;
+            status: string;
             isPaid: boolean;
             carryAmount: number | null;
             carryFromId: number | null;
@@ -117,13 +117,13 @@ export declare class PartnerWithdrawController {
         schedule: {
             id: number;
             createdAt: Date;
-            year: number;
-            status: string;
-            amount: number;
             partnerId: number;
             month: number;
-            remaining: number;
+            year: number;
+            amount: number;
             paidAmount: number;
+            remaining: number;
+            status: string;
             isPaid: boolean;
             carryAmount: number | null;
             carryFromId: number | null;
@@ -136,13 +136,13 @@ export declare class PartnerWithdrawController {
         schedule: {
             id: number;
             createdAt: Date;
-            year: number;
-            status: string;
-            amount: number;
             partnerId: number;
             month: number;
-            remaining: number;
+            year: number;
+            amount: number;
             paidAmount: number;
+            remaining: number;
+            status: string;
             isPaid: boolean;
             carryAmount: number | null;
             carryFromId: number | null;
@@ -169,12 +169,12 @@ export declare class PartnerWithdrawController {
             withdrawalRequest: {
                 id: number;
                 createdAt: Date;
-                partnerId: number;
-                WITHDRAWAL_RECEIPT: string | null;
                 totalCapital: number;
                 defaultShare: number;
                 remainingCapital: number;
                 savingAmount: number;
+                WITHDRAWAL_RECEIPT: string | null;
+                partnerId: number;
             };
         }[];
     }>;

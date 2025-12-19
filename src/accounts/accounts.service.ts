@@ -362,6 +362,35 @@ export class AccountsService {
             };
         }
 
+        const now = DateTime.now().setZone("Asia/Riyadh");
+
+        const currentMonthStart = now.startOf("month").toUTC().toJSDate();
+        const currentMonthEnd = now.endOf("month").endOf("day").toUTC().toJSDate();
+
+        const currentMonthRepayments = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: {
+                    gte: currentMonthStart,
+                    lte: currentMonthEnd,
+                },
+            },
+            select: {
+                amount: true,
+                paidAmount: true,
+            },
+        });
+
+        const currentMonthTotalAmount = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.amount),
+            0
+        );
+
+        const currentMonthPaidUntilNow = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.paidAmount),
+            0
+        );
+
+
         const repayments = await this.prisma.repayment.findMany({
             where: repaymentFilter,
             select: {
@@ -398,6 +427,10 @@ export class AccountsService {
             repayments: {
                 totalAmount,
                 paidUntilNow,
+            },
+            currentMonth: {
+                totalAmount: currentMonthTotalAmount,
+                paidUntilNow: currentMonthPaidUntilNow,
             },
         };
     }

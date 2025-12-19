@@ -26,10 +26,17 @@ export class ClientReportService {
         const clientsWithLoans = allClients.filter((c) => c.loans.length > 0);
 
         const processedClients = clientsWithLoans.map((c) => {
-            const loans = c.loans;
+
+            const allLoans = c.loans;
+            const activeLoans = allLoans.filter((l) => l.status === 'ACTIVE');
+
+            const loansForFinancials =
+                filters?.status === 'ACTIVE'
+                    ? activeLoans
+                    : allLoans;
 
             // SAFE total debit calculation
-            const totalDebit = loans.reduce((sum, loan) => {
+            const totalDebit = loansForFinancials.reduce((sum, loan) => {
                 const debit =
                     loan.newAmount && loan.newAmount > 0
                         ? loan.newAmount
@@ -38,7 +45,7 @@ export class ClientReportService {
             }, 0);
 
             // Total paid calculation
-            const totalPaid = loans.reduce((sum, loan) => {
+            const totalPaid = loansForFinancials.reduce((sum, loan) => {
                 const paid = loan.repayments.reduce(
                     (rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100,
                     0
@@ -50,22 +57,24 @@ export class ClientReportService {
 
             return {
                 client: c,
-                loans,
+                loansForFinancials,
                 totalDebit,
                 totalPaid,
                 remaining,
             };
         });
 
-        const filtered = processedClients.filter((obj) => {
+        const filtered = processedClients.filter(({ client }) => {
+            const loans = client.loans;
+
             if (!filters?.status) return true;
 
-            if (filters.status === 'COMPLETE') {
-                return obj.remaining <= 0;
+            if (filters.status === 'ACTIVE') {
+                return loans.some((l) => l.status === 'ACTIVE');
             }
 
-            if (filters.status === 'ACTIVE') {
-                return obj.remaining > 0;
+            if (filters.status === 'COMPLETE') {
+                return loans.every((l) => l.status === 'COMPLETED');
             }
 
             return true;
@@ -76,7 +85,9 @@ export class ClientReportService {
         const paginated = filtered.slice(start, start + limit);
 
         const result = paginated.map((obj) => {
-            const { client: c, loans, totalDebit, totalPaid, remaining } = obj;
+            const { client: c, loansForFinancials, totalDebit, totalPaid, remaining } = obj;
+            const loans = c.loans;
+
 
             const loansCount = loans.length;
             const activeLoans = loans.filter((l) => l.status === 'ACTIVE').length;
@@ -161,7 +172,6 @@ export class ClientReportService {
             data: result,
         };
     }
-
 
     async getClientDetails(clientId: number) {
         const client = await this.prisma.client.findUnique({
