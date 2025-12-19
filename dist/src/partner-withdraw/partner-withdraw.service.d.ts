@@ -7,6 +7,7 @@ export declare class PartnerWithdrawService {
     previewPartnerDefaultShare(partnerId: number): Promise<{
         partnerId: number;
         partnerName: string;
+        monthlyAmount: number;
         defaultsBase: number;
         orgProfitPercent: number;
         operationalRatio: number;
@@ -17,12 +18,13 @@ export declare class PartnerWithdrawService {
         withdrawal: {
             id: number;
             createdAt: Date;
+            partnerId: number;
+            monthlyAmount: number;
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
             WITHDRAWAL_RECEIPT: string | null;
-            partnerId: number;
         };
         schedule: any;
         savingsAmount: number;
@@ -43,12 +45,13 @@ export declare class PartnerWithdrawService {
         withdrawal: {
             id: number;
             createdAt: Date;
+            partnerId: number;
+            monthlyAmount: number;
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
             WITHDRAWAL_RECEIPT: string | null;
-            partnerId: number;
         };
         schedule: {
             id: number;
@@ -167,12 +170,13 @@ export declare class PartnerWithdrawService {
             withdrawalRequest: {
                 id: number;
                 createdAt: Date;
+                partnerId: number;
+                monthlyAmount: number;
                 totalCapital: number;
                 defaultShare: number;
                 remainingCapital: number;
                 savingAmount: number;
                 WITHDRAWAL_RECEIPT: string | null;
-                partnerId: number;
             };
         }[];
     }>;

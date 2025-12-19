@@ -280,6 +280,7 @@ export declare class PartnerService {
             createdAt: Date;
             partnerId: number;
             WITHDRAWAL_RECEIPT: string | null;
+            monthlyAmount: number;
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;

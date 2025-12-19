@@ -551,6 +551,21 @@ let LoansService = class LoansService {
         const totalRepayments = await this.prisma.repayment.count({
             where: { loanId: id },
         });
+        const paidRepayments = await this.prisma.repayment.count({
+            where: {
+                loanId: id,
+                status: { in: ['PAID', 'EARLY_PAID'] }
+            },
+        });
+        const allRepaymentsAggregation = await this.prisma.repayment.aggregate({
+            where: { loanId: id },
+            _sum: {
+                paidAmount: true,
+                remaining: true,
+            },
+        });
+        const totalPaidAmount = Number(allRepaymentsAggregation._sum.paidAmount || 0);
+        const totalRemainingAmount = Number(allRepaymentsAggregation._sum.remaining || 0);
         const Repayments = await this.prisma.repayment.findMany({
             where: { loanId: id },
             orderBy: { dueDate: 'asc' },
@@ -620,6 +635,9 @@ let LoansService = class LoansService {
                 limit,
                 page,
                 totalRepayments: totalRepayments,
+                paidRepayments: paidRepayments,
+                totalPaidAmount: totalPaidAmount,
+                totalRemainingAmount: totalRemainingAmount,
             },
             repayments: formattedRepayments,
             loanPartnerShare: loanPartnerShareName,

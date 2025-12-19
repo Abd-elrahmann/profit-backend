@@ -7,12 +7,13 @@ export declare class PartnerWithdrawController {
         withdrawal: {
             id: number;
             createdAt: Date;
+            partnerId: number;
+            monthlyAmount: number;
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
             WITHDRAWAL_RECEIPT: string | null;
-            partnerId: number;
         };
         schedule: any;
         savingsAmount: number;
@@ -22,6 +23,7 @@ export declare class PartnerWithdrawController {
     previewDefaultShare(partnerId: number): Promise<{
         partnerId: number;
         partnerName: string;
+        monthlyAmount: number;
         defaultsBase: number;
         orgProfitPercent: number;
         operationalRatio: number;
@@ -46,12 +48,13 @@ export declare class PartnerWithdrawController {
         withdrawal: {
             id: number;
             createdAt: Date;
+            partnerId: number;
+            monthlyAmount: number;
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
             WITHDRAWAL_RECEIPT: string | null;
-            partnerId: number;
         };
         schedule: {
             id: number;
@@ -169,12 +172,13 @@ export declare class PartnerWithdrawController {
             withdrawalRequest: {
                 id: number;
                 createdAt: Date;
+                partnerId: number;
+                monthlyAmount: number;
                 totalCapital: number;
                 defaultShare: number;
                 remainingCapital: number;
                 savingAmount: number;
                 WITHDRAWAL_RECEIPT: string | null;
-                partnerId: number;
             };
         }[];
     }>;
