@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "partnerId": 1,
+    "periodId": 1,
+    "totalProfit": 1600
+  },
+  {
+    "id": 2,
+    "partnerId": 2,
+    "periodId": 1,
+    "totalProfit": 2400
+  }
+]

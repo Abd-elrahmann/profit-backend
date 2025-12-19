@@ -13,12 +13,11 @@ export class ExpenseController {
   // @Permissions('expenses', 'canAdd')
   async createJournal(
     @Req() req,
-    @Body() body: { amount: number; description: string }
+    @Body() body: { expenses: { type: string; amount: number; description?: string }[] }
   ) {
     return this.expenseService.createExpenseJournal(
       req.user.id,
-      body.amount,
-      body.description
+      body.expenses
     );
   }
 
@@ -36,13 +35,12 @@ export class ExpenseController {
   async updateExpense(
     @Req() req,
     @Param('journalId', ParseIntPipe) journalId: number,
-    @Body() body: { amount: number; description: string },
+    @Body() body: { expenses: { type: string; amount: number; description?: string }[] },
   ) {
     return this.expenseService.updateExpense(
       req.user.id,
       journalId,
-      body.amount,
-      body.description,
+      body.expenses
     );
   }
 

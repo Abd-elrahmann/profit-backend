@@ -231,6 +231,25 @@ model Repayment {
 
 }
 
+model SmallLoan {
+  id          Int      @id @default(autoincrement())
+  Name        String
+  amount      Float
+  paidAmount  Float    @default(0)
+  remaining   Float
+  status      SmallLoanStatus @default(OPEN)
+  notes       String?
+  createdAt   DateTime @default(now())
+  closedAt    DateTime?
+  @@index([status])
+}
+
+enum SmallLoanStatus {
+  OPEN
+  PARTIALLY_PAID
+  PAID
+}
+
 model Notification {
   id        Int      @id @default(autoincrement())
   title     String
@@ -469,6 +488,7 @@ enum AccountBasicType {
   CASH
   EXPENSES
   LOANS_RECEIVABLE
+  SMALL_LOANS_RECEIVABLE
   PARTNER_PAYABLE
   PARTNER_EQUITY
   PARTNER_SAVING
@@ -609,6 +629,7 @@ enum JournalSourceType {
   EXPENSES
   LOSSES
   PARTNER_WITHDRAWING
+  SMALL_LOAN
   OTHER
 }
 

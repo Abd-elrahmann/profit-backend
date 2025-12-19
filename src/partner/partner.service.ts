@@ -7,6 +7,7 @@ import { JournalService } from '../journal/journal.service';
 import { JournalSourceType, JournalStatus, JournalType } from '@prisma/client';
 import { DateTime } from 'luxon';
 import * as dotenv from 'dotenv';
+import moment from "moment-hijri";
 dotenv.config();
 
 @Injectable()
@@ -356,6 +357,11 @@ export class PartnerService {
 
         if (!partner) throw new NotFoundException('Partner not found');
 
+        const toHijri = (date: Date | null) => {
+            if (!date) return null;
+            return moment(date).locale('ar-SA').format('iDD iMMMM iYYYY');
+        };
+
         // Convert to Saudi Time (local helper)
         const toSaudi = (date: Date | null) => {
             if (!date) return null;
@@ -426,6 +432,8 @@ export class PartnerService {
             totalSaving: partner.AccountSaving?.balance ?? 0,
             duration,
             withdrawalReceipt: partner.PartnerWithdrawal?.[0]?.WITHDRAWAL_RECEIPT || null,
+            HIjriCreatedAt: toHijri(partner.createdAt),
+            HIjriContractSignedAt: toHijri(partner.contractSignedAt),
         };
     }
 

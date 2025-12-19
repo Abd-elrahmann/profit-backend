@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "clientId": 1,
+    "periodId": 1,
+    "openingDebit": 0,
+    "openingCredit": 0,
+    "openingBalance": 0,
+    "closingDebit": 25000,
+    "closingCredit": 25000,
+    "closingBalance": 0,
+    "lastUpdated": "2025-12-19T14:47:57.333Z"
+  }
+]

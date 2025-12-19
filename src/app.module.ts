@@ -28,6 +28,7 @@ import { PartnersReportModule } from './partners-report/partners-report.module';
 import { CompanyModule } from './companyProfit/company.module';
 import { ExpenseModule } from './expenses/expense.module';
 import { PartnerWithdrawModule } from './partner-withdraw/partner-withdraw.module';
+import { SmallLoanModule } from './small-loan/small-loan.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { PartnerWithdrawModule } from './partner-withdraw/partner-withdraw.modul
     CompanyModule,
     ExpenseModule,
     PartnerWithdrawModule,
+    SmallLoanModule,
     
   ],
   controllers: [AppController],

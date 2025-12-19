@@ -1,6226 +1,858 @@
 [
   {
-    "id": 733,
+    "id": 1,
     "userId": 1,
-    "screen": "Journals",
+    "screen": "Clients",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-11",
-    "createdAt": "2025-12-16T13:06:22.738Z"
+    "description": "المستخدم ادمن أضاف عميل جديد: يوسف خالد",
+    "createdAt": "2025-12-19T11:29:32.174Z"
   },
   {
-    "id": 734,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251216-001 للعميل 1",
-    "createdAt": "2025-12-16T13:06:22.897Z"
-  },
-  {
-    "id": 4,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "logout",
-    "description": "المستخدم ادمن قام بتسجيل الخروج",
-    "createdAt": "2025-12-03T12:39:03.481Z"
-  },
-  {
-    "id": 7,
+    "id": 2,
     "userId": 1,
     "screen": "Journals",
     "action": "CREATE",
     "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-1",
-    "createdAt": "2025-12-07T16:36:06.741Z"
+    "createdAt": "2025-12-19T11:30:46.658Z"
+  },
+  {
+    "id": 3,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء شريك جديد: youssef برأس مال 10000",
+    "createdAt": "2025-12-19T11:30:46.664Z"
+  },
+  {
+    "id": 4,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: youssef",
+    "createdAt": "2025-12-19T11:30:55.089Z"
+  },
+  {
+    "id": 5,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-2",
+    "createdAt": "2025-12-19T11:31:18.062Z"
+  },
+  {
+    "id": 6,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء شريك جديد: abd elrahman  برأس مال 15000",
+    "createdAt": "2025-12-19T11:31:18.066Z"
+  },
+  {
+    "id": 7,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: abd elrahman ",
+    "createdAt": "2025-12-19T11:31:22.565Z"
+  },
+  {
+    "id": 8,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-1",
+    "createdAt": "2025-12-19T11:32:13.303Z"
+  },
+  {
+    "id": 9,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-2",
+    "createdAt": "2025-12-19T11:32:13.321Z"
+  },
+  {
+    "id": 10,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل يوسف خالد بمبلغ 25000",
+    "createdAt": "2025-12-19T11:33:07.073Z"
   },
   {
     "id": 11,
     "userId": 1,
     "screen": "Loans",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
-    "createdAt": "2025-12-07T16:38:21.132Z"
+    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251219-001 الخاص بالعميل يوسف خالد",
+    "createdAt": "2025-12-19T11:33:11.504Z"
   },
   {
     "id": 12,
     "userId": 1,
     "screen": "Loans",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T16:38:25.572Z"
+    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251219-001 الخاص بالعميل يوسف خالد",
+    "createdAt": "2025-12-19T11:33:13.366Z"
   },
   {
     "id": 13,
     "userId": 1,
-    "screen": "Loans",
+    "screen": "Journals",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T16:38:27.536Z"
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-1",
+    "createdAt": "2025-12-19T11:33:18.193Z"
   },
   {
     "id": 14,
     "userId": 1,
     "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T16:38:32.759Z"
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-1",
+    "createdAt": "2025-12-19T11:33:18.219Z"
   },
   {
     "id": 15,
     "userId": 1,
-    "screen": "Journals",
+    "screen": "Loans",
     "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T16:38:32.783Z"
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T11:33:18.249Z"
   },
   {
     "id": 16,
     "userId": 1,
-    "screen": "Loans",
+    "screen": "Clients",
+    "action": "CREATE",
+    "description": "المستخدم ادمن أضاف كفيل جديد للعميل: يوسف خالد",
+    "createdAt": "2025-12-19T11:35:12.840Z"
+  },
+  {
+    "id": 17,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-1",
+    "createdAt": "2025-12-19T11:35:39.824Z"
+  },
+  {
+    "id": 18,
+    "userId": 1,
+    "screen": "Repayments",
     "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T16:38:32.814Z"
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 1",
+    "createdAt": "2025-12-19T11:35:40.181Z"
+  },
+  {
+    "id": 19,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-2",
+    "createdAt": "2025-12-19T11:35:40.206Z"
   },
   {
     "id": 20,
     "userId": 1,
     "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 2",
-    "createdAt": "2025-12-07T16:39:10.940Z"
-  },
-  {
-    "id": 24,
-    "userId": 1,
-    "screen": "Journals",
     "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-2",
-    "createdAt": "2025-12-07T16:40:21.941Z"
-  },
-  {
-    "id": 25,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 3",
-    "createdAt": "2025-12-07T16:41:17.451Z"
-  },
-  {
-    "id": 34,
-    "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بعكس إغلاق الفترة opening (1)",
-    "createdAt": "2025-12-07T16:45:24.661Z"
-  },
-  {
-    "id": 40,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف التسوية للقرض رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T16:45:55.544Z"
-  },
-  {
-    "id": 41,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف التسوية للقرض رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T16:46:00.708Z"
-  },
-  {
-    "id": 44,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1765126010570",
-    "createdAt": "2025-12-07T16:46:50.582Z"
-  },
-  {
-    "id": 45,
-    "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بإغلاق الفترة opening (1)",
-    "createdAt": "2025-12-07T16:46:50.672Z"
-  },
-  {
-    "id": 47,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T17:05:39.768Z"
-  },
-  {
-    "id": 48,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EARLY-1",
-    "createdAt": "2025-12-07T17:05:39.796Z"
-  },
-  {
-    "id": 49,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-1",
-    "createdAt": "2025-12-07T17:05:39.824Z"
-  },
-  {
-    "id": 50,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-2",
-    "createdAt": "2025-12-07T17:05:39.847Z"
-  },
-  {
-    "id": 51,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-3",
-    "createdAt": "2025-12-07T17:05:39.872Z"
-  },
-  {
-    "id": 52,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-4",
-    "createdAt": "2025-12-07T17:05:39.902Z"
-  },
-  {
-    "id": 53,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:05:39.925Z"
-  },
-  {
-    "id": 57,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T17:06:03.687Z"
-  },
-  {
-    "id": 58,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:06:03.704Z"
-  },
-  {
-    "id": 62,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T17:08:38.059Z"
-  },
-  {
-    "id": 63,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:08:38.076Z"
-  },
-  {
-    "id": 64,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:08:41.646Z"
-  },
-  {
-    "id": 70,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-7",
-    "createdAt": "2025-12-07T17:09:50.524Z"
-  },
-  {
-    "id": 71,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 7",
-    "createdAt": "2025-12-07T17:09:52.669Z"
-  },
-  {
-    "id": 73,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-8",
-    "createdAt": "2025-12-07T17:09:59.232Z"
-  },
-  {
-    "id": 74,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 8",
-    "createdAt": "2025-12-07T17:10:00.931Z"
-  },
-  {
-    "id": 87,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف التسوية للقرض رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T17:11:39.748Z"
-  },
-  {
-    "id": 88,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف التسوية للقرض رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T17:11:44.933Z"
-  },
-  {
-    "id": 98,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T17:20:45.518Z"
-  },
-  {
-    "id": 100,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T17:20:51.121Z"
-  },
-  {
-    "id": 101,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T17:21:15.206Z"
-  },
-  {
-    "id": 103,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T17:21:59.214Z"
-  },
-  {
-    "id": 106,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 14",
-    "createdAt": "2025-12-07T17:22:07.145Z"
-  },
-  {
-    "id": 109,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 15",
-    "createdAt": "2025-12-07T17:22:18.447Z"
-  },
-  {
-    "id": 112,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 16",
-    "createdAt": "2025-12-07T17:22:27.204Z"
-  },
-  {
-    "id": 115,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 17",
-    "createdAt": "2025-12-07T17:22:40.850Z"
-  },
-  {
-    "id": 118,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 18",
-    "createdAt": "2025-12-07T17:22:49.739Z"
-  },
-  {
-    "id": 122,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T17:23:41.418Z"
-  },
-  {
-    "id": 124,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-17",
-    "createdAt": "2025-12-07T17:23:50.621Z"
-  },
-  {
-    "id": 126,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-07T17:23:57.808Z"
-  },
-  {
-    "id": 1,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-02T17:25:39.844Z"
-  },
-  {
-    "id": 2,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-02T17:30:27.927Z"
-  },
-  {
-    "id": 5,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-03T12:46:09.379Z"
-  },
-  {
-    "id": 8,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: youssef برأس مال 10000",
-    "createdAt": "2025-12-07T16:36:06.749Z"
-  },
-  {
-    "id": 9,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: youssef",
-    "createdAt": "2025-12-07T16:36:13.640Z"
-  },
-  {
-    "id": 17,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 1",
-    "createdAt": "2025-12-07T16:39:01.774Z"
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 2",
+    "createdAt": "2025-12-19T11:35:40.254Z"
   },
   {
     "id": 21,
     "userId": 1,
     "screen": "Journals",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-2",
-    "createdAt": "2025-12-07T16:39:11.001Z"
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-3",
+    "createdAt": "2025-12-19T11:35:40.276Z"
   },
   {
     "id": 22,
     "userId": 1,
     "screen": "Repayments",
     "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 2",
-    "createdAt": "2025-12-07T16:39:12.850Z"
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 3",
+    "createdAt": "2025-12-19T11:35:40.321Z"
+  },
+  {
+    "id": 23,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-4",
+    "createdAt": "2025-12-19T11:35:40.344Z"
+  },
+  {
+    "id": 24,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 4",
+    "createdAt": "2025-12-19T11:35:40.385Z"
+  },
+  {
+    "id": 25,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-5",
+    "createdAt": "2025-12-19T11:35:40.406Z"
   },
   {
     "id": 26,
     "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-3",
-    "createdAt": "2025-12-07T16:41:17.511Z"
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 5",
+    "createdAt": "2025-12-19T11:35:40.445Z"
   },
   {
     "id": 27,
     "userId": 1,
-    "screen": "Repayments",
+    "screen": "Journals",
     "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 3",
-    "createdAt": "2025-12-07T16:41:20.123Z"
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-1",
+    "createdAt": "2025-12-19T11:36:13.072Z"
   },
   {
     "id": 28,
     "userId": 1,
     "screen": "Journals",
     "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-3",
-    "createdAt": "2025-12-07T16:41:32.651Z"
-  },
-  {
-    "id": 35,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 4",
-    "createdAt": "2025-12-07T16:45:39.825Z"
-  },
-  {
-    "id": 39,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتسديد السلفة رقم LN-20251207-001 مبكرًا بخصم 0 على الفائدة.",
-    "createdAt": "2025-12-07T16:45:51.476Z"
-  },
-  {
-    "id": 42,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-4",
-    "createdAt": "2025-12-07T16:46:11.279Z"
-  },
-  {
-    "id": 43,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EARLY-1",
-    "createdAt": "2025-12-07T16:46:18.784Z"
-  },
-  {
-    "id": 54,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T17:05:42.939Z"
-  },
-  {
-    "id": 55,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T17:05:42.972Z"
-  },
-  {
-    "id": 56,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:05:43.012Z"
-  },
-  {
-    "id": 59,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T17:08:04.048Z"
-  },
-  {
-    "id": 60,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-1",
-    "createdAt": "2025-12-07T17:08:04.073Z"
-  },
-  {
-    "id": 61,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:08:04.109Z"
-  },
-  {
-    "id": 65,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
-    "createdAt": "2025-12-07T17:09:07.024Z"
-  },
-  {
-    "id": 66,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-2",
-    "createdAt": "2025-12-07T17:09:17.705Z"
-  },
-  {
-    "id": 67,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-2",
-    "createdAt": "2025-12-07T17:09:17.737Z"
-  },
-  {
-    "id": 68,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:09:17.763Z"
-  },
-  {
-    "id": 75,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 9",
-    "createdAt": "2025-12-07T17:10:14.616Z"
-  },
-  {
-    "id": 78,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 10",
-    "createdAt": "2025-12-07T17:10:43.170Z"
-  },
-  {
-    "id": 81,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 11",
-    "createdAt": "2025-12-07T17:10:51.618Z"
-  },
-  {
-    "id": 84,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 12",
-    "createdAt": "2025-12-07T17:11:34.847Z"
-  },
-  {
-    "id": 89,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-2",
-    "createdAt": "2025-12-07T17:20:04.450Z"
-  },
-  {
-    "id": 90,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:20:04.529Z"
-  },
-  {
-    "id": 91,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:20:08.070Z"
-  },
-  {
-    "id": 99,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T17:20:45.676Z"
-  },
-  {
-    "id": 104,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T17:21:59.269Z"
-  },
-  {
-    "id": 105,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T17:22:01.224Z"
-  },
-  {
-    "id": 107,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-07T17:22:07.201Z"
-  },
-  {
-    "id": 108,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 14",
-    "createdAt": "2025-12-07T17:22:09.788Z"
-  },
-  {
-    "id": 110,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-07T17:22:18.527Z"
-  },
-  {
-    "id": 111,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 15",
-    "createdAt": "2025-12-07T17:22:20.404Z"
-  },
-  {
-    "id": 113,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-16",
-    "createdAt": "2025-12-07T17:22:27.428Z"
-  },
-  {
-    "id": 114,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 16",
-    "createdAt": "2025-12-07T17:22:29.321Z"
-  },
-  {
-    "id": 116,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-17",
-    "createdAt": "2025-12-07T17:22:40.903Z"
-  },
-  {
-    "id": 117,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 17",
-    "createdAt": "2025-12-07T17:22:42.751Z"
-  },
-  {
-    "id": 119,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-18",
-    "createdAt": "2025-12-07T17:22:49.793Z"
-  },
-  {
-    "id": 120,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 18",
-    "createdAt": "2025-12-07T17:22:51.666Z"
-  },
-  {
-    "id": 121,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف التسوية للقرض رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T17:23:10.359Z"
-  },
-  {
-    "id": 128,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1765128256180",
-    "createdAt": "2025-12-07T17:24:16.198Z"
-  },
-  {
-    "id": 129,
-    "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بإغلاق الفترة opening (1)",
-    "createdAt": "2025-12-07T17:24:16.284Z"
-  },
-  {
-    "id": 131,
-    "userId": 1,
-    "screen": "Clients",
-    "action": "CREATE",
-    "description": "المستخدم ادمن أضاف عميل جديد: youssef khaled",
-    "createdAt": "2025-12-07T17:46:24.364Z"
-  },
-  {
-    "id": 133,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-07T18:31:14.766Z"
-  },
-  {
-    "id": 3,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-03T12:26:50.996Z"
-  },
-  {
-    "id": 6,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-06T18:24:26.781Z"
-  },
-  {
-    "id": 10,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-1",
-    "createdAt": "2025-12-07T16:36:46.752Z"
-  },
-  {
-    "id": 18,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-1",
-    "createdAt": "2025-12-07T16:39:01.926Z"
-  },
-  {
-    "id": 19,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 1",
-    "createdAt": "2025-12-07T16:39:03.442Z"
-  },
-  {
-    "id": 23,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-1",
-    "createdAt": "2025-12-07T16:40:14.711Z"
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-2",
+    "createdAt": "2025-12-19T11:36:13.097Z"
   },
   {
     "id": 29,
     "userId": 1,
     "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1765125808271",
-    "createdAt": "2025-12-07T16:43:28.311Z"
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-3",
+    "createdAt": "2025-12-19T11:36:13.117Z"
   },
   {
     "id": 30,
     "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بإغلاق الفترة opening (1)",
-    "createdAt": "2025-12-07T16:43:28.420Z"
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-4",
+    "createdAt": "2025-12-19T11:36:13.137Z"
   },
   {
     "id": 31,
     "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بعكس إغلاق الفترة opening (1)",
-    "createdAt": "2025-12-07T16:43:48.370Z"
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-5",
+    "createdAt": "2025-12-19T11:36:13.156Z"
   },
   {
     "id": 32,
     "userId": 1,
-    "screen": "Journals",
+    "screen": "Loans",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1765125832283",
-    "createdAt": "2025-12-07T16:43:52.295Z"
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل يوسف خالد بمبلغ 10000",
+    "createdAt": "2025-12-19T11:39:40.672Z"
   },
   {
     "id": 33,
     "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بإغلاق الفترة opening (1)",
-    "createdAt": "2025-12-07T16:43:52.372Z"
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251219-001 الخاص بالعميل يوسف خالد",
+    "createdAt": "2025-12-19T11:39:45.372Z"
+  },
+  {
+    "id": 34,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251219-001 الخاص بالعميل يوسف خالد",
+    "createdAt": "2025-12-19T11:39:47.365Z"
+  },
+  {
+    "id": 35,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T11:39:54.280Z"
   },
   {
     "id": 36,
     "userId": 1,
     "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-4",
-    "createdAt": "2025-12-07T16:45:40.112Z"
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T11:39:54.303Z"
   },
   {
     "id": 37,
     "userId": 1,
-    "screen": "Repayments",
+    "screen": "Loans",
     "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 4",
-    "createdAt": "2025-12-07T16:45:42.190Z"
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T11:39:54.332Z"
   },
   {
     "id": 38,
     "userId": 1,
     "screen": "Journals",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EARLY-1",
-    "createdAt": "2025-12-07T16:45:51.461Z"
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T11:47:24.313Z"
+  },
+  {
+    "id": 39,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T11:47:24.343Z"
+  },
+  {
+    "id": 40,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T11:47:44.278Z"
+  },
+  {
+    "id": 41,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T11:47:44.307Z"
+  },
+  {
+    "id": 42,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T11:47:44.323Z"
+  },
+  {
+    "id": 43,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T11:55:56.964Z"
+  },
+  {
+    "id": 44,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-1",
+    "createdAt": "2025-12-19T11:55:56.994Z"
+  },
+  {
+    "id": 45,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-2",
+    "createdAt": "2025-12-19T11:55:57.018Z"
   },
   {
     "id": 46,
     "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بعكس إغلاق الفترة opening (1)",
-    "createdAt": "2025-12-07T17:05:01.117Z"
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-3",
+    "createdAt": "2025-12-19T11:55:57.049Z"
+  },
+  {
+    "id": 47,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-4",
+    "createdAt": "2025-12-19T11:55:57.083Z"
+  },
+  {
+    "id": 48,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-5",
+    "createdAt": "2025-12-19T11:55:57.119Z"
+  },
+  {
+    "id": 49,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T11:55:57.153Z"
+  },
+  {
+    "id": 50,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T12:07:22.332Z"
+  },
+  {
+    "id": 51,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T12:07:22.358Z"
+  },
+  {
+    "id": 52,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T12:07:22.374Z"
+  },
+  {
+    "id": 53,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-2",
+    "createdAt": "2025-12-19T12:07:26.568Z"
+  },
+  {
+    "id": 54,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T12:07:26.590Z"
+  },
+  {
+    "id": 55,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T12:07:29.529Z"
+  },
+  {
+    "id": 56,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 1",
+    "createdAt": "2025-12-19T12:17:02.815Z"
+  },
+  {
+    "id": 57,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 2",
+    "createdAt": "2025-12-19T12:17:02.862Z"
+  },
+  {
+    "id": 58,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 3",
+    "createdAt": "2025-12-19T12:17:02.902Z"
+  },
+  {
+    "id": 59,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 4",
+    "createdAt": "2025-12-19T12:17:02.944Z"
+  },
+  {
+    "id": 60,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 5",
+    "createdAt": "2025-12-19T12:17:02.980Z"
+  },
+  {
+    "id": 61,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-1",
+    "createdAt": "2025-12-19T12:17:07.649Z"
+  },
+  {
+    "id": 62,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 1",
+    "createdAt": "2025-12-19T12:17:07.731Z"
+  },
+  {
+    "id": 63,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-2",
+    "createdAt": "2025-12-19T12:17:07.753Z"
+  },
+  {
+    "id": 64,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 2",
+    "createdAt": "2025-12-19T12:17:07.797Z"
+  },
+  {
+    "id": 65,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-3",
+    "createdAt": "2025-12-19T12:17:07.815Z"
+  },
+  {
+    "id": 66,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 3",
+    "createdAt": "2025-12-19T12:17:07.853Z"
+  },
+  {
+    "id": 67,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-4",
+    "createdAt": "2025-12-19T12:17:07.870Z"
+  },
+  {
+    "id": 68,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 4",
+    "createdAt": "2025-12-19T12:17:07.903Z"
   },
   {
     "id": 69,
     "userId": 1,
-    "screen": "Repayments",
+    "screen": "Journals",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 7",
-    "createdAt": "2025-12-07T17:09:50.267Z"
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-5",
+    "createdAt": "2025-12-19T12:17:07.919Z"
+  },
+  {
+    "id": 70,
+    "userId": 1,
+    "screen": "Repayments",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 5",
+    "createdAt": "2025-12-19T12:17:07.964Z"
+  },
+  {
+    "id": 71,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-1",
+    "createdAt": "2025-12-19T12:17:22.033Z"
   },
   {
     "id": 72,
     "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 8",
-    "createdAt": "2025-12-07T17:09:59.134Z"
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-2",
+    "createdAt": "2025-12-19T12:17:22.056Z"
+  },
+  {
+    "id": 73,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-3",
+    "createdAt": "2025-12-19T12:17:22.080Z"
+  },
+  {
+    "id": 74,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-4",
+    "createdAt": "2025-12-19T12:17:22.100Z"
+  },
+  {
+    "id": 75,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-5",
+    "createdAt": "2025-12-19T12:17:22.119Z"
   },
   {
     "id": 76,
     "userId": 1,
-    "screen": "Journals",
+    "screen": "Loans",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-9",
-    "createdAt": "2025-12-07T17:10:14.684Z"
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل يوسف خالد بمبلغ 10000",
+    "createdAt": "2025-12-19T12:18:30.460Z"
   },
   {
     "id": 77,
     "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 9",
-    "createdAt": "2025-12-07T17:10:16.556Z"
-  },
-  {
-    "id": 79,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-10",
-    "createdAt": "2025-12-07T17:10:43.226Z"
-  },
-  {
-    "id": 80,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 10",
-    "createdAt": "2025-12-07T17:10:46.208Z"
-  },
-  {
-    "id": 82,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-11",
-    "createdAt": "2025-12-07T17:10:51.677Z"
-  },
-  {
-    "id": 83,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 11",
-    "createdAt": "2025-12-07T17:10:53.404Z"
-  },
-  {
-    "id": 85,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-12",
-    "createdAt": "2025-12-07T17:11:34.919Z"
-  },
-  {
-    "id": 86,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 12",
-    "createdAt": "2025-12-07T17:11:36.046Z"
-  },
-  {
-    "id": 92,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
-    "createdAt": "2025-12-07T17:20:24.542Z"
-  },
-  {
-    "id": 93,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T17:20:28.833Z"
-  },
-  {
-    "id": 94,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251207-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-07T17:20:30.924Z"
-  },
-  {
-    "id": 95,
-    "userId": 1,
     "screen": "Journals",
     "action": "CREATE",
     "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-3",
-    "createdAt": "2025-12-07T17:20:36.376Z"
+    "createdAt": "2025-12-19T12:18:39.468Z"
   },
   {
-    "id": 96,
+    "id": 78,
     "userId": 1,
     "screen": "Journals",
     "action": "POST",
     "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-3",
-    "createdAt": "2025-12-07T17:20:36.399Z"
+    "createdAt": "2025-12-19T12:18:39.494Z"
+  },
+  {
+    "id": 79,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T12:18:39.523Z"
+  },
+  {
+    "id": 80,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-3",
+    "createdAt": "2025-12-19T12:18:47.954Z"
+  },
+  {
+    "id": 81,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T12:18:47.981Z"
+  },
+  {
+    "id": 82,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T12:18:51.190Z"
+  },
+  {
+    "id": 83,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-3",
+    "createdAt": "2025-12-19T14:09:43.036Z"
+  },
+  {
+    "id": 84,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء شريك جديد: sjidjsi برأس مال 20000",
+    "createdAt": "2025-12-19T14:09:43.045Z"
+  },
+  {
+    "id": 85,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: sjidjsi",
+    "createdAt": "2025-12-19T14:09:50.606Z"
+  },
+  {
+    "id": 86,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف الشريك: sjidjsi",
+    "createdAt": "2025-12-19T14:27:00.378Z"
+  },
+  {
+    "id": 87,
+    "userId": 1,
+    "screen": "Roles",
+    "action": "UPDATE",
+    "description": "المستخدم ادمن حدث الدور Admin",
+    "createdAt": "2025-12-19T14:29:41.110Z"
+  },
+  {
+    "id": 88,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CLOSE-PERIOD-1-1766155677121",
+    "createdAt": "2025-12-19T14:47:57.173Z"
+  },
+  {
+    "id": 89,
+    "userId": 1,
+    "screen": "Period",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بإغلاق الفترة opening (1)",
+    "createdAt": "2025-12-19T14:47:57.342Z"
+  },
+  {
+    "id": 90,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CLOSE-PERIOD-1-1766155677121",
+    "createdAt": "2025-12-19T14:50:13.663Z"
+  },
+  {
+    "id": 91,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-1-1",
+    "createdAt": "2025-12-19T14:50:13.711Z"
+  },
+  {
+    "id": 92,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-1-1",
+    "createdAt": "2025-12-19T14:50:13.731Z"
+  },
+  {
+    "id": 93,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVE-2-1",
+    "createdAt": "2025-12-19T14:50:13.748Z"
+  },
+  {
+    "id": 94,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SAVE-2-1",
+    "createdAt": "2025-12-19T14:50:13.773Z"
+  },
+  {
+    "id": 95,
+    "userId": 1,
+    "screen": "Distribution",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتوزيع ارباح الفترة opening بنجاح.",
+    "createdAt": "2025-12-19T14:50:13.785Z"
+  },
+  {
+    "id": 96,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف التسوية للقرض رقم LN-20251219-001 الخاص بالعميل يوسف خالد",
+    "createdAt": "2025-12-19T16:25:19.134Z"
   },
   {
     "id": 97,
     "userId": 1,
     "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-07T17:20:36.434Z"
-  },
-  {
-    "id": 102,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T17:21:41.542Z"
-  },
-  {
-    "id": 123,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-18",
-    "createdAt": "2025-12-07T17:23:47.355Z"
-  },
-  {
-    "id": 125,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-16",
-    "createdAt": "2025-12-07T17:23:54.056Z"
-  },
-  {
-    "id": 127,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-07T17:24:01.739Z"
-  },
-  {
-    "id": 130,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-07T17:45:10.809Z"
-  },
-  {
-    "id": 132,
-    "userId": 1,
-    "screen": "Clients",
-    "action": "DELETE",
-    "description": "المستخدم ادمن حذف العميل: youssef khaled",
-    "createdAt": "2025-12-07T17:47:24.308Z"
-  },
-  {
-    "id": 134,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-07T18:31:14.803Z"
-  },
-  {
-    "id": 135,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T18:31:14.825Z"
-  },
-  {
-    "id": 136,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-07T18:31:38.393Z"
-  },
-  {
-    "id": 137,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-07T18:31:38.412Z"
-  },
-  {
-    "id": 138,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T18:31:38.430Z"
-  },
-  {
-    "id": 139,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T18:40:27.330Z"
-  },
-  {
-    "id": 140,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 14",
-    "createdAt": "2025-12-07T18:40:35.066Z"
-  },
-  {
-    "id": 141,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 15",
-    "createdAt": "2025-12-07T18:40:41.462Z"
-  },
-  {
-    "id": 142,
-    "userId": 1,
-    "screen": "Journals",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T18:44:46.821Z"
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل يوسف خالد بمبلغ 10000",
+    "createdAt": "2025-12-19T16:36:10.385Z"
   },
   {
-    "id": 143,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T18:44:49.044Z"
-  },
-  {
-    "id": 144,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T18:45:24.480Z"
-  },
-  {
-    "id": 145,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 14",
-    "createdAt": "2025-12-07T18:45:24.854Z"
-  },
-  {
-    "id": 146,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 15",
-    "createdAt": "2025-12-07T18:45:25.502Z"
-  },
-  {
-    "id": 147,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T18:46:02.438Z"
-  },
-  {
-    "id": 148,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T18:46:04.330Z"
-  },
-  {
-    "id": 149,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-07T18:46:04.360Z"
-  },
-  {
-    "id": 150,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 14",
-    "createdAt": "2025-12-07T18:46:08.750Z"
-  },
-  {
-    "id": 151,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-07T18:46:08.773Z"
-  },
-  {
-    "id": 152,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 15",
-    "createdAt": "2025-12-07T18:46:09.150Z"
-  },
-  {
-    "id": 153,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T18:48:12.207Z"
-  },
-  {
-    "id": 154,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 14",
-    "createdAt": "2025-12-07T18:48:18.049Z"
-  },
-  {
-    "id": 155,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 15",
-    "createdAt": "2025-12-07T18:48:18.483Z"
-  },
-  {
-    "id": 156,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-07T18:49:29.228Z"
-  },
-  {
-    "id": 157,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 13",
-    "createdAt": "2025-12-07T18:49:32.084Z"
-  },
-  {
-    "id": 158,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-07T18:49:32.107Z"
-  },
-  {
-    "id": 159,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 14",
-    "createdAt": "2025-12-07T18:49:32.444Z"
-  },
-  {
-    "id": 160,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-07T18:49:32.468Z"
-  },
-  {
-    "id": 161,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 15",
-    "createdAt": "2025-12-07T18:49:32.819Z"
-  },
-  {
-    "id": 162,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1765136508825",
-    "createdAt": "2025-12-07T19:41:48.928Z"
-  },
-  {
-    "id": 163,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1765136508825",
-    "createdAt": "2025-12-07T19:41:48.968Z"
-  },
-  {
-    "id": 164,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1765136508825",
-    "createdAt": "2025-12-07T19:42:27.011Z"
-  },
-  {
-    "id": 165,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي EXP-1765136508825",
-    "createdAt": "2025-12-07T19:46:07.494Z"
-  },
-  {
-    "id": 166,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1765136789586",
-    "createdAt": "2025-12-07T19:46:29.631Z"
-  },
-  {
-    "id": 167,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1765136789586",
-    "createdAt": "2025-12-07T19:46:29.672Z"
-  },
-  {
-    "id": 168,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-2",
-    "createdAt": "2025-12-08T14:30:25.420Z"
-  },
-  {
-    "id": 169,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: youssef برأس مال 15000",
-    "createdAt": "2025-12-08T14:30:25.455Z"
-  },
-  {
-    "id": 170,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-09T14:18:47.324Z"
-  },
-  {
-    "id": 171,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-09T14:18:47.362Z"
-  },
-  {
-    "id": 172,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-09T14:18:47.382Z"
-  },
-  {
-    "id": 173,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-09T14:19:07.919Z"
-  },
-  {
-    "id": 174,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-09T14:19:07.945Z"
-  },
-  {
-    "id": 175,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-09T14:19:07.965Z"
-  },
-  {
-    "id": 176,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1765136789586",
-    "createdAt": "2025-12-09T14:20:05.532Z"
-  },
-  {
-    "id": 177,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
-    "createdAt": "2025-12-09T14:29:37.886Z"
-  },
-  {
-    "id": 178,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251209-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-09T14:29:44.543Z"
-  },
-  {
-    "id": 179,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251209-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-09T14:29:46.510Z"
-  },
-  {
-    "id": 180,
+    "id": 98,
     "userId": 1,
     "screen": "Journals",
     "action": "CREATE",
     "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-4",
-    "createdAt": "2025-12-09T14:29:52.177Z"
+    "createdAt": "2025-12-19T16:36:38.219Z"
   },
   {
-    "id": 181,
+    "id": 99,
     "userId": 1,
     "screen": "Journals",
     "action": "POST",
     "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-4",
-    "createdAt": "2025-12-09T14:29:52.208Z"
+    "createdAt": "2025-12-19T16:36:38.256Z"
   },
   {
-    "id": 182,
+    "id": 100,
     "userId": 1,
     "screen": "Loans",
     "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251209-001 للعميل 1",
-    "createdAt": "2025-12-09T14:29:52.229Z"
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T16:36:38.285Z"
   },
   {
-    "id": 183,
+    "id": 101,
     "userId": 1,
     "screen": "Journals",
     "action": "CREATE",
     "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-4",
-    "createdAt": "2025-12-10T12:15:20.746Z"
+    "createdAt": "2025-12-19T16:39:49.236Z"
   },
   {
-    "id": 184,
+    "id": 102,
     "userId": 1,
     "screen": "Loans",
     "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251209-001 للعميل 1",
-    "createdAt": "2025-12-10T12:15:20.789Z"
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T16:39:49.265Z"
   },
   {
-    "id": 185,
+    "id": 103,
     "userId": 1,
     "screen": "Loans",
     "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251209-001 للعميل 1",
-    "createdAt": "2025-12-10T12:16:31.418Z"
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T16:39:53.061Z"
   },
   {
-    "id": 186,
+    "id": 104,
     "userId": 1,
     "screen": "Loans",
     "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 9000",
-    "createdAt": "2025-12-10T12:17:29.922Z"
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل يوسف خالد بمبلغ 10000",
+    "createdAt": "2025-12-19T16:40:18.974Z"
   },
   {
-    "id": 187,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251210-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-10T12:17:34.021Z"
-  },
-  {
-    "id": 188,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251210-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-10T12:17:35.907Z"
-  },
-  {
-    "id": 189,
+    "id": 105,
     "userId": 1,
     "screen": "Journals",
     "action": "CREATE",
     "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-5",
-    "createdAt": "2025-12-10T12:17:43.281Z"
+    "createdAt": "2025-12-19T16:46:34.250Z"
   },
   {
-    "id": 190,
+    "id": 106,
     "userId": 1,
     "screen": "Journals",
     "action": "POST",
     "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-5",
-    "createdAt": "2025-12-10T12:17:43.316Z"
+    "createdAt": "2025-12-19T16:46:34.284Z"
   },
   {
-    "id": 191,
+    "id": 107,
     "userId": 1,
     "screen": "Loans",
     "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:17:43.401Z"
-  },
-  {
-    "id": 192,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-5",
-    "createdAt": "2025-12-10T12:18:20.975Z"
-  },
-  {
-    "id": 193,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:18:20.991Z"
-  },
-  {
-    "id": 194,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:25:19.657Z"
-  },
-  {
-    "id": 195,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 9000",
-    "createdAt": "2025-12-10T12:25:39.004Z"
-  },
-  {
-    "id": 196,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251210-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-10T12:25:43.407Z"
-  },
-  {
-    "id": 197,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251210-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-10T12:25:45.406Z"
-  },
-  {
-    "id": 198,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-6",
-    "createdAt": "2025-12-10T12:25:51.959Z"
-  },
-  {
-    "id": 199,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-6",
-    "createdAt": "2025-12-10T12:25:51.987Z"
-  },
-  {
-    "id": 200,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:25:52.024Z"
-  },
-  {
-    "id": 201,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-6",
-    "createdAt": "2025-12-10T12:35:50.624Z"
-  },
-  {
-    "id": 202,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:35:50.660Z"
-  },
-  {
-    "id": 203,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:35:53.608Z"
-  },
-  {
-    "id": 204,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 9000",
-    "createdAt": "2025-12-10T12:36:19.265Z"
-  },
-  {
-    "id": 205,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251210-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-10T12:36:23.861Z"
-  },
-  {
-    "id": 206,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251210-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-10T12:36:25.758Z"
-  },
-  {
-    "id": 207,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:36:30.816Z"
-  },
-  {
-    "id": 208,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:36:30.844Z"
-  },
-  {
-    "id": 209,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:36:30.877Z"
-  },
-  {
-    "id": 210,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:40:28.299Z"
-  },
-  {
-    "id": 211,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:40:28.314Z"
-  },
-  {
-    "id": 212,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:40:36.582Z"
-  },
-  {
-    "id": 213,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:40:36.605Z"
-  },
-  {
-    "id": 214,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:40:36.639Z"
-  },
-  {
-    "id": 215,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:40:48.893Z"
-  },
-  {
-    "id": 216,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:40:48.912Z"
-  },
-  {
-    "id": 217,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:52:36.673Z"
-  },
-  {
-    "id": 218,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:53:22.485Z"
-  },
-  {
-    "id": 219,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T12:53:22.513Z"
-  },
-  {
-    "id": 220,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T12:53:22.555Z"
-  },
-  {
-    "id": 221,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-7",
-    "createdAt": "2025-12-10T13:12:49.043Z"
-  },
-  {
-    "id": 222,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T13:12:49.087Z"
-  },
-  {
-    "id": 223,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T13:12:53.338Z"
-  },
-  {
-    "id": 224,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 9000",
-    "createdAt": "2025-12-10T13:13:12.579Z"
-  },
-  {
-    "id": 225,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-8",
-    "createdAt": "2025-12-10T13:13:18.723Z"
-  },
-  {
-    "id": 226,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-8",
-    "createdAt": "2025-12-10T13:13:18.756Z"
-  },
-  {
-    "id": 227,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T13:13:18.802Z"
-  },
-  {
-    "id": 228,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 68",
-    "createdAt": "2025-12-10T13:13:36.744Z"
-  },
-  {
-    "id": 229,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-68",
-    "createdAt": "2025-12-10T13:13:36.887Z"
-  },
-  {
-    "id": 230,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 68",
-    "createdAt": "2025-12-10T13:13:37.662Z"
-  },
-  {
-    "id": 231,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-68",
-    "createdAt": "2025-12-10T13:13:45.258Z"
-  },
-  {
-    "id": 232,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف التسوية للقرض رقم LN-20251210-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-10T13:30:51.541Z"
-  },
-  {
-    "id": 233,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-8",
-    "createdAt": "2025-12-10T13:32:18.407Z"
-  },
-  {
-    "id": 234,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-68",
-    "createdAt": "2025-12-10T13:32:18.438Z"
-  },
-  {
-    "id": 235,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T13:32:18.466Z"
-  },
-  {
-    "id": 236,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T13:32:21.352Z"
-  },
-  {
-    "id": 237,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 9000",
-    "createdAt": "2025-12-10T13:45:31.198Z"
-  },
-  {
-    "id": 238,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T13:46:28.454Z"
-  },
-  {
-    "id": 239,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-9",
-    "createdAt": "2025-12-10T13:46:47.036Z"
-  },
-  {
-    "id": 240,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-9",
-    "createdAt": "2025-12-10T13:46:47.069Z"
-  },
-  {
-    "id": 241,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-10T13:46:47.125Z"
-  },
-  {
-    "id": 242,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-2",
-    "createdAt": "2025-12-11T13:28:40.674Z"
-  },
-  {
-    "id": 243,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-2-1765460025176",
-    "createdAt": "2025-12-11T13:33:45.379Z"
-  },
-  {
-    "id": 244,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVING-2-1765460025391",
-    "createdAt": "2025-12-11T13:33:45.399Z"
-  },
-  {
-    "id": 245,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي DEFAULT-2-1765460025176",
-    "createdAt": "2025-12-11T13:36:37.901Z"
-  },
-  {
-    "id": 246,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVING-2-1765460025391",
-    "createdAt": "2025-12-11T13:36:41.593Z"
-  },
-  {
-    "id": 247,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-2-1765460210442",
-    "createdAt": "2025-12-11T13:36:50.473Z"
-  },
-  {
-    "id": 248,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVING-2-1765460210465",
-    "createdAt": "2025-12-11T13:36:50.484Z"
-  },
-  {
-    "id": 249,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي DEFAULT-2-1765460210442",
-    "createdAt": "2025-12-11T13:39:45.856Z"
-  },
-  {
-    "id": 250,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVING-2-1765460210465",
-    "createdAt": "2025-12-11T13:39:49.482Z"
-  },
-  {
-    "id": 251,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-2-1765460395416",
-    "createdAt": "2025-12-11T13:39:55.435Z"
-  },
-  {
-    "id": 252,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVING-2-1765460395437",
-    "createdAt": "2025-12-11T13:39:55.446Z"
-  },
-  {
-    "id": 253,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVING-2-1765460395437",
-    "createdAt": "2025-12-11T13:41:27.236Z"
-  },
-  {
-    "id": 254,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي DEFAULT-2-1765460395416",
-    "createdAt": "2025-12-11T13:41:31.016Z"
-  },
-  {
-    "id": 255,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-2-1765460497036",
-    "createdAt": "2025-12-11T13:41:37.061Z"
-  },
-  {
-    "id": 256,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVING-2-1765460497056",
-    "createdAt": "2025-12-11T13:41:37.075Z"
-  },
-  {
-    "id": 257,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي DEFAULT-2-1765460497036",
-    "createdAt": "2025-12-11T13:44:15.684Z"
-  },
-  {
-    "id": 258,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVING-2-1765460497056",
-    "createdAt": "2025-12-11T13:44:18.477Z"
-  },
-  {
-    "id": 259,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-2-1765460663508",
-    "createdAt": "2025-12-11T13:44:23.523Z"
-  },
-  {
-    "id": 260,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVING-2-1765460663525",
-    "createdAt": "2025-12-11T13:44:23.533Z"
-  },
-  {
-    "id": 261,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي WITHDRAW-SCH-1-1765466675993",
-    "createdAt": "2025-12-11T15:24:36.131Z"
-  },
-  {
-    "id": 262,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي WITHDRAW-SCH-1-1765466675993",
-    "createdAt": "2025-12-11T15:26:13.716Z"
-  },
-  {
-    "id": 263,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي DEFAULT-2-1765460663508",
-    "createdAt": "2025-12-12T12:00:47.875Z"
-  },
-  {
-    "id": 264,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVING-2-1765460663525",
-    "createdAt": "2025-12-12T12:00:51.664Z"
-  },
-  {
-    "id": 265,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SAVING-2-1765540976134",
-    "createdAt": "2025-12-12T12:02:56.171Z"
-  },
-  {
-    "id": 266,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتعديل قيد يومية برقم مرجعي SAVING-2-1765540976134",
-    "createdAt": "2025-12-12T12:10:40.655Z"
-  },
-  {
-    "id": 267,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765541752818",
-    "createdAt": "2025-12-12T12:15:52.908Z"
-  },
-  {
-    "id": 268,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T12:15:52.917Z"
-  },
-  {
-    "id": 269,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765541752818",
-    "createdAt": "2025-12-12T12:16:10.849Z"
-  },
-  {
-    "id": 270,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765541752818",
-    "createdAt": "2025-12-12T12:16:22.115Z"
-  },
-  {
-    "id": 271,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T12:19:40.894Z"
-  },
-  {
-    "id": 272,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765542161639",
-    "createdAt": "2025-12-12T12:22:41.667Z"
-  },
-  {
-    "id": 273,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765542161639",
-    "createdAt": "2025-12-12T12:22:41.691Z"
-  },
-  {
-    "id": 274,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T12:22:41.695Z"
-  },
-  {
-    "id": 275,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765542161639",
-    "createdAt": "2025-12-12T12:22:57.825Z"
-  },
-  {
-    "id": 276,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T12:22:57.834Z"
-  },
-  {
-    "id": 277,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765547923104",
-    "createdAt": "2025-12-12T13:58:43.208Z"
-  },
-  {
-    "id": 278,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765547923104",
-    "createdAt": "2025-12-12T13:58:43.248Z"
-  },
-  {
-    "id": 279,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765547923236",
-    "createdAt": "2025-12-12T13:58:43.257Z"
-  },
-  {
-    "id": 280,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765547923236",
-    "createdAt": "2025-12-12T13:58:43.272Z"
-  },
-  {
-    "id": 281,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T13:58:43.277Z"
-  },
-  {
-    "id": 282,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765547923236",
-    "createdAt": "2025-12-12T13:59:39.673Z"
-  },
-  {
-    "id": 283,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765547923104",
-    "createdAt": "2025-12-12T13:59:39.696Z"
-  },
-  {
-    "id": 284,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T13:59:39.704Z"
-  },
-  {
-    "id": 285,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548012576",
-    "createdAt": "2025-12-12T14:00:12.598Z"
-  },
-  {
-    "id": 286,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548012576",
-    "createdAt": "2025-12-12T14:00:12.614Z"
-  },
-  {
-    "id": 287,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548012603",
-    "createdAt": "2025-12-12T14:00:12.623Z"
-  },
-  {
-    "id": 288,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548012603",
-    "createdAt": "2025-12-12T14:00:12.643Z"
-  },
-  {
-    "id": 424,
-    "userId": 1,
-    "screen": "Roles",
-    "action": "UPDATE",
-    "description": "المستخدم ادمن حدث الدور Admin",
-    "createdAt": "2025-12-13T12:37:08.369Z"
-  },
-  {
-    "id": 290,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548012603",
-    "createdAt": "2025-12-12T14:01:04.796Z"
-  },
-  {
-    "id": 291,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548012576",
-    "createdAt": "2025-12-12T14:01:04.814Z"
-  },
-  {
-    "id": 289,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:00:12.654Z"
-  },
-  {
-    "id": 292,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:01:04.821Z"
-  },
-  {
-    "id": 293,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548206161",
-    "createdAt": "2025-12-12T14:03:26.244Z"
-  },
-  {
-    "id": 294,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548206161",
-    "createdAt": "2025-12-12T14:03:26.260Z"
-  },
-  {
-    "id": 295,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548206260",
-    "createdAt": "2025-12-12T14:03:26.267Z"
-  },
-  {
-    "id": 296,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548206260",
-    "createdAt": "2025-12-12T14:03:26.282Z"
-  },
-  {
-    "id": 297,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:03:26.285Z"
-  },
-  {
-    "id": 298,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548206260",
-    "createdAt": "2025-12-12T14:03:42.001Z"
-  },
-  {
-    "id": 299,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548206161",
-    "createdAt": "2025-12-12T14:03:42.017Z"
-  },
-  {
-    "id": 300,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:03:42.023Z"
-  },
-  {
-    "id": 301,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548240150",
-    "createdAt": "2025-12-12T14:04:00.159Z"
-  },
-  {
-    "id": 302,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548240150",
-    "createdAt": "2025-12-12T14:04:00.172Z"
-  },
-  {
-    "id": 303,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548240173",
-    "createdAt": "2025-12-12T14:04:00.180Z"
-  },
-  {
-    "id": 304,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548240173",
-    "createdAt": "2025-12-12T14:04:00.194Z"
-  },
-  {
-    "id": 305,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:04:00.196Z"
-  },
-  {
-    "id": 306,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548240173",
-    "createdAt": "2025-12-12T14:04:03.295Z"
-  },
-  {
-    "id": 307,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548240150",
-    "createdAt": "2025-12-12T14:04:03.312Z"
-  },
-  {
-    "id": 308,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:04:03.317Z"
-  },
-  {
-    "id": 309,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548265203",
-    "createdAt": "2025-12-12T14:04:25.211Z"
-  },
-  {
-    "id": 310,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548265203",
-    "createdAt": "2025-12-12T14:04:25.229Z"
-  },
-  {
-    "id": 311,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548265229",
-    "createdAt": "2025-12-12T14:04:25.239Z"
-  },
-  {
-    "id": 312,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548265229",
-    "createdAt": "2025-12-12T14:04:25.255Z"
-  },
-  {
-    "id": 313,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:04:25.257Z"
-  },
-  {
-    "id": 314,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548265229",
-    "createdAt": "2025-12-12T14:04:33.029Z"
-  },
-  {
-    "id": 315,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548265203",
-    "createdAt": "2025-12-12T14:04:33.049Z"
-  },
-  {
-    "id": 316,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:04:33.057Z"
-  },
-  {
-    "id": 317,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548343356",
-    "createdAt": "2025-12-12T14:05:43.565Z"
-  },
-  {
-    "id": 318,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548343356",
-    "createdAt": "2025-12-12T14:05:43.587Z"
-  },
-  {
-    "id": 319,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548343585",
-    "createdAt": "2025-12-12T14:05:43.596Z"
-  },
-  {
-    "id": 320,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548343585",
-    "createdAt": "2025-12-12T14:05:43.613Z"
-  },
-  {
-    "id": 321,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:05:43.616Z"
-  },
-  {
-    "id": 322,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548343585",
-    "createdAt": "2025-12-12T14:05:54.959Z"
-  },
-  {
-    "id": 323,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548343356",
-    "createdAt": "2025-12-12T14:05:54.983Z"
-  },
-  {
-    "id": 324,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:05:54.989Z"
-  },
-  {
-    "id": 325,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548365733",
-    "createdAt": "2025-12-12T14:06:05.748Z"
-  },
-  {
-    "id": 326,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548365733",
-    "createdAt": "2025-12-12T14:06:05.768Z"
-  },
-  {
-    "id": 327,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548365767",
-    "createdAt": "2025-12-12T14:06:05.779Z"
-  },
-  {
-    "id": 328,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548365767",
-    "createdAt": "2025-12-12T14:06:05.797Z"
-  },
-  {
-    "id": 329,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:06:05.800Z"
-  },
-  {
-    "id": 330,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548365767",
-    "createdAt": "2025-12-12T14:06:36.051Z"
-  },
-  {
-    "id": 331,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-7-1765548365733",
-    "createdAt": "2025-12-12T14:06:36.071Z"
-  },
-  {
-    "id": 332,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:06:36.080Z"
-  },
-  {
-    "id": 423,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل مستند صرف المساهم: youssef",
-    "createdAt": "2025-12-12T21:26:58.850Z"
-  },
-  {
-    "id": 333,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:08:30.745Z"
-  },
-  {
-    "id": 334,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548638490",
-    "createdAt": "2025-12-12T14:10:38.570Z"
-  },
-  {
-    "id": 335,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548638490",
-    "createdAt": "2025-12-12T14:10:38.590Z"
-  },
-  {
-    "id": 336,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:10:38.593Z"
-  },
-  {
-    "id": 338,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:11:05.781Z"
-  },
-  {
-    "id": 337,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548638490",
-    "createdAt": "2025-12-12T14:11:05.770Z"
-  },
-  {
-    "id": 339,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548879713",
-    "createdAt": "2025-12-12T14:14:39.797Z"
-  },
-  {
-    "id": 340,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548879713",
-    "createdAt": "2025-12-12T14:14:39.819Z"
-  },
-  {
-    "id": 341,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:14:39.823Z"
-  },
-  {
-    "id": 342,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548879713",
-    "createdAt": "2025-12-12T14:14:55.440Z"
-  },
-  {
-    "id": 343,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:14:55.450Z"
-  },
-  {
-    "id": 344,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765548904178",
-    "createdAt": "2025-12-12T14:15:04.195Z"
-  },
-  {
-    "id": 345,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548904178",
-    "createdAt": "2025-12-12T14:15:04.218Z"
-  },
-  {
-    "id": 346,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:15:04.222Z"
-  },
-  {
-    "id": 347,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765548904178",
-    "createdAt": "2025-12-12T14:15:29.123Z"
-  },
-  {
-    "id": 348,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:15:29.136Z"
-  },
-  {
-    "id": 349,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-7-1765549089390",
-    "createdAt": "2025-12-12T14:18:09.576Z"
-  },
-  {
-    "id": 350,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-7-1765549089390",
-    "createdAt": "2025-12-12T14:18:09.602Z"
-  },
-  {
-    "id": 351,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:18:09.607Z"
-  },
-  {
-    "id": 352,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-7-1765549089390",
-    "createdAt": "2025-12-12T14:18:37.776Z"
-  },
-  {
-    "id": 353,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T14:18:37.788Z"
-  },
-  {
-    "id": 354,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-7-1765549499130",
-    "createdAt": "2025-12-12T14:24:59.205Z"
-  },
-  {
-    "id": 355,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765549499130",
-    "createdAt": "2025-12-12T14:24:59.225Z"
-  },
-  {
-    "id": 356,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 7 بمبلغ 5000",
-    "createdAt": "2025-12-12T14:24:59.229Z"
-  },
-  {
-    "id": 357,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765549499130",
-    "createdAt": "2025-12-12T17:53:44.060Z"
-  },
-  {
-    "id": 358,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T17:53:44.118Z"
-  },
-  {
-    "id": 359,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-7-1765562029171",
-    "createdAt": "2025-12-12T17:53:49.215Z"
-  },
-  {
-    "id": 360,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765562029171",
-    "createdAt": "2025-12-12T17:53:49.243Z"
-  },
-  {
-    "id": 361,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 7 بمبلغ 5000 (allocatedToCarry=0, allocatedToOwn=5000, forwarded=1000)",
-    "createdAt": "2025-12-12T17:53:49.363Z"
-  },
-  {
-    "id": 362,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765562093836",
-    "createdAt": "2025-12-12T17:54:53.846Z"
-  },
-  {
-    "id": 363,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765562093836",
-    "createdAt": "2025-12-12T17:54:53.865Z"
-  },
-  {
-    "id": 364,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-8-1765562093866",
-    "createdAt": "2025-12-12T17:54:53.876Z"
-  },
-  {
-    "id": 365,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-8-1765562093866",
-    "createdAt": "2025-12-12T17:54:53.896Z"
-  },
-  {
-    "id": 366,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 8 بمبلغ 5000 (allocatedToCarry=1000, allocatedToOwn=4000, forwarded=2000)",
-    "createdAt": "2025-12-12T17:54:53.905Z"
-  },
-  {
-    "id": 367,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-8-1765562093866",
-    "createdAt": "2025-12-12T17:56:22.008Z"
-  },
-  {
-    "id": 368,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765562093836",
-    "createdAt": "2025-12-12T17:56:22.045Z"
-  },
-  {
-    "id": 369,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 8",
-    "createdAt": "2025-12-12T17:56:22.057Z"
-  },
-  {
-    "id": 370,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765562029171",
-    "createdAt": "2025-12-12T17:56:34.825Z"
-  },
-  {
-    "id": 371,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T17:56:34.838Z"
-  },
-  {
-    "id": 372,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-8-1765566482862",
-    "createdAt": "2025-12-12T19:08:02.948Z"
-  },
-  {
-    "id": 373,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-8-1765566482862",
-    "createdAt": "2025-12-12T19:08:02.966Z"
-  },
-  {
-    "id": 374,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 8 بمبلغ 5000 (allocatedToCarry=0, allocatedToOwn=5000, forwarded=1000)",
-    "createdAt": "2025-12-12T19:08:03.029Z"
-  },
-  {
-    "id": 375,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 8 بمبلغ 500 (allocatedToCarry=0, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-12T19:08:12.222Z"
-  },
-  {
-    "id": 376,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-8-1765566482862",
-    "createdAt": "2025-12-12T19:08:46.965Z"
-  },
-  {
-    "id": 377,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 8",
-    "createdAt": "2025-12-12T19:08:46.975Z"
-  },
-  {
-    "id": 378,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-7-1765566549834",
-    "createdAt": "2025-12-12T19:09:09.849Z"
-  },
-  {
-    "id": 379,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765566549834",
-    "createdAt": "2025-12-12T19:09:09.865Z"
-  },
-  {
-    "id": 380,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 7 بمبلغ 5000 (allocatedToCarry=0, allocatedToOwn=5000, forwarded=1000)",
-    "createdAt": "2025-12-12T19:09:09.871Z"
-  },
-  {
-    "id": 381,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765566555974",
-    "createdAt": "2025-12-12T19:09:15.981Z"
-  },
-  {
-    "id": 382,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765566555974",
-    "createdAt": "2025-12-12T19:09:15.997Z"
-  },
-  {
-    "id": 384,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-8-TO-9-1765566590125",
-    "createdAt": "2025-12-12T19:09:50.136Z"
-  },
-  {
-    "id": 385,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-8-TO-9-1765566590125",
-    "createdAt": "2025-12-12T19:09:50.156Z"
-  },
-  {
-    "id": 387,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-8-TO-9-1765566590125",
-    "createdAt": "2025-12-12T19:10:14.939Z"
-  },
-  {
-    "id": 389,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765566555974",
-    "createdAt": "2025-12-12T19:10:16.640Z"
-  },
-  {
-    "id": 391,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765566549834",
-    "createdAt": "2025-12-12T19:10:18.602Z"
-  },
-  {
-    "id": 383,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 8 بمبلغ 500 (allocatedToCarry=500, allocatedToOwn=0, forwarded=6500)",
-    "createdAt": "2025-12-12T19:09:16.014Z"
-  },
-  {
-    "id": 386,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 9 بمبلغ 5000 (allocatedToCarry=5000, allocatedToOwn=0, forwarded=4500)",
-    "createdAt": "2025-12-12T19:09:50.161Z"
-  },
-  {
-    "id": 388,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 9",
-    "createdAt": "2025-12-12T19:10:14.944Z"
-  },
-  {
-    "id": 390,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 8",
-    "createdAt": "2025-12-12T19:10:16.647Z"
-  },
-  {
-    "id": 392,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 7",
-    "createdAt": "2025-12-12T19:10:18.609Z"
-  },
-  {
-    "id": 393,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-7-1765570883340",
-    "createdAt": "2025-12-12T20:21:23.840Z"
-  },
-  {
-    "id": 394,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765570883340",
-    "createdAt": "2025-12-12T20:21:23.952Z"
-  },
-  {
-    "id": 395,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 7 بمبلغ 5000 (allocatedToCarry=0, allocatedToOwn=5000, forwarded=1000)",
-    "createdAt": "2025-12-12T20:21:24.039Z"
-  },
-  {
-    "id": 396,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765570891441",
-    "createdAt": "2025-12-12T20:21:31.448Z"
-  },
-  {
-    "id": 397,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765570891441",
-    "createdAt": "2025-12-12T20:21:31.469Z"
-  },
-  {
-    "id": 398,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-8-1765570891471",
-    "createdAt": "2025-12-12T20:21:31.479Z"
-  },
-  {
-    "id": 399,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-8-1765570891471",
-    "createdAt": "2025-12-12T20:21:31.496Z"
-  },
-  {
-    "id": 400,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 8 بمبلغ 5000 (allocatedToCarry=1000, allocatedToOwn=4000, forwarded=2000)",
-    "createdAt": "2025-12-12T20:21:31.505Z"
-  },
-  {
-    "id": 401,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1765571922359",
-    "createdAt": "2025-12-12T20:38:42.440Z"
-  },
-  {
-    "id": 402,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1765571922359",
-    "createdAt": "2025-12-12T20:38:42.475Z"
-  },
-  {
-    "id": 404,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1765571922359",
-    "createdAt": "2025-12-12T20:43:37.241Z"
-  },
-  {
-    "id": 405,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي EXP-1765571922359",
-    "createdAt": "2025-12-12T20:45:44.652Z"
-  },
-  {
-    "id": 406,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1765572351283",
-    "createdAt": "2025-12-12T20:45:51.298Z"
-  },
-  {
-    "id": 407,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1765572351283",
-    "createdAt": "2025-12-12T20:45:51.319Z"
-  },
-  {
-    "id": 408,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1765572351283",
-    "createdAt": "2025-12-12T20:47:17.633Z"
-  },
-  {
-    "id": 409,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي EXP-1765572351283",
-    "createdAt": "2025-12-12T20:47:21.350Z"
-  },
-  {
-    "id": 410,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1765572464771",
-    "createdAt": "2025-12-12T20:47:44.791Z"
-  },
-  {
-    "id": 411,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1765572464771",
-    "createdAt": "2025-12-12T20:47:44.806Z"
-  },
-  {
-    "id": 412,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1765572464771",
-    "createdAt": "2025-12-12T20:48:07.610Z"
-  },
-  {
-    "id": 413,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1765572464771",
-    "createdAt": "2025-12-12T20:48:45.222Z"
-  },
-  {
-    "id": 414,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1765572464771",
-    "createdAt": "2025-12-12T20:49:09.336Z"
-  },
-  {
-    "id": 415,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي EXP-1765572464771",
-    "createdAt": "2025-12-12T20:49:56.380Z"
-  },
-  {
-    "id": 416,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1765572617831",
-    "createdAt": "2025-12-12T20:50:17.854Z"
-  },
-  {
-    "id": 417,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1765572617831",
-    "createdAt": "2025-12-12T20:50:17.874Z"
-  },
-  {
-    "id": 418,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1765572617831",
-    "createdAt": "2025-12-12T21:01:08.564Z"
-  },
-  {
-    "id": 419,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-96-1765573268561",
-    "createdAt": "2025-12-12T21:01:08.596Z"
-  },
-  {
-    "id": 420,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-96-1765573268561",
-    "createdAt": "2025-12-12T21:02:56.319Z"
-  },
-  {
-    "id": 421,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-96-1765573268561",
-    "createdAt": "2025-12-12T21:04:53.884Z"
-  },
-  {
-    "id": 422,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-96-1765573268561",
-    "createdAt": "2025-12-12T21:05:09.888Z"
-  },
-  {
-    "id": 425,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-CARRY-8-TO-9-1765629527333",
-    "createdAt": "2025-12-13T12:38:47.372Z"
-  },
-  {
-    "id": 426,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-9-1765629527333",
-    "createdAt": "2025-12-13T12:38:47.396Z"
-  },
-  {
-    "id": 427,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-9-1765629527391",
-    "createdAt": "2025-12-13T12:38:47.407Z"
-  },
-  {
-    "id": 428,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-9-1765629527391",
-    "createdAt": "2025-12-13T12:38:47.425Z"
-  },
-  {
-    "id": 429,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 9",
-    "createdAt": "2025-12-13T12:38:47.434Z"
-  },
-  {
-    "id": 430,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-9",
-    "createdAt": "2025-12-13T13:01:09.775Z"
-  },
-  {
-    "id": 431,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-13T13:01:09.822Z"
-  },
-  {
-    "id": 432,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-13T13:02:57.848Z"
-  },
-  {
-    "id": 433,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-9",
-    "createdAt": "2025-12-13T13:03:08.831Z"
-  },
-  {
-    "id": 434,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-9",
-    "createdAt": "2025-12-13T13:03:08.858Z"
-  },
-  {
-    "id": 435,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-13T13:03:08.893Z"
-  },
-  {
-    "id": 436,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 104",
-    "createdAt": "2025-12-13T13:03:27.877Z"
-  },
-  {
-    "id": 437,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-104",
-    "createdAt": "2025-12-13T13:03:28.023Z"
-  },
-  {
-    "id": 438,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 104",
-    "createdAt": "2025-12-13T13:03:29.450Z"
-  },
-  {
-    "id": 439,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 105",
-    "createdAt": "2025-12-13T13:03:48.642Z"
-  },
-  {
-    "id": 440,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-105",
-    "createdAt": "2025-12-13T13:03:48.821Z"
-  },
-  {
-    "id": 441,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 105",
-    "createdAt": "2025-12-13T13:03:49.619Z"
-  },
-  {
-    "id": 442,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث بيانات الشريك: youssef",
-    "createdAt": "2025-12-13T13:08:31.022Z"
-  },
-  {
-    "id": 443,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-1-1765631334007",
-    "createdAt": "2025-12-13T13:08:54.101Z"
-  },
-  {
-    "id": 444,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-9",
-    "createdAt": "2025-12-13T16:52:35.057Z"
-  },
-  {
-    "id": 445,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-13T16:52:35.112Z"
-  },
-  {
-    "id": 446,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251210-001 للعميل 1",
-    "createdAt": "2025-12-13T16:52:38.169Z"
-  },
-  {
-    "id": 447,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251207-001 للعميل 1",
-    "createdAt": "2025-12-13T16:53:02.605Z"
-  },
-  {
-    "id": 448,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف الشريك: youssef",
-    "createdAt": "2025-12-13T16:56:15.713Z"
-  },
-  {
-    "id": 449,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث بيانات الشريك: youssef",
-    "createdAt": "2025-12-13T16:56:15.903Z"
-  },
-  {
-    "id": 450,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف الشريك: youssef",
-    "createdAt": "2025-12-13T16:56:17.581Z"
-  },
-  {
-    "id": 451,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي DEFAULT-1-1765631334007",
-    "createdAt": "2025-12-13T16:56:50.563Z"
-  },
-  {
-    "id": 452,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-9-1765629527391",
-    "createdAt": "2025-12-13T16:57:12.962Z"
-  },
-  {
-    "id": 453,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي PW-APPR-9-1765629527391",
-    "createdAt": "2025-12-13T16:57:17.349Z"
-  },
-  {
-    "id": 454,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-CARRY-8-TO-9-1765629527333",
-    "createdAt": "2025-12-13T16:57:20.328Z"
-  },
-  {
-    "id": 455,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي PW-CARRY-8-TO-9-1765629527333",
-    "createdAt": "2025-12-13T16:57:22.473Z"
-  },
-  {
-    "id": 456,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-8-1765570891471",
-    "createdAt": "2025-12-13T16:57:25.261Z"
-  },
-  {
-    "id": 457,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي PW-PARTIAL-8-1765570891471",
-    "createdAt": "2025-12-13T16:57:26.891Z"
-  },
-  {
-    "id": 458,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765570891441",
-    "createdAt": "2025-12-13T16:57:30.348Z"
-  },
-  {
-    "id": 459,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي PW-PARTIAL-CARRY-7-TO-8-1765570891441",
-    "createdAt": "2025-12-13T16:57:32.778Z"
-  },
-  {
-    "id": 460,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-7-1765570883340",
-    "createdAt": "2025-12-13T16:57:37.613Z"
-  },
-  {
-    "id": 461,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي PW-PARTIAL-7-1765570883340",
-    "createdAt": "2025-12-13T16:57:39.642Z"
-  },
-  {
-    "id": 462,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SAVING-2-1765540976134",
-    "createdAt": "2025-12-13T16:57:43.946Z"
-  },
-  {
-    "id": 463,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي EXP-1765136789586",
-    "createdAt": "2025-12-13T16:57:48.371Z"
-  },
-  {
-    "id": 464,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-17",
-    "createdAt": "2025-12-13T16:58:11.396Z"
-  },
-  {
-    "id": 465,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-16",
-    "createdAt": "2025-12-13T16:58:11.426Z"
-  },
-  {
-    "id": 466,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-3",
-    "createdAt": "2025-12-13T16:58:11.447Z"
-  },
-  {
-    "id": 467,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-18",
-    "createdAt": "2025-12-13T16:58:11.476Z"
-  },
-  {
-    "id": 468,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-13",
-    "createdAt": "2025-12-13T16:58:11.502Z"
-  },
-  {
-    "id": 469,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-14",
-    "createdAt": "2025-12-13T16:58:11.527Z"
-  },
-  {
-    "id": 470,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-15",
-    "createdAt": "2025-12-13T16:58:11.556Z"
-  },
-  {
-    "id": 471,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي CAP-2",
-    "createdAt": "2025-12-13T16:58:11.562Z"
-  },
-  {
-    "id": 472,
-    "userId": 1,
-    "screen": "Period",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بعكس إغلاق الفترة opening (1)",
-    "createdAt": "2025-12-13T17:02:25.123Z"
-  },
-  {
-    "id": 473,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-3",
-    "createdAt": "2025-12-13T17:04:56.504Z"
-  },
-  {
-    "id": 474,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: يوسف برأس مال 10000",
-    "createdAt": "2025-12-13T17:04:56.510Z"
-  },
-  {
-    "id": 475,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-4",
-    "createdAt": "2025-12-13T17:05:40.140Z"
-  },
-  {
-    "id": 476,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: عبد الرحمن برأس مال 15000",
-    "createdAt": "2025-12-13T17:05:40.147Z"
-  },
-  {
-    "id": 477,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-3",
-    "createdAt": "2025-12-13T17:06:38.733Z"
-  },
-  {
-    "id": 478,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-4",
-    "createdAt": "2025-12-13T17:06:38.749Z"
-  },
-  {
-    "id": 479,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 25000",
-    "createdAt": "2025-12-13T17:08:21.057Z"
-  },
-  {
-    "id": 480,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-10",
-    "createdAt": "2025-12-13T17:08:29.419Z"
-  },
-  {
-    "id": 481,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-10",
-    "createdAt": "2025-12-13T17:08:29.440Z"
-  },
-  {
-    "id": 482,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251213-001 للعميل 1",
-    "createdAt": "2025-12-13T17:08:29.472Z"
-  },
-  {
-    "id": 483,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-108",
-    "createdAt": "2025-12-13T17:09:11.403Z"
-  },
-  {
-    "id": 484,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 108",
-    "createdAt": "2025-12-13T17:09:12.441Z"
-  },
-  {
-    "id": 485,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-109",
-    "createdAt": "2025-12-13T17:09:12.463Z"
-  },
-  {
-    "id": 486,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 109",
-    "createdAt": "2025-12-13T17:09:12.800Z"
-  },
-  {
-    "id": 487,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-110",
-    "createdAt": "2025-12-13T17:09:12.829Z"
-  },
-  {
-    "id": 488,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 110",
-    "createdAt": "2025-12-13T17:09:13.150Z"
-  },
-  {
-    "id": 489,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-108",
-    "createdAt": "2025-12-13T17:09:31.963Z"
-  },
-  {
-    "id": 490,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-109",
-    "createdAt": "2025-12-13T17:09:31.984Z"
-  },
-  {
-    "id": 491,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي REP-110",
-    "createdAt": "2025-12-13T17:09:32.004Z"
-  },
-  {
-    "id": 492,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث بيانات الشريك: عبد الرحمن",
-    "createdAt": "2025-12-13T17:12:59.424Z"
-  },
-  {
-    "id": 493,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث بيانات الشريك: يوسف",
-    "createdAt": "2025-12-13T17:14:53.776Z"
-  },
-  {
-    "id": 494,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-3-1765646111043",
-    "createdAt": "2025-12-13T17:15:11.128Z"
-  },
-  {
-    "id": 495,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-13T19:08:20.392Z"
-  },
-  {
-    "id": 496,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-12-1765655294925",
-    "createdAt": "2025-12-13T19:48:15.043Z"
-  },
-  {
-    "id": 497,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-12-1765655294925",
-    "createdAt": "2025-12-13T19:48:15.072Z"
-  },
-  {
-    "id": 498,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-13T19:48:15.080Z"
-  },
-  {
-    "id": 499,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-13-1765655296359",
-    "createdAt": "2025-12-13T19:48:16.369Z"
-  },
-  {
-    "id": 500,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-13-1765655296359",
-    "createdAt": "2025-12-13T19:48:16.387Z"
-  },
-  {
-    "id": 501,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-13T19:48:16.392Z"
-  },
-  {
-    "id": 502,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-14-1765655419829",
-    "createdAt": "2025-12-13T19:50:19.840Z"
-  },
-  {
-    "id": 503,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765655419829",
-    "createdAt": "2025-12-13T19:50:19.858Z"
-  },
-  {
-    "id": 504,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 14 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=200)",
-    "createdAt": "2025-12-13T19:50:20.057Z"
-  },
-  {
-    "id": 505,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655447573",
-    "createdAt": "2025-12-13T19:50:47.584Z"
-  },
-  {
-    "id": 506,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655447573",
-    "createdAt": "2025-12-13T19:50:47.606Z"
-  },
-  {
-    "id": 507,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 15 بمبلغ 300 (allocatedToCarry=200, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-13T19:50:47.609Z"
-  },
-  {
-    "id": 508,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "UNPOST",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655447573",
-    "createdAt": "2025-12-13T19:53:17.339Z"
-  },
-  {
-    "id": 509,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655447573",
-    "createdAt": "2025-12-13T19:53:21.276Z"
-  },
-  {
-    "id": 510,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655672113",
-    "createdAt": "2025-12-13T19:54:32.137Z"
-  },
-  {
-    "id": 511,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655672113",
-    "createdAt": "2025-12-13T19:54:32.164Z"
-  },
-  {
-    "id": 512,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 15 بمبلغ 200 (allocatedToCarry=200, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-13T19:54:32.169Z"
-  },
-  {
-    "id": 513,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655672113",
-    "createdAt": "2025-12-13T19:56:11.623Z"
-  },
-  {
-    "id": 514,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655672113",
-    "createdAt": "2025-12-13T19:56:14.015Z"
-  },
-  {
-    "id": 515,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655819901",
-    "createdAt": "2025-12-13T19:56:59.930Z"
-  },
-  {
-    "id": 516,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655819901",
-    "createdAt": "2025-12-13T19:56:59.957Z"
-  },
-  {
-    "id": 517,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 15 بمبلغ 200 (allocatedToCarry=200, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-13T19:56:59.969Z"
-  },
-  {
-    "id": 518,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-15-1765655819901",
-    "createdAt": "2025-12-14T11:28:54.035Z"
-  },
-  {
-    "id": 519,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 15",
-    "createdAt": "2025-12-14T11:28:54.068Z"
-  },
-  {
-    "id": 520,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T11:30:41.480Z"
-  },
-  {
-    "id": 521,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-14-1765711975489",
-    "createdAt": "2025-12-14T11:32:55.630Z"
-  },
-  {
-    "id": 522,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765711975489",
-    "createdAt": "2025-12-14T11:32:55.657Z"
-  },
-  {
-    "id": 523,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 14 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=200)",
-    "createdAt": "2025-12-14T11:32:55.740Z"
-  },
-  {
-    "id": 524,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765711975489",
-    "createdAt": "2025-12-14T11:33:10.965Z"
-  },
-  {
-    "id": 525,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T11:33:10.979Z"
-  },
-  {
-    "id": 526,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-14-1765712008880",
-    "createdAt": "2025-12-14T11:33:28.904Z"
-  },
-  {
-    "id": 527,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-14-1765712008880",
-    "createdAt": "2025-12-14T11:33:28.921Z"
-  },
-  {
-    "id": 528,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T11:33:28.937Z"
-  },
-  {
-    "id": 529,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل مستند صرف المساهم: يوسف",
-    "createdAt": "2025-12-14T11:33:40.525Z"
-  },
-  {
-    "id": 530,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل مستند صرف المساهم: يوسف",
-    "createdAt": "2025-12-14T11:33:40.589Z"
-  },
-  {
-    "id": 531,
-    "userId": 1,
-    "screen": "Roles",
-    "action": "UPDATE",
-    "description": "المستخدم ادمن حدث الدور Admin",
-    "createdAt": "2025-12-14T11:39:37.725Z"
-  },
-  {
-    "id": 532,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-14-1765712008880",
-    "createdAt": "2025-12-14T12:04:20.681Z"
-  },
-  {
-    "id": 533,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:04:20.697Z"
-  },
-  {
-    "id": 534,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:04:23.422Z"
-  },
-  {
-    "id": 535,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:04:26.863Z"
-  },
-  {
-    "id": 536,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:06:40.437Z"
-  },
-  {
-    "id": 537,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:06:50.433Z"
-  },
-  {
-    "id": 538,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-12-1765655294925",
-    "createdAt": "2025-12-14T12:17:24.845Z"
-  },
-  {
-    "id": 539,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-13-1765655296359",
-    "createdAt": "2025-12-14T12:17:24.878Z"
-  },
-  {
-    "id": 540,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765655419829",
-    "createdAt": "2025-12-14T12:17:24.907Z"
-  },
-  {
-    "id": 541,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:17:24.915Z"
-  },
-  {
-    "id": 542,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-12-1765714910302",
-    "createdAt": "2025-12-14T12:21:50.350Z"
-  },
-  {
-    "id": 543,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-12-1765714910302",
-    "createdAt": "2025-12-14T12:21:50.369Z"
-  },
-  {
-    "id": 544,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:21:50.375Z"
-  },
-  {
-    "id": 545,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-13-1765714927737",
-    "createdAt": "2025-12-14T12:22:07.761Z"
-  },
-  {
-    "id": 546,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-13-1765714927737",
-    "createdAt": "2025-12-14T12:22:07.781Z"
-  },
-  {
-    "id": 547,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:22:07.785Z"
-  },
-  {
-    "id": 548,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-14-1765715062607",
-    "createdAt": "2025-12-14T12:24:22.817Z"
-  },
-  {
-    "id": 549,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-14-1765715062607",
-    "createdAt": "2025-12-14T12:24:22.840Z"
-  },
-  {
-    "id": 550,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:24:22.851Z"
-  },
-  {
-    "id": 551,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-14-1765715062607",
-    "createdAt": "2025-12-14T12:29:13.309Z"
-  },
-  {
-    "id": 552,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:29:13.322Z"
-  },
-  {
-    "id": 553,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-13-1765714927737",
-    "createdAt": "2025-12-14T12:29:17.115Z"
-  },
-  {
-    "id": 554,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:29:17.127Z"
-  },
-  {
-    "id": 555,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-12-1765714910302",
-    "createdAt": "2025-12-14T12:29:19.934Z"
-  },
-  {
-    "id": 556,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:29:19.945Z"
-  },
-  {
-    "id": 557,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-12-1765715361753",
-    "createdAt": "2025-12-14T12:29:21.772Z"
-  },
-  {
-    "id": 558,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-12-1765715361753",
-    "createdAt": "2025-12-14T12:29:21.792Z"
-  },
-  {
-    "id": 559,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:29:21.798Z"
-  },
-  {
-    "id": 560,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-13-1765715370057",
-    "createdAt": "2025-12-14T12:29:30.074Z"
-  },
-  {
-    "id": 561,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765715370057",
-    "createdAt": "2025-12-14T12:29:30.095Z"
-  },
-  {
-    "id": 562,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 13 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=1000)",
-    "createdAt": "2025-12-14T12:29:30.111Z"
-  },
-  {
-    "id": 563,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765715385995",
-    "createdAt": "2025-12-14T12:29:46.014Z"
-  },
-  {
-    "id": 735,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251216-001 للعميل 1",
-    "createdAt": "2025-12-16T13:06:31.625Z"
-  },
-  {
-    "id": 564,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765715385995",
-    "createdAt": "2025-12-14T12:29:46.039Z"
-  },
-  {
-    "id": 565,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-14-1765715386031",
-    "createdAt": "2025-12-14T12:29:46.050Z"
-  },
-  {
-    "id": 566,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765715386031",
-    "createdAt": "2025-12-14T12:29:46.075Z"
-  },
-  {
-    "id": 567,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 14 بمبلغ 1200 (allocatedToCarry=1000, allocatedToOwn=200, forwarded=1000)",
-    "createdAt": "2025-12-14T12:29:46.087Z"
-  },
-  {
-    "id": 568,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-17-1765715407094",
-    "createdAt": "2025-12-14T12:30:07.124Z"
-  },
-  {
-    "id": 569,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-17-1765715407094",
-    "createdAt": "2025-12-14T12:30:07.143Z"
-  },
-  {
-    "id": 570,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 17 بمبلغ 1000 (allocatedToCarry=1000, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-14T12:30:07.154Z"
-  },
-  {
-    "id": 571,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-17-1765715407094",
-    "createdAt": "2025-12-14T12:31:42.729Z"
-  },
-  {
-    "id": 572,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 17",
-    "createdAt": "2025-12-14T12:31:42.739Z"
-  },
-  {
-    "id": 573,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765715385995",
-    "createdAt": "2025-12-14T12:31:50.895Z"
-  },
-  {
-    "id": 574,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:31:50.903Z"
-  },
-  {
-    "id": 575,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:33:26.979Z"
-  },
-  {
-    "id": 577,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:33:34.499Z"
-  },
-  {
-    "id": 576,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-12-1765715361753",
-    "createdAt": "2025-12-14T12:33:34.490Z"
-  },
-  {
-    "id": 578,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765715386031",
-    "createdAt": "2025-12-14T12:35:43.748Z"
-  },
-  {
-    "id": 579,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:35:43.764Z"
-  },
-  {
-    "id": 580,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765715370057",
-    "createdAt": "2025-12-14T12:35:48.076Z"
-  },
-  {
-    "id": 581,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:35:48.086Z"
-  },
-  {
-    "id": 582,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:36:17.296Z"
-  },
-  {
-    "id": 583,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:38:41.687Z"
-  },
-  {
-    "id": 584,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-14-1765715931322",
-    "createdAt": "2025-12-14T12:38:51.353Z"
-  },
-  {
-    "id": 585,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765715931322",
-    "createdAt": "2025-12-14T12:38:51.377Z"
-  },
-  {
-    "id": 586,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 14 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=200)",
-    "createdAt": "2025-12-14T12:38:51.392Z"
-  },
-  {
-    "id": 587,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-12-1765715952529",
-    "createdAt": "2025-12-14T12:39:12.550Z"
-  },
-  {
-    "id": 588,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-12-1765715952529",
-    "createdAt": "2025-12-14T12:39:12.570Z"
-  },
-  {
-    "id": 589,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:39:12.576Z"
-  },
-  {
-    "id": 590,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765715931322",
-    "createdAt": "2025-12-14T12:39:15.819Z"
-  },
-  {
-    "id": 591,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:39:15.830Z"
-  },
-  {
-    "id": 592,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-13-1765715974908",
-    "createdAt": "2025-12-14T12:39:34.983Z"
-  },
-  {
-    "id": 593,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765715974908",
-    "createdAt": "2025-12-14T12:39:35.003Z"
-  },
-  {
-    "id": 594,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 13 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=1000)",
-    "createdAt": "2025-12-14T12:39:35.012Z"
-  },
-  {
-    "id": 595,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765715984845",
-    "createdAt": "2025-12-14T12:39:44.868Z"
-  },
-  {
-    "id": 596,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765715984845",
-    "createdAt": "2025-12-14T12:39:44.890Z"
-  },
-  {
-    "id": 597,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-14-1765715984877",
-    "createdAt": "2025-12-14T12:39:44.902Z"
-  },
-  {
-    "id": 598,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765715984877",
-    "createdAt": "2025-12-14T12:39:44.924Z"
-  },
-  {
-    "id": 599,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 14 بمبلغ 2000 (allocatedToCarry=1000, allocatedToOwn=1000, forwarded=200)",
-    "createdAt": "2025-12-14T12:39:44.939Z"
-  },
-  {
-    "id": 600,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-19-1765715991067",
-    "createdAt": "2025-12-14T12:39:51.092Z"
-  },
-  {
-    "id": 601,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-19-1765715991067",
-    "createdAt": "2025-12-14T12:39:51.112Z"
-  },
-  {
-    "id": 602,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 19 بمبلغ 200 (allocatedToCarry=200, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-14T12:39:51.122Z"
-  },
-  {
-    "id": 603,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-19-1765715991067",
-    "createdAt": "2025-12-14T12:40:29.147Z"
-  },
-  {
-    "id": 604,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 19",
-    "createdAt": "2025-12-14T12:40:29.156Z"
-  },
-  {
-    "id": 605,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765715984877",
-    "createdAt": "2025-12-14T12:40:44.004Z"
-  },
-  {
-    "id": 606,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765715984845",
-    "createdAt": "2025-12-14T12:40:44.036Z"
-  },
-  {
-    "id": 607,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:40:44.048Z"
-  },
-  {
-    "id": 608,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765715974908",
-    "createdAt": "2025-12-14T12:40:50.310Z"
-  },
-  {
-    "id": 609,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:40:50.321Z"
-  },
-  {
-    "id": 610,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-12-1765715952529",
-    "createdAt": "2025-12-14T12:40:52.104Z"
-  },
-  {
-    "id": 611,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:40:52.115Z"
-  },
-  {
-    "id": 612,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-12-1765716250375",
-    "createdAt": "2025-12-14T12:44:10.577Z"
-  },
-  {
-    "id": 613,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-12-1765716250375",
-    "createdAt": "2025-12-14T12:44:10.601Z"
-  },
-  {
-    "id": 614,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:44:10.609Z"
-  },
-  {
-    "id": 615,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-13-1765716255456",
-    "createdAt": "2025-12-14T12:44:15.481Z"
-  },
-  {
-    "id": 616,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765716255456",
-    "createdAt": "2025-12-14T12:44:15.507Z"
-  },
-  {
-    "id": 617,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 13 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=1000)",
-    "createdAt": "2025-12-14T12:44:15.518Z"
-  },
-  {
-    "id": 618,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765716260802",
-    "createdAt": "2025-12-14T12:44:20.822Z"
-  },
-  {
-    "id": 619,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765716260802",
-    "createdAt": "2025-12-14T12:44:20.846Z"
-  },
-  {
-    "id": 620,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-14-1765716260837",
-    "createdAt": "2025-12-14T12:44:20.857Z"
-  },
-  {
-    "id": 621,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765716260837",
-    "createdAt": "2025-12-14T12:44:20.879Z"
-  },
-  {
-    "id": 623,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-20-1765716278565",
-    "createdAt": "2025-12-14T12:44:38.594Z"
-  },
-  {
-    "id": 624,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-20-1765716278565",
-    "createdAt": "2025-12-14T12:44:38.617Z"
-  },
-  {
-    "id": 626,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-20-1765716278565",
-    "createdAt": "2025-12-14T12:44:52.574Z"
-  },
-  {
-    "id": 628,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765716260837",
-    "createdAt": "2025-12-14T12:44:58.817Z"
-  },
-  {
-    "id": 629,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765716260802",
-    "createdAt": "2025-12-14T12:44:58.847Z"
-  },
-  {
-    "id": 631,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765716255456",
-    "createdAt": "2025-12-14T12:45:53.761Z"
-  },
-  {
-    "id": 633,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-12-1765716250375",
-    "createdAt": "2025-12-14T12:45:55.478Z"
-  },
-  {
-    "id": 635,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-12-1765716385925",
-    "createdAt": "2025-12-14T12:46:25.951Z"
-  },
-  {
-    "id": 636,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-12-1765716385925",
-    "createdAt": "2025-12-14T12:46:25.969Z"
-  },
-  {
-    "id": 638,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-13-1765716390310",
-    "createdAt": "2025-12-14T12:46:30.334Z"
-  },
-  {
-    "id": 639,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765716390310",
-    "createdAt": "2025-12-14T12:46:30.358Z"
-  },
-  {
-    "id": 641,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765716395793",
-    "createdAt": "2025-12-14T12:46:35.822Z"
-  },
-  {
-    "id": 642,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765716395793",
-    "createdAt": "2025-12-14T12:46:35.848Z"
-  },
-  {
-    "id": 643,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-14-1765716395835",
-    "createdAt": "2025-12-14T12:46:35.859Z"
-  },
-  {
-    "id": 644,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765716395835",
-    "createdAt": "2025-12-14T12:46:35.887Z"
-  },
-  {
-    "id": 646,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-21-1765716417592",
-    "createdAt": "2025-12-14T12:46:57.605Z"
-  },
-  {
-    "id": 647,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-21-1765716417592",
-    "createdAt": "2025-12-14T12:46:57.627Z"
-  },
-  {
-    "id": 622,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 14 بمبلغ 2000 (allocatedToCarry=1000, allocatedToOwn=1000, forwarded=200)",
-    "createdAt": "2025-12-14T12:44:20.894Z"
-  },
-  {
-    "id": 627,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 20",
-    "createdAt": "2025-12-14T12:44:52.584Z"
-  },
-  {
-    "id": 630,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:44:58.856Z"
-  },
-  {
-    "id": 634,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:45:55.490Z"
-  },
-  {
-    "id": 637,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:46:25.973Z"
-  },
-  {
-    "id": 645,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 14 بمبلغ 2000 (allocatedToCarry=1000, allocatedToOwn=1000, forwarded=200)",
-    "createdAt": "2025-12-14T12:46:35.897Z"
-  },
-  {
-    "id": 648,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 21 بمبلغ 200 (allocatedToCarry=200, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-14T12:46:57.635Z"
-  },
-  {
-    "id": 625,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 20 بمبلغ 200 (allocatedToCarry=200, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-14T12:44:38.629Z"
-  },
-  {
-    "id": 632,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:45:53.774Z"
-  },
-  {
-    "id": 640,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 13 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=1000)",
-    "createdAt": "2025-12-14T12:46:30.371Z"
-  },
-  {
-    "id": 649,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-14-TO-21-1765716417592",
-    "createdAt": "2025-12-14T12:48:49.137Z"
-  },
-  {
-    "id": 650,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 21",
-    "createdAt": "2025-12-14T12:48:49.148Z"
-  },
-  {
-    "id": 651,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-14-1765716395835",
-    "createdAt": "2025-12-14T12:48:57.237Z"
-  },
-  {
-    "id": 652,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-14-1765716395793",
-    "createdAt": "2025-12-14T12:48:57.268Z"
-  },
-  {
-    "id": 653,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 14",
-    "createdAt": "2025-12-14T12:48:57.282Z"
-  },
-  {
-    "id": 654,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765716390310",
-    "createdAt": "2025-12-14T12:49:04.505Z"
-  },
-  {
-    "id": 655,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:49:04.519Z"
-  },
-  {
-    "id": 656,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-12-1765716385925",
-    "createdAt": "2025-12-14T12:49:07.441Z"
-  },
-  {
-    "id": 657,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:49:07.452Z"
-  },
-  {
-    "id": 658,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-12-1765716736158",
-    "createdAt": "2025-12-14T12:52:16.253Z"
-  },
-  {
-    "id": 659,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-12-1765716736158",
-    "createdAt": "2025-12-14T12:52:16.278Z"
-  },
-  {
-    "id": 660,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:52:16.287Z"
-  },
-  {
-    "id": 661,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-13-1765716741349",
-    "createdAt": "2025-12-14T12:52:21.361Z"
-  },
-  {
-    "id": 662,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765716741349",
-    "createdAt": "2025-12-14T12:52:21.388Z"
-  },
-  {
-    "id": 663,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 13 بمبلغ 1000 (allocatedToCarry=0, allocatedToOwn=1000, forwarded=1000)",
-    "createdAt": "2025-12-14T12:52:21.404Z"
-  },
-  {
-    "id": 664,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-22-1765716745633",
-    "createdAt": "2025-12-14T12:52:25.649Z"
-  },
-  {
-    "id": 665,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-22-1765716745633",
-    "createdAt": "2025-12-14T12:52:25.672Z"
-  },
-  {
-    "id": 666,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-22-1765716745671",
-    "createdAt": "2025-12-14T12:52:25.685Z"
-  },
-  {
-    "id": 667,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-22-1765716745671",
-    "createdAt": "2025-12-14T12:52:25.707Z"
-  },
-  {
-    "id": 668,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 22 بمبلغ 2000 (allocatedToCarry=1000, allocatedToOwn=1000, forwarded=200)",
-    "createdAt": "2025-12-14T12:52:25.722Z"
-  },
-  {
-    "id": 669,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-PARTIAL-CARRY-22-TO-23-1765716749840",
-    "createdAt": "2025-12-14T12:52:29.852Z"
-  },
-  {
-    "id": 670,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-22-TO-23-1765716749840",
-    "createdAt": "2025-12-14T12:52:29.875Z"
-  },
-  {
-    "id": 671,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "سداد جزئي لجدول انسحاب 23 بمبلغ 200 (allocatedToCarry=200, allocatedToOwn=0, forwarded=0)",
-    "createdAt": "2025-12-14T12:52:29.886Z"
-  },
-  {
-    "id": 672,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-22-TO-23-1765716749840",
-    "createdAt": "2025-12-14T12:52:57.733Z"
-  },
-  {
-    "id": 673,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 23",
-    "createdAt": "2025-12-14T12:52:57.745Z"
-  },
-  {
-    "id": 674,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-22-1765716745671",
-    "createdAt": "2025-12-14T12:53:01.810Z"
-  },
-  {
-    "id": 675,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-CARRY-13-TO-22-1765716745633",
-    "createdAt": "2025-12-14T12:53:01.841Z"
-  },
-  {
-    "id": 676,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 22",
-    "createdAt": "2025-12-14T12:53:01.856Z"
-  },
-  {
-    "id": 677,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-PARTIAL-13-1765716741349",
-    "createdAt": "2025-12-14T12:53:05.769Z"
-  },
-  {
-    "id": 678,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T12:53:05.780Z"
-  },
-  {
-    "id": 679,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-12-1765716736158",
-    "createdAt": "2025-12-14T12:53:08.119Z"
-  },
-  {
-    "id": 680,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 12",
-    "createdAt": "2025-12-14T12:53:08.128Z"
-  },
-  {
-    "id": 681,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 13",
-    "createdAt": "2025-12-14T13:01:01.319Z"
-  },
-  {
-    "id": 682,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "تعديل مبلغ السحب الشهري للمستثمر يوسف إلى 1000",
-    "createdAt": "2025-12-14T13:01:22.265Z"
-  },
-  {
-    "id": 683,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-24-1765717310540",
-    "createdAt": "2025-12-14T13:01:50.660Z"
-  },
-  {
-    "id": 684,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-24-1765717310540",
-    "createdAt": "2025-12-14T13:01:50.695Z"
-  },
-  {
-    "id": 685,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 24",
-    "createdAt": "2025-12-14T13:01:50.703Z"
-  },
-  {
-    "id": 686,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-24-1765717310540",
-    "createdAt": "2025-12-14T13:02:39.355Z"
-  },
-  {
-    "id": 687,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 24",
-    "createdAt": "2025-12-14T13:02:39.367Z"
-  },
-  {
-    "id": 688,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "تعديل مبلغ السحب الشهري للمستثمر يوسف إلى 2000",
-    "createdAt": "2025-12-14T13:02:43.911Z"
-  },
-  {
-    "id": 689,
-    "userId": 1,
-    "screen": "Roles",
-    "action": "UPDATE",
-    "description": "المستخدم ادمن عدّل صلاحيات Dashboard للدور Admin",
-    "createdAt": "2025-12-16T11:21:33.195Z"
-  },
-  {
-    "id": 690,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-30-1765885483313",
-    "createdAt": "2025-12-16T11:44:43.452Z"
-  },
-  {
-    "id": 691,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-30-1765885483313",
-    "createdAt": "2025-12-16T11:44:43.502Z"
-  },
-  {
-    "id": 692,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 30",
-    "createdAt": "2025-12-16T11:44:43.516Z"
-  },
-  {
-    "id": 693,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-31-1765885484153",
-    "createdAt": "2025-12-16T11:44:44.167Z"
-  },
-  {
-    "id": 694,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-31-1765885484153",
-    "createdAt": "2025-12-16T11:44:44.187Z"
-  },
-  {
-    "id": 695,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 31",
-    "createdAt": "2025-12-16T11:44:44.194Z"
-  },
-  {
-    "id": 696,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي PW-APPR-32-1765885484910",
-    "createdAt": "2025-12-16T11:44:44.919Z"
-  },
-  {
-    "id": 697,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي PW-APPR-32-1765885484910",
-    "createdAt": "2025-12-16T11:44:44.937Z"
-  },
-  {
-    "id": 698,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "POST",
-    "description": "قام المستخدم بالموافقة على صرف جدول انسحاب رقم 32",
-    "createdAt": "2025-12-16T11:44:44.948Z"
-  },
-  {
-    "id": 699,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل مستند صرف المساهم: يوسف",
-    "createdAt": "2025-12-16T11:44:51.179Z"
-  },
-  {
-    "id": 700,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل مستند صرف المساهم: يوسف",
-    "createdAt": "2025-12-16T11:44:51.258Z"
-  },
-  {
-    "id": 701,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-32-1765885484910",
-    "createdAt": "2025-12-16T11:45:22.188Z"
-  },
-  {
-    "id": 702,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 32",
-    "createdAt": "2025-12-16T11:45:22.213Z"
-  },
-  {
-    "id": 703,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-31-1765885484153",
-    "createdAt": "2025-12-16T11:45:24.497Z"
-  },
-  {
-    "id": 704,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 31",
-    "createdAt": "2025-12-16T11:45:24.510Z"
-  },
-  {
-    "id": 705,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي PW-APPR-30-1765885483313",
-    "createdAt": "2025-12-16T11:45:26.384Z"
-  },
-  {
-    "id": 706,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "DELETE",
-    "description": "قام المستخدم برفض/التراجع عن صرف جدول انسحاب رقم 30",
-    "createdAt": "2025-12-16T11:45:26.398Z"
-  },
-  {
-    "id": 707,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي DEFAULT-3-1765646111043",
-    "createdAt": "2025-12-16T11:51:03.442Z"
-  },
-  {
-    "id": 708,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "UPDATE",
-    "description": "قام المستخدم ادمن بتحديث بيانات الشريك: يوسف",
-    "createdAt": "2025-12-16T11:53:18.859Z"
-  },
-  {
-    "id": 709,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي DEFAULT-3-1765886386202",
-    "createdAt": "2025-12-16T11:59:46.389Z"
-  },
-  {
-    "id": 710,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "تعديل مبلغ السحب الشهري للمستثمر يوسف إلى 2000",
-    "createdAt": "2025-12-16T12:00:49.514Z"
-  },
-  {
-    "id": 711,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-10",
-    "createdAt": "2025-12-16T12:05:17.441Z"
-  },
-  {
-    "id": 712,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-108",
-    "createdAt": "2025-12-16T12:05:17.473Z"
-  },
-  {
-    "id": 713,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-109",
-    "createdAt": "2025-12-16T12:05:17.499Z"
-  },
-  {
-    "id": 714,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي REP-110",
-    "createdAt": "2025-12-16T12:05:17.529Z"
-  },
-  {
-    "id": 715,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251213-001 للعميل 1",
-    "createdAt": "2025-12-16T12:05:17.560Z"
-  },
-  {
-    "id": 716,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251213-001 للعميل 1",
-    "createdAt": "2025-12-16T12:06:47.587Z"
-  },
-  {
-    "id": 717,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 20000",
-    "createdAt": "2025-12-16T12:22:24.011Z"
-  },
-  {
-    "id": 718,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-11",
-    "createdAt": "2025-12-16T12:22:34.157Z"
-  },
-  {
-    "id": 719,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-11",
-    "createdAt": "2025-12-16T12:22:34.199Z"
-  },
-  {
-    "id": 720,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251216-001 للعميل 1",
-    "createdAt": "2025-12-16T12:22:34.231Z"
-  },
-  {
-    "id": 721,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-114",
-    "createdAt": "2025-12-16T12:22:46.063Z"
-  },
-  {
-    "id": 722,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 114",
-    "createdAt": "2025-12-16T12:22:47.157Z"
-  },
-  {
-    "id": 723,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-115",
-    "createdAt": "2025-12-16T12:22:47.183Z"
-  },
-  {
-    "id": 724,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 115",
-    "createdAt": "2025-12-16T12:22:47.561Z"
-  },
-  {
-    "id": 725,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-116",
-    "createdAt": "2025-12-16T12:22:47.588Z"
-  },
-  {
-    "id": 726,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 116",
-    "createdAt": "2025-12-16T12:22:47.932Z"
-  },
-  {
-    "id": 727,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2026-04-17T12:30:20.147Z"
-  },
-  {
-    "id": 728,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2026-04-17T12:30:24.915Z"
-  },
-  {
-    "id": 729,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ايصالات للسداد للدفعة رقم 117",
-    "createdAt": "2026-04-17T12:31:14.585Z"
-  },
-  {
-    "id": 730,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل اثبات السداد للدفعة رقم 117",
-    "createdAt": "2026-04-17T12:32:18.306Z"
-  },
-  {
-    "id": 731,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي REP-117",
-    "createdAt": "2026-04-17T12:32:18.440Z"
-  },
-  {
-    "id": 732,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بالموافقة على السداد للدفعة رقم 117",
-    "createdAt": "2026-04-17T12:32:19.390Z"
-  },
-  {
-    "id": 736,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 15000",
-    "createdAt": "2025-12-16T13:07:30.222Z"
-  },
-  {
-    "id": 737,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251216-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-16T13:07:44.154Z"
-  },
-  {
-    "id": 738,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251216-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-16T13:07:46.289Z"
-  },
-  {
-    "id": 739,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN-12",
-    "createdAt": "2025-12-16T13:07:55.243Z"
-  },
-  {
-    "id": 740,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN-12",
-    "createdAt": "2025-12-16T13:07:55.610Z"
-  },
-  {
-    "id": 741,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251216-001 للعميل 1",
-    "createdAt": "2025-12-16T13:07:57.612Z"
-  },
-  {
-    "id": 742,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "POST",
-    "description": "قام المستخدم ادمن برفض السداد للدفعة رقم 119",
-    "createdAt": "2025-12-16T13:10:15.933Z"
-  },
-  {
-    "id": 743,
-    "userId": 1,
-    "screen": "Repayments",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ايصالات للسداد للدفعة رقم 119",
-    "createdAt": "2025-12-16T13:22:58.379Z"
-  },
-  {
-    "id": 744,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "تعديل مبلغ السحب الشهري للمستثمر يوسف إلى 4000",
-    "createdAt": "2025-12-17T06:09:04.315Z"
-  },
-  {
-    "id": 745,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "POST",
-    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي DEFAULT-3-1765886386202",
-    "createdAt": "2025-12-17T06:14:53.239Z"
-  },
-  {
-    "id": 746,
-    "userId": 1,
-    "screen": "PartnerWithdrawals",
-    "action": "UPDATE",
-    "description": "تعديل مبلغ السحب الشهري للمستثمر يوسف إلى 1000",
-    "createdAt": "2025-12-17T06:18:11.825Z"
-  },
-  {
-    "id": 747,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-19T01:20:41.918Z"
-  },
-  {
-    "id": 748,
-    "userId": 1,
-    "screen": "Roles",
-    "action": "UPDATE",
-    "description": "المستخدم ادمن حدث الدور Admin",
-    "createdAt": "2025-12-19T01:21:26.323Z"
-  },
-  {
-    "id": 749,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف الشريك: يوسف",
-    "createdAt": "2025-12-19T02:39:13.655Z"
-  },
-  {
-    "id": 750,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف الشريك: عبد الرحمن",
-    "createdAt": "2025-12-19T02:39:30.167Z"
-  },
-  {
-    "id": 751,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-5",
-    "createdAt": "2025-12-19T02:40:32.408Z"
-  },
-  {
-    "id": 752,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: Abdelrahman Mohamed برأس مال 50000",
-    "createdAt": "2025-12-19T02:40:32.432Z"
-  },
-  {
-    "id": 753,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: Abdelrahman Mohamed",
-    "createdAt": "2025-12-19T02:41:54.453Z"
-  },
-  {
-    "id": 754,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-6",
-    "createdAt": "2025-12-19T02:54:30.880Z"
-  },
-  {
-    "id": 755,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: Yousef khaled برأس مال 70000",
-    "createdAt": "2025-12-19T02:54:30.885Z"
-  },
-  {
-    "id": 756,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: Yousef khaled",
-    "createdAt": "2025-12-19T02:54:35.274Z"
-  },
-  {
-    "id": 757,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-7",
-    "createdAt": "2025-12-19T03:08:11.258Z"
-  },
-  {
-    "id": 758,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: عبد الرحمن محمد برأس مال 100000",
-    "createdAt": "2025-12-19T03:08:11.263Z"
-  },
-  {
-    "id": 759,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف الشريك: Abdelrahman Mohamed",
-    "createdAt": "2025-12-19T03:42:47.754Z"
-  },
-  {
-    "id": 760,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف الشريك: Yousef khaled",
-    "createdAt": "2025-12-19T03:42:49.424Z"
-  },
-  {
-    "id": 761,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف الشريك: عبد الرحمن محمد",
-    "createdAt": "2025-12-19T03:42:51.105Z"
-  },
-  {
-    "id": 762,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-8",
-    "createdAt": "2025-12-19T03:43:46.276Z"
-  },
-  {
-    "id": 763,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء شريك جديد: عبد الرحمن محمد برأس مال 50000",
-    "createdAt": "2025-12-19T03:43:46.281Z"
-  },
-  {
-    "id": 764,
-    "userId": 1,
-    "screen": "Partners",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: عبد الرحمن محمد",
-    "createdAt": "2025-12-19T03:53:06.567Z"
-  },
-  {
-    "id": 765,
-    "userId": 1,
-    "screen": "Clients",
-    "action": "CREATE",
-    "description": "المستخدم ادمن أضاف كفيل جديد للعميل: youssef khaled",
-    "createdAt": "2025-12-19T04:09:20.071Z"
-  },
-  {
-    "id": 766,
-    "userId": 1,
-    "screen": "Roles",
-    "action": "UPDATE",
-    "description": "المستخدم ادمن عدّل صلاحيات Dashboard للدور Admin",
-    "createdAt": "2025-12-19T04:21:38.339Z"
-  },
-  {
-    "id": 767,
-    "userId": 1,
-    "screen": "Auth",
-    "action": "login",
-    "description": "المستخدم ادمن قام بتسجيل الدخول",
-    "createdAt": "2025-12-19T12:13:47.645Z"
-  },
-  {
-    "id": 768,
-    "userId": 1,
-    "screen": "Journals",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN-12",
-    "createdAt": "2025-12-19T12:41:02.695Z"
-  },
-  {
-    "id": 769,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "POST",
-    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN-20251216-001 للعميل 1",
-    "createdAt": "2025-12-19T12:41:02.845Z"
-  },
-  {
-    "id": 770,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251216-001 للعميل 1",
-    "createdAt": "2025-12-19T12:41:07.359Z"
-  },
-  {
-    "id": 771,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
-    "createdAt": "2025-12-19T12:41:34.838Z"
-  },
-  {
-    "id": 772,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251219-001 للعميل 1",
-    "createdAt": "2025-12-19T12:46:06.481Z"
-  },
-  {
-    "id": 773,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
-    "createdAt": "2025-12-19T12:46:27.571Z"
-  },
-  {
-    "id": 774,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251219-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-19T12:46:47.422Z"
-  },
-  {
-    "id": 775,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251219-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-19T12:46:49.126Z"
-  },
-  {
-    "id": 776,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "DELETE",
-    "description": "قام المستخدم ادمن بحذف السلفة رقم LN-20251219-001 للعميل 1",
-    "createdAt": "2025-12-19T12:52:01.648Z"
-  },
-  {
-    "id": 777,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 10000",
-    "createdAt": "2025-12-19T12:52:20.551Z"
-  },
-  {
-    "id": 778,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN-20251219-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-19T12:52:33.132Z"
-  },
-  {
-    "id": 779,
-    "userId": 1,
-    "screen": "Loans",
-    "action": "CREATE",
-    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN-20251219-001 الخاص بالعميل youssef khaled",
-    "createdAt": "2025-12-19T12:52:34.768Z"
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251219-001 للعميل 1",
+    "createdAt": "2025-12-19T16:46:34.307Z"
   }
 ]

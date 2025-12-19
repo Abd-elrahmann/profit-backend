@@ -123,16 +123,6 @@ export class LoansService {
             if (kafeel.clientId !== dto.clientId) {
                 throw new BadRequestException('This Kafeel is not associated with the selected client.');
             }
-
-            const hasActiveLoan = kafeel.loans.some(
-                (l) => l.status === LoanStatus.PENDING || l.status === LoanStatus.ACTIVE
-            );
-
-            if (hasActiveLoan) {
-                throw new BadRequestException(
-                    'الكفيل لديه سلفة نشطة أو معلقة بالفعل مع هذا العميل'
-                );
-            }
         }
         // Loan code
         const now = new Date();
@@ -154,6 +144,7 @@ export class LoansService {
                 durationMonths: months,
                 type: dto.type,
                 startDate: dto.startDate ? new Date(dto.startDate) : new Date(),
+                createdAt: dto.startDate ? new Date(dto.startDate) : new Date(),
                 status: LoanStatus.PENDING,
                 repaymentDay: dto.repaymentDay,
                 bankAccountId: dto.bankAccountId,
@@ -360,15 +351,7 @@ export class LoansService {
             },
         });
 
-        const activationDate = new Date();
-
-        // 1) تحديث startDate
-        await this.prisma.loan.update({
-            where: { id },
-            data: { startDate: activationDate },
-        });
-
-        // 2) إعادة حساب تواريخ الأقساط بناءً على النوع
+        const activationDate = loan.startDate || new Date();
         for (const repayment of loan.repayments) {
             let newDueDate: Date;
 
@@ -387,7 +370,6 @@ export class LoansService {
                     0, 0, 0, 0
                 ));
             } else {
-                // Monthly loan
                 const month = activationDate.getUTCMonth() + repayment.count;
                 const day = loan.repaymentDay ?? activationDate.getUTCDate();
                 newDueDate = new Date(Date.UTC(
@@ -623,7 +605,7 @@ export class LoansService {
 
         // Count paid repayments (PAID or EARLY_PAID)
         const paidRepayments = await this.prisma.repayment.count({
-            where: { 
+            where: {
                 loanId: id,
                 status: { in: ['PAID', 'EARLY_PAID'] }
             },
@@ -994,6 +976,29 @@ export class LoansService {
                     ],
                 },
             });
+
+            const headersToDelete = await tx.journalHeader.findMany({
+                where: {
+                    OR: [
+                        {
+                            sourceType: JournalSourceType.LOAN,
+                            sourceId: loan.id,
+                        },
+                        {
+                            sourceType: JournalSourceType.REPAYMENT,
+                            sourceId: repaymentIds.length > 0 ? { in: repaymentIds } : undefined,
+                        },
+                    ],
+                },
+                select: { id: true },
+            });
+
+            if (headersToDelete.length > 0) {
+                const headerIds = headersToDelete.map(h => h.id);
+                await tx.journalLine.deleteMany({ where: { journalId: { in: headerIds } } });
+                await tx.journalHeader.deleteMany({ where: { id: { in: headerIds } } });
+            }
+
 
             await tx.repayment.deleteMany({ where: { loanId: id } });
 
