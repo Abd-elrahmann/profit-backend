@@ -14,10 +14,10 @@ export class DistributionController {
     async postClosing(
         @Req() req,
         @Param('periodId') periodId: string,
-        @Body('savingPercentage') savingPercentage?: number,
+        @Body('savingAmount') savingAmount?: number,
     ) {
-        const percentage = savingPercentage ? Number(savingPercentage) : undefined;
-        return this.distributionService.postClosing(Number(periodId), req.user.id, percentage);;
+        const savingAmountInput = savingAmount ? Number(savingAmount) : undefined;
+        return this.distributionService.postClosing(Number(periodId), req.user.id, savingAmountInput);;
     }
 
     @Post('unpost/:periodId')

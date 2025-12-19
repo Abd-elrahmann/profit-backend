@@ -157,9 +157,13 @@ export class RolesService {
                 data: { name: data.name ?? role.name, description: data.description ?? role.description },
             });
 
-            // If permissions provided → replace all
             if (data.permissions) {
-                await tx.rolePermission.deleteMany({ where: { roleId: id } });
+                await tx.rolePermission.deleteMany({
+                    where: {
+                        roleId: id,
+                        module: { notIn: DASHBOARD_SECTIONS },
+                    },
+                });
 
                 await tx.rolePermission.createMany({
                     data: data.permissions.map((p) => ({

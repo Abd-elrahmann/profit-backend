@@ -222,14 +222,28 @@ export class PartnerService {
         }
 
         await this.prisma.$transaction(async (tx) => {
-            await tx.journalLine.deleteMany({ where: { accountId: partner.accountPayableId } });
-            await tx.journalLine.deleteMany({ where: { accountId: partner.accountEquityId } });
-            await tx.journalLine.deleteMany({ where: { accountId: partner.accountSavingId } });
-            await tx.journalHeader.deleteMany({
+
+            const headersToDelete = await tx.journalHeader.findMany({
                 where: {
                     lines: { some: { accountId: { in: [partner.accountPayableId, partner.accountEquityId, partner.accountSavingId] } } },
                 },
+                select: { id: true },
             });
+
+            if (headersToDelete.length) {
+                await tx.journalLine.deleteMany({
+                    where: {
+                        journalId: { in: headersToDelete.map(h => h.id) }
+                    }
+                });
+            }
+
+            if (headersToDelete.length) {
+                await tx.journalHeader.deleteMany({
+                    where: { id: { in: headersToDelete.map(h => h.id) } },
+                });
+            }
+
             await tx.zakatAccrual.deleteMany({ where: { partnerId: id } });
             await tx.zakatPayment.deleteMany({ where: { partnerId: id } });
             await tx.partnerTransaction.deleteMany({ where: { partnerId: id } });

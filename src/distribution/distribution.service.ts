@@ -10,7 +10,7 @@ export class DistributionService {
     ) { }
 
     // Post closing journal for a period 
-    async postClosing(periodId: number, userId: number, savingPercentage?: number) {
+    async postClosing(periodId: number, userId: number, savingAmountInput?: number) {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
 
@@ -76,7 +76,7 @@ export class DistributionService {
         const Bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
         if (!Bank) throw new BadRequestException('bank is not existed');
 
-        if (savingPercentage && savingPercentage > 0) {
+        if (savingAmountInput && savingAmountInput > 0) {
             for (const acc of accruals) {
                 const partner = acc.partner;
                 const totalProfit = Number(acc.totalProfit);
@@ -87,13 +87,16 @@ export class DistributionService {
                 const partnerSaving = await this.prisma.account.findUnique({ where: { id: partner.accountSavingId } });
                 if (!partnerSaving) throw new BadRequestException('لا يوجد حساب ادخار');
 
-                let savingAmount = (totalProfit * savingPercentage) / 100;
+
+                let savingAmount = Math.min(savingAmountInput, totalProfit);
+                savingAmount = Math.round(savingAmount * 100) / 100;
+
 
                 if ((partnerEquity.balance - partnerSaving.balance) < savingAmount) {
-                    savingAmount = partnerEquity.balance - partnerSaving.balance
+                    savingAmount = Math.round((partnerEquity.balance - partnerSaving.balance) * 100) / 100;
                 }
 
-                if (partnerEquity.balance > partnerSaving.balance) {
+                if (partnerEquity.balance > partnerSaving.balance && savingAmount > 0) {
                     const savingRecord = await this.prisma.partnerSavingAccrual.create({
                         data: {
                             partnerId: partner.id,
@@ -106,7 +109,7 @@ export class DistributionService {
                     const savingJournal = await this.journalService.createJournal(
                         {
                             reference: `SAVE-${partner.id}-${periodId}`,
-                            description: `ادخار بنسبة ${savingPercentage}% للشريك ${partner.name}`,
+                            description: `ادخار ثابت للشريك ${partner.name}`,
                             type: 'GENERAL',
                             sourceType: 'SAVING',
                             sourceId: savingRecord.id,
@@ -115,7 +118,7 @@ export class DistributionService {
                                     accountId: partner.accountSavingId,
                                     debit: 0,
                                     credit: savingAmount,
-                                    description: `تسجيل ادخار (${savingPercentage}%)`,
+                                    description: `تسجيل ادخار (${savingAmount}) للشريك ${partner.name}`,
                                 },
                                 {
                                     accountId: partner.accountPayableId,
@@ -348,7 +351,7 @@ export class DistributionService {
             const periodSavingMap = savingMap.get(p.id) || new Map<number, number>();
 
             const round = (v: number) => Math.round(v * 100) / 100;
-            
+
             // Build partner list with saving
             const partners = p.PartnerPeriodProfit.map(pp => {
                 const savingAmount = round(periodSavingMap.get(pp.partnerId) ?? 0);
