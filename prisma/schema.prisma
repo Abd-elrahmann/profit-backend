@@ -335,6 +335,7 @@ model PartnerWithdrawalSchedule {
 model PartnerWithdrawal {
   id Int @id @default(autoincrement())
   partnerId Int
+  monthlyAmount Float
   totalCapital Float
   defaultShare Float
   remainingCapital Float

@@ -62,6 +62,7 @@ let PartnerWithdrawService = class PartnerWithdrawService {
                 id: true,
                 name: true,
                 orgProfitPercent: true,
+                PartnerWithdrawal: { select: { monthlyAmount: true } }
             },
         });
         if (!partner)
@@ -98,6 +99,7 @@ let PartnerWithdrawService = class PartnerWithdrawService {
         return {
             partnerId: partner.id,
             partnerName: partner.name,
+            monthlyAmount: partner.PartnerWithdrawal?.[0]?.monthlyAmount || 0,
             defaultsBase: parseFloat(partnerDefaultsBase.toFixed(2)),
             orgProfitPercent: partner.orgProfitPercent,
             operationalRatio: partnerOperationalRatio,
@@ -298,6 +300,7 @@ let PartnerWithdrawService = class PartnerWithdrawService {
         const withdrawal = await this.prisma.partnerWithdrawal.create({
             data: {
                 partnerId,
+                monthlyAmount,
                 totalCapital: partner.totalAmount,
                 defaultShare: partnerDefaultShare,
                 remainingCapital,

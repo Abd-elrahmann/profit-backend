@@ -7,6 +7,7 @@ export declare class PartnerWithdrawService {
     previewPartnerDefaultShare(partnerId: number): Promise<{
         partnerId: number;
         partnerName: string;
+        monthlyAmount: number;
         defaultsBase: number;
         orgProfitPercent: number;
         operationalRatio: number;
@@ -18,11 +19,19 @@ export declare class PartnerWithdrawService {
             id: number;
             createdAt: Date;
             partnerId: number;
+<<<<<<< HEAD
             WITHDRAWAL_RECEIPT: string | null;
+=======
+            monthlyAmount: number;
+>>>>>>> 1e324ce4a5451d3f34a5ef0a6ef3f86e6333f834
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
+<<<<<<< HEAD
+=======
+            WITHDRAWAL_RECEIPT: string | null;
+>>>>>>> 1e324ce4a5451d3f34a5ef0a6ef3f86e6333f834
         };
         schedule: any;
         savingsAmount: number;
@@ -44,11 +53,19 @@ export declare class PartnerWithdrawService {
             id: number;
             createdAt: Date;
             partnerId: number;
+<<<<<<< HEAD
             WITHDRAWAL_RECEIPT: string | null;
+=======
+            monthlyAmount: number;
+>>>>>>> 1e324ce4a5451d3f34a5ef0a6ef3f86e6333f834
             totalCapital: number;
             defaultShare: number;
             remainingCapital: number;
             savingAmount: number;
+<<<<<<< HEAD
+=======
+            WITHDRAWAL_RECEIPT: string | null;
+>>>>>>> 1e324ce4a5451d3f34a5ef0a6ef3f86e6333f834
         };
         schedule: {
             id: number;
@@ -168,11 +185,19 @@ export declare class PartnerWithdrawService {
                 id: number;
                 createdAt: Date;
                 partnerId: number;
+<<<<<<< HEAD
                 WITHDRAWAL_RECEIPT: string | null;
+=======
+                monthlyAmount: number;
+>>>>>>> 1e324ce4a5451d3f34a5ef0a6ef3f86e6333f834
                 totalCapital: number;
                 defaultShare: number;
                 remainingCapital: number;
                 savingAmount: number;
+<<<<<<< HEAD
+=======
+                WITHDRAWAL_RECEIPT: string | null;
+>>>>>>> 1e324ce4a5451d3f34a5ef0a6ef3f86e6333f834
             };
         }[];
     }>;
