@@ -82,6 +82,19 @@ export class ExpenseService {
 
         await this.journalService.postJournal(journal.journal.id, userId);
 
+        await Promise.all(expenses.map(async (e) => {
+            await this.prisma.expenseRecord.create({
+                data: {
+                    userId,
+                    type: e.type,
+                    amount: e.amount,
+                    description: e.description || e.type,
+                    employeeId: e.userId || null,
+                    journalId: journal.journal.id,
+                },
+            });
+        }));
+
         await this.prisma.auditLog.create({
             data: {
                 userId,
@@ -156,6 +169,50 @@ export class ExpenseService {
                 balance: totalDebit - totalCredit,
             },
             journals,
+        };
+    }
+
+    async getExpensesRecords(page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+
+        const expenses = await this.prisma.expenseRecord.findMany({
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+                employee: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit,
+        });
+
+        // إجمالي عدد السجلات
+        const total = await this.prisma.expenseRecord.count();
+
+        return {
+            total,
+            page,
+            limit,
+            expenses: expenses.map(e => ({
+                id: e.id,
+                type: e.type,
+                amount: e.amount,
+                description: e.description,
+                createdAt: e.createdAt,
+                addedBy: e.user ? { id: e.user.id, name: e.user.name, email: e.user.email } : null,
+                employee: e.employee ? { id: e.employee.id, name: e.employee.name, email: e.employee.email } : null,
+            })),
         };
     }
 
@@ -241,6 +298,21 @@ export class ExpenseService {
         });
 
         if (isPosted) await this.journalService.postJournal(journalId, userId);
+
+        await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
+
+        await Promise.all(expenses.map(async (e) => {
+            await this.prisma.expenseRecord.create({
+                data: {
+                    userId,
+                    type: e.type,
+                    amount: e.amount,
+                    description: e.description || e.type,
+                    employeeId: e.userId || null,
+                    journalId,
+                },
+            });
+        }));
 
         await this.prisma.auditLog.create({
             data: {

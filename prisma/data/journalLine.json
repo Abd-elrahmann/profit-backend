@@ -260,36 +260,6 @@
     "description": "تخفيض مديونية سلفة صغيرة"
   },
   {
-    "id": 79,
-    "journalId": 30,
-    "accountId": 10,
-    "debit": 1200,
-    "credit": 0,
-    "balance": 0,
-    "clientId": null,
-    "description": "راتب يناير"
-  },
-  {
-    "id": 80,
-    "journalId": 30,
-    "accountId": 10,
-    "debit": 400,
-    "credit": 0,
-    "balance": 0,
-    "clientId": null,
-    "description": "مصاريف تشغيلية"
-  },
-  {
-    "id": 81,
-    "journalId": 30,
-    "accountId": 6,
-    "debit": 0,
-    "credit": 1600,
-    "balance": 0,
-    "clientId": null,
-    "description": "صرف المصروفات"
-  },
-  {
     "id": 82,
     "journalId": 24,
     "accountId": 20,
@@ -328,5 +298,35 @@
     "balance": -1000,
     "clientId": null,
     "description": "سلفة عميل"
+  },
+  {
+    "id": 94,
+    "journalId": 33,
+    "accountId": 22,
+    "debit": 500,
+    "credit": 0,
+    "balance": 0,
+    "clientId": null,
+    "description": "مرتب - youssef"
+  },
+  {
+    "id": 95,
+    "journalId": 33,
+    "accountId": 10,
+    "debit": 500,
+    "credit": 0,
+    "balance": 0,
+    "clientId": null,
+    "description": " اخر مصروف"
+  },
+  {
+    "id": 96,
+    "journalId": 33,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 1000,
+    "balance": 0,
+    "clientId": null,
+    "description": "صرف المصروفات"
   }
 ]

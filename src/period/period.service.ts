@@ -355,6 +355,10 @@ export class PeriodService {
                 },
             });
 
+            await tx.partnerSavingAccrual.deleteMany({
+                where: { periodId },
+            });
+
             await tx.partnerPeriodProfit.deleteMany({
                 where: { periodId },
             });

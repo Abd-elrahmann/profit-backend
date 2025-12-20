@@ -27,7 +27,16 @@ export class ExpenseController {
     @Param('page', ParseIntPipe) page: number,
     @Query('limit') limit = 10,
   ) {
-   return this.expenseService.getExpensesAccountData(page, +limit);
+    return this.expenseService.getExpensesAccountData(page, +limit);
+  }
+
+  @Get('records/:page')
+  // @Permissions('expenses', 'canView')
+  async getExpensesRecords(
+    @Param('page', ParseIntPipe) page: number,
+    @Query('limit') limit = 10,
+  ) {
+    return this.expenseService.getExpensesRecords(page, +limit);
   }
 
   @Patch(':journalId')

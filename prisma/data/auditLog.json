@@ -1198,5 +1198,117 @@
     "action": "POST",
     "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN-20251220-001 للعميل 1",
     "createdAt": "2025-12-20T12:14:30.718Z"
+  },
+  {
+    "id": 152,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-30-1766175260747",
+    "createdAt": "2025-12-20T12:36:20.497Z"
+  },
+  {
+    "id": 153,
+    "userId": 1,
+    "screen": "Expenses",
+    "action": "DELETE",
+    "description": "تم حذف قيد مصروفات 30",
+    "createdAt": "2025-12-20T12:36:20.524Z"
+  },
+  {
+    "id": 154,
+    "userId": 1,
+    "screen": "Users",
+    "action": "CREATE",
+    "description": "المستخدم ادمن أضاف مستخدم جديد youssef",
+    "createdAt": "2025-12-20T12:46:54.846Z"
+  },
+  {
+    "id": 155,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1766235325406",
+    "createdAt": "2025-12-20T12:55:25.467Z"
+  },
+  {
+    "id": 156,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1766235325406",
+    "createdAt": "2025-12-20T12:55:25.525Z"
+  },
+  {
+    "id": 157,
+    "userId": 1,
+    "screen": "Expenses",
+    "action": "CREATE",
+    "description": "تم إنشاء قيد مصروفات 33 بمبلغ 1900",
+    "createdAt": "2025-12-20T12:55:25.527Z"
+  },
+  {
+    "id": 158,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي EXP-1766235512725",
+    "createdAt": "2025-12-20T12:58:32.749Z"
+  },
+  {
+    "id": 159,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-1766235512725",
+    "createdAt": "2025-12-20T12:58:32.778Z"
+  },
+  {
+    "id": 160,
+    "userId": 1,
+    "screen": "Expenses",
+    "action": "CREATE",
+    "description": "تم إنشاء قيد مصروفات 34 بمبلغ 500",
+    "createdAt": "2025-12-20T12:58:32.780Z"
+  },
+  {
+    "id": 161,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1766235512725",
+    "createdAt": "2025-12-20T13:00:02.606Z"
+  },
+  {
+    "id": 162,
+    "userId": 1,
+    "screen": "Expenses",
+    "action": "DELETE",
+    "description": "تم حذف قيد مصروفات 34",
+    "createdAt": "2025-12-20T13:00:02.616Z"
+  },
+  {
+    "id": 163,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي EXP-1766235325406",
+    "createdAt": "2025-12-20T13:02:00.961Z"
+  },
+  {
+    "id": 164,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي EXP-33-1766235721021",
+    "createdAt": "2025-12-20T13:02:01.066Z"
+  },
+  {
+    "id": 165,
+    "userId": 1,
+    "screen": "Expenses",
+    "action": "UPDATE",
+    "description": "تم تعديل قيد مصروفات 33 بمبلغ 1000",
+    "createdAt": "2025-12-20T13:02:01.068Z"
   }
 ]

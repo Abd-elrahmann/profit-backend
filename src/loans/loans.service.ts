@@ -257,7 +257,7 @@ export class LoansService {
             remainingInterest = remainingInterest.minus(interestAmount);
 
             repayments.push({
-                count: i,
+                count: i+1,
                 loanId: loan.id,
                 clientId: dto.clientId,
                 dueDate,

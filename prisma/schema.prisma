@@ -22,10 +22,27 @@ model User {
   auditLogs      AuditLog[]
   postedJournals JournalHeader[]
   ResetToken     ResetPasswordToken[]
+  ExpenseRecord  ExpenseRecord[]      @relation("UserExpenses")
+  EmployeeExpenses ExpenseRecord[]    @relation("EmployeeExpenses")
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
   expenseAccountId  Int?               @unique
   expenseAccount  Account? @relation(name: "account_expenses", references: [id], fields: [expenseAccountId])
+}
+
+model ExpenseRecord {
+  id          Int       @id @default(autoincrement())
+  userId      Int       // الشخص الذي أضاف المصروف
+  type        String    // نوع المصروف، مثال: "مصروف رواتب" أو "مصروف عام"
+  amount      Float
+  description String?
+  employeeId  Int?     
+  journalId   Int?      
+  createdAt   DateTime  @default(now())
+
+  user        User?     @relation("UserExpenses", fields: [userId], references: [id])
+  employee    User?     @relation("EmployeeExpenses", fields: [employeeId], references: [id])
+  journal     JournalHeader? @relation(fields: [journalId], references: [id])
 }
 
 model Role {
@@ -593,6 +610,7 @@ model JournalHeader {
   periodId    Int?
   createdAt   DateTime      @default(now())
   period      PeriodHeader? @relation(fields: [periodId], references: [id])
+  ExpenseRecord ExpenseRecord[]
 }
 
 model JournalLine {
