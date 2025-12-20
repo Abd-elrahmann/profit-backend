@@ -27,7 +27,7 @@ export class ExpenseController {
     @Param('page', ParseIntPipe) page: number,
     @Query('limit') limit = 10,
   ) {
-    return this.expenseService.getExpensesAccountData(page, +limit);
+   return this.expenseService.getExpensesAccountData(page, +limit);
   }
 
   @Patch(':journalId')

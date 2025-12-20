@@ -7,6 +7,16 @@ import { DateTime } from 'luxon';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) { }
 
+  private async generateNextCode(prefix: string): Promise<string> {
+    const latest = await this.prisma.account.findFirst({
+      where: { code: { startsWith: prefix } },
+      orderBy: { code: 'desc' },
+    });
+
+    const nextCode = latest ? (parseInt(latest.code) + 10).toString() : `${prefix}0000`;
+    return nextCode;
+  }
+
   // Add new user
   async addUser(currentUser, data: { name: string; email: string; password: string; phone: string; roleId?: number }) {
     const existingEmail = await this.prisma.user.findUnique({ where: { email: data.email } });
@@ -21,6 +31,24 @@ export class UsersService {
 
     const hashed = await bcrypt.hash(data.password, 10);
 
+    const expenses = await this.prisma.account.findUnique({ where: { code: '52000' } });
+
+    if (!expenses) {
+      throw new BadRequestException('expense accounts (52000) must exist first');
+    }
+
+    const expensesAccount = await this.prisma.account.create({
+      data: {
+        name: `مصروفات - ${data.name}`,
+        code: await this.generateNextCode('52'),
+        parentId: expenses.id,
+        type: 'EXPENSE',
+        nature: 'DEBIT',
+        accountBasicType: 'EXPENSES',
+        level: 3,
+      },
+    });
+
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
@@ -28,6 +56,7 @@ export class UsersService {
         phone: data.phone,
         password: hashed,
         roleId: data.roleId,
+        expenseAccountId: expensesAccount.id,
       },
       select: {
         id: true,
@@ -111,12 +140,11 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
-    if (user.id == 1) throw new NotFoundException('cannot delete admin')
+    if (user.id == 1) throw new NotFoundException('لا يمكن حذف المستخدم ');
 
     const current = await this.prisma.user.findUnique({
       where: { id: currentUser },
     });
-
     // Delete related records
     await this.prisma.auditLog.deleteMany({ where: { userId: id } });
     await this.prisma.resetPasswordToken.deleteMany({ where: { userId: id } });

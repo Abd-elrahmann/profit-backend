@@ -23,13 +23,6 @@ export class ExpenseService {
         if (!expenses || expenses.length === 0)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
 
-        // Validate salary expenses have userId
-        for (const expense of expenses) {
-            if (expense.type === 'مصروف رواتب' && !expense.userId) {
-                throw new BadRequestException('يجب تحديد الموظف عند إضافة مصروف رواتب');
-            }
-        }
-
         const bank = await this.getBankAccount();
         const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
 
@@ -38,32 +31,37 @@ export class ExpenseService {
 
         const journalLines = await Promise.all(
             expenses.map(async (e) => {
-                const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
-                if (!expenseAccount) throw new BadRequestException('حساب المصروفات غير موجود');
-
+                let expenseAccountId: number;
                 let description = e.description || e.type;
 
-                // If it's a salary expense, include the employee name
-                if (e.type === 'مصروف رواتب' && e.userId) {
+                if (e.type === 'مصروف رواتب') {
+                    if (!e.userId) throw new BadRequestException('يجب تحديد الموظف عند إضافة مصروف رواتب');
+
                     const employee = await this.prisma.user.findUnique({
                         where: { id: e.userId },
-                        select: { name: true }
+                        select: { name: true, expenseAccountId: true },
                     });
-                    if (employee) {
-                        description = `${e.description || 'صرف راتب'} - ${employee.name}`;
-                    }
+
+                    if (!employee?.expenseAccountId)
+                        throw new BadRequestException(`لا يوجد حساب مصروفات للموظف ${employee?.name}`);
+
+                    expenseAccountId = employee.expenseAccountId;
+                    description = `${description} - ${employee.name}`;
+                } else {
+                    const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
+                    if (!expenseAccount) throw new BadRequestException('حساب المصروفات العامة غير موجود');
+                    expenseAccountId = expenseAccount.id;
                 }
 
                 return {
-                    accountId: expenseAccount.id,
+                    accountId: expenseAccountId,
                     debit: e.amount,
                     credit: 0,
-                    description: description,
+                    description,
                 };
             }),
         );
 
-        // إضافة خط البنك
         journalLines.push({
             accountId: bank.id,
             debit: 0,
@@ -84,7 +82,6 @@ export class ExpenseService {
 
         await this.journalService.postJournal(journal.journal.id, userId);
 
-        // Audit log
         await this.prisma.auditLog.create({
             data: {
                 userId,
@@ -98,13 +95,17 @@ export class ExpenseService {
     }
 
     async getExpensesAccountData(page = 1, limit = 10) {
-        const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
-        if (!expenseAccount) throw new BadRequestException('حساب المصروفات غير موجود');
-
-        // جلب جميع journal lines للصفحة المطلوبة
+        // جلب كل journalLines التي مصدرها EXPENSES
         const entries = await this.prisma.journalLine.findMany({
-            where: { accountId: expenseAccount.id },
-            include: { journal: true },
+            where: {
+                journal: {
+                    sourceType: JournalSourceType.EXPENSES,
+                },
+            },
+            include: {
+                journal: true,
+                account: true, // للحصول على اسم الحساب
+            },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
@@ -127,10 +128,12 @@ export class ExpenseService {
             }
 
             journalsMap[jId].lines.push({
-                type: line.description, // يمكنك تعديلها لتكون نوع المصروف إذا خزنت النوع
+                type: line.description,
                 amount: line.debit || line.credit,
                 debit: line.debit,
                 credit: line.credit,
+                accountName: line.account?.name, // اسم الحساب لكل line
+                accountCode: line.account?.code,
             });
 
             journalsMap[jId].totalDebit += line.debit;
@@ -139,17 +142,18 @@ export class ExpenseService {
 
         const journals = Object.values(journalsMap);
 
+        // حساب إجمالي المصروفات من جميع lines
+        const totalDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
+        const totalCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
+
         return {
             total: journals.length,
             page,
             limit,
             account: {
-                id: expenseAccount.id,
-                code: expenseAccount.code,
-                name: expenseAccount.name,
-                totalDebit: journals.reduce((sum, j) => sum + j.totalDebit, 0),
-                totalCredit: journals.reduce((sum, j) => sum + j.totalCredit, 0),
-                balance: journals.reduce((sum, j) => sum + j.totalDebit - j.totalCredit, 0),
+                totalDebit,
+                totalCredit,
+                balance: totalDebit - totalCredit,
             },
             journals,
         };
@@ -162,13 +166,6 @@ export class ExpenseService {
     ) {
         if (!expenses || expenses.length === 0)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
-
-        // Validate salary expenses have userId
-        for (const expense of expenses) {
-            if (expense.type === 'مصروف رواتب' && !expense.userId) {
-                throw new BadRequestException('يجب تحديد الموظف عند إضافة مصروف رواتب');
-            }
-        }
 
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id: journalId },
@@ -195,27 +192,34 @@ export class ExpenseService {
 
         const journalLines = await Promise.all(
             expenses.map(async (e) => {
-                const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
-                if (!expenseAccount) throw new BadRequestException('حساب المصروفات غير موجود');
-
+                let expenseAccountId: number;
                 let description = e.description || e.type;
 
-                // If it's a salary expense, include the employee name
-                if (e.type === 'مصروف رواتب' && e.userId) {
+                if (e.type === 'مصروف رواتب') {
+                    if (!e.userId) throw new BadRequestException('يجب تحديد الموظف عند إضافة مصروف رواتب');
+
                     const employee = await this.prisma.user.findUnique({
                         where: { id: e.userId },
-                        select: { name: true }
+                        select: { name: true, expenseAccountId: true },
                     });
-                    if (employee) {
-                        description = `${e.description || 'صرف راتب'} - ${employee.name}`;
-                    }
+
+                    if (!employee?.expenseAccountId)
+                        throw new BadRequestException(`لا يوجد حساب مصروفات للموظف ${employee?.name}`);
+
+                    expenseAccountId = employee.expenseAccountId;
+                    description = `${description} - ${employee.name}`;
+                } else {
+                    const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
+                    if (!expenseAccount) throw new BadRequestException('حساب المصروفات العامة غير موجود');
+
+                    expenseAccountId = expenseAccount.id;
                 }
 
                 return {
-                    accountId: expenseAccount.id,
+                    accountId: expenseAccountId,
                     debit: e.amount,
                     credit: 0,
-                    description: description,
+                    description,
                 };
             }),
         );
@@ -238,7 +242,6 @@ export class ExpenseService {
 
         if (isPosted) await this.journalService.postJournal(journalId, userId);
 
-        // Audit log
         await this.prisma.auditLog.create({
             data: {
                 userId,
@@ -281,6 +284,7 @@ export class ExpenseService {
                 id: true,
                 name: true,
                 email: true,
+                expenseAccountId: true,
             },
             orderBy: { name: 'asc' },
         });

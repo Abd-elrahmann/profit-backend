@@ -140,26 +140,6 @@
     "description": "خصم ادخار للشريك abd elrahman "
   },
   {
-    "id": 63,
-    "journalId": 23,
-    "accountId": 7,
-    "debit": 10000,
-    "credit": 0,
-    "balance": 10000,
-    "clientId": 1,
-    "description": "سلفة عميل"
-  },
-  {
-    "id": 64,
-    "journalId": 23,
-    "accountId": 6,
-    "debit": 0,
-    "credit": 10000,
-    "balance": -10000,
-    "clientId": null,
-    "description": "سلفة عميل"
-  },
-  {
     "id": 1,
     "journalId": 1,
     "accountId": 6,
@@ -216,6 +196,136 @@
     "debit": 0,
     "credit": 25000,
     "balance": -25000,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 67,
+    "journalId": 25,
+    "accountId": 20,
+    "debit": 200,
+    "credit": 0,
+    "balance": 200,
+    "clientId": null,
+    "description": "إثبات سلفة صغيرة"
+  },
+  {
+    "id": 68,
+    "journalId": 25,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 200,
+    "balance": -200,
+    "clientId": null,
+    "description": "صرف نقدي سلفة صغيرة"
+  },
+  {
+    "id": 71,
+    "journalId": 27,
+    "accountId": 6,
+    "debit": 100,
+    "credit": 0,
+    "balance": 100,
+    "clientId": null,
+    "description": "تحصيل سداد سلفة صغيرة"
+  },
+  {
+    "id": 72,
+    "journalId": 27,
+    "accountId": 20,
+    "debit": 0,
+    "credit": 100,
+    "balance": -100,
+    "clientId": null,
+    "description": "تخفيض مديونية سلفة صغيرة"
+  },
+  {
+    "id": 73,
+    "journalId": 29,
+    "accountId": 6,
+    "debit": 100,
+    "credit": 0,
+    "balance": 100,
+    "clientId": null,
+    "description": "تحصيل سداد سلفة صغيرة"
+  },
+  {
+    "id": 74,
+    "journalId": 29,
+    "accountId": 20,
+    "debit": 0,
+    "credit": 100,
+    "balance": -100,
+    "clientId": null,
+    "description": "تخفيض مديونية سلفة صغيرة"
+  },
+  {
+    "id": 79,
+    "journalId": 30,
+    "accountId": 10,
+    "debit": 1200,
+    "credit": 0,
+    "balance": 0,
+    "clientId": null,
+    "description": "راتب يناير"
+  },
+  {
+    "id": 80,
+    "journalId": 30,
+    "accountId": 10,
+    "debit": 400,
+    "credit": 0,
+    "balance": 0,
+    "clientId": null,
+    "description": "مصاريف تشغيلية"
+  },
+  {
+    "id": 81,
+    "journalId": 30,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 1600,
+    "balance": 0,
+    "clientId": null,
+    "description": "صرف المصروفات"
+  },
+  {
+    "id": 82,
+    "journalId": 24,
+    "accountId": 20,
+    "debit": 300,
+    "credit": 0,
+    "balance": 0,
+    "clientId": null,
+    "description": "إثبات سلفة صغيرة"
+  },
+  {
+    "id": 83,
+    "journalId": 24,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 300,
+    "balance": 0,
+    "clientId": null,
+    "description": "صرف نقدي سلفة صغيرة"
+  },
+  {
+    "id": 86,
+    "journalId": 32,
+    "accountId": 7,
+    "debit": 1000,
+    "credit": 0,
+    "balance": 1000,
+    "clientId": 1,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 87,
+    "journalId": 32,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 1000,
+    "balance": -1000,
     "clientId": null,
     "description": "سلفة عميل"
   }

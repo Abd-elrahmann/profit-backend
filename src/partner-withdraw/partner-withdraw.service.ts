@@ -18,7 +18,7 @@ export class PartnerWithdrawService {
                 id: true,
                 name: true,
                 orgProfitPercent: true,
-                PartnerWithdrawal: {select: {monthlyAmount: true}}
+                PartnerWithdrawal: { select: { monthlyAmount: true } }
             },
         });
 
@@ -1086,6 +1086,13 @@ export class PartnerWithdrawService {
                 remaining = parseFloat((remaining - amount).toFixed(2));
                 monthIndex++;
             }
+
+            const UpdateWithdrawal = await this.prisma.partnerWithdrawal.update({
+                where: { id: withdrawal.id },
+                data: {
+                    monthlyAmount: newMonthlyAmount,
+                },
+            });
 
             await tx.auditLog.create({
                 data: {

@@ -1,18 +1,5 @@
 [
   {
-    "id": 1,
-    "reference": "CAP-1",
-    "description": "إيداع رأس مال الشريك youssef",
-    "date": "2025-12-19T11:30:46.644Z",
-    "type": "OPENING",
-    "status": "POSTED",
-    "sourceId": 1,
-    "sourceType": "PARTNER",
-    "postedById": 1,
-    "periodId": 1,
-    "createdAt": "2025-12-19T11:30:46.644Z"
-  },
-  {
     "id": 2,
     "reference": "CAP-2",
     "description": "إيداع رأس مال الشريك abd elrahman ",
@@ -78,16 +65,94 @@
     "createdAt": "2025-12-19T14:50:13.744Z"
   },
   {
-    "id": 23,
-    "reference": "LN-5",
-    "description": "صرف سلفة للعميل 1",
-    "date": "2025-12-19T16:46:34.234Z",
+    "id": 25,
+    "reference": "SMALL-LOAN-2",
+    "description": "صرف سلفة صغيرة للمستفيد youssef",
+    "date": "2025-12-19T19:12:09.677Z",
     "type": "GENERAL",
     "status": "POSTED",
-    "sourceId": 5,
+    "sourceId": 2,
+    "sourceType": "SMALL_LOAN",
+    "postedById": 1,
+    "periodId": 2,
+    "createdAt": "2025-12-19T19:12:09.677Z"
+  },
+  {
+    "id": 1,
+    "reference": "CAP-1",
+    "description": "إيداع رأس مال الشريك youssef",
+    "date": "2025-12-19T11:30:46.644Z",
+    "type": "OPENING",
+    "status": "DRAFT",
+    "sourceId": 1,
+    "sourceType": "PARTNER",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-19T11:30:46.644Z"
+  },
+  {
+    "id": 27,
+    "reference": "SMALL-PAY-2",
+    "description": "سداد سلفة صغيرة للمستفيد youssef",
+    "date": "2025-12-19T19:17:05.842Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 2,
+    "sourceType": "SMALL_LOAN",
+    "postedById": 1,
+    "periodId": 2,
+    "createdAt": "2025-12-19T19:17:05.842Z"
+  },
+  {
+    "id": 29,
+    "reference": "SMALL-PAY-2-3",
+    "description": "سداد سلفة صغيرة للمستفيد youssef",
+    "date": "2025-12-19T19:24:05.359Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 2,
+    "sourceType": "SMALL_LOAN",
+    "postedById": 1,
+    "periodId": 2,
+    "createdAt": "2025-12-19T19:24:05.359Z"
+  },
+  {
+    "id": 30,
+    "reference": "EXP-30-1766175260747",
+    "description": "صرف مصروفات متعددة الأنواع",
+    "date": "2025-12-19T20:11:33.234Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": null,
+    "sourceType": "EXPENSES",
+    "postedById": 1,
+    "periodId": 2,
+    "createdAt": "2025-12-19T20:11:33.234Z"
+  },
+  {
+    "id": 24,
+    "reference": "SMALL-LOAN-1",
+    "description": "صرف سلفة صغيرة للمستفيد youssef",
+    "date": "2025-12-19T19:10:01.976Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 1,
+    "sourceType": "SMALL_LOAN",
+    "postedById": 1,
+    "periodId": 2,
+    "createdAt": "2025-12-19T19:10:01.976Z"
+  },
+  {
+    "id": 32,
+    "reference": "LN-8",
+    "description": "صرف سلفة للعميل 1",
+    "date": "2025-12-20T12:14:30.651Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 8,
     "sourceType": "LOAN",
     "postedById": 1,
     "periodId": 2,
-    "createdAt": "2025-12-19T16:46:34.234Z"
+    "createdAt": "2025-12-20T12:14:30.651Z"
   }
 ]

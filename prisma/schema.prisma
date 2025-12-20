@@ -24,6 +24,8 @@ model User {
   ResetToken     ResetPasswordToken[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
+  expenseAccountId  Int?               @unique
+  expenseAccount  Account? @relation(name: "account_expenses", references: [id], fields: [expenseAccountId])
 }
 
 model Role {
@@ -154,7 +156,7 @@ model Loan {
   status         LoanStatus  @default(PENDING)
   startDate      DateTime
   endDate        DateTime?
-  repaymentDay   Int?
+  repaymentDay   DateTime?
   repayments     Repayment[]
   Notification   Notification[]
   createdAt      DateTime    @default(now())
@@ -478,6 +480,7 @@ model Account {
   partnerPayable   Partner?          @relation("account_payable")
   partnerEquity    Partner?          @relation("account_equity")
   partnerSaving    Partner?          @relation("account_saving")
+  userExpenses     User?             @relation("account_expenses")
   accountsClosing  accountsClosing[]
 
   @@index([accountBasicType, code])

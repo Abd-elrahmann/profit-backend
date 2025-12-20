@@ -285,4 +285,113 @@ export class SmallLoanService {
             };
         });
     }
+
+    async update(id: number, body: any, currentUser: number) {
+        const { Name, amount, notes } = body;
+
+        const loan = await this.prisma.smallLoan.findUnique({
+            where: { id },
+        });
+
+        if (!loan)
+            throw new NotFoundException('السلفة غير موجودة');
+
+        if (loan.paidAmount > 0)
+            throw new BadRequestException(
+                'لا يمكن تعديل سلفة تم السداد عليها',
+            );
+
+        if (amount !== undefined && amount <= 0)
+            throw new BadRequestException('المبلغ غير صحيح');
+
+        return this.prisma.$transaction(async (tx) => {
+            // تعديل بيانات السلفة
+            const updatedLoan = await tx.smallLoan.update({
+                where: { id },
+                data: {
+                    Name: Name ?? loan.Name,
+                    amount: amount ?? loan.amount,
+                    remaining: amount ?? loan.amount,
+                    notes: notes ?? loan.notes,
+                },
+            });
+
+            // البحث عن قيد الصرف الأساسي
+            const journal = await tx.journalHeader.findFirst({
+                where: {
+                    sourceType: JournalSourceType.SMALL_LOAN,
+                    sourceId: loan.id,
+                    reference: `SMALL-LOAN-${loan.id}`,
+                },
+                include: { lines: true },
+            });
+
+            if (!journal)
+                throw new BadRequestException('قيد السلفة غير موجود');
+
+            // فك الترحيل إن كان مرحّل
+            if (journal.status === 'POSTED') {
+                await this.journalService.unpostJournal(
+                    currentUser,
+                    journal.id,
+                );
+            }
+
+            // تحديث خطوط القيد
+            await tx.journalLine.deleteMany({
+                where: { journalId: journal.id },
+            });
+
+            const bank = await tx.account.findFirst({
+                where: { accountBasicType: 'BANK' },
+            });
+
+            const smallLoanAccount = await tx.account.findFirst({
+                where: { accountBasicType: 'SMALL_LOANS_RECEIVABLE' },
+            });
+
+            if (!bank || !smallLoanAccount)
+                throw new BadRequestException('الحسابات المحاسبية غير مكتملة');
+
+            const finalAmount = amount ?? loan.amount;
+
+            await tx.journalLine.createMany({
+                data: [
+                    {
+                        journalId: journal.id,
+                        accountId: smallLoanAccount.id,
+                        debit: finalAmount,
+                        credit: 0,
+                        description: 'إثبات سلفة صغيرة',
+                    },
+                    {
+                        journalId: journal.id,
+                        accountId: bank.id,
+                        debit: 0,
+                        credit: finalAmount,
+                        description: 'صرف نقدي سلفة صغيرة',
+                    },
+                ],
+            });
+
+            await this.journalService.postJournal(
+                journal.id,
+                currentUser,
+            );
+
+            await tx.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Small Loans',
+                    action: 'UPDATE',
+                    description: `تم تعديل السلفة الصغيرة للمستفيد ${updatedLoan.Name}`,
+                },
+            });
+
+            return {
+                message: 'تم تعديل السلفة بنجاح',
+                loan: updatedLoan,
+            };
+        });
+    }
 }

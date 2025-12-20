@@ -31,8 +31,8 @@ export class CreateLoanDto {
     startDate?: string;
 
     @IsOptional()
-    @IsNumber()
-    repaymentDay?: number;
+    @IsDateString()
+    repaymentDay?: string;
 
     @IsNumber()
     bankAccountId?: number;
@@ -67,8 +67,8 @@ export class UpdateLoanDto {
     type: LoanType;
 
     @IsOptional()
-    @IsNumber()
-    repaymentDay?: number;
+    @IsDateString()
+    repaymentDay?: string;
 
     @IsOptional()
     @IsNumber()

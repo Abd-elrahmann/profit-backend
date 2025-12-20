@@ -282,6 +282,10 @@ export class ZakatService {
         const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
         if (!bankAccount) throw new NotFoundException("Bank account not found");
 
+        if (bankAccount.balance < amount) {
+            throw new BadRequestException("الرصيد في الصندوق غير كافٍ للسحب");
+        }
+
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
         });

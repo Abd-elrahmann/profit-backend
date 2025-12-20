@@ -9,6 +9,7 @@ import {
     Query,
     UseGuards,
     Req,
+    Patch,
 } from '@nestjs/common';
 import { SmallLoanService } from './small-loan.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
@@ -26,7 +27,7 @@ export class SmallLoanController {
         @Req() req,
         @Body() body: any
     ) {
-        return this.service.create(body , req.user.id);
+        return this.service.create(body, req.user.id);
     }
 
     @Get(":page")
@@ -46,7 +47,7 @@ export class SmallLoanController {
         @Param('id', ParseIntPipe) id: number,
         @Body() body: any,
     ) {
-        return this.service.pay(id, body , req.user.id);
+        return this.service.pay(id, body, req.user.id);
     }
 
     @Delete(':id')
@@ -54,6 +55,23 @@ export class SmallLoanController {
         @Req() req,
         @Param('id', ParseIntPipe) id: number
     ) {
-        return this.service.delete(id , req.user.id);
+        return this.service.delete(id, req.user.id);
+    }
+
+    @Patch(':id')
+    async updateLoan(
+        @Req() req,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() body: {
+            Name?: string;
+            amount?: number;
+            notes?: string;
+        },
+    ) {
+        return this.service.update(
+            id,
+            body,
+            req.user.id,
+        );
     }
 }

@@ -14,15 +14,15 @@
     "isActive": false
   },
   {
-    "id": 9,
-    "loanId": 5,
+    "id": 15,
+    "loanId": 8,
     "partnerId": 1,
     "sharePercent": 39.26,
     "isActive": true
   },
   {
-    "id": 10,
-    "loanId": 5,
+    "id": 16,
+    "loanId": 8,
     "partnerId": 2,
     "sharePercent": 60.74,
     "isActive": true

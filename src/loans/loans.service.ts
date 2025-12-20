@@ -146,7 +146,7 @@ export class LoansService {
                 startDate: dto.startDate ? new Date(dto.startDate) : new Date(),
                 createdAt: dto.startDate ? new Date(dto.startDate) : new Date(),
                 status: LoanStatus.PENDING,
-                repaymentDay: dto.repaymentDay,
+                repaymentDay: dto.repaymentDay ? new Date(dto.repaymentDay) : new Date(),
                 bankAccountId: dto.bankAccountId,
                 partnerId: dto.partnerId,
             },
@@ -213,18 +213,27 @@ export class LoansService {
         }
 
         const repayments: Prisma.RepaymentCreateManyInput[] = [];
-        const startDate = new Date(dto.startDate || new Date());
+        const firstRepaymentDate = dto.repaymentDay
+            ? new Date(dto.repaymentDay)
+            : (() => {
+                throw new BadRequestException('يجب تحديد تاريخ أول قسط');
+            })();
+
 
         let remainingPrincipal = principal;
         let remainingInterest = totalInterest;
 
-        for (let i = 1; i <= months; i++) {
-            const dueDate = new Date(startDate);
-            if (dto.type === LoanType.DAILY) dueDate.setDate(startDate.getDate() + i);
-            else if (dto.type === LoanType.WEEKLY) dueDate.setDate(startDate.getDate() + i * 7);
+        for (let i = 0; i < months; i++) {
+            const dueDate = new Date(firstRepaymentDate);
+
+            if (dto.type === LoanType.DAILY) {
+                dueDate.setDate(firstRepaymentDate.getDate() + i);
+            }
+            else if (dto.type === LoanType.WEEKLY) {
+                dueDate.setDate(firstRepaymentDate.getDate() + i * 7);
+            }
             else {
-                dueDate.setMonth(startDate.getMonth() + i);
-                if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
+                dueDate.setMonth(firstRepaymentDate.getMonth() + i);
             }
 
             let amount = paymentAmount;
@@ -339,7 +348,6 @@ export class LoansService {
             userId,
         );
 
-        // Immediately post the journal (so balances update)
         await this.journalService.postJournal(journal.id, userId);
 
         // Update loan status and link to journal
@@ -350,42 +358,6 @@ export class LoansService {
                 disbursementJournalId: journal.id,
             },
         });
-
-        const activationDate = loan.startDate || new Date();
-        for (const repayment of loan.repayments) {
-            let newDueDate: Date;
-
-            if (loan.type === LoanType.DAILY) {
-                newDueDate = new Date(Date.UTC(
-                    activationDate.getUTCFullYear(),
-                    activationDate.getUTCMonth(),
-                    activationDate.getUTCDate() + repayment.count,
-                    0, 0, 0, 0
-                ));
-            } else if (loan.type === LoanType.WEEKLY) {
-                newDueDate = new Date(Date.UTC(
-                    activationDate.getUTCFullYear(),
-                    activationDate.getUTCMonth(),
-                    activationDate.getUTCDate() + repayment.count * 7,
-                    0, 0, 0, 0
-                ));
-            } else {
-                const month = activationDate.getUTCMonth() + repayment.count;
-                const day = loan.repaymentDay ?? activationDate.getUTCDate();
-                newDueDate = new Date(Date.UTC(
-                    activationDate.getUTCFullYear(),
-                    month,
-                    day,
-                    0, 0, 0, 0
-                ));
-            }
-
-            // Update repayment
-            await this.prisma.repayment.update({
-                where: { id: repayment.id },
-                data: { dueDate: newDueDate }
-            });
-        }
 
         await this.updateClientStatus(loan.clientId);
 
@@ -561,6 +533,7 @@ export class LoansService {
             const createdAt = loan.createdAt ? new Date(loan.createdAt) : null;
             const startDate = loan.startDate ? new Date(loan.startDate) : null;
             const endDate = loan.endDate ? new Date(loan.endDate) : null;
+            const repaymentDay = loan.repaymentDay ? new Date(loan.repaymentDay) : null;
 
             return {
                 ...loan,
@@ -573,11 +546,15 @@ export class LoansService {
                 endDate: endDate
                     ? DateTime.fromJSDate(endDate).setZone('Asia/Riyadh').toFormat('yyyy-LL-dd')
                     : null,
+                repaymentDay: repaymentDay
+                    ? DateTime.fromJSDate(repaymentDay).setZone('Asia/Riyadh').toFormat('yyyy-LL-dd')
+                    : null,
 
                 // Hijri Dates
                 createdAtHijri: createdAt ? this.toHijri(createdAt) : null,
                 startDateHijri: startDate ? this.toHijri(startDate) : null,
                 endDateHijri: endDate ? this.toHijri(endDate) : null,
+                repaymentDayHijri: repaymentDay ? this.toHijri(repaymentDay) : null,
             };
         });
 
@@ -758,7 +735,9 @@ export class LoansService {
         if (dto.paymentAmount !== undefined) loanUpdateData.paymentAmount = dto.paymentAmount;
         if (dto.type !== undefined) loanUpdateData.type = dto.type;
         if (dto.startDate !== undefined) loanUpdateData.startDate = new Date(dto.startDate);
-        if (dto.repaymentDay !== undefined) loanUpdateData.repaymentDay = dto.repaymentDay;
+        if (dto.repaymentDay !== undefined) {
+            loanUpdateData.repaymentDay = new Date(dto.repaymentDay);
+        }
         if (dto.bankAccountId !== undefined) loanUpdateData.bankAccountId = dto.bankAccountId;
         if (dto.partnerId !== undefined) loanUpdateData.partnerId = dto.partnerId;
         if (dto.clientId !== undefined) loanUpdateData.clientId = dto.clientId;
@@ -883,12 +862,31 @@ export class LoansService {
             let remainingInterest = totalInterest;
 
             const repayments: Prisma.RepaymentCreateManyInput[] = [];
-            const startDate = new Date(dto.startDate || updated.startDate);
+            const firstDate = dto.repaymentDay
+                ? new Date(dto.repaymentDay)
+                : (() => {
+                    throw new BadRequestException('يجب تحديد تاريخ أول قسط');
+                })();
 
             for (let i = 1; i <= months; i++) {
-                const dueDate = new Date(startDate);
-                dueDate.setMonth(startDate.getMonth() + i);
-                if (dto.repaymentDay) dueDate.setDate(dto.repaymentDay);
+                let dueDate: Date;
+
+                if (updated.type === LoanType.DAILY) {
+                    dueDate = new Date(firstDate);
+                    dueDate.setUTCDate(firstDate.getUTCDate() + (i - 1));
+                }
+                else if (updated.type === LoanType.WEEKLY) {
+                    dueDate = new Date(firstDate);
+                    dueDate.setUTCDate(firstDate.getUTCDate() + (i - 1) * 7);
+                }
+                else {
+                    dueDate = new Date(Date.UTC(
+                        firstDate.getUTCFullYear(),
+                        firstDate.getUTCMonth() + (i - 1),
+                        firstDate.getUTCDate(),
+                        0, 0, 0, 0
+                    ));
+                }
 
                 let amount = paymentAmount;
                 if (i === months && hasRemainder) {
