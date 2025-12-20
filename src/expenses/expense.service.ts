@@ -351,12 +351,12 @@ export class ExpenseService {
 
     async getUsersForExpenses() {
         const users = await this.prisma.user.findMany({
-            where: { isActive: true },
             select: {
                 id: true,
                 name: true,
                 email: true,
                 expenseAccountId: true,
+                isActive: true,
             },
             orderBy: { name: 'asc' },
         });

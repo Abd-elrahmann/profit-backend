@@ -10,18 +10,20 @@ export class IncomeStatementController {
     constructor(private readonly incomeService: IncomeStatementService) { }
 
     @Get()
-    // @Permissions('income-statement', 'canView')
+    @Permissions('income-statement', 'canView')
     async getIncomeStatement(
         @Query('from') from?: string,
         @Query('to') to?: string,
         @Query('month') month?: string,
         @Query('year') year?: string,
+        @Query('periodId') periodId?: string,
     ) {
         return this.incomeService.getIncomeStatement({
             fromDate: from,
             toDate: to,
             month: month ? Number(month) : undefined,
             year: year ? Number(year) : undefined,
+            periodId: periodId ? Number(periodId) : undefined,
         });
     }
 }

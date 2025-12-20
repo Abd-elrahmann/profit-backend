@@ -277,7 +277,7 @@ export class PartnerService {
     }
 
     // GET ALL PARTNERS (with pagination + filters)
-    async getAllPartners(page = 1, filters?: { limit?: number; name?: string; nationalId?: string; status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; }) {
+    async getAllPartners(page = 1, filters?: { limit?: number; name?: string; nationalId?: string; status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; withdrawingStatus?: string; }) {
         const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
 
@@ -301,6 +301,12 @@ export class PartnerService {
                     where.isFrozen = true;
                     break;
             }
+        }
+
+        // Filter by withdrawing status if provided
+        if (filters?.withdrawingStatus) {
+            const withdrawingStatuses = filters.withdrawingStatus.split(',');
+            where.WithdrawingStatus = { in: withdrawingStatuses };
         }
         const totalPartners = await this.prisma.partner.count({ where });
         const totalPages = Math.ceil(totalPartners / limit);
