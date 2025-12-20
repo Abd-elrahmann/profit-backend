@@ -6,14 +6,46 @@ import { DateTime } from 'luxon';
 export class IncomeStatementService {
     constructor(private prisma: PrismaService) { }
 
-    async getIncomeStatement(fromDate?: string, toDate?: string) {
-        if (!fromDate || !toDate) {
-            throw new BadRequestException('يجب تحديد fromDate و toDate للفترة');
+    async getIncomeStatement(params: {
+        fromDate?: string;
+        toDate?: string;
+        month?: number;
+        year?: number;
+    }) {
+        const { fromDate, toDate, month, year } = params;
+
+        let from: Date;
+        let to: Date;
+
+        if (month && year) {
+            from = DateTime
+                .fromObject({ year, month, day: 1 }, { zone: 'Asia/Riyadh' })
+                .startOf('month')
+                .toUTC()
+                .toJSDate();
+
+            to = DateTime
+                .fromObject({ year, month, day: 1 }, { zone: 'Asia/Riyadh' })
+                .endOf('month')
+                .toUTC()
+                .toJSDate();
+        } else if (fromDate && toDate) {
+            from = DateTime
+                .fromISO(fromDate, { zone: 'Asia/Riyadh' })
+                .startOf('day')
+                .toUTC()
+                .toJSDate();
+
+            to = DateTime
+                .fromISO(toDate, { zone: 'Asia/Riyadh' })
+                .endOf('day')
+                .toUTC()
+                .toJSDate();
+        } else {
+            throw new BadRequestException(
+                'يجب إرسال (fromDate و toDate) أو (month و year)'
+            );
         }
-
-        const from = DateTime.fromISO(fromDate, { zone: 'Asia/Riyadh' }).startOf('day').toUTC().toJSDate();
-        const to = DateTime.fromISO(toDate, { zone: 'Asia/Riyadh' }).endOf('day').toUTC().toJSDate();
-
         const capitalResult = await this.prisma.partner.aggregate({
             _sum: { capitalAmount: true },
             where: { isActive: true },
@@ -21,42 +53,60 @@ export class IncomeStatementService {
         const totalCapital = capitalResult._sum.capitalAmount || 0;
 
         const revenueJournals = await this.prisma.journalHeader.findMany({
-            where: { date: { gte: from, lte: to }, status: 'POSTED' },
+            where: {
+                date: { gte: from, lte: to },
+                status: 'POSTED',
+            },
             include: {
                 lines: {
-                    where: { account: { type: 'REVENUE' } },
-                    include: { account: true }
-                }
-            }
+                    where: {
+                        account: { type: 'REVENUE' },
+                    },
+                    include: {
+                        account: true,
+                        client: true,
+                    },
+                },
+                ExpenseRecord: false,
+            },
         });
 
         let totalRevenue = 0;
-        const revenueDetails: any[] = [];
-        for (const j of revenueJournals) {
-            const journalTotal = j.lines.reduce((sum, l) => sum + (l.credit - l.debit), 0);
-            totalRevenue += journalTotal;
-            revenueDetails.push({
-                journalId: j.id,
-                reference: j.reference,
-                description: j.description,
-                date: j.date,
-                total: journalTotal,
-                lines: j.lines.map(l => ({
-                    accountName: l.account.name,
-                    debit: l.debit,
-                    credit: l.credit,
-                    amount: l.credit - l.debit,
-                    description: l.description,
-                }))
-            });
+        const revenueDetails = [] as any;
+
+        for (const journal of revenueJournals) {
+            for (const line of journal.lines) {
+                const amount = line.credit - line.debit;
+                if (amount <= 0) continue;
+
+                totalRevenue += amount;
+
+                revenueDetails.push({
+                    journalId: journal.id,
+                    journalDate: journal.date,
+                    account: {
+                        id: line.account.id,
+                        name: line.account.name,
+                        code: line.account.code,
+                    },
+                    amount,
+                    client: line.client
+                        ? {
+                            id: line.client.id,
+                            name: line.client.name,
+                        }
+                        : null,
+                    description: line.description || journal.description,
+                });
+            }
         }
 
-        // --- المصروفات باستخدام ExpenseRecord ---
         const expenseRecords = await this.prisma.expenseRecord.findMany({
             where: { createdAt: { gte: from, lte: to } },
             include: {
                 user: { select: { id: true, name: true } },
                 employee: { select: { id: true, name: true } },
+                journal: true,
             },
             orderBy: { createdAt: 'desc' },
         });
@@ -71,18 +121,27 @@ export class IncomeStatementService {
                 description: e.description,
                 addedBy: e.user?.name || null,
                 employee: e.employee?.name || null,
-                createdAt: e.createdAt,
+                journalId: e.journalId,
+                createdAt: DateTime.fromJSDate(e.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toISO(),
             };
         });
 
         const netProfit = totalRevenue - totalExpenses;
 
         return {
+            period: {
+                from,
+                to,
+                timezone: 'Asia/Riyadh',
+            },
             totalCapital,
             totalRevenue,
             totalExpenses,
             detailedExpenses,
             netProfit,
+            revenueDetails,
         };
     }
 }

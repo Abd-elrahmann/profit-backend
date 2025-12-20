@@ -1,143 +1,163 @@
 [
   {
-    "id": 47,
-    "journalId": 19,
-    "accountId": 8,
-    "debit": 1600,
+    "id": 97,
+    "journalId": 35,
+    "accountId": 7,
+    "debit": 25000,
     "credit": 0,
-    "balance": -1600,
-    "clientId": null,
-    "description": "نصيب المساهمين للفترة"
+    "balance": 25000,
+    "clientId": 1,
+    "description": "سلفة عميل"
   },
   {
-    "id": 48,
-    "journalId": 19,
-    "accountId": 14,
-    "debit": 0,
-    "credit": 1600,
-    "balance": 1600,
-    "clientId": null,
-    "description": "نصيب المساهم من أرباح الشركة"
-  },
-  {
-    "id": 49,
-    "journalId": 19,
-    "accountId": 8,
-    "debit": 2400,
-    "credit": 0,
-    "balance": -2400,
-    "clientId": null,
-    "description": "نصيب المساهمين للفترة"
-  },
-  {
-    "id": 50,
-    "journalId": 19,
-    "accountId": 17,
-    "debit": 0,
-    "credit": 2400,
-    "balance": 2400,
-    "clientId": null,
-    "description": "نصيب المساهم من أرباح الشركة"
-  },
-  {
-    "id": 51,
-    "journalId": 19,
-    "accountId": 8,
-    "debit": 1000,
-    "credit": 0,
-    "balance": -1000,
-    "clientId": null,
-    "description": "نصيب الشركة من أرباح المساهمين"
-  },
-  {
-    "id": 52,
-    "journalId": 19,
-    "accountId": 9,
-    "debit": 0,
-    "credit": 1000,
-    "balance": 1000,
-    "clientId": null,
-    "description": "نصيب الشركة من أرباح المساهمين"
-  },
-  {
-    "id": 53,
-    "journalId": 20,
-    "accountId": 16,
-    "debit": 0,
-    "credit": 1000,
-    "balance": 1000,
-    "clientId": null,
-    "description": "تسجيل ادخار (1000) للشريك youssef"
-  },
-  {
-    "id": 54,
-    "journalId": 20,
-    "accountId": 14,
-    "debit": 1000,
-    "credit": 0,
-    "balance": -1000,
-    "clientId": null,
-    "description": "خصم ادخار للشريك youssef"
-  },
-  {
-    "id": 55,
-    "journalId": 20,
+    "id": 98,
+    "journalId": 35,
     "accountId": 6,
     "debit": 0,
-    "credit": 1000,
-    "balance": -1000,
+    "credit": 25000,
+    "balance": -25000,
     "clientId": null,
-    "description": "خصم ادخار للشريك youssef"
+    "description": "سلفة عميل"
   },
   {
-    "id": 56,
-    "journalId": 20,
-    "accountId": 12,
-    "debit": 1000,
-    "credit": 0,
-    "balance": 1000,
-    "clientId": null,
-    "description": "خصم ادخار للشريك youssef"
-  },
-  {
-    "id": 57,
-    "journalId": 21,
-    "accountId": 19,
-    "debit": 0,
-    "credit": 1000,
-    "balance": 1000,
-    "clientId": null,
-    "description": "تسجيل ادخار (1000) للشريك abd elrahman "
-  },
-  {
-    "id": 58,
-    "journalId": 21,
-    "accountId": 17,
-    "debit": 1000,
-    "credit": 0,
-    "balance": -1000,
-    "clientId": null,
-    "description": "خصم ادخار للشريك abd elrahman "
-  },
-  {
-    "id": 59,
-    "journalId": 21,
+    "id": 99,
+    "journalId": 36,
     "accountId": 6,
-    "debit": 0,
-    "credit": 1000,
-    "balance": -1000,
+    "debit": 6000,
+    "credit": 0,
+    "balance": 6000,
     "clientId": null,
-    "description": "خصم ادخار للشريك abd elrahman "
+    "description": "استلام سداد دفعة للسلفة رقم 9"
   },
   {
-    "id": 60,
-    "journalId": 21,
-    "accountId": 12,
-    "debit": 1000,
-    "credit": 0,
+    "id": 100,
+    "journalId": 36,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 5000,
+    "balance": -5000,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
+  },
+  {
+    "id": 101,
+    "journalId": 36,
+    "accountId": 8,
+    "debit": 0,
+    "credit": 1000,
     "balance": 1000,
     "clientId": null,
-    "description": "خصم ادخار للشريك abd elrahman "
+    "description": "دخل فوائد السلفة"
+  },
+  {
+    "id": 102,
+    "journalId": 37,
+    "accountId": 6,
+    "debit": 6000,
+    "credit": 0,
+    "balance": 6000,
+    "clientId": null,
+    "description": "استلام سداد دفعة للسلفة رقم 9"
+  },
+  {
+    "id": 103,
+    "journalId": 37,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 5000,
+    "balance": -5000,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
+  },
+  {
+    "id": 104,
+    "journalId": 37,
+    "accountId": 8,
+    "debit": 0,
+    "credit": 1000,
+    "balance": 1000,
+    "clientId": null,
+    "description": "دخل فوائد السلفة"
+  },
+  {
+    "id": 105,
+    "journalId": 38,
+    "accountId": 6,
+    "debit": 6000,
+    "credit": 0,
+    "balance": 6000,
+    "clientId": null,
+    "description": "استلام سداد دفعة للسلفة رقم 9"
+  },
+  {
+    "id": 106,
+    "journalId": 38,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 5000,
+    "balance": -5000,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
+  },
+  {
+    "id": 107,
+    "journalId": 38,
+    "accountId": 8,
+    "debit": 0,
+    "credit": 1000,
+    "balance": 1000,
+    "clientId": null,
+    "description": "دخل فوائد السلفة"
+  },
+  {
+    "id": 108,
+    "journalId": 39,
+    "accountId": 6,
+    "debit": 6000,
+    "credit": 0,
+    "balance": 6000,
+    "clientId": null,
+    "description": "استلام سداد دفعة للسلفة رقم 9"
+  },
+  {
+    "id": 109,
+    "journalId": 39,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 5000,
+    "balance": -5000,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
+  },
+  {
+    "id": 110,
+    "journalId": 39,
+    "accountId": 8,
+    "debit": 0,
+    "credit": 1000,
+    "balance": 1000,
+    "clientId": null,
+    "description": "دخل فوائد السلفة"
+  },
+  {
+    "id": 111,
+    "journalId": 40,
+    "accountId": 6,
+    "debit": 6000,
+    "credit": 0,
+    "balance": 6000,
+    "clientId": null,
+    "description": "استلام سداد دفعة للسلفة رقم 9"
+  },
+  {
+    "id": 112,
+    "journalId": 40,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 5000,
+    "balance": -5000,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
   },
   {
     "id": 1,
@@ -180,152 +200,42 @@
     "description": "رأس مال abd elrahman "
   },
   {
-    "id": 5,
-    "journalId": 3,
-    "accountId": 7,
-    "debit": 25000,
-    "credit": 0,
-    "balance": 25000,
-    "clientId": 1,
-    "description": "سلفة عميل"
-  },
-  {
-    "id": 6,
-    "journalId": 3,
-    "accountId": 6,
+    "id": 113,
+    "journalId": 40,
+    "accountId": 8,
     "debit": 0,
-    "credit": 25000,
-    "balance": -25000,
+    "credit": 1000,
+    "balance": 1000,
     "clientId": null,
-    "description": "سلفة عميل"
+    "description": "دخل فوائد السلفة"
   },
   {
-    "id": 67,
-    "journalId": 25,
-    "accountId": 20,
-    "debit": 200,
-    "credit": 0,
-    "balance": 200,
-    "clientId": null,
-    "description": "إثبات سلفة صغيرة"
-  },
-  {
-    "id": 68,
-    "journalId": 25,
-    "accountId": 6,
-    "debit": 0,
-    "credit": 200,
-    "balance": -200,
-    "clientId": null,
-    "description": "صرف نقدي سلفة صغيرة"
-  },
-  {
-    "id": 71,
-    "journalId": 27,
-    "accountId": 6,
-    "debit": 100,
-    "credit": 0,
-    "balance": 100,
-    "clientId": null,
-    "description": "تحصيل سداد سلفة صغيرة"
-  },
-  {
-    "id": 72,
-    "journalId": 27,
-    "accountId": 20,
-    "debit": 0,
-    "credit": 100,
-    "balance": -100,
-    "clientId": null,
-    "description": "تخفيض مديونية سلفة صغيرة"
-  },
-  {
-    "id": 73,
-    "journalId": 29,
-    "accountId": 6,
-    "debit": 100,
-    "credit": 0,
-    "balance": 100,
-    "clientId": null,
-    "description": "تحصيل سداد سلفة صغيرة"
-  },
-  {
-    "id": 74,
-    "journalId": 29,
-    "accountId": 20,
-    "debit": 0,
-    "credit": 100,
-    "balance": -100,
-    "clientId": null,
-    "description": "تخفيض مديونية سلفة صغيرة"
-  },
-  {
-    "id": 82,
-    "journalId": 24,
-    "accountId": 20,
-    "debit": 300,
-    "credit": 0,
-    "balance": 0,
-    "clientId": null,
-    "description": "إثبات سلفة صغيرة"
-  },
-  {
-    "id": 83,
-    "journalId": 24,
-    "accountId": 6,
-    "debit": 0,
-    "credit": 300,
-    "balance": 0,
-    "clientId": null,
-    "description": "صرف نقدي سلفة صغيرة"
-  },
-  {
-    "id": 86,
-    "journalId": 32,
-    "accountId": 7,
+    "id": 117,
+    "journalId": 42,
+    "accountId": 22,
     "debit": 1000,
     "credit": 0,
     "balance": 1000,
-    "clientId": 1,
-    "description": "سلفة عميل"
-  },
-  {
-    "id": 87,
-    "journalId": 32,
-    "accountId": 6,
-    "debit": 0,
-    "credit": 1000,
-    "balance": -1000,
     "clientId": null,
-    "description": "سلفة عميل"
+    "description": "salary - youssef"
   },
   {
-    "id": 94,
-    "journalId": 33,
-    "accountId": 22,
-    "debit": 500,
-    "credit": 0,
-    "balance": 0,
-    "clientId": null,
-    "description": "مرتب - youssef"
-  },
-  {
-    "id": 95,
-    "journalId": 33,
+    "id": 118,
+    "journalId": 42,
     "accountId": 10,
     "debit": 500,
     "credit": 0,
-    "balance": 0,
+    "balance": 500,
     "clientId": null,
-    "description": " اخر مصروف"
+    "description": "internet"
   },
   {
-    "id": 96,
-    "journalId": 33,
+    "id": 119,
+    "journalId": 42,
     "accountId": 6,
     "debit": 0,
-    "credit": 1000,
-    "balance": 0,
+    "credit": 1500,
+    "balance": -1500,
     "clientId": null,
     "description": "صرف المصروفات"
   }

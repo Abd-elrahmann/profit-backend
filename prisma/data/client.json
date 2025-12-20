@@ -14,10 +14,10 @@
     "salary": 10000,
     "obligations": 5000,
     "creationReason": "dklmdl",
-    "debit": 26000,
+    "debit": 25000,
     "credit": 25000,
-    "balance": 1000,
-    "status": "متعثر",
+    "balance": 0,
+    "status": "نشط",
     "notes": "",
     "createdAt": "2025-12-19T11:29:32.117Z"
   }

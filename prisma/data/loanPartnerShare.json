@@ -1,30 +1,16 @@
 [
   {
-    "id": 1,
-    "loanId": 1,
+    "id": 17,
+    "loanId": 9,
     "partnerId": 1,
     "sharePercent": 40,
     "isActive": false
   },
   {
-    "id": 2,
-    "loanId": 1,
+    "id": 18,
+    "loanId": 9,
     "partnerId": 2,
     "sharePercent": 60,
     "isActive": false
-  },
-  {
-    "id": 15,
-    "loanId": 8,
-    "partnerId": 1,
-    "sharePercent": 39.26,
-    "isActive": true
-  },
-  {
-    "id": 16,
-    "loanId": 8,
-    "partnerId": 2,
-    "sharePercent": 60.74,
-    "isActive": true
   }
 ]
