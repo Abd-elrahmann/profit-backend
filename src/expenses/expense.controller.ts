@@ -13,7 +13,7 @@ export class ExpenseController {
   // @Permissions('expenses', 'canAdd')
   async createJournal(
     @Req() req,
-    @Body() body: { expenses: { type: string; amount: number; description?: string }[] }
+    @Body() body: { expenses: { type: string; amount: number; description?: string; userId?: number }[] }
   ) {
     return this.expenseService.createExpenseJournal(
       req.user.id,
@@ -35,7 +35,7 @@ export class ExpenseController {
   async updateExpense(
     @Req() req,
     @Param('journalId', ParseIntPipe) journalId: number,
-    @Body() body: { expenses: { type: string; amount: number; description?: string }[] },
+    @Body() body: { expenses: { type: string; amount: number; description?: string; userId?: number }[] },
   ) {
     return this.expenseService.updateExpense(
       req.user.id,
@@ -51,5 +51,11 @@ export class ExpenseController {
     @Param('journalId', ParseIntPipe) journalId: number,
   ) {
     return this.expenseService.deleteExpense(req.user.id, journalId);
+  }
+
+  @Get('users/list')
+  // @Permissions('expenses', 'canView')
+  async getUsersForExpenses() {
+    return this.expenseService.getUsersForExpenses();
   }
 }

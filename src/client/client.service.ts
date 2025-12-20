@@ -89,7 +89,7 @@ export class ClientService {
                             salary: k.salary,
                             obligations: k.obligations,
                             phone: k.phone,
-                            email: k.email ?? null,
+                            email: k.email && k.email.trim() !== '' ? k.email : null,
                             kafeelIdImage,
                             kafeelWorkCard,
                         },
@@ -724,7 +724,7 @@ export class ClientService {
             salary: dto.salary !== undefined ? Number(dto.salary) : undefined,
             obligations: dto.obligations !== undefined ? Number(dto.obligations) : undefined,
             phone: dto.phone,
-            email: dto.email ?? null,
+            email: dto.email && dto.email.trim() !== '' ? dto.email : null,
             kafeelIdImage: uploadedFiles.kafeelIdImage?.[0] ?? dto.kafeelIdImage,
             kafeelWorkCard: uploadedFiles.kafeelWorkCard?.[0] ?? dto.kafeelWorkCard,
         };

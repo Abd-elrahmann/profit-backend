@@ -18,10 +18,17 @@ export class ExpenseService {
 
     async createExpenseJournal(
         userId: number,
-        expenses: { type: string; amount: number; description?: string }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number }[],
     ) {
         if (!expenses || expenses.length === 0)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
+
+        // Validate salary expenses have userId
+        for (const expense of expenses) {
+            if (expense.type === 'مصروف رواتب' && !expense.userId) {
+                throw new BadRequestException('يجب تحديد الموظف عند إضافة مصروف رواتب');
+            }
+        }
 
         const bank = await this.getBankAccount();
         const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -34,11 +41,24 @@ export class ExpenseService {
                 const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
                 if (!expenseAccount) throw new BadRequestException('حساب المصروفات غير موجود');
 
+                let description = e.description || e.type;
+
+                // If it's a salary expense, include the employee name
+                if (e.type === 'مصروف رواتب' && e.userId) {
+                    const employee = await this.prisma.user.findUnique({
+                        where: { id: e.userId },
+                        select: { name: true }
+                    });
+                    if (employee) {
+                        description = `${e.description || 'صرف راتب'} - ${employee.name}`;
+                    }
+                }
+
                 return {
                     accountId: expenseAccount.id,
                     debit: e.amount,
                     credit: 0,
-                    description: e.description || e.type,
+                    description: description,
                 };
             }),
         );
@@ -138,10 +158,17 @@ export class ExpenseService {
     async updateExpense(
         userId: number,
         journalId: number,
-        expenses: { type: string; amount: number; description?: string }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number }[],
     ) {
         if (!expenses || expenses.length === 0)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
+
+        // Validate salary expenses have userId
+        for (const expense of expenses) {
+            if (expense.type === 'مصروف رواتب' && !expense.userId) {
+                throw new BadRequestException('يجب تحديد الموظف عند إضافة مصروف رواتب');
+            }
+        }
 
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id: journalId },
@@ -171,11 +198,24 @@ export class ExpenseService {
                 const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
                 if (!expenseAccount) throw new BadRequestException('حساب المصروفات غير موجود');
 
+                let description = e.description || e.type;
+
+                // If it's a salary expense, include the employee name
+                if (e.type === 'مصروف رواتب' && e.userId) {
+                    const employee = await this.prisma.user.findUnique({
+                        where: { id: e.userId },
+                        select: { name: true }
+                    });
+                    if (employee) {
+                        description = `${e.description || 'صرف راتب'} - ${employee.name}`;
+                    }
+                }
+
                 return {
                     accountId: expenseAccount.id,
                     debit: e.amount,
                     credit: 0,
-                    description: e.description || e.type,
+                    description: description,
                 };
             }),
         );
@@ -232,5 +272,19 @@ export class ExpenseService {
         });
 
         return { message: 'تم حذف قيد المصروفات بنجاح', journalId };
+    }
+
+    async getUsersForExpenses() {
+        const users = await this.prisma.user.findMany({
+            where: { isActive: true },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+            },
+            orderBy: { name: 'asc' },
+        });
+
+        return users;
     }
 }
