@@ -952,4 +952,103 @@ export class RepaymentService {
 
         return results;
     }
+
+    // Upload payment proof for multiple repayments
+    async uploadPaymentProofBulk(
+        currentUser: number,
+        repaymentIds: number[],
+        file: Express.Multer.File,
+    ) {
+        if (!repaymentIds || repaymentIds.length === 0) {
+            throw new BadRequestException('يجب إرسال معرفات الدفعات');
+        }
+
+        if (!file) {
+            throw new BadRequestException('No file uploaded');
+        }
+
+        const ids = Array.isArray(repaymentIds)
+            ? repaymentIds.map(id => Number(id))
+            : [Number(repaymentIds)];
+
+        if (!ids.length || ids.some(id => !Number.isInteger(id))) {
+            throw new BadRequestException('Invalid repaymentIds');
+        }
+
+        const repayments = await this.prisma.repayment.findMany({
+            where: { id: { in: ids } },
+            include: { client: true },
+        });
+
+        if (repayments.length !== repaymentIds.length) {
+            throw new BadRequestException('بعض الدفعات غير موجودة');
+        }
+
+        const nationalIds = new Set(
+            repayments.map(r => r.client?.nationalId),
+        );
+
+        if (nationalIds.size !== 1) {
+            throw new BadRequestException('يجب أن تكون جميع الدفعات لنفس العميل');
+        }
+
+        const nationalId = repayments[0].client?.nationalId;
+        if (!nationalId) {
+            throw new BadRequestException('Client national ID not found');
+        }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        const uploadDir = path.join(process.cwd(), 'uploads', 'clients', nationalId);
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const filename = `اثبات-السداد-${ids[0]}${path.extname(file.originalname)}`;
+        const filePath = path.join(uploadDir, filename);
+        fs.writeFileSync(filePath, file.buffer);
+
+        const relPath = path
+            .relative(process.cwd(), filePath)
+            .replace(/\\/g, '/');
+
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+
+        for (const repayment of repayments) {
+            if (typeof repayment.PaymentProof === 'string') {
+                try {
+                    const urlPath = new URL(repayment.PaymentProof).pathname;
+                    const prevLocal = path.join(
+                        process.cwd(),
+                        urlPath.replace(/^\//, ''),
+                    );
+                    if (fs.existsSync(prevLocal)) {
+                        fs.unlinkSync(prevLocal);
+                    }
+                } catch { }
+            }
+
+            await this.prisma.repayment.update({
+                where: { id: repayment.id },
+                data: { PaymentProof: publicUrl },
+            });
+
+            await this.prisma.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Repayments',
+                    action: 'CREATE',
+                    description: `قام المستخدم ${user?.name} بتحميل اثبات سداد مشترك للدفعة رقم ${repayment.id}`,
+                },
+            });
+        }
+
+        return {
+            message: 'تم رفع إثبات السداد بنجاح لجميع الدفعات',
+            fileUrl: publicUrl,
+            repaymentsCount: repayments.length,
+        };
+    }
 }

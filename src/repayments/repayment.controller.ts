@@ -135,4 +135,20 @@ export class RepaymentController {
         const dto: RepaymentDto = { notes: body.notes };
         return this.repaymentService.rejectMany(req.user.id, body.ids, dto);
     }
+
+    // Upload payment proof for multiple repayments
+    @Post('payment-proof-bulk')
+    @Permissions('repayments', 'canPost')
+    @UseInterceptors(FileInterceptor('file'))
+    uploadPaymentProofBulk(
+        @Req() req,
+        @UploadedFile() file: Express.Multer.File,
+        @Body('repaymentIds') repaymentIds: number[],
+    ) {
+        return this.repaymentService.uploadPaymentProofBulk(
+            req.user.id,
+            repaymentIds,
+            file,
+        );
+    }
 }

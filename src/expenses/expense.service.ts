@@ -206,6 +206,7 @@ export class ExpenseService {
             limit,
             expenses: expenses.map(e => ({
                 id: e.id,
+                journal: e.journalId,
                 type: e.type,
                 amount: e.amount,
                 description: e.description,
