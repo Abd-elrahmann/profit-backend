@@ -214,6 +214,7 @@ export class RepaymentService {
                             debit: 0,
                             credit: interestAmount,
                             description: 'دخل فوائد السلفة',
+                            clientId: loan.client.id,
                         },
                     ],
                 },
@@ -653,6 +654,7 @@ export class RepaymentService {
                             debit: 0,
                             credit: interestPart,
                             description: 'سداد جزء من دخل فوائد السلفة',
+                            clientId: loan.client.id,
                         },
                     ],
                 },
@@ -800,7 +802,7 @@ export class RepaymentService {
                     lines: [
                         { accountId: bankAccount.id, debit: finalPayment, credit: 0, description: `استلام سداد مبكر من العميل ${loan.client.name}` },
                         { accountId: loansReceivable.id, debit: 0, credit: totalRemainingPrincipal, description: 'سداد أصل السلفة بالكامل', clientId: loan.client.id },
-                        { accountId: loanIncome.id, debit: 0, credit: totalRemainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر' },
+                        { accountId: loanIncome.id, debit: 0, credit: totalRemainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر', clientId: loan.client.id, },
                     ],
                 },
                 currentUserId

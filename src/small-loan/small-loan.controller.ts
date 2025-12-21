@@ -51,6 +51,7 @@ export class SmallLoanController {
     }
 
     @Delete(':id')
+    @Permissions('loans', 'canDelete')
     delete(
         @Req() req,
         @Param('id', ParseIntPipe) id: number
@@ -59,6 +60,7 @@ export class SmallLoanController {
     }
 
     @Patch(':id')
+    @Permissions('loans', 'canUpdate')
     async updateLoan(
         @Req() req,
         @Param('id', ParseIntPipe) id: number,

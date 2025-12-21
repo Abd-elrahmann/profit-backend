@@ -555,14 +555,14 @@ export class ClientService {
     }
 
     async getClientStatement(
-        id: number,
+        clientId: number,
         page: number,
-        options: { from?: string; to?: string; limit?: number },
+        options: { limit?: number; from?: string; to?: string } = {},
     ) {
-        const { from, to, limit = 10 } = options;
+        const { limit = 10, from, to } = options;
 
         const client = await this.prisma.client.findUnique({
-            where: { id },
+            where: { id: clientId },
             select: {
                 id: true,
                 name: true,
@@ -572,124 +572,66 @@ export class ClientService {
                 credit: true,
             },
         });
+
         if (!client) throw new NotFoundException('Client not found');
 
-        // Helper to convert and compare dates in Saudi timezone
         const toSaudiDate = (date: Date | string) =>
             DateTime.fromJSDate(new Date(date))
                 .setZone('Asia/Riyadh')
                 .toFormat('yyyy-LL-dd HH:mm:ss');
 
         const dateFilter: any = {};
-        if (from) {
-            const saudiFrom = DateTime.fromISO(from, { zone: 'Asia/Riyadh' })
-                .startOf('day') // start of that day (00:00:00)
-                .toJSDate();
-            dateFilter.gte = saudiFrom;
-        }
-        if (to) {
-            const saudiTo = DateTime.fromISO(to, { zone: 'Asia/Riyadh' })
-                .endOf('day') // end of that day (23:59:59)
-                .toJSDate();
-            dateFilter.lte = saudiTo;
-        }
+        if (from) dateFilter.gte = new Date(from);
+        if (to) dateFilter.lte = new Date(to);
 
-        // Get loans
-        const loans = await this.prisma.loan.findMany({
+        // Fetch journals that affect this client
+        const journals = await this.prisma.journalHeader.findMany({
             where: {
-                clientId: id,
-                ...(Object.keys(dateFilter).length ? { startDate: dateFilter } : {}),
+                OR: [
+                    { lines: { some: { clientId } } },
+                ],
+                ...(Object.keys(dateFilter).length ? { createdAt: dateFilter } : {}),
             },
-            select: {
-                id: true,
-                code: true,
-                startDate: true,
-                totalAmount: true,
-                status: true,
-                newAmount: true,
-                createdAt: true,
+            include: {
+                lines: { where: { clientId }, select: { debit: true, credit: true } },
+                postedBy: { select: { id: true, name: true, email: true } },
             },
+            orderBy: { createdAt: 'asc' },
         });
 
-        // Get repayments
-        const repayments = await this.prisma.repayment.findMany({
-            where: {
-                clientId: id,
-                ...(Object.keys(dateFilter).length ? { paymentDate: dateFilter } : {}),
-            },
-            select: {
-                id: true,
-                paymentDate: true,
-                amount: true,
-                paidAmount: true,
-                status: true,
-            },
-        });
+        // Build transactions
+        let runningBalance = 0;
+        const transactions = journals.map((j) => {
+            const totalDebit = j.lines.reduce((sum, l) => sum + l.debit, 0);
+            const totalCredit = j.lines.reduce((sum, l) => sum + l.credit, 0);
+            runningBalance += totalDebit - totalCredit;
 
-        // Combine transactions
-        const transactions: any[] = [];
-
-        for (const loan of loans) {
-            transactions.push({
-                date: loan.createdAt,
-                type: 'LOAN_DISBURSEMENT',
-                description: `سلفة رقم ${loan.code}`,
-                debit: loan.newAmount ? loan.newAmount : loan.totalAmount,
-                credit: 0,
-            });
-        }
-
-        for (const r of repayments) {
-            if (['PAID', 'COMPLETED', 'PARTIAL_PAID', 'EARLY_PAID'].includes(r.status)) {
-                transactions.push({
-                    date: r.paymentDate,
-                    type: r.status === 'EARLY_PAID' ? 'EARLY_PAYMENT' : 'REPAYMENT',
-                    description: r.status === 'EARLY_PAID' ? 'سداد مبكر' : 'سداد دفعة',
-                    debit: 0,
-                    credit: r.paidAmount || r.amount,
-                });
-            }
-        }
-
-        // Sort by date ascending
-        transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-        // Compute running balance
-        let runningBalance = client.debit - client.credit;
-        let totalDebit = 0;
-        let totalCredit = 0;
-
-        const round = (n: number) => Math.round(n * 100) / 100;
-
-        const detailedTransactions = transactions.map((t) => {
-            runningBalance = round(runningBalance + t.debit - t.credit);
-            totalDebit = round(totalDebit + t.debit);
-            totalCredit = round(totalCredit + t.credit);
             return {
-                ...t,
-                date: toSaudiDate(t.date),
+                id: j.id,
+                reference: j.reference,
+                description: j.description,
+                date: toSaudiDate(j.createdAt),
+                type: j.type,
+                status: j.status,
+                debit: totalDebit,
+                credit: totalCredit,
                 balance: runningBalance,
+                postedBy: j.postedBy,
             };
         });
 
         // Pagination
         const startIndex = (page - 1) * limit;
-        const paginatedTransactions = detailedTransactions.slice(startIndex, startIndex + limit);
+        const paginatedTransactions = transactions.slice(startIndex, startIndex + limit);
 
         return {
-            totalPages: Math.ceil(detailedTransactions.length / limit),
             currentPage: page,
-            totalTransactions: detailedTransactions.length,
+            totalTransactions: transactions.length,
             client,
-            openingBalance: round(client.debit - client.credit),
             transactions: paginatedTransactions,
-            totalDebit: round(totalDebit),
-            totalCredit: round(totalCredit),
-            closingBalance: round(runningBalance),
         };
     }
 
-    // CREATE NEW KAFEEL FOR A CLIENT
     async createKafeel(
         currentUser: number,
         clientId: number,

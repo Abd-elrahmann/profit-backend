@@ -257,7 +257,7 @@ export class LoansService {
             remainingInterest = remainingInterest.minus(interestAmount);
 
             repayments.push({
-                count: i+1,
+                count: i + 1,
                 loanId: loan.id,
                 clientId: dto.clientId,
                 dueDate,
@@ -296,21 +296,83 @@ export class LoansService {
         return { message: 'تم انشاء السلفة بنجاح', loan: loanWithIncludes };
     }
 
-    // Activate Loan
     async activateLoan(id: number, userId: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
-            include: { repayments: true }
+            include: { repayments: true, client: { select: { id: true } } },
         });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('فقط السلف المعلقة يمكن تفعيلها');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-        });
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
-        // Get Accounts
+        // --- Recreate repayments if missing ---
+        if (!loan.repayments || loan.repayments.length === 0) {
+            const principal = new Decimal(loan.amount);
+            const totalInterest = new Decimal(loan.interestAmount);
+            const totalAmount = new Decimal(loan.totalAmount);
+            const paymentAmount = new Decimal(loan.paymentAmount);
+
+            // Calculate installments
+            const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
+            const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
+            let months = fullMonths;
+            const hasRemainder = lastPayment.gt(0);
+
+            const repayments: Prisma.RepaymentCreateManyInput[] = [];
+            const firstRepaymentDate = loan.repaymentDay || new Date();
+
+            let remainingPrincipal = principal;
+            let remainingInterest = totalInterest;
+
+            for (let i = 0; i < months; i++) {
+                const dueDate = new Date(firstRepaymentDate);
+
+                if (loan.type === LoanType.DAILY) {
+                    dueDate.setDate(firstRepaymentDate.getDate() + i);
+                } else if (loan.type === LoanType.WEEKLY) {
+                    dueDate.setDate(firstRepaymentDate.getDate() + i * 7);
+                } else {
+                    dueDate.setMonth(firstRepaymentDate.getMonth() + i);
+                }
+
+                let amount = paymentAmount;
+                if (i === months && hasRemainder) {
+                    amount = paymentAmount.plus(lastPayment);
+                }
+
+                let principalAmount: Decimal;
+                let interestAmount: Decimal;
+
+                if (i === months && hasRemainder) {
+                    principalAmount = remainingPrincipal;
+                    interestAmount = remainingInterest;
+                } else {
+                    const interestRatio = remainingInterest.div(remainingPrincipal.plus(remainingInterest));
+                    interestAmount = amount.mul(interestRatio).toDecimalPlaces(2);
+                    principalAmount = amount.minus(interestAmount).toDecimalPlaces(2);
+                }
+
+                remainingPrincipal = remainingPrincipal.minus(principalAmount);
+                remainingInterest = remainingInterest.minus(interestAmount);
+
+                repayments.push({
+                    count: i + 1,
+                    loanId: loan.id,
+                    clientId: loan.clientId,
+                    dueDate,
+                    amount: Number(amount.toFixed(2)),
+                    remaining: Number(amount.toFixed(2)),
+                    principalAmount: Number(principalAmount.toFixed(2)),
+                    interestAmount: Number(interestAmount.toFixed(2)),
+                    status: 'PENDING',
+                });
+            }
+
+            await this.prisma.repayment.createMany({ data: repayments });
+        }
+
         const receivable = await this.prisma.account.findFirst({
             where: { accountBasicType: 'LOANS_RECEIVABLE' },
         });
@@ -321,7 +383,6 @@ export class LoansService {
         if (!receivable || !bank)
             throw new BadRequestException('Loan receivable and bank accounts must exist');
 
-        // Create Journal Entry (using JournalService)
         const { journal } = await this.journalService.createJournal(
             {
                 reference: `LN-${loan.id}`,
@@ -350,7 +411,20 @@ export class LoansService {
 
         await this.journalService.postJournal(journal.id, userId);
 
-        // Update loan status and link to journal
+        const clientjournal = await this.journalService.createJournal({
+            reference: `int-${loan.id}`,
+            description: `تحويل فوائد سلفة للعميل ${loan.clientId} إلى حسابه`,
+            type: 'GENERAL',
+            sourceType: 'LOAN_INTEREST',
+            sourceId: loan.id,
+            lines: [
+                { accountId: receivable.id, debit: loan.interestAmount, credit: 0, clientId: loan.clientId },
+                { accountId: receivable.id, debit: 0, credit: loan.interestAmount },
+            ],
+        }, userId);
+
+        await this.journalService.postJournal(clientjournal.journal.id, userId);
+
         await this.prisma.loan.update({
             where: { id },
             data: {
@@ -361,13 +435,12 @@ export class LoansService {
 
         await this.updateClientStatus(loan.clientId);
 
+        // Activate partners if inactive
         const loanPartners = await this.prisma.loanPartnerShare.findMany({
             where: { loanId: loan.id },
             select: {
                 partnerId: true,
-                partner: {
-                    select: { isActive: true },
-                },
+                partner: { select: { isActive: true } },
             },
         });
 
@@ -380,10 +453,9 @@ export class LoansService {
             }
         }
 
-        // create audit log
         await this.prisma.auditLog.create({
             data: {
-                userId: userId || 0,
+                userId,
                 screen: 'Loans',
                 action: 'POST',
                 description: `قام المستخدم ${user?.name} بتفعيل السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
@@ -429,11 +501,18 @@ export class LoansService {
                 })
             ).map(j => j.id);
 
-            // Collect loan journals (disbursement + settlement)
             const loanJournalIds = [loan.disbursementJournalId, loan.settlementJournalId].filter(Boolean) as number[];
 
+            const interestJournal = await tx.journalHeader.findFirst({
+                where: {
+                    sourceType: 'LOAN_INTEREST',
+                    sourceId: loan.id,
+                },
+                select: { id: true },
+            });
+
             // Combine all journal IDs to handle
-            const allJournalIds = [...loanJournalIds, ...repaymentJournalIds];
+            const allJournalIds = [...loanJournalIds, ...repaymentJournalIds , ...interestJournal ? [interestJournal.id] : []];
 
             if (allJournalIds.length > 0) {
                 // Unpost all before deletion
@@ -1167,5 +1246,81 @@ export class LoansService {
         });
 
         return { message: 'تم تحميل ملف التسوية بنجاح', path: publicUrl };
+    }
+
+    async convertLoanClient(clientAId: number, clientBId: number, loanId: number, userId: number) {
+        const clientA = await this.prisma.client.findUnique({ where: { id: clientAId } });
+        const clientB = await this.prisma.client.findUnique({ where: { id: clientBId } });
+        if (!clientA || !clientB) throw new NotFoundException('Client not found');
+
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: { repayments: true },
+        });
+
+        if (!loan) throw new NotFoundException('Loan not found');
+        if (loan.clientId !== clientAId) {
+            throw new BadRequestException('السلف لا تنتمي للعميل المصدر');
+        }
+
+        const remainingReps = loan.repayments.filter(r => r.remaining > 0);
+        if (remainingReps.length === 0) {
+            throw new BadRequestException('لا يوجد مبالغ متبقية لتحويلها');
+        }
+
+        const totalTransferredAmount = remainingReps.reduce((sum, r) => sum + r.remaining, 0);
+
+        await this.prisma.$transaction(async (tx) => {
+            await tx.loan.update({
+                where: { id: loanId },
+                data: { clientId: clientBId },
+            });
+
+            for (const rep of remainingReps) {
+                await tx.repayment.update({
+                    where: { id: rep.id },
+                    data: { clientId: clientBId },
+                });
+            }
+
+            // Create journal for conversion
+            const receivableAccount = await tx.account.findFirst({
+                where: { accountBasicType: 'LOANS_RECEIVABLE' },
+            });
+            if (!receivableAccount) throw new NotFoundException('Loans receivable account not found');
+
+            const { journal } = await this.journalService.createJournal({
+                reference: `CONV-${Date.now()}`,
+                description: `تحويل رصيد السلفة رقم ${loanId} من العميل ${clientAId} إلى العميل ${clientBId}`,
+                type: 'GENERAL',
+                sourceType: 'LOAN_CONVERSION',
+                sourceId: loanId,
+                lines: [
+                    { accountId: receivableAccount.id, debit: totalTransferredAmount, credit: 0, clientId: clientBId },
+                    { accountId: receivableAccount.id, debit: 0, credit: totalTransferredAmount, clientId: clientAId },
+                ],
+            }, userId);
+
+            await this.journalService.postJournal(journal.id, userId);
+
+            // Audit log
+            await tx.auditLog.create({
+                data: {
+                    userId,
+                    screen: 'Clients',
+                    action: 'UPDATE',
+                    description: `قام المستخدم بتحويل السلفة رقم ${loanId} من العميل ${clientAId} إلى العميل ${clientBId}`,
+                },
+            });
+        },);
+
+        // Update client statuses
+        await this.updateClientStatus(clientAId);
+        await this.updateClientStatus(clientBId);
+
+        return {
+            message: 'تم تحويل السلفة بنجاح',
+            totalTransferredAmount,
+        };
     }
 }

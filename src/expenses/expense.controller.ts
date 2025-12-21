@@ -10,7 +10,7 @@ export class ExpenseController {
   constructor(private readonly expenseService: ExpenseService) { }
 
   @Post()
-  // @Permissions('expenses', 'canAdd')
+  @Permissions('expenses', 'canAdd')
   async createJournal(
     @Req() req,
     @Body() body: { expenses: { type: string; amount: number; description?: string; userId?: number }[] }
@@ -22,7 +22,7 @@ export class ExpenseController {
   }
 
   @Get(':page')
-  // @Permissions('expenses', 'canView')
+  @Permissions('expenses', 'canView')
   async getExpensesAccount(
     @Param('page', ParseIntPipe) page: number,
     @Query('limit') limit = 10,
@@ -31,7 +31,7 @@ export class ExpenseController {
   }
 
   @Get('records/:page')
-  // @Permissions('expenses', 'canView')
+  @Permissions('expenses', 'canView')
   async getExpensesRecords(
     @Param('page', ParseIntPipe) page: number,
     @Query('limit') limit = 10,
@@ -40,7 +40,7 @@ export class ExpenseController {
   }
 
   @Patch(':journalId')
-  // @Permissions('expenses', 'canUpdate')
+  @Permissions('expenses', 'canUpdate')
   async updateExpense(
     @Req() req,
     @Param('journalId', ParseIntPipe) journalId: number,
@@ -54,7 +54,7 @@ export class ExpenseController {
   }
 
   @Delete(':journalId')
-  // @Permissions('expenses', 'canDelete')
+  @Permissions('expenses', 'canDelete')
   async deleteExpense(
     @Req() req,
     @Param('journalId', ParseIntPipe) journalId: number,
@@ -63,7 +63,7 @@ export class ExpenseController {
   }
 
   @Get('users/list')
-  // @Permissions('expenses', 'canView')
+  @Permissions('expenses', 'canView')
   async getUsersForExpenses() {
     return this.expenseService.getUsersForExpenses();
   }

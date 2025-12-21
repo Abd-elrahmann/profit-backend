@@ -6,103 +6,10 @@ import { TemplateType } from '@prisma/client';
 export class TemplatesService {
   constructor(private readonly prisma: PrismaService) { }
 
-  // الحصول على القالب مع متغيراته (محدث)
-  async getTemplateWithVariables(name: TemplateType) {
-    const template = await this.prisma.template.findUnique({
-      where: { name },
-      include: { 
-        variables: {
-          orderBy: { createdAt: 'desc' }
-        },
-        styles: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
-      },
-    });
-
-    if (!template) throw new NotFoundException('Template not found');
-    return template;
-  }
-
-  // إضافة متغير جديد (محدث لدعم المجموعات)
-  async addVariable(templateName: TemplateType, key: string, description?: string, group?: string) {
-    const template = await this.prisma.template.findUnique({
-      where: { name: templateName },
-    });
-    if (!template) throw new NotFoundException('Template not found');
-
-    return this.prisma.templateVariable.create({
-      data: {
-        templateId: template.id,
-        key,
-        description,
-        group, // إضافة دعم للمجموعات
-      },
-    });
-  }
-
-  // تحديث المتغير (محدث لدعم المجموعات)
-  async updateVariable(id: number, key: string, description?: string, group?: string) {
-    return this.prisma.templateVariable.update({
-      where: { id },
-      data: { 
-        key, 
-        description,
-        group // إضافة دعم للمجموعات
-      },
-    });
-  }
-
-  // حذف المتغير
-  async deleteVariable(id: number) {
-    return this.prisma.templateVariable.delete({
-      where: { id },
-    });
-  }
-
   // الحصول على جميع القوالب (جديد)
   async getAllTemplates() {
     return this.prisma.template.findMany({
-      include: {
-        variables: true,
-        styles: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
-      },
       orderBy: { name: 'asc' }
-    });
-  }
-
-  // الحصول على أحدث CSS للقالب (جديد)
-  async getLatestStyle(templateName: TemplateType) {
-    const template = await this.prisma.template.findUnique({
-      where: { name: templateName },
-      include: {
-        styles: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
-      }
-    });
-
-    if (!template) throw new NotFoundException('Template not found');
-    return template.styles[0] || null;
-  }
-
-  // حفظ الـ CSS (محدث)
-  async saveStyle(templateName: TemplateType, css: string) {
-    const template = await this.prisma.template.findUnique({
-      where: { name: templateName },
-    });
-    if (!template) throw new NotFoundException('Template not found');
-
-    return this.prisma.templateStyle.create({
-      data: {
-        templateId: template.id,
-        css,
-      },
     });
   }
 
@@ -140,12 +47,6 @@ export class TemplatesService {
   async getTemplateByName(name: TemplateType) {
     const template = await this.prisma.template.findUnique({
       where: { name },
-      include: {
-        styles: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
-      }
     });
     if (!template) throw new NotFoundException('Template not found');
     return template;

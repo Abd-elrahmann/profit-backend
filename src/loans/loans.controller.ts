@@ -116,4 +116,15 @@ export class LoansController {
     ) {
         return this.loansService.uploadSettlementFile(req.user.id, id, file);
     }
+
+    @Patch('convert-client/:loanId')
+    @Permissions('loans', 'canUpdate')
+    async convertClient(
+        @Req() req,
+        @Param('loanId', ParseIntPipe) loanId: number,
+        @Body('fromClientId', ParseIntPipe) fromClientId: number,
+        @Body('toClientId', ParseIntPipe) toClientId: number
+    ) {
+        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, req.user.id);
+    }
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Body, ParseIntPipe, Req, UseGuards, Patch, Get , Query} from '@nestjs/common';
+import { Controller, Post, Param, Body, ParseIntPipe, Req, UseGuards, Patch, Get, Query } from '@nestjs/common';
 import { PeriodService } from './period.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -37,9 +37,17 @@ export class PeriodController {
     @Get('all/:page')
     @Permissions('period', 'canView')
     async getAllPeriods(
-        @Param('page', ParseIntPipe)  page: number,
+        @Param('page', ParseIntPipe) page: number,
         @Query() filters: any
     ) {
         return this.periodService.getAllPeriods(Number(page) || 1, filters);
+    }
+
+    @Post('compare')
+    async compare(
+        @Body('periodId1', ParseIntPipe) periodId1: number,
+        @Body('periodId2', ParseIntPipe) periodId2: number
+    ) {
+        return this.periodService.comparePeriods(periodId1, periodId2);
     }
 }

@@ -685,4 +685,151 @@ export class PeriodService {
             })),
         };
     }
+
+    async comparePeriods(periodId1: number, periodId2: number) {
+
+        const getPeriodData = async (periodId: number) => {
+            const period = await this.prisma.periodHeader.findUnique({
+                where: { id: periodId },
+                include: { journals: { include: { lines: true } } },
+            });
+
+            if (!period) throw new NotFoundException("الفترة غير موجودة");
+
+            let netProfit = 0;
+
+            if (period.isClosed) {
+                const profitAccruals = await this.prisma.partnerPeriodProfit.findMany({
+                    where: { periodId },
+                });
+
+                netProfit = profitAccruals.reduce(
+                    (sum, p) => sum + Number(p.totalProfit || 0),
+                    0
+                );
+
+                const companyShareLines = await this.prisma.journalLine.findMany({
+                    where: {
+                        journal: { periodId, type: 'CLOSING' },
+                        account: { accountBasicType: 'COMPANY_SHARES' }
+                    }
+                });
+
+                const companyProfit = companyShareLines.reduce(
+                    (sum, line) => sum + Number(line.credit || 0),
+                    0
+                );
+
+                netProfit += companyProfit;
+
+            } else {
+                const accruals = await this.prisma.partnerShareAccrual.findMany({
+                    where: { periodId }
+                });
+
+                netProfit = accruals.reduce(
+                    (sum, a) =>
+                        sum +
+                        Number(a.partnerFinal || 0) +
+                        Number(a.companyCut || 0),
+                    0
+                );
+            }
+
+            const delinquentRepayments = await this.prisma.repayment.findMany({
+                where: {
+                    remaining: { gt: 0 },
+                    dueDate: {
+                        gte: period.startDate,
+                        lte: period.endDate || new Date(),
+                    },
+                    loan: {
+                        status: { in: ["ACTIVE", "DEFAULTED"] },
+                        client: { status: "متعثر" },
+                    },
+                },
+                include: {
+                    loan: {
+                        include: {
+                            LoanPartnerShare: true
+                        }
+                    }
+                }
+            });
+
+            let delinquency = 0;
+
+            for (const repayment of delinquentRepayments) {
+                const remaining = Number(repayment.remaining || 0);
+
+                for (const lps of repayment.loan.LoanPartnerShare) {
+                    delinquency += remaining * (Number(lps.sharePercent || 0) / 100);
+                }
+            }
+
+            delinquency = parseFloat(delinquency.toFixed(2));
+
+            return {
+                periodId,
+                periodName: period.name,
+                startDate: period.startDate,
+                endDate: period.endDate || new Date(),
+                isClosed: period.isClosed,
+                netProfit: parseFloat(netProfit.toFixed(2)),
+                delinquency
+            };
+        };
+
+        const [period1Data, period2Data] = await Promise.all([
+            getPeriodData(periodId1),
+            getPeriodData(periodId2),
+        ]);
+
+        const netProfitChange = period2Data.netProfit - period1Data.netProfit;
+        const delinquencyChange = period2Data.delinquency - period1Data.delinquency;
+        const profitabilityImproved = netProfitChange > 0;
+        const delinquencyImproved = delinquencyChange < 0;
+
+        return {
+            comparison: {
+                period1: {
+                    id: period1Data.periodId,
+                    name: period1Data.periodName,
+                    startDate: period1Data.startDate,
+                    endDate: period1Data.endDate,
+                    netProfit: period1Data.netProfit,
+                    delinquency: period1Data.delinquency,
+                },
+                period2: {
+                    id: period2Data.periodId,
+                    name: period2Data.periodName,
+                    startDate: period2Data.startDate,
+                    endDate: period2Data.endDate,
+                    netProfit: period2Data.netProfit,
+                    delinquency: period2Data.delinquency,
+                },
+                changes: {
+                    netProfitChange: parseFloat(netProfitChange.toFixed(2)),
+                    netProfitChangePercent: period1Data.netProfit !== 0
+                        ? parseFloat(((netProfitChange / Math.abs(period1Data.netProfit)) * 100).toFixed(2))
+                        : 0,
+                    delinquencyChange: parseFloat(delinquencyChange.toFixed(2)),
+                    delinquencyChangePercent: period1Data.delinquency !== 0
+                        ? parseFloat(((delinquencyChange / period1Data.delinquency) * 100).toFixed(2))
+                        : 0,
+                },
+                performance: {
+                    profitabilityImproved,
+                    profitabilityStatus: profitabilityImproved ? '✅ تحسن الربحية' : '❌ انخفاض الربحية',
+                    delinquencyImproved,
+                    delinquencyStatus: delinquencyImproved ? '✅ انخفاض التعثر' : '❌ ارتفاع التعثر',
+                    overallStatus: (profitabilityImproved && delinquencyImproved)
+                        ? '🟢 أداء ممتاز'
+                        : (!profitabilityImproved && !delinquencyImproved)
+                            ? '🔴 أداء متراجع'
+                            : '🟡 أداء متوازن',
+                },
+            }
+        };
+    }
 }
