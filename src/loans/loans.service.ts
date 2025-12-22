@@ -512,7 +512,7 @@ export class LoansService {
             });
 
             // Combine all journal IDs to handle
-            const allJournalIds = [...loanJournalIds, ...repaymentJournalIds , ...interestJournal ? [interestJournal.id] : []];
+            const allJournalIds = [...loanJournalIds, ...repaymentJournalIds, ...interestJournal ? [interestJournal.id] : []];
 
             if (allJournalIds.length > 0) {
                 // Unpost all before deletion
@@ -1313,10 +1313,22 @@ export class LoansService {
         return { message: 'تم تحميل ملف التسوية بنجاح', path: publicUrl };
     }
 
-    async convertLoanClient(clientAId: number, clientBId: number, loanId: number, userId: number) {
+    async convertLoanClient(clientAId: number, clientBId: number, loanId: number, kafeelId: number, userId: number) {
         const clientA = await this.prisma.client.findUnique({ where: { id: clientAId } });
-        const clientB = await this.prisma.client.findUnique({ where: { id: clientBId } });
+        const clientB = await this.prisma.client.findUnique({ where: { id: clientBId }, include: { kafeelS: true } });
         if (!clientA || !clientB) throw new NotFoundException('Client not found');
+
+        if (!clientB.kafeelS || clientB.kafeelS.length === 0) {
+            throw new BadRequestException('العميل المحول إليه لا يملك كفلاء');
+        }
+
+        const selectedKafeel = clientB.kafeelS.find(k => k.id === kafeelId);
+
+        if (!selectedKafeel) {
+            throw new BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+        }
+
+        const newKafeelId = clientB.kafeelS[0].id;
 
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
@@ -1338,7 +1350,10 @@ export class LoansService {
         await this.prisma.$transaction(async (tx) => {
             await tx.loan.update({
                 where: { id: loanId },
-                data: { clientId: clientBId },
+                data: {
+                    clientId: clientBId,
+                    kafeelId: selectedKafeel.id,
+                },
             });
 
             for (const rep of remainingReps) {

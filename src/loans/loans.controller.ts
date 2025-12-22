@@ -123,8 +123,9 @@ export class LoansController {
         @Req() req,
         @Param('loanId', ParseIntPipe) loanId: number,
         @Body('fromClientId', ParseIntPipe) fromClientId: number,
-        @Body('toClientId', ParseIntPipe) toClientId: number
+        @Body('toClientId', ParseIntPipe) toClientId: number,
+        @Body('kafeelId', ParseIntPipe) kafeelId: number,
     ) {
-        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, req.user.id);
+        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId, req.user.id);
     }
 }

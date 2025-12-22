@@ -322,6 +322,16 @@ export class DashboardService {
 
         const remaining = totalAmount - paidUntilNow;
 
+        const currentpaid = currentMonthpaid._sum.paidAmount || 0
+
+        let collectionPercentages = totalRepayment > 0
+            ? Math.round((currentpaid / totalRepayment) * 100)
+            : 0;
+
+        if (currentpaid >= totalRepayment) {
+            collectionPercentage = 100;
+        }
+
         return {
             range: { startDate, endDate },
 
@@ -342,6 +352,7 @@ export class DashboardService {
                 totalAmount: totalRepayment,
                 paidUntilNow: currentMonthpaid._sum.paidAmount || 0,
                 remaining: Math.max(totalRepayment - (currentMonthpaid._sum.paidAmount || 0), 0),
+                collectionPercentage: collectionPercentages,
             },
         };
     }
