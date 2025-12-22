@@ -96,11 +96,13 @@ export class SmallLoanService {
         });
     }
 
-    async findAll(page = 1, limit = 20, status?: string) {
+    async findAll(page = 1, limit = 20, status?: string, clientName?: string) {
         page = Number(page) > 0 ? Number(page) : 1;
         limit = Number(limit) > 0 ? Number(limit) : 20;
 
-        const where = status ? { status: status as any } : {};
+        const where: any = {};
+        if (status) where.status = status as any;
+        if (clientName) where.Name = { contains: clientName, mode: 'insensitive' };
 
         const [data, total] = await this.prisma.$transaction([
             this.prisma.smallLoan.findMany({

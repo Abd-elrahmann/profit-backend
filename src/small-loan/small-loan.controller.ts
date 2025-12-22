@@ -36,8 +36,9 @@ export class SmallLoanController {
         @Param('page', ParseIntPipe) page: number,
         @Query('status') status?: string,
         @Query('limit') limit?: number,
+        @Query('clientName') clientName?: string,
     ) {
-        return this.service.findAll(page, limit, status);
+        return this.service.findAll(page, limit, status, clientName);
     }
 
     @Post('pay/:id')

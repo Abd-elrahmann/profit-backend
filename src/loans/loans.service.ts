@@ -588,8 +588,9 @@ export class LoansService {
         if (filters?.status) where.status = filters.status;
         if (filters?.code) where.code = { contains: filters.code, mode: 'insensitive' };
         if (filters?.clientId) where.clientId = filters.clientId;
-        if (filters?.clientName)
+        if (filters?.clientName) {
             where.client = { name: { contains: filters.clientName, mode: 'insensitive' } };
+        }
         if (filters?.bankAccountName)
             where.bankAccount = { name: { contains: filters.bankAccountName, mode: 'insensitive' } };
         if (filters?.partnerName)
@@ -608,11 +609,34 @@ export class LoansService {
             orderBy: { id: 'desc' },
         });
 
-        const loans = unformattedLoans.map((loan) => {
+        const loans = await Promise.all(unformattedLoans.map(async (loan) => {
             const createdAt = loan.createdAt ? new Date(loan.createdAt) : null;
             const startDate = loan.startDate ? new Date(loan.startDate) : null;
             const endDate = loan.endDate ? new Date(loan.endDate) : null;
             const repaymentDay = loan.repaymentDay ? new Date(loan.repaymentDay) : null;
+
+            // Calculate remaining balance for the loan
+            const allRepaymentsAggregation = await this.prisma.repayment.aggregate({
+                where: { loanId: loan.id },
+                _sum: {
+                    paidAmount: true,
+                    remaining: true,
+                },
+            });
+
+            const totalPaidAmount = Number(allRepaymentsAggregation._sum.paidAmount || 0);
+            const totalRemainingAmount = Number(allRepaymentsAggregation._sum.remaining || 0);
+            const remainingBalance = Math.max(0, totalRemainingAmount);
+
+            // Collect all PaymentProof from repayments
+            const paymentProofs = await this.prisma.repayment.findMany({
+                where: { loanId: loan.id, PaymentProof: { not: null } },
+                select: { PaymentProof: true },
+                orderBy: { createdAt: 'desc' },
+            });
+
+            // Return all PaymentProof as array
+            const PAYMENT_PROOF = paymentProofs.map(p => p.PaymentProof).filter(Boolean);
 
             return {
                 ...loan,
@@ -634,8 +658,16 @@ export class LoansService {
                 startDateHijri: startDate ? this.toHijri(startDate) : null,
                 endDateHijri: endDate ? this.toHijri(endDate) : null,
                 repaymentDayHijri: repaymentDay ? this.toHijri(repaymentDay) : null,
+
+                // Financial data
+                remainingBalance: remainingBalance,
+                totalPaidAmount: totalPaidAmount,
+                totalRemainingAmount: totalRemainingAmount,
+
+                // Payment proofs
+                PAYMENT_PROOF,
             };
-        });
+        }));
 
         const total = await this.prisma.loan.count({ where });
         return { total, page, limit, data: loans };
@@ -685,6 +717,28 @@ export class LoansService {
             orderBy: { dueDate: 'asc' },
             skip: (page - 1) * limit,
             take: limit,
+            select: {
+                id: true,
+                count: true,
+                loanId: true,
+                clientId: true,
+                dueDate: true,
+                amount: true,
+                remaining: true,
+                paidAmount: true,
+                principalAmount: true,
+                interestAmount: true,
+                status: true,
+                paymentDate: true,
+                attachments: true,
+                PaymentProof: true,
+                reviewStatus: true,
+                notes: true,
+                postponeApproved: true,
+                postponeReason: true,
+                newDueDate: true,
+                createdAt: true,
+            },
         });
 
         const toSaudiTime = (date: Date | null | undefined) =>
@@ -762,11 +816,22 @@ export class LoansService {
         totalRemainingPrincipal = Number(totalRemainingPrincipal.toFixed(2));
         totalRemainingInterest = Number(totalRemainingInterest.toFixed(2));
 
+        // Collect all PaymentProof from repayments
+        const paymentProofs = await this.prisma.repayment.findMany({
+            where: { loanId: id, PaymentProof: { not: null } },
+            select: { PaymentProof: true },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        // Return all PaymentProof as array
+        const PAYMENT_PROOF = paymentProofs.map(p => p.PaymentProof).filter(Boolean);
+
         return {
             ...loan,
             createdAtHijri: toSaudiHijri(loan.createdAt),
             startDateHijri: loan.startDate ? toSaudiHijri(loan.startDate) : null,
             endDateHijri: loan.endDate ? toSaudiHijri(loan.endDate) : null,
+            PAYMENT_PROOF,
 
             pagination: {
                 totalPages: Math.ceil(totalRepayments / limit),
