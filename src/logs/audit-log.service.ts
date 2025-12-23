@@ -1,10 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DateTime } from 'luxon';
+import moment from "moment-hijri";
 
 @Injectable()
 export class AuditLogService {
     constructor(private readonly prisma: PrismaService) { }
+
+    private toHijri(date: Date) {
+            return moment(date)
+                .locale('ar-SA')
+                .format('iDD iMMMM iYYYY')
+        }
 
     async getAllLogs(
         page: number,
@@ -74,6 +81,7 @@ export class AuditLogService {
             createdAt: DateTime.fromJSDate(log.createdAt, { zone: 'utc' })
                 .setZone('Asia/Riyadh')
                 .toFormat('yyyy-MM-dd HH:mm:ss'),
+            createdAtHijri: this.toHijri(log.createdAt),
         }));
 
         return {

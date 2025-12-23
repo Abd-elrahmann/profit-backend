@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { DateTime } from 'luxon';
+import moment from "moment-hijri";
 
 @Injectable()
 export class CompanyService {
@@ -9,6 +10,12 @@ export class CompanyService {
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
     ) { }
+
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
+    }
 
     // Withdraw company profit
     async withdrawProfit(amount: number, userId: number) {
@@ -73,27 +80,29 @@ export class CompanyService {
         return { message: 'تم سحب الأرباح بنجاح' };
     }
 
-    // Get company profit balance and withdrawal journals with pagination & date filter
+    // Get company profit balance, withdrawals
     async getProfitReport(
         page: number,
         filters?: {
             limit?: number;
-            search?: string; 
-            startDate?: string;     
+            search?: string;
+            startDate?: string;
             endDate?: string;
         },
     ) {
         const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
 
-        // Get the COMPANY_SHARES account
         const companyProfitAccount = await this.prisma.account.findFirst({
             where: { accountBasicType: 'COMPANY_SHARES' },
         });
-        if (!companyProfitAccount) throw new NotFoundException('Company profit account not found');
+        if (!companyProfitAccount)
+            throw new NotFoundException('Company profit account not found');
 
-        // Build where condition for journals
-        const where: any = { sourceType: 'COMPANY_PROFIT_WITHDRAWAL', status: 'POSTED' };
+        const where: any = {
+            sourceType: 'COMPANY_PROFIT_WITHDRAWAL',
+            status: 'POSTED',
+        };
 
         if (filters?.search) {
             where.OR = [
@@ -105,26 +114,22 @@ export class CompanyService {
         if (filters?.startDate || filters?.endDate) {
             where.date = {};
             if (filters.startDate) {
-                const startUtc = DateTime.fromISO(filters.startDate, { zone: 'Asia/Riyadh' })
+                where.date.gte = DateTime.fromISO(filters.startDate, { zone: 'Asia/Riyadh' })
                     .startOf('day')
                     .toUTC()
                     .toJSDate();
-                where.date.gte = startUtc;
             }
             if (filters.endDate) {
-                const endUtc = DateTime.fromISO(filters.endDate, { zone: 'Asia/Riyadh' })
+                where.date.lte = DateTime.fromISO(filters.endDate, { zone: 'Asia/Riyadh' })
                     .endOf('day')
                     .toUTC()
                     .toJSDate();
-                where.date.lte = endUtc;
             }
         }
 
-        // Count total
         const totalWithdrawals = await this.prisma.journalHeader.count({ where });
         const totalPages = Math.ceil(totalWithdrawals / limit);
 
-        // Fetch withdrawals
         const withdrawals = await this.prisma.journalHeader.findMany({
             where,
             skip,
@@ -133,22 +138,70 @@ export class CompanyService {
             include: { lines: true },
         });
 
-        // Format withdrawals with Saudi date only
         const formattedWithdrawals = withdrawals.map((j) => ({
             id: j.id,
             reference: j.reference,
             description: j.description,
-            date: DateTime.fromJSDate(j.date).setZone('Asia/Riyadh').toFormat('yyyy-MM-dd'),
+            date: DateTime.fromJSDate(j.date)
+                .setZone('Asia/Riyadh')
+                .toFormat('yyyy-MM-dd'),
+            hijriDate: this.toHijri(j.date),
             amount: j.lines.reduce((sum, l) => sum + l.credit, 0),
         }));
 
+        const closingJournals = await this.prisma.journalHeader.findMany({
+            where: {
+                sourceType: 'PERIOD_CLOSING',
+                status: 'POSTED',
+            },
+            include: {
+                period: true,
+                lines: {
+                    include: { account: true },
+                },
+            },
+            orderBy: { date: 'asc' },
+        });
+
+        const periods = closingJournals.map((journal) => {
+            const totalPeriodProfit = journal.lines
+                .filter(l => l.account.accountBasicType === 'LOAN_INCOME')
+                .reduce((sum, l) => sum + l.debit, 0);
+
+            const companyProfit = journal.lines
+                .filter(l => l.accountId === companyProfitAccount.id)
+                .reduce((sum, l) => sum + l.credit, 0);
+
+            return {
+                periodId: journal.period?.id,
+                periodName: journal.period?.name,
+                date: DateTime.fromJSDate(journal.date)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-MM-dd'),
+                hijriDate: this.toHijri(journal.date),
+                totalPeriodProfit,
+                companyProfit,
+            };
+        });
+
+        const totalCompanyProfitFromPeriods = periods.reduce(
+            (sum, p) => sum + p.companyProfit,
+            0,
+        );
+
         return {
-            totalPages,
-            currentPage: page,
-            limit,
-            availableAmount: companyProfitAccount.balance,
-            totalWithdrawals,
-            withdrawals: formattedWithdrawals,
+                totalPages,
+                currentPage: page,
+                limit,
+                availableAmount: companyProfitAccount.balance,
+                totalWithdrawals,
+                data: formattedWithdrawals,
+
+            periodsProfit: {
+                totalCompanyProfit: totalCompanyProfitFromPeriods,
+                periodsCount: periods.length,
+                periods,
+            },
         };
     }
 }

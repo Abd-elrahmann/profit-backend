@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { DateTime } from 'luxon';
-import { use } from 'passport';
+import moment from "moment-hijri";
 
 type ZakatYearSummary = {
     partnerId: number;
@@ -23,6 +23,12 @@ export class ZakatService {
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
     ) { }
+
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
+    }
 
     // Get yearly zakat summary for a partner
     async getPartnerZakatSummary(partnerId: number, year?: number) {
@@ -321,6 +327,8 @@ export class ZakatService {
             userId,
         );
 
+        await this.journalService.postJournal(journal.journal.id, userId);
+
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,
@@ -391,6 +399,7 @@ export class ZakatService {
             const mapped = {
                 id: entry.journal.id,
                 date: date.toISO(),
+                hijriDate: this.toHijri(entry.journal.date),
                 reference: entry.journal.reference,
                 description: entry.description ?? entry.journal.description,
                 debit: entry.debit,

@@ -40,96 +40,6 @@
     "description": null
   },
   {
-    "id": 157,
-    "journalId": 59,
-    "accountId": 6,
-    "debit": 6000,
-    "credit": 0,
-    "balance": 6000,
-    "clientId": null,
-    "description": "استلام سداد دفعة للسلفة رقم 9"
-  },
-  {
-    "id": 158,
-    "journalId": 59,
-    "accountId": 7,
-    "debit": 0,
-    "credit": 5000,
-    "balance": -5000,
-    "clientId": 1,
-    "description": "سداد اصل السلفة"
-  },
-  {
-    "id": 159,
-    "journalId": 59,
-    "accountId": 8,
-    "debit": 0,
-    "credit": 1000,
-    "balance": 1000,
-    "clientId": 1,
-    "description": "دخل فوائد السلفة"
-  },
-  {
-    "id": 160,
-    "journalId": 60,
-    "accountId": 6,
-    "debit": 6000,
-    "credit": 0,
-    "balance": 6000,
-    "clientId": null,
-    "description": "استلام سداد دفعة للسلفة رقم 9"
-  },
-  {
-    "id": 161,
-    "journalId": 60,
-    "accountId": 7,
-    "debit": 0,
-    "credit": 5000,
-    "balance": -5000,
-    "clientId": 1,
-    "description": "سداد اصل السلفة"
-  },
-  {
-    "id": 162,
-    "journalId": 60,
-    "accountId": 8,
-    "debit": 0,
-    "credit": 1000,
-    "balance": 1000,
-    "clientId": 1,
-    "description": "دخل فوائد السلفة"
-  },
-  {
-    "id": 163,
-    "journalId": 61,
-    "accountId": 6,
-    "debit": 6000,
-    "credit": 0,
-    "balance": 6000,
-    "clientId": null,
-    "description": "استلام سداد دفعة للسلفة رقم 9"
-  },
-  {
-    "id": 164,
-    "journalId": 61,
-    "accountId": 7,
-    "debit": 0,
-    "credit": 5000,
-    "balance": -5000,
-    "clientId": 1,
-    "description": "سداد اصل السلفة"
-  },
-  {
-    "id": 165,
-    "journalId": 61,
-    "accountId": 8,
-    "debit": 0,
-    "credit": 1000,
-    "balance": 1000,
-    "clientId": 1,
-    "description": "دخل فوائد السلفة"
-  },
-  {
     "id": 166,
     "journalId": 62,
     "accountId": 7,
@@ -248,5 +158,35 @@
     "balance": 600,
     "clientId": null,
     "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 186,
+    "journalId": 64,
+    "accountId": 22,
+    "debit": 1000,
+    "credit": 0,
+    "balance": 0,
+    "clientId": null,
+    "description": "salary - youssef"
+  },
+  {
+    "id": 187,
+    "journalId": 64,
+    "accountId": 10,
+    "debit": 500,
+    "credit": 0,
+    "balance": 0,
+    "clientId": null,
+    "description": "internet"
+  },
+  {
+    "id": 188,
+    "journalId": 64,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 1500,
+    "balance": 0,
+    "clientId": null,
+    "description": "صرف المصروفات"
   }
 ]

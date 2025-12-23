@@ -12,5 +12,19 @@
     "partnerId": 2,
     "sharePercent": 60,
     "isActive": false
+  },
+  {
+    "id": 29,
+    "loanId": 13,
+    "partnerId": 1,
+    "sharePercent": 40,
+    "isActive": true
+  },
+  {
+    "id": 30,
+    "loanId": 13,
+    "partnerId": 2,
+    "sharePercent": 60,
+    "isActive": true
   }
 ]

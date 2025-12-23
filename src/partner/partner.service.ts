@@ -848,12 +848,18 @@ export class PartnerService {
             include: { partner: { select: { name: true } } },
         });
 
+         const toHijri = (date: Date | null) => {
+            if (!date) return null;
+            return moment(date).locale('ar-SA').format('iDD iMMMM iYYYY');
+        };
+
         // Convert UTC → Riyadh time
         const convertedTransactions = transactions.map((t) => ({
             ...t,
             date: DateTime.fromJSDate(t.date, { zone: 'utc' })
                 .setZone('Asia/Riyadh')
                 .toFormat('yyyy-MM-dd HH:mm:ss'),
+                dateHijri: toHijri(t.date),
         }));
 
         return {

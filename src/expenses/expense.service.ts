@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { JournalStatus, JournalSourceType } from '@prisma/client';
+import moment from "moment-hijri";
 
 @Injectable()
 export class ExpenseService {
@@ -9,6 +10,12 @@ export class ExpenseService {
         private prisma: PrismaService,
         private readonly journalService: JournalService,
     ) { }
+
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
+    }
 
     private async getBankAccount() {
         const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
@@ -211,6 +218,7 @@ export class ExpenseService {
                 amount: e.amount,
                 description: e.description,
                 createdAt: e.createdAt,
+                createdAtHijri: this.toHijri(e.createdAt),
                 addedBy: e.user ? { id: e.user.id, name: e.user.name, email: e.user.email } : null,
                 employee: e.employee ? { id: e.employee.id, name: e.employee.name, email: e.employee.email } : null,
             })),

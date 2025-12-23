@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
+import moment from "moment-hijri";
 
 @Injectable()
 export class DistributionService {
@@ -8,6 +9,12 @@ export class DistributionService {
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
     ) { }
+
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
+    }
 
     // Post closing journal for a period 
     async postClosing(periodId: number, userId: number, savingAmountInput?: number) {
@@ -77,6 +84,15 @@ export class DistributionService {
         if (!Bank) throw new BadRequestException('bank is not existed');
 
         if (savingAmountInput && savingAmountInput > 0) {
+
+            const totalPartnersProfit = accruals.reduce(
+                (sum, a) => sum + Number(a.totalProfit),
+                0,
+            );
+
+            if (totalPartnersProfit <= 0)
+                throw new BadRequestException('إجمالي أرباح الشركاء غير صالح');
+
             for (const acc of accruals) {
                 const partner = acc.partner;
                 const totalProfit = Number(acc.totalProfit);
@@ -87,8 +103,9 @@ export class DistributionService {
                 const partnerSaving = await this.prisma.account.findUnique({ where: { id: partner.accountSavingId } });
                 if (!partnerSaving) throw new BadRequestException('لا يوجد حساب ادخار');
 
+                const partnerRatio = totalProfit / totalPartnersProfit;
 
-                let savingAmount = Math.min(savingAmountInput, totalProfit);
+                let savingAmount = savingAmountInput * partnerRatio;
                 savingAmount = Math.round(savingAmount * 100) / 100;
 
 
@@ -383,12 +400,13 @@ export class DistributionService {
                 };
             });
 
-
             return {
                 periodId: p.id,
                 name: p.name,
                 startDate: p.startDate,
+                startdateHijri: this.toHijri(p.startDate),
                 endDate: p.endDate,
+                enddateHijri: p.endDate ? this.toHijri(p.endDate) : null,
 
                 closingJournalId: p.closingJournalId,
                 isDistributed: distributionJournal?.status === 'POSTED',

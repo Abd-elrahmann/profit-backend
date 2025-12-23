@@ -39,7 +39,7 @@
     "debit": 12000,
     "credit": 0,
     "balance": 12000,
-    "status": "نشط",
+    "status": "متعثر",
     "notes": "High salary, low obligations",
     "createdAt": "2025-12-21T13:37:40.578Z"
   }

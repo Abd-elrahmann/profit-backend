@@ -52,45 +52,6 @@
     "createdAt": "2025-12-21T16:35:07.845Z"
   },
   {
-    "id": 59,
-    "reference": "REP-47",
-    "description": "الموافقة على سداد دفعة رقم 47 للسلفة رقم 9",
-    "date": "2025-12-21T16:33:59.708Z",
-    "type": "GENERAL",
-    "status": "POSTED",
-    "sourceId": 47,
-    "sourceType": "REPAYMENT",
-    "postedById": 1,
-    "periodId": 1,
-    "createdAt": "2025-12-21T16:33:59.708Z"
-  },
-  {
-    "id": 60,
-    "reference": "REP-48",
-    "description": "الموافقة على سداد دفعة رقم 48 للسلفة رقم 9",
-    "date": "2025-12-21T16:34:00.030Z",
-    "type": "GENERAL",
-    "status": "POSTED",
-    "sourceId": 48,
-    "sourceType": "REPAYMENT",
-    "postedById": 1,
-    "periodId": 1,
-    "createdAt": "2025-12-21T16:34:00.030Z"
-  },
-  {
-    "id": 61,
-    "reference": "REP-49",
-    "description": "الموافقة على سداد دفعة رقم 49 للسلفة رقم 9",
-    "date": "2025-12-21T16:34:00.100Z",
-    "type": "GENERAL",
-    "status": "POSTED",
-    "sourceId": 49,
-    "sourceType": "REPAYMENT",
-    "postedById": 1,
-    "periodId": 1,
-    "createdAt": "2025-12-21T16:34:00.100Z"
-  },
-  {
     "id": 63,
     "reference": "CLOSE-PERIOD-1-1766335966035",
     "description": "إقفال فترة opening",
@@ -115,5 +76,18 @@
     "postedById": 1,
     "periodId": 1,
     "createdAt": "2025-12-19T11:30:46.644Z"
+  },
+  {
+    "id": 64,
+    "reference": "EXP-64-1766410750289",
+    "description": "صرف مصروفات متعددة الأنواع",
+    "date": "2025-12-22T13:14:08.935Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": null,
+    "sourceType": "EXPENSES",
+    "postedById": 1,
+    "periodId": 3,
+    "createdAt": "2025-12-22T13:14:08.935Z"
   }
 ]

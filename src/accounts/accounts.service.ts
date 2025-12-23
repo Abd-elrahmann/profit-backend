@@ -2,10 +2,17 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto, UpdateAccountDto } from './dto/accounts.dto';
 import { DateTime } from 'luxon';
+import moment from "moment-hijri";
 
 @Injectable()
 export class AccountsService {
     constructor(private readonly prisma: PrismaService) { }
+    
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
+    }
 
     // CREATE ACCOUNT
     async createAccount(dto: CreateAccountDto) {
@@ -184,6 +191,7 @@ export class AccountsService {
             date: DateTime.fromJSDate(j.date)
                 .setZone('Asia/Riyadh')
                 .toFormat('yyyy-LL-dd HH:mm:ss'),
+            hijriDate: this.toHijri(j.date),
             status: j.status,
             type: j.type,
             postedBy: j.postedBy?.name ?? null,

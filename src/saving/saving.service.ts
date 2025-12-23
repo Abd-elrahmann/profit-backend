@@ -1,10 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DateTime } from 'luxon';
+import moment from "moment-hijri";
 
 @Injectable()
 export class SavingService {
     constructor(private readonly prisma: PrismaService) { }
+
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
+    }
 
     // Partner saving summary (per period)
     async getPartnerSavingSummary(partnerId: number) {
@@ -44,7 +51,8 @@ export class SavingService {
             acc[periodId].accruals.push({
                 savingId: a.id,
                 savingAmount: Number(a.savingAmount),
-                date: a.createdAt
+                date: a.createdAt,
+                dateHijri: this.toHijri(a.createdAt)
             });
 
             return acc;
@@ -108,6 +116,8 @@ export class SavingService {
                             name: period?.name,
                             startDate: period?.startDate,
                             endDate: period?.endDate,
+                            startdateHijri: period?.startDate ? this.toHijri(period.startDate) : null,
+                            enddateHijri: period?.endDate ? this.toHijri(period.endDate) : null,
                         },
                         total: 0,
                         accrualCount: 0, // to avoid returning full accrual objects
@@ -172,6 +182,7 @@ export class SavingService {
             acc[monthKey].entries.push({
                 id: entry.journal.id,
                 date: date.toISO(),
+                dateHijri: this.toHijri(entry.journal.date),
                 reference: entry.journal.reference,
                 description: entry.description ?? entry.journal.description,
                 debit: entry.debit,

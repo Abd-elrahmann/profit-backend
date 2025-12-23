@@ -3,10 +3,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JournalStatus, JournalSourceType } from '@prisma/client';
 import { DateTime } from 'luxon';
+import moment from "moment-hijri";
 
 @Injectable()
 export class JournalService {
     constructor(private readonly prisma: PrismaService) { }
+
+    private toHijri(date: Date) {
+        return moment(date)
+            .locale('ar-SA')
+            .format('iDD iMMMM iYYYY')
+    }
 
     // Create journal
     async createJournal(dto: CreateJournalDto, userId?: number) {
@@ -308,10 +315,19 @@ export class JournalService {
                     .setZone('Asia/Riyadh')
                     .toFormat('yyyy-LL-dd HH:mm:ss')
                 : null,
+
+            dateHijri: journal.date
+                ? this.toHijri(journal.date)
+                : null,
+
             createdAt: journal.createdAt
                 ? DateTime.fromJSDate(journal.createdAt)
                     .setZone('Asia/Riyadh')
                     .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+
+            createdAtHijri: journal.createdAt
+                ? this.toHijri(journal.createdAt)
                 : null,
         }));
 

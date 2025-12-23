@@ -103,7 +103,6 @@ export class LoansService {
         let months = fullMonths;
         const hasRemainder = lastPayment.gt(0);
 
-
         const bank = await this.prisma.account.findFirst({
             where: { accountBasicType: 'BANK' },
         });
@@ -237,7 +236,7 @@ export class LoansService {
             }
 
             let amount = paymentAmount;
-            if (i === months && lastPayment.gt(0)) {
+            if (i === months - 1 && lastPayment.gt(0)) {
                 amount = paymentAmount.plus(lastPayment);
             }
 
@@ -338,7 +337,7 @@ export class LoansService {
                 }
 
                 let amount = paymentAmount;
-                if (i === months && hasRemainder) {
+                if (i === months - 1 && hasRemainder) {
                     amount = paymentAmount.plus(lastPayment);
                 }
 
@@ -636,7 +635,9 @@ export class LoansService {
             });
 
             // Return all PaymentProof as array
-            const PAYMENT_PROOF = paymentProofs.map(p => p.PaymentProof).filter(Boolean);
+            const PAYMENT_PROOF = [
+                ...new Set(paymentProofs.map(p => p.PaymentProof).filter(Boolean))
+            ];
 
             return {
                 ...loan,
@@ -816,22 +817,11 @@ export class LoansService {
         totalRemainingPrincipal = Number(totalRemainingPrincipal.toFixed(2));
         totalRemainingInterest = Number(totalRemainingInterest.toFixed(2));
 
-        // Collect all PaymentProof from repayments
-        const paymentProofs = await this.prisma.repayment.findMany({
-            where: { loanId: id, PaymentProof: { not: null } },
-            select: { PaymentProof: true },
-            orderBy: { createdAt: 'desc' },
-        });
-
-        // Return all PaymentProof as array
-        const PAYMENT_PROOF = paymentProofs.map(p => p.PaymentProof).filter(Boolean);
-
         return {
             ...loan,
             createdAtHijri: toSaudiHijri(loan.createdAt),
             startDateHijri: loan.startDate ? toSaudiHijri(loan.startDate) : null,
             endDateHijri: loan.endDate ? toSaudiHijri(loan.endDate) : null,
-            PAYMENT_PROOF,
 
             pagination: {
                 totalPages: Math.ceil(totalRepayments / limit),
