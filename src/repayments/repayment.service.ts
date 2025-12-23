@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RepaymentDto } from './dto/repayment.dto';
-import { PaymentStatus, JournalSourceType, TemplateType } from '@prisma/client';
+import { PaymentStatus, JournalSourceType, TemplateType, LoanStatus } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
 import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
@@ -104,6 +104,10 @@ export class RepaymentService {
 
         const loan = repayment.loan;
         if (!loan) throw new NotFoundException('Loan not found');
+
+        if (loan.status === LoanStatus.PENDING)
+            throw new BadRequestException('loan is pending');
+
         if (repayment.status === PaymentStatus.PAID)
             throw new BadRequestException('Repayment already approved');
 
@@ -222,6 +226,12 @@ export class RepaymentService {
         });
         if (!repayment) throw new NotFoundException('Repayment not found');
 
+        const loan = repayment.loan;
+        if (!loan) throw new NotFoundException('Loan not found');
+
+        if (loan.status === LoanStatus.PENDING)
+            throw new BadRequestException('loan is pending');
+
         // Start transaction to keep data consistent
         return await this.prisma.$transaction(async (tx) => {
             // Find any journal created for this repayment
@@ -284,8 +294,17 @@ export class RepaymentService {
 
     // Postpone repayment
     async postponeRepayment(id: number, dto: RepaymentDto) {
-        const repayment = await this.prisma.repayment.findUnique({ where: { id } });
+        const repayment = await this.prisma.repayment.findUnique({
+            where: { id },
+            include: { loan: { include: { client: true } } },
+        });
         if (!repayment) throw new NotFoundException('Repayment not found');
+
+        const loan = repayment.loan;
+        if (!loan) throw new NotFoundException('Loan not found');
+
+        if (loan.status === LoanStatus.PENDING)
+            throw new BadRequestException('loan is pending');
 
         if (!dto.newDueDate)
             throw new BadRequestException('New due date is required for postponing');

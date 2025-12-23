@@ -6,9 +6,10 @@ import { NotificationScheduler } from './notification.scheduler';
 import { WhatsappService } from './api/whatsapp.service';
 import { TelegramService } from './api/telegram.service';
 import { TelegramController } from './api/telegram.controller';
+import { NotificationTestController } from './notification-test.controller';
 
 @Module({
-  controllers: [NotificationController , TelegramController],
+  controllers: [NotificationController , TelegramController , NotificationTestController],
   providers: [NotificationService, PrismaService, NotificationScheduler , WhatsappService, TelegramService],
   exports: [NotificationService , WhatsappService, TelegramService],
 })
