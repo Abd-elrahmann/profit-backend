@@ -90,11 +90,26 @@ export class IncomeStatementService {
             to = now.endOf('day').toUTC().toJSDate();
         }
 
-        const capitalResult = await this.prisma.partner.aggregate({
-            _sum: { capitalAmount: true },
+        const partners = await this.prisma.partner.findMany({
             where: { isActive: true },
+            select: {
+                id: true,
+                name: true,
+                capitalAmount: true,
+                orgProfitPercent: true,
+            },
         });
-        const totalCapital = capitalResult._sum.capitalAmount || 0;
+
+        const totalCapital = partners.reduce(
+            (sum, partner) => sum + partner.capitalAmount,
+            0
+        );
+        const capitalByPartner = partners.map(partner => ({
+            partnerId: partner.id,
+            partnerName: partner.name,
+            capitalAmount: partner.capitalAmount,
+            profitPercentage: partner.orgProfitPercent,
+        }));
 
         const revenueJournals = await this.prisma.journalHeader.findMany({
             where: {
@@ -204,6 +219,7 @@ export class IncomeStatementService {
                 periodId: periodId ?? null,
             },
             totalCapital,
+            capitalByPartner,
             totalRevenue,
             revenueByClient,
             totalExpenses,
