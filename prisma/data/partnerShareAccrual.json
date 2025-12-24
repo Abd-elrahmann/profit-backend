@@ -8,7 +8,7 @@
     "companyCut": 80,
     "partnerFinal": 320,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-12-21T16:33:59.736Z"
   },
@@ -21,7 +21,7 @@
     "companyCut": 120,
     "partnerFinal": 480,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-12-21T16:33:59.741Z"
   },
@@ -34,7 +34,7 @@
     "companyCut": 80,
     "partnerFinal": 320,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-12-21T16:34:00.048Z"
   },
@@ -47,7 +47,7 @@
     "companyCut": 120,
     "partnerFinal": 480,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-12-21T16:34:00.050Z"
   },
@@ -60,7 +60,7 @@
     "companyCut": 80,
     "partnerFinal": 320,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-12-21T16:34:00.113Z"
   },
@@ -73,7 +73,7 @@
     "companyCut": 120,
     "partnerFinal": 480,
     "isClosed": true,
-    "isDistributed": false,
+    "isDistributed": true,
     "periodId": 1,
     "createdAt": "2025-12-21T16:34:00.115Z"
   },

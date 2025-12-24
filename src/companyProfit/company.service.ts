@@ -172,6 +172,10 @@ export class CompanyService {
                 .filter(l => l.accountId === companyProfitAccount.id)
                 .reduce((sum, l) => sum + l.credit, 0);
 
+            const roundToTwo = (num) => Math.round(num * 100) / 100;
+
+            const companyProfitPercentage = roundToTwo(companyProfit * 100 / totalPeriodProfit);
+
             return {
                 periodId: journal.period?.id,
                 periodName: journal.period?.name,
@@ -181,6 +185,7 @@ export class CompanyService {
                 hijriDate: this.toHijri(journal.date),
                 totalPeriodProfit,
                 companyProfit,
+                companyPercentage: companyProfitPercentage,
             };
         });
 
@@ -190,12 +195,12 @@ export class CompanyService {
         );
 
         return {
-                totalPages,
-                currentPage: page,
-                limit,
-                availableAmount: companyProfitAccount.balance,
-                totalWithdrawals,
-                data: formattedWithdrawals,
+            totalPages,
+            currentPage: page,
+            limit,
+            availableAmount: companyProfitAccount.balance,
+            totalWithdrawals,
+            data: formattedWithdrawals,
 
             periodsProfit: {
                 totalCompanyProfit: totalCompanyProfitFromPeriods,

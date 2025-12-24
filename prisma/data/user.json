@@ -9,20 +9,7 @@
     "isActive": true,
     "roleId": 1,
     "createdAt": "2025-10-27T18:31:51.832Z",
-    "updatedAt": "2025-12-16T14:41:25.671Z",
-    "expenseAccountId": null
-  },
-  {
-    "id": 2,
-    "name": "youssef",
-    "email": "youssef.khaled8666@gmail.com",
-    "password": "$2b$10$zTazbzQE6/AS9H6RMX0Ey.8cRDNtHgmNMxm.4SpQD2cxx6jY.Osvq",
-    "phone": "01223563376",
-    "profileImage": null,
-    "isActive": false,
-    "roleId": null,
-    "createdAt": "2025-12-20T12:46:54.840Z",
-    "updatedAt": "2025-12-20T12:46:54.840Z",
-    "expenseAccountId": 22
+    "updatedAt": "2025-12-24T12:38:12.087Z",
+    "expenseAccountId": 16
   }
 ]

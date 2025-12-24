@@ -1,5 +1,70 @@
 [
   {
+    "id": 66,
+    "reference": "LN-13",
+    "description": "صرف سلفة للعميل 2",
+    "date": "2025-12-23T13:28:26.783Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 13,
+    "sourceType": "LOAN",
+    "postedById": 1,
+    "periodId": 3,
+    "createdAt": "2025-12-23T13:28:26.783Z"
+  },
+  {
+    "id": 67,
+    "reference": "int-13",
+    "description": "تحويل فوائد سلفة للعميل 2 إلى حسابه",
+    "date": "2025-12-23T13:28:26.908Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 13,
+    "sourceType": "LOAN_INTEREST",
+    "postedById": 1,
+    "periodId": 3,
+    "createdAt": "2025-12-23T13:28:26.908Z"
+  },
+  {
+    "id": 63,
+    "reference": "CLOSE-PERIOD-1-1766335966035",
+    "description": "إقفال فترة opening",
+    "date": "2025-12-21T16:52:46.047Z",
+    "type": "CLOSING",
+    "status": "POSTED",
+    "sourceId": 1,
+    "sourceType": "PERIOD_CLOSING",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-21T16:52:46.047Z"
+  },
+  {
+    "id": 70,
+    "reference": "SAVE-1-1",
+    "description": "ادخار ثابت للشريك youssef",
+    "date": "2025-12-23T15:00:01.611Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 3,
+    "sourceType": "SAVING",
+    "postedById": 1,
+    "periodId": 3,
+    "createdAt": "2025-12-23T15:00:01.611Z"
+  },
+  {
+    "id": 71,
+    "reference": "SAVE-2-1",
+    "description": "ادخار ثابت للشريك abd elrahman ",
+    "date": "2025-12-23T15:00:01.675Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 4,
+    "sourceType": "SAVING",
+    "postedById": 1,
+    "periodId": 3,
+    "createdAt": "2025-12-23T15:00:01.675Z"
+  },
+  {
     "id": 2,
     "reference": "CAP-2",
     "description": "إيداع رأس مال الشريك abd elrahman ",
@@ -50,19 +115,6 @@
     "postedById": 1,
     "periodId": 1,
     "createdAt": "2025-12-21T16:35:07.845Z"
-  },
-  {
-    "id": 63,
-    "reference": "CLOSE-PERIOD-1-1766335966035",
-    "description": "إقفال فترة opening",
-    "date": "2025-12-21T16:52:46.047Z",
-    "type": "CLOSING",
-    "status": "DRAFT",
-    "sourceId": 1,
-    "sourceType": "PERIOD_CLOSING",
-    "postedById": null,
-    "periodId": 1,
-    "createdAt": "2025-12-21T16:52:46.047Z"
   },
   {
     "id": 1,

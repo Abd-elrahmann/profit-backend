@@ -1,5 +1,125 @@
 [
   {
+    "id": 191,
+    "journalId": 66,
+    "accountId": 7,
+    "debit": 10000,
+    "credit": 0,
+    "balance": 10000,
+    "clientId": 2,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 192,
+    "journalId": 66,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 10000,
+    "balance": -10000,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 193,
+    "journalId": 67,
+    "accountId": 7,
+    "debit": 2000,
+    "credit": 0,
+    "balance": 2000,
+    "clientId": 2,
+    "description": null
+  },
+  {
+    "id": 194,
+    "journalId": 67,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 2000,
+    "balance": -2000,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 203,
+    "journalId": 70,
+    "accountId": 16,
+    "debit": 0,
+    "credit": 96,
+    "balance": 96,
+    "clientId": null,
+    "description": "تسجيل ادخار (96) للشريك youssef"
+  },
+  {
+    "id": 204,
+    "journalId": 70,
+    "accountId": 14,
+    "debit": 96,
+    "credit": 0,
+    "balance": -96,
+    "clientId": null,
+    "description": "خصم ادخار للشريك youssef"
+  },
+  {
+    "id": 205,
+    "journalId": 70,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 96,
+    "balance": -96,
+    "clientId": null,
+    "description": "خصم ادخار للشريك youssef"
+  },
+  {
+    "id": 206,
+    "journalId": 70,
+    "accountId": 12,
+    "debit": 96,
+    "credit": 0,
+    "balance": 96,
+    "clientId": null,
+    "description": "خصم ادخار للشريك youssef"
+  },
+  {
+    "id": 207,
+    "journalId": 71,
+    "accountId": 19,
+    "debit": 0,
+    "credit": 144,
+    "balance": 144,
+    "clientId": null,
+    "description": "تسجيل ادخار (144) للشريك abd elrahman "
+  },
+  {
+    "id": 208,
+    "journalId": 71,
+    "accountId": 17,
+    "debit": 144,
+    "credit": 0,
+    "balance": -144,
+    "clientId": null,
+    "description": "خصم ادخار للشريك abd elrahman "
+  },
+  {
+    "id": 209,
+    "journalId": 71,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 144,
+    "balance": -144,
+    "clientId": null,
+    "description": "خصم ادخار للشريك abd elrahman "
+  },
+  {
+    "id": 210,
+    "journalId": 71,
+    "accountId": 12,
+    "debit": 144,
+    "credit": 0,
+    "balance": 144,
+    "clientId": null,
+    "description": "خصم ادخار للشريك abd elrahman "
+  },
+  {
     "id": 153,
     "journalId": 57,
     "accountId": 7,

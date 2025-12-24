@@ -169,9 +169,11 @@ export class RepaymentService {
             where: { id: currentUser },
         });
 
-        const totalAmount = dto.paidAmount ?? repayment.amount;
-        const interestAmount = repayment.interestAmount;
-        const principalAmount = repayment.principalAmount;
+        const roundToTwo = (num) => Math.round(num * 100) / 100;
+
+        const totalAmount = roundToTwo(dto.paidAmount ?? repayment.amount);
+        const interestAmount = roundToTwo(repayment.interestAmount);
+        const principalAmount = roundToTwo(repayment.principalAmount);
 
         const bankAccount = await this.prisma.account.findFirst({
             where: { accountBasicType: 'BANK' },
@@ -627,6 +629,12 @@ export class RepaymentService {
                 interestPart = paidAmount;
             }
 
+            const roundToTwo = (num) => Math.round(num * 100) / 100;
+            
+            paidAmount = roundToTwo(paidAmount);
+            principalPart = roundToTwo(principalPart);
+            interestPart = roundToTwo(interestPart);
+
             // Create Journal Entry for this partial payment
             await this.journalService.createJournal(
                 {
@@ -780,7 +788,7 @@ export class RepaymentService {
             );
         }
 
-        const finalPayment = totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount);
+        let finalPayment = totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount);
 
         // Step 4: Get accounts
         const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
@@ -789,6 +797,12 @@ export class RepaymentService {
 
         if (!bankAccount || !loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounts setup');
+
+         const roundToTwo = (num) => Math.round(num * 100) / 100;
+
+         finalPayment = roundToTwo(finalPayment);
+         totalRemainingPrincipal = roundToTwo(totalRemainingPrincipal);
+         totalRemainingInterest = roundToTwo(totalRemainingInterest);
 
         return await this.prisma.$transaction(async (tx) => {
             // Step 5: Create journal entry
