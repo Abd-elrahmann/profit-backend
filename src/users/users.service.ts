@@ -2,10 +2,17 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { DateTime } from 'luxon';
+import moment from 'moment-hijri';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) { }
+
+  private toHijri(date: Date) {
+    return moment(date)
+        .locale('ar-SA')
+        .format('iDD iMMMM iYYYY')
+  }
 
   private async generateNextCode(prefix: string): Promise<string> {
     const latest = await this.prisma.account.findFirst({
@@ -213,6 +220,7 @@ export class UsersService {
       createdAt: DateTime.fromJSDate(user.createdAt, { zone: 'utc' })
         .setZone('Asia/Riyadh')
         .toFormat('yyyy-MM-dd HH:mm:ss'),
+      hijriCreatedAt: this.toHijri(user.createdAt),
     }));
 
     return {
