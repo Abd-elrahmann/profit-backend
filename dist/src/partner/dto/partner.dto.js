@@ -23,6 +23,7 @@ class CreatePartnerDto {
     createdAt;
     mudarabahFileUrl;
     isActive;
+    isNewPartner;
 }
 exports.CreatePartnerDto = CreatePartnerDto;
 __decorate([
@@ -75,6 +76,11 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreatePartnerDto.prototype, "isActive", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreatePartnerDto.prototype, "isNewPartner", void 0);
 class UpdatePartnerDto {
     name;
     nationalId;

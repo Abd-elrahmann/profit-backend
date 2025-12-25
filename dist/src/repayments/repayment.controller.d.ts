@@ -41,6 +41,7 @@ export declare class RepaymentController {
             totalAmount: number;
             paymentAmount: number;
             durationMonths: number;
+            source: import("@prisma/client").$Enums.LoanFundSource;
             startDate: Date;
             endDate: Date | null;
             repaymentDay: Date | null;

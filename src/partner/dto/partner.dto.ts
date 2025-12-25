@@ -39,6 +39,10 @@ export class CreatePartnerDto {
     @IsOptional()
     @IsBoolean()
     isActive?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    isNewPartner?: boolean;
 }
 
 export class UpdatePartnerDto {

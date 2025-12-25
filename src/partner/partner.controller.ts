@@ -88,7 +88,7 @@ export class PartnerController {
         @Param('id', ParseIntPipe) partnerId: number,
         @Body()
         dto: {
-            type: 'DEPOSIT' | 'WITHDRAWAL';
+            type: 'DEPOSIT' | 'WITHDRAWAL' | 'PROFIT_WITHDRAWAL' | 'SAVING_WITHDRAWAL';
             amount: number;
             description?: string;
         },

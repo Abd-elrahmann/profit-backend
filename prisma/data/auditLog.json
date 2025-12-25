@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "screen": "Auth",
+    "action": "login",
+    "description": "المستخدم ادمن قام بتسجيل الدخول",
+    "createdAt": "2025-12-24T15:52:35.085Z"
+  },
+  {
+    "id": 2,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SMALL-LOAN-1",
+    "createdAt": "2025-12-24T15:59:43.090Z"
+  },
+  {
+    "id": 3,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SMALL-LOAN-1",
+    "createdAt": "2025-12-24T15:59:43.124Z"
+  },
+  {
+    "id": 4,
+    "userId": 1,
+    "screen": "Small Loans",
+    "action": "CREATE",
+    "description": "تم إنشاء سلفة صغيرة بقيمة 300 للمستفيد test",
+    "createdAt": "2025-12-24T15:59:43.126Z"
+  },
+  {
+    "id": 5,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SMALL-PAY-1-2",
+    "createdAt": "2025-12-24T16:00:07.343Z"
+  },
+  {
+    "id": 6,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SMALL-PAY-1-2",
+    "createdAt": "2025-12-24T16:00:07.370Z"
+  },
+  {
+    "id": 7,
+    "userId": 1,
+    "screen": "Small Loans",
+    "action": "POST",
+    "description": "تم سداد 200 من سلفة test",
+    "createdAt": "2025-12-24T16:00:07.374Z"
+  },
+  {
+    "id": 8,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SMALL-LOAN-1",
+    "createdAt": "2025-12-24T16:10:44.831Z"
+  },
+  {
+    "id": 9,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SMALL-LOAN-1",
+    "createdAt": "2025-12-24T16:10:47.357Z"
+  },
+  {
+    "id": 10,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي SMALL-PAY-1-2",
+    "createdAt": "2025-12-24T16:10:50.995Z"
+  },
+  {
+    "id": 11,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي SMALL-PAY-1-2",
+    "createdAt": "2025-12-24T16:10:53.239Z"
+  },
+  {
+    "id": 12,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SMALL-LOAN-2",
+    "createdAt": "2025-12-24T16:11:23.255Z"
+  },
+  {
+    "id": 13,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SMALL-LOAN-2",
+    "createdAt": "2025-12-24T16:11:23.272Z"
+  },
+  {
+    "id": 14,
+    "userId": 1,
+    "screen": "Small Loans",
+    "action": "CREATE",
+    "description": "تم إنشاء سلفة صغيرة بقيمة 300 للمستفيد test",
+    "createdAt": "2025-12-24T16:11:23.274Z"
+  },
+  {
+    "id": 15,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SMALL-PAY-2-2",
+    "createdAt": "2025-12-24T16:11:34.513Z"
+  },
+  {
+    "id": 16,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SMALL-PAY-2-2",
+    "createdAt": "2025-12-24T16:11:34.535Z"
+  },
+  {
+    "id": 17,
+    "userId": 1,
+    "screen": "Small Loans",
+    "action": "POST",
+    "description": "تم سداد 200 من سلفة test",
+    "createdAt": "2025-12-24T16:11:34.540Z"
+  },
+  {
+    "id": 18,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي SMALL-PAY-2-3",
+    "createdAt": "2025-12-24T16:12:57.742Z"
+  },
+  {
+    "id": 19,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي SMALL-PAY-2-3",
+    "createdAt": "2025-12-24T16:12:57.762Z"
+  },
+  {
+    "id": 20,
+    "userId": 1,
+    "screen": "Small Loans",
+    "action": "POST",
+    "description": "تم سداد 100 من سلفة test",
+    "createdAt": "2025-12-24T16:12:57.766Z"
+  }
+]

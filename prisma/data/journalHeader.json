@@ -1,0 +1,41 @@
+[
+  {
+    "id": 5,
+    "reference": "SMALL-PAY-2-3",
+    "description": "سداد سلفة صغيرة للمستفيد test",
+    "date": "2025-12-24T16:12:57.730Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 2,
+    "sourceType": "SMALL_LOAN",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-24T16:12:57.730Z"
+  },
+  {
+    "id": 3,
+    "reference": "SMALL-LOAN-2",
+    "description": "صرف سلفة صغيرة للمستفيد test",
+    "date": "2025-12-24T16:11:23.249Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 2,
+    "sourceType": "SMALL_LOAN",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-24T16:11:23.249Z"
+  },
+  {
+    "id": 4,
+    "reference": "SMALL-PAY-2-2",
+    "description": "سداد سلفة صغيرة للمستفيد test",
+    "date": "2025-12-24T16:11:34.508Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 2,
+    "sourceType": "SMALL_LOAN",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-24T16:11:34.508Z"
+  }
+]

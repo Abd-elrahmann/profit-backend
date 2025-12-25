@@ -31,8 +31,9 @@ export class PartnerService {
         const liabilities = await this.prisma.account.findUnique({ where: { code: '20000' } });
         const equity = await this.prisma.account.findUnique({ where: { code: '30000' } });
         const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        const newCapitalBank = await this.prisma.account.findUnique({ where: { code: '11001' } });
 
-        if (!liabilities || !equity || !bank) {
+        if (!liabilities || !equity || !bank || !newCapitalBank) {
             throw new BadRequestException('Base accounts (11000, 20000, 30000) must exist first');
         }
 
@@ -72,6 +73,20 @@ export class PartnerService {
             },
         });
 
+        const newCapitalAccount = await this.prisma.account.create({
+            data: {
+                name: `رأس مال جديد - ${dto.name}`,
+                code: await this.generateNextCode('3'),
+                parentId: equity.id,
+                type: 'EQUITY',
+                nature: 'CREDIT',
+                accountBasicType: 'PARTNER_NEW_CAPITAL',
+                level: 2,
+            },
+        });
+
+        if (dto.isNewPartner === false) { }
+
         const partner = await this.prisma.partner.create({
             data: {
                 name: dto.name,
@@ -86,9 +101,11 @@ export class PartnerService {
                 createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
                 mudarabahFileUrl: dto.mudarabahFileUrl,
                 isActive: dto.isActive ?? false,
+                isNewPartner: dto.isNewPartner ?? true,
                 accountPayableId: payableAccount.id,
                 accountEquityId: equityAccount.id,
                 accountSavingId: savingAccount.id,
+                accountNewCapitalId: newCapitalAccount.id,
                 yearlyZakatRequired: dto.capitalAmount * 0.025,
                 yearlyZakatPaid: 0,
                 yearlyZakatBalance: 0,
@@ -99,18 +116,28 @@ export class PartnerService {
             },
         });
 
-        const journalDto = {
-            reference: `CAP-${partner.id}`,
-            description: `إيداع رأس مال الشريك ${partner.name}`,
-            type: JournalType.OPENING,
-            sourceType: JournalSourceType.PARTNER,
-            sourceId: partner.id,
-            lines: [
+        const isNew = partner.isNewPartner;
+        const journalLines = isNew
+            ? [
+                {
+                    accountId: newCapitalBank.id,
+                    debit: dto.capitalAmount,
+                    credit: 0,
+                    description: 'إيداع رأس مال (مساهم جديد)',
+                },
+                {
+                    accountId: newCapitalAccount.id,
+                    debit: 0,
+                    credit: dto.capitalAmount,
+                    description: `رأس مال جديد - ${partner.name}`,
+                },
+            ]
+            : [
                 {
                     accountId: bank.id,
                     debit: dto.capitalAmount,
                     credit: 0,
-                    description: 'إيداع نقدي لرأس المال',
+                    description: 'إيداع رأس مال (مساهم قديم)',
                 },
                 {
                     accountId: equityAccount.id,
@@ -118,17 +145,60 @@ export class PartnerService {
                     credit: dto.capitalAmount,
                     description: `رأس مال ${partner.name}`,
                 },
-            ],
-        };
+            ];
 
-        await this.journalService.createJournal(journalDto, currentUser);
+        const journal = await this.journalService.createJournal(
+            {
+                reference: `CAP-${partner.id}`,
+                description: isNew
+                    ? `إيداع رأس مال مساهم جديد ${partner.name}`
+                    : `إيداع رأس مال مساهم قديم ${partner.name}`,
+                type: JournalType.OPENING,
+                sourceType: JournalSourceType.PARTNER,
+                sourceId: partner.id,
+                lines: journalLines,
+            },
+            currentUser,
+        );
 
-        const startMonth = partner.createdAt ? new Date(partner.createdAt).getMonth() + 1 : new Date().getMonth() + 1;
+        if (isNew) {
+            await this.prisma.partnerNewCapital.create({
+                data: {
+                    partnerId: partner.id,
+                    amount: dto.capitalAmount,
+                    remaining: dto.capitalAmount,
+                },
+            });
+
+            await this.prisma.partner.update({
+                where: { id: partner.id },
+                data: {
+                    capitalAmount: 0,
+                    totalAmount: 0,
+                }
+            })
+        }
+
+        let zakatBase = 0;
+        if (partner.isNewPartner) {
+            const newCapital = await this.prisma.partnerNewCapital.findMany({
+                where: { partnerId: partner.id },
+            });
+
+            zakatBase = newCapital.reduce((sum, c) => sum + c.remaining, 0);
+        } else {
+            zakatBase = partner.capitalAmount;
+        }
+
+        const startMonth = partner.createdAt
+            ? new Date(partner.createdAt).getMonth() + 1
+            : new Date().getMonth() + 1;
+
         const remainingMonths = 12 - startMonth + 1;
 
-        // حساب الزكاة السنوية والقسط الشهري
-        const annualZakat = partner.capitalAmount * 0.025;
+        const annualZakat = zakatBase * 0.025;
         const monthlyZakat = annualZakat / remainingMonths;
+
         const currentYear = new Date().getFullYear();
 
         for (let month = startMonth; month <= 12; month++) {
@@ -136,7 +206,7 @@ export class PartnerService {
                 data: {
                     partnerId: partner.id,
                     year: currentYear,
-                    month: month,
+                    month,
                     amount: monthlyZakat,
                 },
             });
@@ -226,7 +296,7 @@ export class PartnerService {
 
             const headersToDelete = await tx.journalHeader.findMany({
                 where: {
-                    lines: { some: { accountId: { in: [partner.accountPayableId, partner.accountEquityId, partner.accountSavingId] } } },
+                    lines: { some: { accountId: { in: [partner.accountPayableId, partner.accountEquityId, partner.accountSavingId, partner.accountNewCapitalId] } } },
                 },
                 select: { id: true },
             });
@@ -245,6 +315,8 @@ export class PartnerService {
                 });
             }
 
+            await tx.loanNewCapitalShare.deleteMany({ where: { partnerId: id } });
+            await tx.partnerNewCapital.deleteMany({ where: { partnerId: id } });
             await tx.zakatAccrual.deleteMany({ where: { partnerId: id } });
             await tx.zakatPayment.deleteMany({ where: { partnerId: id } });
             await tx.partnerTransaction.deleteMany({ where: { partnerId: id } });
@@ -287,12 +359,12 @@ export class PartnerService {
         if (filters?.status) {
             switch (filters.status) {
                 case 'ACTIVE':
-                    where.isActive = true;
+                    where.isNewPartner = false;
                     where.isFrozen = false;
                     break;
 
                 case 'INACTIVE':
-                    where.isActive = false;
+                    where.isNewPartner = true;
                     where.isFrozen = false;
                     break;
 
@@ -316,8 +388,14 @@ export class PartnerService {
         // Total active capital for percent calculation
         const totalActiveCapital = await this.prisma.partner.aggregate({
             _sum: { totalAmount: true },
-            where: { isActive: true },
+            where: { isNewPartner: false },
         });
+
+        const allNewCapital = await this.prisma.partnerNewCapital.aggregate({
+            _sum: { remaining: true },
+        });
+
+        const totalNewCapital = allNewCapital._sum.remaining || 0;
 
         const partners = await this.prisma.partner.findMany({
             where,
@@ -328,16 +406,40 @@ export class PartnerService {
                 AccountPayable: true,
                 AccountEquity: true,
                 AccountSaving: true,
+                PartnerNewCapital: true,
             },
         });
-        const totalCapital = totalActiveCapital._sum.totalAmount || 0;
+        const totalGeneralCapital = totalActiveCapital._sum.totalAmount || 0;
 
-        // Add partnerProfitPercent dynamically
-        const enrichedPartners = partners.map(p => ({
-            ...p,
-            partnerProfitPercent: totalCapital > 0 ? Number(((p.totalAmount / totalCapital) * 100).toFixed(2)) : 0,
-            totalSaving: p.AccountSaving.balance,
-        }));
+        const enrichedPartners = partners.map(p => {
+            const newCapital = p.PartnerNewCapital?.reduce(
+                (sum, nc) => sum + nc.remaining,
+                0
+            ) || 0;
+
+            const generalPercent =
+                totalGeneralCapital > 0
+                    ? Number(((p.totalAmount / totalGeneralCapital) * 100).toFixed(2))
+                    : 0;
+
+            const newCapitalPercent =
+                totalNewCapital > 0
+                    ? Number(((newCapital / totalNewCapital) * 100).toFixed(2))
+                    : 0;
+
+            return {
+                ...p,
+                generalCapital: p.totalAmount,
+                generalProfitPercent: generalPercent,
+
+                newCapitalAmount: newCapital,
+                newCapitalPercent,
+
+                total: newCapital + p.totalAmount,
+
+                totalSaving: p.AccountSaving.balance,
+            };
+        });
 
         return {
             totalPartners,
@@ -355,6 +457,7 @@ export class PartnerService {
                 AccountPayable: true,
                 AccountEquity: true,
                 AccountSaving: true,
+                PartnerNewCapital: true,
                 loans: true,
                 transactions: true,
                 PartnerWithdrawal: true,
@@ -362,6 +465,13 @@ export class PartnerService {
         });
 
         if (!partner) throw new NotFoundException('Partner not found');
+
+        const newCapitalAmount =
+            partner.PartnerNewCapital?.reduce(
+                (sum, nc) => sum + nc.remaining,
+                0
+            ) || 0;
+
 
         const toHijri = (date: Date | null) => {
             if (!date) return null;
@@ -376,43 +486,31 @@ export class PartnerService {
                 .toFormat("yyyy-LL-dd HH:mm:ss");
         };
 
-        let totalCapital = 0;
-        let partnerProfitPercent = 0;
+        const generalPartners = await this.prisma.partner.findMany({
+            where: { isNewPartner: false, isFrozen: false },
+            select: { totalAmount: true },
+        });
 
-        if (partner.isActive) {
-            const activePartners = await this.prisma.partner.findMany({
-                where: { isActive: true },
-                select: { totalAmount: true }
-            });
+        const totalGeneralCapital = generalPartners.reduce(
+            (sum, p) => sum + p.totalAmount,
+            0
+        );
 
-            totalCapital = activePartners.reduce((sum, p) => sum + p.totalAmount, 0);
-
-            partnerProfitPercent = totalCapital > 0
-                ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2))
+        const generalProfitPercent =
+            totalGeneralCapital > 0 && partner.isFrozen === false
+                ? Number(((partner.totalAmount / totalGeneralCapital) * 100).toFixed(2))
                 : 0;
-        }
 
-        // CASE 2: INACTIVE BUT joinDistribute = TRUE
-        else if (!partner.isActive && partner.joinDistribute === true) {
-            const inactiveJoined = await this.prisma.partner.findMany({
-                where: {
-                    isActive: false,
-                    joinDistribute: true,
-                },
-                select: { totalAmount: true }
-            });
+        const allNewCapital = await this.prisma.partnerNewCapital.aggregate({
+            _sum: { remaining: true },
+        });
 
-            totalCapital = inactiveJoined.reduce((sum, p) => sum + p.totalAmount, 0);
+        const totalNewCapital = allNewCapital._sum.remaining || 0;
 
-            partnerProfitPercent = totalCapital > 0
-                ? Number(((partner.totalAmount / totalCapital) * 100).toFixed(2))
+        const newCapitalPercent =
+            totalNewCapital > 0
+                ? Number(((newCapitalAmount / totalNewCapital) * 100).toFixed(2))
                 : 0;
-        }
-
-        else {
-            totalCapital = 0;
-            partnerProfitPercent = 0;
-        }
 
         const calculateDuration = (from: Date) => {
             const start = DateTime.fromJSDate(from, { zone: 'utc' });
@@ -434,7 +532,10 @@ export class PartnerService {
             ...partner,
             createdAt: toSaudi(partner.createdAt),
             contractSignedAt: toSaudi(partner.contractSignedAt),
-            partnerProfitPercent,
+            partnerProfitPercent: generalProfitPercent,
+            newCapitalAmount,
+            newCapitalPercent,
+            total: newCapitalAmount + partner.totalAmount,
             totalSaving: partner.AccountSaving?.balance ?? 0,
             duration,
             withdrawalReceipt: partner.PartnerWithdrawal?.[0]?.WITHDRAWAL_RECEIPT || null,
@@ -574,26 +675,32 @@ export class PartnerService {
         const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });
         if (!savingAccount) throw new BadRequestException('saving Account (20002) must exist');
 
+        const newCapitalBank = await this.prisma.account.findUnique({
+            where: { code: '11001' },
+        });
+        if (!newCapitalBank)
+            throw new BadRequestException('New Capital Bank (11001) must exist');
+
         let journalLines;
         let journalDescription;
 
         if (dto.type === 'DEPOSIT') {
             journalLines = [
                 {
-                    accountId: bank.id,
+                    accountId: newCapitalBank.id,
                     debit: dto.amount,
                     credit: 0,
-                    description: `إيداع نقدي من الشريك ${partner.name}`,
+                    description: `إيداع رأس مال جديد من الشريك ${partner.name}`,
                 },
                 {
-                    accountId: partner.accountEquityId,
+                    accountId: partner.accountNewCapitalId,
                     debit: 0,
                     credit: dto.amount,
-                    description: `زيادة في رأس مال الشريك ${partner.name}`,
+                    description: `رأس مال جديد - ${partner.name}`,
                 },
             ];
-            journalDescription = `إيداع نقدي من الشريك ${partner.name}`;
-        } else {
+            journalDescription = `إيداع رأس مال جديد من الشريك ${partner.name}`;
+        } else if (dto.type === 'WITHDRAWAL') {
             journalLines = [
                 {
                     accountId: partner.accountEquityId,
@@ -674,11 +781,31 @@ export class PartnerService {
         let newTotalAmount = partner.totalAmount;
         let newProfitAmount = partner.totalProfit;
 
-        if (dto.type === 'DEPOSIT') {
-            newCapitalAmount += dto.amount;
-            newTotalAmount += dto.amount;
+        const existingNewCapital = await this.prisma.partnerNewCapital.findFirst({
+            where: { partnerId: partner.id },
+        });
 
-        } else if (dto.type === 'WITHDRAWAL') {
+        if (dto.type === 'DEPOSIT') {
+            if (existingNewCapital) {
+                await this.prisma.partnerNewCapital.update({
+                    where: { id: existingNewCapital.id },
+                    data: {
+                        amount: { increment: dto.amount },
+                        remaining: { increment: dto.amount },
+                    },
+                });
+            } else {
+                await this.prisma.partnerNewCapital.create({
+                    data: {
+                        partnerId: partner.id,
+                        amount: dto.amount,
+                        remaining: dto.amount,
+                    },
+                });
+            }
+        }
+
+        if (dto.type === 'WITHDRAWAL') {
             newCapitalAmount -= dto.amount;
             newTotalAmount -= dto.amount;
 
@@ -752,10 +879,28 @@ export class PartnerService {
             let newCapitalAmount = partner.capitalAmount;
             let newTotalAmount = partner.totalAmount;
             let newTotalProfit = partner.totalProfit;
+
             if (transaction.type === 'DEPOSIT') {
-                newCapitalAmount -= transaction.amount;
-                newTotalAmount -= transaction.amount;
-            } else if (transaction.type === 'WITHDRAWAL') {
+                const newCapital = await this.prisma.partnerNewCapital.findFirst({
+                    where: { partnerId: partner.id },
+                    orderBy: { id: 'desc' },
+                });
+
+                if (!newCapital || newCapital.remaining < transaction.amount) {
+                    throw new BadRequestException(
+                        'لا يمكن حذف الإيداع، رصيد رأس المال الجديد غير كافٍ'
+                    );
+                }
+
+                await this.prisma.partnerNewCapital.update({
+                    where: { id: newCapital.id },
+                    data: {
+                        amount: { decrement: transaction.amount },
+                        remaining: { decrement: transaction.amount },
+                    },
+                });
+            }
+            else if (transaction.type === 'WITHDRAWAL') {
                 newCapitalAmount += transaction.amount;
                 newTotalAmount += transaction.amount;
             } else if (transaction.type === 'PROFIT_WITHDRAWAL') {
@@ -848,7 +993,7 @@ export class PartnerService {
             include: { partner: { select: { name: true } } },
         });
 
-         const toHijri = (date: Date | null) => {
+        const toHijri = (date: Date | null) => {
             if (!date) return null;
             return moment(date).locale('ar-SA').format('iDD iMMMM iYYYY');
         };
@@ -859,7 +1004,7 @@ export class PartnerService {
             date: DateTime.fromJSDate(t.date, { zone: 'utc' })
                 .setZone('Asia/Riyadh')
                 .toFormat('yyyy-MM-dd HH:mm:ss'),
-                dateHijri: toHijri(t.date),
+            dateHijri: toHijri(t.date),
         }));
 
         return {

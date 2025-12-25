@@ -170,6 +170,7 @@ model Loan {
   paymentAmount  Float
   durationMonths Int
   type           LoanType
+  source         LoanFundSource
   status         LoanStatus  @default(PENDING)
   startDate      DateTime
   endDate        DateTime?
@@ -196,6 +197,7 @@ model Loan {
   newAmount             Int?        @default(0)
   profitAccruals PartnerShareAccrual[]
   LoanPartnerShare LoanPartnerShare[]
+  LoanNewCapitalShare LoanNewCapitalShare[]
 }
 
 model LoanPartnerShare {
@@ -214,6 +216,11 @@ enum LoanType {
   DAILY
   WEEKLY
   MONTHLY
+}
+
+enum LoanFundSource {
+  GENERAL
+  NEW_CAPITAL
 }
 
 enum LoanStatus {
@@ -323,9 +330,11 @@ model Partner {
   joinDistribute   Boolean   @default(true)
   WithdrawingStatus PartnerStatus @default(ACTIVE)
   isFrozen         Boolean @default(false)
+  isNewPartner     Boolean @default(true)
   accountPayableId Int       @unique
   accountEquityId  Int       @unique
   accountSavingId  Int       @unique
+  accountNewCapitalId Int @unique
   yearlyZakatRequired Float? @default(0)
   yearlyZakatPaid     Float? @default(0)
   yearlyZakatBalance  Float? @default(0)
@@ -333,6 +342,7 @@ model Partner {
   AccountPayable Account @relation(name: "account_payable", references: [id], fields: [accountPayableId])
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
   AccountSaving  Account @relation(name: "account_saving", references: [id], fields: [accountSavingId])
+  AccountNewCapital  Account @relation(name: "account_newCapital", references: [id], fields: [accountNewCapitalId])
   loans Loan[]
   transactions PartnerTransaction[]
   profitAccruals PartnerShareAccrual[]
@@ -343,6 +353,8 @@ model Partner {
   PartnerSavingAccrual PartnerSavingAccrual[]
   PartnerWithdrawalSchedule PartnerWithdrawalSchedule[]
   PartnerWithdrawal PartnerWithdrawal[]
+  PartnerNewCapital PartnerNewCapital[]
+  LoanNewCapitalShare LoanNewCapitalShare[]
 
   createdAt DateTime @default(now())
 }
@@ -351,6 +363,26 @@ enum PartnerStatus {
   ACTIVE
   WITHDRAWING
   WITHDRAWN
+}
+
+model PartnerNewCapital {
+  id        Int      @id @default(autoincrement())
+  partnerId Int      
+  amount    Float
+  remaining Float
+  createdAt DateTime @default(now())
+
+  Partner Partner @relation(fields: [partnerId], references: [id])
+}
+
+model LoanNewCapitalShare {
+  id            Int     @id @default(autoincrement())
+  loanId        Int
+  partnerId     Int
+  amountUsed    Float
+  percent       Float
+  Partner Partner @relation(fields: [partnerId], references: [id])
+  loan    Loan?   @relation(fields: [loanId], references: [id])
 }
 
 model PartnerWithdrawalSchedule {
@@ -498,6 +530,7 @@ model Account {
   partnerPayable   Partner?          @relation("account_payable")
   partnerEquity    Partner?          @relation("account_equity")
   partnerSaving    Partner?          @relation("account_saving")
+  PartnerNewCapital   Partner?       @relation("account_newCapital")
   userExpenses     User?             @relation("account_expenses")
   accountsClosing  accountsClosing[]
 
@@ -513,6 +546,8 @@ enum AccountBasicType {
   PARTNER_PAYABLE
   PARTNER_EQUITY
   PARTNER_SAVING
+  PARTNER_NEW_CAPITAL
+  NEW_CAPITAL_BANK
   LOAN_INCOME
   COMPANY_SHARES
   PARTNER_SHARES_EXPENSES

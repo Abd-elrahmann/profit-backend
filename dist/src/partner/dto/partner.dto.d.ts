@@ -10,6 +10,7 @@ export declare class CreatePartnerDto {
     createdAt?: string;
     mudarabahFileUrl?: string;
     isActive?: boolean;
+    isNewPartner?: boolean;
 }
 export declare class UpdatePartnerDto {
     name?: string;

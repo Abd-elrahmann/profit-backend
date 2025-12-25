@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
-import { JournalSourceType, LoanStatus, LoanType, Prisma } from '@prisma/client';
+import { JournalSourceType, LoanFundSource, LoanStatus, LoanType, Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { JournalService } from '../journal/journal.service';
 import * as fs from 'fs';
@@ -65,6 +65,27 @@ export class LoansService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
+        let fundSource = dto.source;
+
+        if (fundSource === LoanFundSource.NEW_CAPITAL) {
+            if (!dto.partnerId) {
+                throw new BadRequestException('يجب اختيار مستثمر عند استخدام رأس المال الجديد');
+            }
+
+            const partnerNewCapital = await this.prisma.partnerNewCapital.findFirst({
+                where: {
+                    partnerId: dto.partnerId,
+                    remaining: { gt: 0 },
+                },
+            });
+
+            if (!partnerNewCapital) {
+                throw new BadRequestException(
+                    'هذا المستثمر لا يملك رأس مال جديد متاح'
+                );
+            }
+        }
+
         if (dto.partnerId) {
             const partnerCheck = await this.prisma.partner.findUnique({
                 where: { id: dto.partnerId },
@@ -103,12 +124,39 @@ export class LoansService {
         let months = fullMonths;
         const hasRemainder = lastPayment.gt(0);
 
-        const bank = await this.prisma.account.findFirst({
-            where: { accountBasicType: 'BANK' },
-        });
-        if (!bank) throw new NotFoundException('Bank account not found');
-        if (principal.gt(bank.balance)) {
-            throw new BadRequestException('السلفة أكبر من رصيد البنك المتاح');
+        if (fundSource === LoanFundSource.GENERAL) {
+            const bank = await this.prisma.account.findFirst({
+                where: { accountBasicType: 'BANK' },
+            });
+            if (!bank) throw new NotFoundException('Bank account not found');
+            if (principal.gt(bank.balance)) {
+                throw new BadRequestException('السلفة أكبر من رصيد البنك المتاح');
+            }
+        }
+
+        let newCapitalPartners: any[] = [];
+        let totalNewCapital = new Decimal(0);
+
+        if (fundSource === LoanFundSource.NEW_CAPITAL) {
+            newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
+                where: { remaining: { gt: 0 } },
+                include: { Partner: true },
+            });
+
+            if (newCapitalPartners.length === 0) {
+                throw new BadRequestException('لا يوجد رأس مال جديد متاح');
+            }
+
+            totalNewCapital = newCapitalPartners.reduce(
+                (sum, p) => sum.plus(p.remaining),
+                new Decimal(0),
+            );
+
+            if (totalNewCapital.lt(principal)) {
+                throw new BadRequestException(
+                    `رصيد رأس المال الجديد غير كافٍ. المتاح: ${totalNewCapital.toFixed(2)}`,
+                );
+            }
         }
 
         // Validate Kafeel
@@ -142,6 +190,7 @@ export class LoansService {
                 paymentAmount: Number(paymentAmount.toFixed(2)),
                 durationMonths: months,
                 type: dto.type,
+                source: fundSource,
                 startDate: dto.startDate ? new Date(dto.startDate) : new Date(),
                 createdAt: dto.startDate ? new Date(dto.startDate) : new Date(),
                 status: LoanStatus.PENDING,
@@ -151,7 +200,7 @@ export class LoansService {
             },
         });
 
-        if (dto.partnerId) {
+        if (dto.partnerId && fundSource === LoanFundSource.GENERAL) {
             const partner = await this.prisma.partner.findUnique({
                 where: { id: dto.partnerId },
                 select: { id: true, totalAmount: true, isActive: true, joinDistribute: true },
@@ -180,21 +229,42 @@ export class LoansService {
                         },
                     });
                 }
-            } else {
-                // Distribute among inactive partners who joined
-                const inactiveJoinPartners = allPartners.filter(p => !p.isActive && p.joinDistribute);
-                const totalInactiveCapital = inactiveJoinPartners.reduce((sum, p) => sum + p.totalAmount, 0);
-                for (const p of inactiveJoinPartners) {
-                    const percent = totalInactiveCapital > 0 ? (p.totalAmount / totalInactiveCapital) * 100 : 0;
-                    await this.prisma.loanPartnerShare.create({
-                        data: {
-                            loanId: loan.id,
-                            partnerId: p.id,
-                            sharePercent: Number(percent.toFixed(2)),
-                            isActive: false,
+            }
+        }
+
+        if (fundSource === LoanFundSource.NEW_CAPITAL) {
+            const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
+                where: {
+                    remaining: { gt: 0 },
+                },
+            });
+
+            const totalNewCapital = newCapitalPartners.reduce(
+                (sum, p) => sum.plus(p.remaining),
+                new Decimal(0),
+            );
+
+            for (const p of newCapitalPartners) {
+                const shareRatio = new Decimal(p.remaining).div(totalNewCapital);
+                const usedAmount = principal.mul(shareRatio).toDecimalPlaces(2);
+
+                await this.prisma.loanNewCapitalShare.create({
+                    data: {
+                        loanId: loan.id,
+                        partnerId: p.partnerId,
+                        amountUsed: Number(usedAmount),
+                        percent: Number(shareRatio.mul(100).toDecimalPlaces(2)),
+                    },
+                });
+
+                await this.prisma.partnerNewCapital.update({
+                    where: { id: p.id },
+                    data: {
+                        remaining: {
+                            decrement: Number(usedAmount),
                         },
-                    });
-                }
+                    },
+                });
             }
         }
 
@@ -289,6 +359,7 @@ export class LoansService {
                 partner: true,
                 kafeel: { select: { name: true, nationalId: true, birthDate: true } },
                 LoanPartnerShare: { select: { partnerId: true, sharePercent: true } },
+                LoanNewCapitalShare: { select: { partnerId: true, amountUsed: true, percent: true } },
             },
         });
 
@@ -298,7 +369,12 @@ export class LoansService {
     async activateLoan(id: number, userId: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
-            include: { repayments: true, client: { select: { id: true } } },
+            include: {
+                repayments: true,
+                client: { select: { id: true } },
+                LoanPartnerShare: { include: { partner: true } },
+                LoanNewCapitalShare: true,
+            },
         });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
@@ -375,12 +451,19 @@ export class LoansService {
         const receivable = await this.prisma.account.findFirst({
             where: { accountBasicType: 'LOANS_RECEIVABLE' },
         });
-        const bank = await this.prisma.account.findFirst({
-            where: { accountBasicType: 'BANK' },
-        });
 
-        if (!receivable || !bank)
-            throw new BadRequestException('Loan receivable and bank accounts must exist');
+        let creditAccount;
+        if (loan.source === LoanFundSource.GENERAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'BANK' },
+            });
+        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
+            });
+        }
+        if (!receivable)
+            throw new BadRequestException('Loan receivable account must exist');
 
         const { journal } = await this.journalService.createJournal(
             {
@@ -398,7 +481,7 @@ export class LoansService {
                         clientId: loan.clientId,
                     },
                     {
-                        accountId: bank.id,
+                        accountId: creditAccount.id,
                         debit: 0,
                         credit: loan.amount,
                         description: 'سلفة عميل',
@@ -433,24 +516,6 @@ export class LoansService {
         });
 
         await this.updateClientStatus(loan.clientId);
-
-        // Activate partners if inactive
-        const loanPartners = await this.prisma.loanPartnerShare.findMany({
-            where: { loanId: loan.id },
-            select: {
-                partnerId: true,
-                partner: { select: { isActive: true } },
-            },
-        });
-
-        for (const lp of loanPartners) {
-            if (!lp.partner.isActive) {
-                await this.prisma.partner.update({
-                    where: { id: lp.partnerId },
-                    data: { isActive: true },
-                });
-            }
-        }
 
         await this.prisma.auditLog.create({
             data: {
@@ -542,23 +607,6 @@ export class LoansService {
             });
 
             await this.updateClientStatus(loan.clientId);
-
-            const loanPartnerShares = await tx.loanPartnerShare.findMany({
-                where: { loanId: loan.id },
-                select: {
-                    partnerId: true,
-                    isActive: true,
-                },
-            });
-
-            for (const lps of loanPartnerShares) {
-                if (lps.isActive === false) {
-                    await tx.partner.update({
-                        where: { id: lps.partnerId },
-                        data: { isActive: false },
-                    });
-                }
-            }
 
             await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
 
@@ -683,6 +731,7 @@ export class LoansService {
                 partner: true,
                 kafeel: { select: { name: true, nationalId: true, birthDate: true } },
                 LoanPartnerShare: { select: { partnerId: true, sharePercent: true } },
+                LoanNewCapitalShare: { select: { partnerId: true, amountUsed: true, percent: true } },
             },
         });
         if (!loan) throw new NotFoundException('Loan not found');
@@ -775,6 +824,16 @@ export class LoansService {
             })
         );
 
+        const loanPartnerNewShareName = await Promise.all(
+            loan.LoanNewCapitalShare.map(async (share) => {
+                const partnerInfo = await getpartnername(share.partnerId);
+                return {
+                    ...share,
+                    ...partnerInfo,
+                };
+            })
+        );
+
         let totalRemainingPrincipal = 0;
         let totalRemainingInterest = 0;
 
@@ -834,6 +893,7 @@ export class LoansService {
             },
             repayments: formattedRepayments,
             loanPartnerShare: loanPartnerShareName,
+            loanNewCapitalShare: loanPartnerNewShareName,
             totalRemainingPrincipal,
             totalRemainingInterest,
             totalDue,
@@ -853,7 +913,10 @@ export class LoansService {
 
     // Update Loan
     async updateLoan(currentUser, id: number, dto: UpdateLoanDto) {
-        const loan = await this.prisma.loan.findUnique({ where: { id } });
+        const loan = await this.prisma.loan.findUnique({
+            where: { id },
+            include: { LoanPartnerShare: true, LoanNewCapitalShare: true },
+        });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('فقط السلف المعلقة يمكن تعديلها');
@@ -889,51 +952,91 @@ export class LoansService {
             data: loanUpdateData,
         });
 
-        // Recalculate partner shares if partnerId changed
-        if (dto.partnerId) {
-            const partner = await this.prisma.partner.findUnique({
-                where: { id: dto.partnerId },
-                select: { id: true, totalAmount: true, isActive: true, joinDistribute: true },
+        const sourceChanged =
+            dto.source !== undefined &&
+            dto.source !== loan.source;
+
+        if (sourceChanged && loan.source === LoanFundSource.GENERAL && dto.source === LoanFundSource.NEW_CAPITAL) {
+            await this.prisma.loanPartnerShare.deleteMany({
+                where: { loanId: loan.id },
             });
 
-            if (!partner) throw new NotFoundException('Partner not found');
-
-            await this.prisma.loanPartnerShare.deleteMany({ where: { loanId: loan.id } });
-
-            const allPartners = await this.prisma.partner.findMany({
-                select: { id: true, totalAmount: true, isActive: true, joinDistribute: true },
+            const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
+                where: { remaining: { gt: 0 } },
             });
 
-            if (partner.isActive) {
-                const activePartners = allPartners.filter(p => p.isActive);
-                const totalActiveCapital = activePartners.reduce((sum, p) => sum + p.totalAmount, 0);
+            if (newCapitalPartners.length === 0) {
+                throw new BadRequestException('لا يوجد رأس مال جديد متاح');
+            }
 
-                for (const p of activePartners) {
-                    const percent = totalActiveCapital > 0 ? (p.totalAmount / totalActiveCapital) * 100 : 0;
-                    await this.prisma.loanPartnerShare.create({
-                        data: {
-                            loanId: loan.id,
-                            partnerId: p.id,
-                            sharePercent: Number(percent.toFixed(2)),
-                            isActive: true,
-                        },
-                    });
-                }
-            } else {
-                const inactiveJoinPartners = allPartners.filter(p => !p.isActive && p.joinDistribute);
-                const totalInactiveCapital = inactiveJoinPartners.reduce((sum, p) => sum + p.totalAmount, 0);
+            const principal = new Decimal(dto.amount ? dto.amount : loan.amount);
+            const totalNewCapital = newCapitalPartners.reduce(
+                (sum, p) => sum.plus(p.remaining),
+                new Decimal(0),
+            );
 
-                for (const p of inactiveJoinPartners) {
-                    const percent = totalInactiveCapital > 0 ? (p.totalAmount / totalInactiveCapital) * 100 : 0;
-                    await this.prisma.loanPartnerShare.create({
-                        data: {
-                            loanId: loan.id,
-                            partnerId: p.id,
-                            sharePercent: Number(percent.toFixed(2)),
-                            isActive: false,
-                        },
-                    });
-                }
+            if (totalNewCapital.lt(principal)) {
+                throw new BadRequestException('رأس المال الجديد غير كافٍ');
+            }
+
+            for (const p of newCapitalPartners) {
+                const ratio = new Decimal(p.remaining).div(totalNewCapital);
+                const usedAmount = principal.mul(ratio).toDecimalPlaces(2);
+
+                await this.prisma.loanNewCapitalShare.create({
+                    data: {
+                        loanId: loan.id,
+                        partnerId: p.partnerId,
+                        amountUsed: Number(usedAmount),
+                        percent: Number(ratio.mul(100).toFixed(2)),
+                    },
+                });
+
+                await this.prisma.partnerNewCapital.update({
+                    where: { id: p.id },
+                    data: {
+                        remaining: { decrement: Number(usedAmount) },
+                    },
+                });
+            }
+        }
+
+        if (sourceChanged && loan.source === LoanFundSource.NEW_CAPITAL && dto.source === LoanFundSource.GENERAL) {
+
+            const shares = await this.prisma.loanNewCapitalShare.findMany({
+                where: { loanId: loan.id },
+            });
+
+            for (const s of shares) {
+                await this.prisma.partnerNewCapital.updateMany({
+                    where: { partnerId: s.partnerId },
+                    data: {
+                        remaining: { increment: s.amountUsed },
+                    },
+                });
+            }
+
+            await this.prisma.loanNewCapitalShare.deleteMany({
+                where: { loanId: loan.id },
+            });
+
+            const partners = await this.prisma.partner.findMany({
+                where: { isNewPartner: false },
+            });
+
+            const totalCapital = partners.reduce((sum, p) => sum + p.totalAmount, 0);
+
+            for (const p of partners) {
+                const percent = totalCapital > 0 ? (p.totalAmount / totalCapital) * 100 : 0;
+
+                await this.prisma.loanPartnerShare.create({
+                    data: {
+                        loanId: loan.id,
+                        partnerId: p.id,
+                        sharePercent: Number(percent.toFixed(2)),
+                        isActive: true,
+                    },
+                });
             }
         }
 
@@ -996,11 +1099,10 @@ export class LoansService {
             let remainingInterest = totalInterest;
 
             const repayments: Prisma.RepaymentCreateManyInput[] = [];
-            const firstDate = dto.repaymentDay
-                ? new Date(dto.repaymentDay)
-                : (() => {
-                    throw new BadRequestException('يجب تحديد تاريخ أول قسط');
-                })();
+            const firstDate = dto.repaymentDay ?
+                new Date(dto.repaymentDay) :
+                loan.repaymentDay ?
+                    new Date(loan.repaymentDay) : new Date();
 
             for (let i = 1; i <= months; i++) {
                 let dueDate: Date;
@@ -1058,15 +1160,78 @@ export class LoansService {
             await this.prisma.repayment.createMany({ data: repayments });
         }
 
-        // If amount changed, clear existing contracts to force regeneration
-        if (dto.amount && dto.amount !== loan.amount) {
-            await this.prisma.loan.update({
-                where: { id },
-                data: {
-                    DEBT_ACKNOWLEDGMENT: null,
-                    PROMISSORY_NOTE: null,
-                },
+        if (
+            dto.amount &&
+            dto.amount !== loan.amount &&
+            loan.source === LoanFundSource.NEW_CAPITAL
+        ) {
+
+            const shares = await this.prisma.loanNewCapitalShare.findMany({
+                where: { loanId: loan.id },
             });
+
+            for (const s of shares) {
+                await this.prisma.partnerNewCapital.updateMany({
+                    where: { partnerId: s.partnerId },
+                    data: {
+                        remaining: { increment: s.amountUsed },
+                    },
+                });
+            }
+
+            const principal = new Decimal(dto.amount);
+
+            const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
+                where: { remaining: { gt: 0 } },
+            });
+
+            if (newCapitalPartners.length === 0) {
+                throw new BadRequestException('لا يوجد رأس مال جديد متاح بعد التعديل');
+            }
+
+            const totalNewCapital = newCapitalPartners.reduce(
+                (sum, p) => sum.plus(p.remaining),
+                new Decimal(0),
+            );
+
+            if (totalNewCapital.lt(principal)) {
+                throw new BadRequestException('رأس المال الجديد غير كافٍ بعد تعديل المبلغ');
+            }
+
+            await this.prisma.loanNewCapitalShare.deleteMany({
+                where: { loanId: loan.id },
+            });
+
+            for (const p of newCapitalPartners) {
+                const ratio = new Decimal(p.remaining).div(totalNewCapital);
+                const usedAmount = principal.mul(ratio).toDecimalPlaces(2);
+
+                if (usedAmount.lte(0)) continue;
+
+                await this.prisma.loanNewCapitalShare.create({
+                    data: {
+                        loanId: loan.id,
+                        partnerId: p.partnerId,
+                        amountUsed: Number(usedAmount),
+                        percent: Number(ratio.mul(100).toFixed(2)),
+                    },
+                });
+
+                await this.prisma.partnerNewCapital.update({
+                    where: { id: p.id },
+                    data: {
+                        remaining: { decrement: Number(usedAmount) },
+                    },
+                });
+
+                await this.prisma.loan.update({
+                    where: { id },
+                    data: {
+                        DEBT_ACKNOWLEDGMENT: null,
+                        PROMISSORY_NOTE: null,
+                    },
+                });
+            }
         }
 
         // create audit log
@@ -1131,10 +1296,24 @@ export class LoansService {
                 await tx.journalHeader.deleteMany({ where: { id: { in: headerIds } } });
             }
 
-
             await tx.repayment.deleteMany({ where: { loanId: id } });
 
             await tx.loanPartnerShare.deleteMany({ where: { loanId: id } });
+
+            const shares = await this.prisma.loanNewCapitalShare.findMany({
+                where: { loanId: loan.id },
+            });
+
+            for (const s of shares) {
+                await this.prisma.partnerNewCapital.updateMany({
+                    where: { partnerId: s.partnerId },
+                    data: {
+                        remaining: { increment: s.amountUsed },
+                    },
+                });
+            }
+
+            await tx.loanNewCapitalShare.deleteMany({ where: { loanId: id } });
 
             await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
 

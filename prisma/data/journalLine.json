@@ -1,0 +1,62 @@
+[
+  {
+    "id": 5,
+    "journalId": 3,
+    "accountId": 14,
+    "debit": 300,
+    "credit": 0,
+    "balance": 300,
+    "clientId": null,
+    "description": "إثبات سلفة صغيرة"
+  },
+  {
+    "id": 6,
+    "journalId": 3,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 300,
+    "balance": -300,
+    "clientId": null,
+    "description": "صرف نقدي سلفة صغيرة"
+  },
+  {
+    "id": 7,
+    "journalId": 4,
+    "accountId": 6,
+    "debit": 200,
+    "credit": 0,
+    "balance": 200,
+    "clientId": null,
+    "description": "تحصيل سداد سلفة صغيرة"
+  },
+  {
+    "id": 8,
+    "journalId": 4,
+    "accountId": 14,
+    "debit": 0,
+    "credit": 200,
+    "balance": -200,
+    "clientId": null,
+    "description": "تخفيض مديونية سلفة صغيرة"
+  },
+  {
+    "id": 9,
+    "journalId": 5,
+    "accountId": 6,
+    "debit": 100,
+    "credit": 0,
+    "balance": 100,
+    "clientId": null,
+    "description": "تحصيل سداد سلفة صغيرة"
+  },
+  {
+    "id": 10,
+    "journalId": 5,
+    "accountId": 14,
+    "debit": 0,
+    "credit": 100,
+    "balance": -100,
+    "clientId": null,
+    "description": "تخفيض مديونية سلفة صغيرة"
+  }
+]

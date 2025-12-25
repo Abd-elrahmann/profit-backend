@@ -1,4 +1,4 @@
-import { LoanType, LoanStatus } from '@prisma/client';
+import { LoanType, LoanStatus, LoanFundSource } from '@prisma/client';
 export declare class CreateLoanDto {
     clientId: number;
     kafeelId?: number;
@@ -7,6 +7,7 @@ export declare class CreateLoanDto {
     InterestPercentage: number;
     TotalInterest: number;
     type: LoanType;
+    source: LoanFundSource;
     startDate?: string;
     repaymentDay?: string;
     bankAccountId?: number;
@@ -19,6 +20,7 @@ export declare class UpdateLoanDto {
     TotalInterest: number;
     status?: LoanStatus;
     type: LoanType;
+    source: LoanFundSource;
     repaymentDay?: string;
     bankAccountId?: number;
     partnerId?: number;

@@ -52,6 +52,7 @@ export declare class PartnerService {
             capitalAmount: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
+            isNewPartner: boolean;
             joinDistribute: boolean;
             totalProfit: number;
             WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
@@ -59,6 +60,7 @@ export declare class PartnerService {
             accountPayableId: number;
             accountEquityId: number;
             accountSavingId: number;
+            accountNewCapitalId: number;
             yearlyZakatRequired: number | null;
             yearlyZakatPaid: number | null;
             yearlyZakatBalance: number | null;
@@ -80,6 +82,7 @@ export declare class PartnerService {
             capitalAmount: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
+            isNewPartner: boolean;
             joinDistribute: boolean;
             totalProfit: number;
             WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
@@ -87,6 +90,7 @@ export declare class PartnerService {
             accountPayableId: number;
             accountEquityId: number;
             accountSavingId: number;
+            accountNewCapitalId: number;
             yearlyZakatRequired: number | null;
             yearlyZakatPaid: number | null;
             yearlyZakatBalance: number | null;
@@ -106,8 +110,19 @@ export declare class PartnerService {
         totalPages: number;
         currentPage: number;
         partners: {
-            partnerProfitPercent: number;
+            generalCapital: number;
+            generalProfitPercent: number;
+            newCapitalAmount: number;
+            newCapitalPercent: number;
+            total: number;
             totalSaving: number;
+            PartnerNewCapital: {
+                id: number;
+                createdAt: Date;
+                amount: number;
+                partnerId: number;
+                remaining: number;
+            }[];
             AccountPayable: {
                 id: number;
                 name: string;
@@ -166,6 +181,7 @@ export declare class PartnerService {
             capitalAmount: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
+            isNewPartner: boolean;
             joinDistribute: boolean;
             totalProfit: number;
             WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
@@ -173,6 +189,7 @@ export declare class PartnerService {
             accountPayableId: number;
             accountEquityId: number;
             accountSavingId: number;
+            accountNewCapitalId: number;
             yearlyZakatRequired: number | null;
             yearlyZakatPaid: number | null;
             yearlyZakatBalance: number | null;
@@ -182,6 +199,9 @@ export declare class PartnerService {
         createdAt: string | null;
         contractSignedAt: string | null;
         partnerProfitPercent: number;
+        newCapitalAmount: number;
+        newCapitalPercent: number;
+        total: number;
         totalSaving: number;
         duration: {
             years: number;
@@ -192,6 +212,13 @@ export declare class PartnerService {
         withdrawalReceipt: string | null;
         HIjriCreatedAt: any;
         HIjriContractSignedAt: any;
+        PartnerNewCapital: {
+            id: number;
+            createdAt: Date;
+            amount: number;
+            partnerId: number;
+            remaining: number;
+        }[];
         loans: {
             id: number;
             createdAt: Date;
@@ -206,6 +233,7 @@ export declare class PartnerService {
             totalAmount: number;
             paymentAmount: number;
             durationMonths: number;
+            source: import("@prisma/client").$Enums.LoanFundSource;
             startDate: Date;
             endDate: Date | null;
             repaymentDay: Date | null;
@@ -301,6 +329,7 @@ export declare class PartnerService {
         orgProfitPercent: number;
         capitalAmount: number;
         mudarabahFileUrl: string | null;
+        isNewPartner: boolean;
         joinDistribute: boolean;
         totalProfit: number;
         WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
@@ -308,6 +337,7 @@ export declare class PartnerService {
         accountPayableId: number;
         accountEquityId: number;
         accountSavingId: number;
+        accountNewCapitalId: number;
         yearlyZakatRequired: number | null;
         yearlyZakatPaid: number | null;
         yearlyZakatBalance: number | null;

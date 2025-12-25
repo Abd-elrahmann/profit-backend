@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsDateString } from 'class-validator';
-import { LoanType, LoanStatus } from '@prisma/client';
+import { LoanType, LoanStatus, LoanFundSource } from '@prisma/client';
 
 export class CreateLoanDto {
     @IsNumber()
@@ -25,6 +25,9 @@ export class CreateLoanDto {
 
     @IsEnum(LoanType)
     type: LoanType;
+
+    @IsEnum(LoanFundSource)
+    source: LoanFundSource;
 
     @IsOptional()
     @IsDateString()
@@ -65,6 +68,10 @@ export class UpdateLoanDto {
     @IsOptional()
     @IsEnum(LoanType)
     type: LoanType;
+
+    @IsOptional()
+    @IsEnum(LoanFundSource)
+    source: LoanFundSource;
 
     @IsOptional()
     @IsDateString()

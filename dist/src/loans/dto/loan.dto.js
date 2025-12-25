@@ -20,6 +20,7 @@ class CreateLoanDto {
     InterestPercentage;
     TotalInterest;
     type;
+    source;
     startDate;
     repaymentDay;
     bankAccountId;
@@ -58,6 +59,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateLoanDto.prototype, "type", void 0);
 __decorate([
+    (0, class_validator_1.IsEnum)(client_1.LoanFundSource),
+    __metadata("design:type", String)
+], CreateLoanDto.prototype, "source", void 0);
+__decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
@@ -82,6 +87,7 @@ class UpdateLoanDto {
     TotalInterest;
     status;
     type;
+    source;
     repaymentDay;
     bankAccountId;
     partnerId;
@@ -120,6 +126,11 @@ __decorate([
     (0, class_validator_1.IsEnum)(client_1.LoanType),
     __metadata("design:type", String)
 ], UpdateLoanDto.prototype, "type", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.LoanFundSource),
+    __metadata("design:type", String)
+], UpdateLoanDto.prototype, "source", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
