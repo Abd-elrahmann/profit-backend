@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RepaymentDto } from './dto/repayment.dto';
-import { PaymentStatus, JournalSourceType, TemplateType, LoanStatus, ClientStatus } from '@prisma/client';
+import { PaymentStatus, JournalSourceType, TemplateType, LoanStatus, ClientStatus, LoanFundSource } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
 import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
@@ -175,9 +175,6 @@ export class RepaymentService {
         const interestAmount = roundToTwo(repayment.interestAmount);
         const principalAmount = roundToTwo(repayment.principalAmount);
 
-        const bankAccount = await this.prisma.account.findFirst({
-            where: { accountBasicType: 'BANK' },
-        });
         const loansReceivable = await this.prisma.account.findFirst({
             where: { accountBasicType: 'LOANS_RECEIVABLE' },
         });
@@ -185,8 +182,19 @@ export class RepaymentService {
             where: { accountBasicType: 'LOAN_INCOME' },
         });
 
-        if (!bankAccount || !loansReceivable || !loanIncome)
+        if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounts setup');
+
+        let creditAccount;
+        if (loan.source === LoanFundSource.GENERAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'BANK' },
+            });
+        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
+            });
+        }
 
         return await this.prisma.$transaction(async (tx) => {
             // Create Journal Entry using journalService
@@ -199,7 +207,7 @@ export class RepaymentService {
                     sourceId: repayment.id,
                     lines: [
                         {
-                            accountId: bankAccount.id,
+                            accountId: creditAccount.id,
                             debit: totalAmount,
                             credit: 0,
                             description: `استلام سداد دفعة للسلفة رقم ${loan.id}`,
@@ -235,10 +243,19 @@ export class RepaymentService {
                 },
             });
 
-            const partnerShares = await tx.loanPartnerShare.findMany({
-                where: { loanId: loan.id },
-                include: { partner: true }
-            });
+            let partnerShares: any[] = [];
+
+            if (loan.source === LoanFundSource.GENERAL) {
+                partnerShares = await tx.loanPartnerShare.findMany({
+                    where: { loanId: loan.id },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+                partnerShares = await tx.loanNewCapitalShare.findMany({
+                    where: { loanId: loan.id },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            }
 
             const currentPeriod = await this.prisma.periodHeader.findFirst({
                 where: { endDate: null },
@@ -261,14 +278,17 @@ export class RepaymentService {
 
             // Process each partner
             for (const ps of partnerShares) {
-                const sharePercent = Number(ps.sharePercent || 0);
+                const sharePercent =
+                    loan.source === LoanFundSource.GENERAL
+                        ? Number(ps.sharePercent || 0)
+                        : Number(ps.percent || 0);
+
                 const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
 
                 // theoretical totals
                 const totalRawShareFinal = Number(((loan.interestAmount * sharePercent) / 100).toFixed(2));
                 const totalCompanyCutFinal = Number(((totalRawShareFinal * orgCutPercent) / 100).toFixed(2));
 
-                // compute normally
                 let rawShare = Number(((interestAmount * sharePercent) / 100).toFixed(2));
                 let companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
                 let partnerFinal = rawShare - companyCut;
@@ -276,9 +296,11 @@ export class RepaymentService {
                 const isLastRepayment = repaymentIndex + 1 === totalRepayments;
 
                 if (isLastRepayment) {
-                    // sum previous accruals
                     const prev = await tx.partnerShareAccrual.aggregate({
-                        where: { loanId: loan.id, partnerId: ps.partnerId },
+                        where: {
+                            loanId: loan.id,
+                            partnerId: ps.partnerId,
+                        },
                         _sum: { rawShare: true, companyCut: true },
                     });
 
@@ -292,7 +314,7 @@ export class RepaymentService {
 
                 await tx.partnerShareAccrual.create({
                     data: {
-                        periodId: periodId,
+                        periodId,
                         loanId: loan.id,
                         repaymentId: repayment.id,
                         partnerId: ps.partnerId,
@@ -409,6 +431,7 @@ export class RepaymentService {
                 where: { id },
                 data: {
                     status: PaymentStatus.PENDING,
+                    remaining: repayment.amount,
                     paidAmount: 0,
                     paymentDate: null,
                     reviewStatus: 'REJECTED',
@@ -596,12 +619,22 @@ export class RepaymentService {
         const remaining = parseFloat((repayment.amount - newPaidAmount).toFixed(2));
 
         // Accounting accounts
-        const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
         const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
         const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
 
-        if (!bankAccount || !loansReceivable || !loanIncome)
+        if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounting accounts');
+
+        let creditAccount;
+        if (loan.source === LoanFundSource.GENERAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'BANK' },
+            });
+        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
+            });
+        }
 
         return await this.prisma.$transaction(async tx => {
 
@@ -630,7 +663,7 @@ export class RepaymentService {
             }
 
             const roundToTwo = (num) => Math.round(num * 100) / 100;
-            
+
             paidAmount = roundToTwo(paidAmount);
             principalPart = roundToTwo(principalPart);
             interestPart = roundToTwo(interestPart);
@@ -645,7 +678,7 @@ export class RepaymentService {
                     sourceId: repayment.id,
                     lines: [
                         {
-                            accountId: bankAccount.id,
+                            accountId: creditAccount.id,
                             debit: paidAmount,
                             credit: 0,
                             description: `استلام سداد جزئي للدفعة رقم ${repayment.id} للسلفة رقم ${loan.id}`,
@@ -682,10 +715,19 @@ export class RepaymentService {
             });
 
             // Create partner share accrual for this partial payment
-            const loanPartners = await tx.loanPartnerShare.findMany({
-                where: { loanId: loan.id, isActive: true },
-                include: { partner: true }
-            });
+            let partnerShares: any[] = [];
+
+            if (loan.source === LoanFundSource.GENERAL) {
+                partnerShares = await tx.loanPartnerShare.findMany({
+                    where: { loanId: loan.id, isActive: true },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+                partnerShares = await tx.loanNewCapitalShare.findMany({
+                    where: { loanId: loan.id },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            }
 
             const currentPeriod = await this.prisma.periodHeader.findFirst({
                 where: { endDate: null },
@@ -696,28 +738,32 @@ export class RepaymentService {
             }
             const periodId = currentPeriod.id;
 
-            for (const partner of loanPartners) {
-                const partnerPercentage = partner.sharePercent / 100;
+            for (const ps of partnerShares) {
+                const sharePercent =
+                    loan.source === LoanFundSource.GENERAL
+                        ? Number(ps.sharePercent || 0)
+                        : Number(ps.percent || 0);
 
-                // نصيب المساهم من الفائدة فقط
-                const rawShare = parseFloat((interestPart * partnerPercentage).toFixed(2));
+                const partnerPercentage = sharePercent / 100;
+                const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
 
-                // الشركة تأخذ نسبة من نصيبهم
-                const companyCut = parseFloat((rawShare * (partner.partner.orgProfitPercent / 100)).toFixed(2));
+                const rawShare = Number((interestPart * partnerPercentage).toFixed(2));
+                const companyCut = Number((rawShare * orgCutPercent / 100).toFixed(2));
+                const partnerFinal = Number((rawShare - companyCut).toFixed(2));
 
-                const partnerFinal = parseFloat((rawShare - companyCut).toFixed(2));
+                if (rawShare === 0 && companyCut === 0) continue;
 
                 await tx.partnerShareAccrual.create({
                     data: {
-                        periodId: periodId,
-                        partnerId: partner.partnerId,
+                        periodId,
+                        partnerId: ps.partnerId,
                         loanId: loan.id,
                         repaymentId: repayment.id,
                         rawShare,
                         companyCut,
                         partnerFinal,
                         isClosed: false,
-                    }
+                    },
                 });
             }
 
@@ -791,18 +837,28 @@ export class RepaymentService {
         let finalPayment = totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount);
 
         // Step 4: Get accounts
-        const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
         const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
         const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
 
-        if (!bankAccount || !loansReceivable || !loanIncome)
+        if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounts setup');
 
-         const roundToTwo = (num) => Math.round(num * 100) / 100;
+        let creditAccount;
+        if (loan.source === LoanFundSource.GENERAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'BANK' },
+            });
+        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+            creditAccount = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
+            });
+        }
 
-         finalPayment = roundToTwo(finalPayment);
-         totalRemainingPrincipal = roundToTwo(totalRemainingPrincipal);
-         totalRemainingInterest = roundToTwo(totalRemainingInterest);
+        const roundToTwo = (num) => Math.round(num * 100) / 100;
+
+        finalPayment = roundToTwo(finalPayment);
+        totalRemainingPrincipal = roundToTwo(totalRemainingPrincipal);
+        totalRemainingInterest = roundToTwo(totalRemainingInterest);
 
         return await this.prisma.$transaction(async (tx) => {
             // Step 5: Create journal entry
@@ -814,7 +870,7 @@ export class RepaymentService {
                     sourceType: JournalSourceType.LOAN,
                     sourceId: loan.id,
                     lines: [
-                        { accountId: bankAccount.id, debit: finalPayment, credit: 0, description: `استلام سداد مبكر من العميل ${loan.client.name}` },
+                        { accountId: creditAccount.id, debit: finalPayment, credit: 0, description: `استلام سداد مبكر من العميل ${loan.client.name}` },
                         { accountId: loansReceivable.id, debit: 0, credit: totalRemainingPrincipal, description: 'سداد أصل السلفة بالكامل', clientId: loan.client.id },
                         { accountId: loanIncome.id, debit: 0, credit: totalRemainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر', clientId: loan.client.id, },
                     ],
@@ -861,10 +917,19 @@ export class RepaymentService {
             }
 
             // Step 7: Partner Share Accrual
-            const partnerShares = await tx.loanPartnerShare.findMany({
-                where: { loanId: loan.id },
-                include: { partner: true },
-            });
+            let partnerShares: any[] = [];
+
+            if (loan.source === LoanFundSource.GENERAL) {
+                partnerShares = await tx.loanPartnerShare.findMany({
+                    where: { loanId: loan.id },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+                partnerShares = await tx.loanNewCapitalShare.findMany({
+                    where: { loanId: loan.id },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            }
 
             const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;
 
@@ -880,23 +945,28 @@ export class RepaymentService {
             if (realizedInterest > 0) {
                 for (const ps of partnerShares) {
 
-                    const sharePercent = Number(ps.sharePercent || 0);
+                    const sharePercent =
+                        loan.source === LoanFundSource.GENERAL
+                            ? Number(ps.sharePercent || 0)
+                            : Number(ps.percent || 0);
+
                     const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
 
-                    // theoretical totals
-                    const totalRawShareFinal = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
-                    const totalCompanyCutFinal = Number(((totalRawShareFinal * orgCutPercent) / 100).toFixed(2));
-                    const totalPartnerFinal = Number((totalRawShareFinal - totalCompanyCutFinal).toFixed(2));
+                    const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
+                    const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
+                    const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+
+                    if (rawShare === 0 && companyCut === 0) continue;
 
                     await tx.partnerShareAccrual.create({
                         data: {
-                            periodId: periodId,
+                            periodId,
                             loanId: loan.id,
                             repaymentId: null,
                             partnerId: ps.partnerId,
-                            rawShare: totalRawShareFinal,
-                            companyCut: totalCompanyCutFinal,
-                            partnerFinal: totalPartnerFinal,
+                            rawShare,
+                            companyCut,
+                            partnerFinal,
                         },
                     });
                 }
