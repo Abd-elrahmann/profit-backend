@@ -49,11 +49,17 @@ let LoansController = class LoansController {
     delete(req, id) {
         return this.loansService.deleteLoan(req.user.id, id);
     }
-    async uploadDebtAcknowledgment(req, id, file) {
-        return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file);
+    async uploadDebtAcknowledgment(req, id, file, body) {
+        console.log('Controller - uploadDebtAcknowledgment - body:', body);
+        return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file, body);
     }
-    async uploadPromissoryNote(req, id, file) {
-        return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file);
+    async uploadPromissoryNote(req, id, file, body) {
+        console.log('Controller - uploadPromissoryNote - body:', body);
+        return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file, body);
+    }
+    async saveContractNumbers(req, id, body) {
+        console.log('Controller - saveContractNumbers - body:', body);
+        return this.loansService.saveContractNumbers(req.user.id, id, body);
     }
     async uploadSettlementFile(req, id, file) {
         return this.loansService.uploadSettlementFile(req.user.id, id, file);
@@ -142,24 +148,39 @@ __decorate([
 ], LoansController.prototype, "delete", null);
 __decorate([
     (0, common_1.Post)(':id/upload-debt-acknowledgment'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        limits: { fileSize: 10 * 1024 * 1024 },
+    })),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.UploadedFile)()),
+    __param(3, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, Object]),
+    __metadata("design:paramtypes", [Object, Number, Object, Object]),
     __metadata("design:returntype", Promise)
 ], LoansController.prototype, "uploadDebtAcknowledgment", null);
 __decorate([
     (0, common_1.Post)(':id/upload-promissory-note'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        limits: { fileSize: 10 * 1024 * 1024 },
+    })),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.UploadedFile)()),
+    __param(3, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Object, Object]),
+    __metadata("design:returntype", Promise)
+], LoansController.prototype, "uploadPromissoryNote", null);
+__decorate([
+    (0, common_1.Post)(':id/save-contract-numbers'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, Object]),
     __metadata("design:returntype", Promise)
-], LoansController.prototype, "uploadPromissoryNote", null);
+], LoansController.prototype, "saveContractNumbers", null);
 __decorate([
     (0, common_1.Post)(':id/upload-Settlement'),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),

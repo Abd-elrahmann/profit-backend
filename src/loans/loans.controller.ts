@@ -88,23 +88,41 @@ export class LoansController {
     }
 
     @Post(':id/upload-debt-acknowledgment')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', {
+        limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    }))
     async uploadDebtAcknowledgment(
         @Req() req,
         @Param('id') id: number,
-        @UploadedFile() file: Express.Multer.File
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body: any
     ) {
-        return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file);
+        console.log('Controller - uploadDebtAcknowledgment - body:', body);
+        return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file, body);
     }
 
     @Post(':id/upload-promissory-note')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', {
+        limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    }))
     async uploadPromissoryNote(
         @Req() req,
         @Param('id') id: number,
-        @UploadedFile() file: Express.Multer.File
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body: any
     ) {
-        return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file);
+        console.log('Controller - uploadPromissoryNote - body:', body);
+        return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file, body);
+    }
+
+    @Post(':id/save-contract-numbers')
+    async saveContractNumbers(
+        @Req() req,
+        @Param('id') id: number,
+        @Body() body: { debtAcknowledgmentNumber?: string; promissoryNoteNumber?: string }
+    ) {
+        console.log('Controller - saveContractNumbers - body:', body);
+        return this.loansService.saveContractNumbers(req.user.id, id, body);
     }
 
     @Post(':id/upload-Settlement')

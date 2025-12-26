@@ -134,6 +134,16 @@ export class ClientReportService {
                 0
             );
 
+            // Monthly installment calculation - average of pending repayments
+            const pendingRepayments = loansForFinancials.flatMap(loan =>
+                loan.repayments.filter(r => r.status === 'PENDING')
+            );
+            const averageMonthlyInstallment = pendingRepayments.length > 0
+                ? Math.round(
+                    (pendingRepayments.reduce((sum, r) => sum + r.amount, 0) / pendingRepayments.length) * 100
+                ) / 100
+                : 0;
+
             return {
                 id: c.id,
                 name: c.name,
@@ -161,6 +171,7 @@ export class ClientReportService {
                     remaining,
                     totalDiscounts,
                     totalInterestPaid,
+                    averageMonthlyInstallment,
                 },
             };
         });

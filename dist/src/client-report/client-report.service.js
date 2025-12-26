@@ -88,6 +88,10 @@ let ClientReportService = class ClientReportService {
             const totalInterestPaid = loans.reduce((sum, loan) => Math.round((sum +
                 loan.repayments.reduce((rSum, r) => Math.round(((rSum + (r.interestAmount ?? 0)) * 100)) /
                     100, 0)) * 100) / 100, 0);
+            const pendingRepayments = loansForFinancials.flatMap(loan => loan.repayments.filter(r => r.status === 'PENDING'));
+            const averageMonthlyInstallment = pendingRepayments.length > 0
+                ? Math.round((pendingRepayments.reduce((sum, r) => sum + r.amount, 0) / pendingRepayments.length) * 100) / 100
+                : 0;
             return {
                 id: c.id,
                 name: c.name,
@@ -112,6 +116,7 @@ let ClientReportService = class ClientReportService {
                     remaining,
                     totalDiscounts,
                     totalInterestPaid,
+                    averageMonthlyInstallment,
                 },
             };
         });

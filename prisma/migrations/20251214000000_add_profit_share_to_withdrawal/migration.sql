@@ -13,3 +13,4 @@ ALTER TABLE "PartnerWithdrawal" ADD COLUMN "profitShare" DOUBLE PRECISION NOT NU
 
 
 
+

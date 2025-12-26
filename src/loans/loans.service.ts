@@ -1333,7 +1333,8 @@ export class LoansService {
         });
     }
 
-    async uploadDebtAcknowledgmentFile(currentUser: number, loanId: number, file: Express.Multer.File) {
+    async uploadDebtAcknowledgmentFile(currentUser: number, loanId: number, file: Express.Multer.File, contractNumbers?: { debtAcknowledgmentNumber?: string }) {
+        console.log('uploadDebtAcknowledgmentFile - contractNumbers:', contractNumbers);
         if (!file) throw new BadRequestException('No file uploaded');
 
         const loan = await this.prisma.loan.findUnique({
@@ -1356,15 +1357,12 @@ export class LoansService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Generate unique debt acknowledgment number
-        const debtAcknowledgmentNumber = `ACK-${loanId}`;
-
         // 6. Update loan with file URL and contract number
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
                 DEBT_ACKNOWLEDGMENT: publicUrl,
-                debtAcknowledgmentNumber: debtAcknowledgmentNumber
+                debtAcknowledgmentNumber: contractNumbers?.debtAcknowledgmentNumber
             },
         });
 
@@ -1382,7 +1380,8 @@ export class LoansService {
         return { message: 'تم تحميل إقرار الدين بنجاح', path: publicUrl };
     }
 
-    async uploadPromissoryNoteFile(currentUser: number, loanId: number, file: Express.Multer.File) {
+    async uploadPromissoryNoteFile(currentUser: number, loanId: number, file: Express.Multer.File, contractNumbers?: { promissoryNoteNumber?: string }) {
+        console.log('uploadPromissoryNoteFile - contractNumbers:', contractNumbers);
         if (!file) throw new BadRequestException('No file uploaded');
 
         // Find the loan and related client
@@ -1411,15 +1410,12 @@ export class LoansService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Generate unique promissory note number
-        const promissoryNoteNumber = `NOTE-${loanId}`;
-
         // Update loan with file URL and contract number
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
                 PROMISSORY_NOTE: publicUrl,
-                promissoryNoteNumber: promissoryNoteNumber
+                promissoryNoteNumber: contractNumbers?.promissoryNoteNumber
             },
         });
 
@@ -1480,6 +1476,48 @@ export class LoansService {
         });
 
         return { message: 'تم تحميل ملف التسوية بنجاح', path: publicUrl };
+    }
+
+    async saveContractNumbers(currentUser: number, loanId: number, contractNumbers: { debtAcknowledgmentNumber?: string; promissoryNoteNumber?: string }) {
+        console.log('saveContractNumbers - contractNumbers:', contractNumbers);
+
+        const updateData: any = {};
+
+        if (contractNumbers.debtAcknowledgmentNumber) {
+            updateData.debtAcknowledgmentNumber = contractNumbers.debtAcknowledgmentNumber;
+        }
+
+        if (contractNumbers.promissoryNoteNumber) {
+            updateData.promissoryNoteNumber = contractNumbers.promissoryNoteNumber;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            throw new BadRequestException('No contract numbers provided');
+        }
+
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+        });
+
+        if (!loan) throw new NotFoundException('Loan not found');
+
+        const updatedLoan = await this.prisma.loan.update({
+            where: { id: loanId },
+            data: updateData,
+        });
+
+        // Audit log
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Loans',
+                action: 'UPDATE',
+                description: `قام المستخدم ${user?.name} بتحديث أرقام العقود للسلفة رقم ${loan.code}`,
+            },
+        });
+
+        return { message: 'تم حفظ أرقام العقود بنجاح', loan: updatedLoan };
     }
 
     async convertLoanClient(clientAId: number, clientBId: number, loanId: number, kafeelId: number, userId: number) {

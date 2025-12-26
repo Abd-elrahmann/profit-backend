@@ -1131,7 +1131,8 @@ let LoansService = class LoansService {
             return { message: 'تم حذف السلفة بنجاح' };
         });
     }
-    async uploadDebtAcknowledgmentFile(currentUser, loanId, file) {
+    async uploadDebtAcknowledgmentFile(currentUser, loanId, file, contractNumbers) {
+        console.log('uploadDebtAcknowledgmentFile - contractNumbers:', contractNumbers);
         if (!file)
             throw new common_1.BadRequestException('No file uploaded');
         const loan = await this.prisma.loan.findUnique({
@@ -1151,12 +1152,11 @@ let LoansService = class LoansService {
         fs.writeFileSync(filePath, file.buffer);
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
-        const debtAcknowledgmentNumber = `ACK-${loanId}`;
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
                 DEBT_ACKNOWLEDGMENT: publicUrl,
-                debtAcknowledgmentNumber: debtAcknowledgmentNumber
+                debtAcknowledgmentNumber: contractNumbers?.debtAcknowledgmentNumber
             },
         });
         await this.prisma.auditLog.create({
@@ -1169,7 +1169,8 @@ let LoansService = class LoansService {
         });
         return { message: 'تم تحميل إقرار الدين بنجاح', path: publicUrl };
     }
-    async uploadPromissoryNoteFile(currentUser, loanId, file) {
+    async uploadPromissoryNoteFile(currentUser, loanId, file, contractNumbers) {
+        console.log('uploadPromissoryNoteFile - contractNumbers:', contractNumbers);
         if (!file)
             throw new common_1.BadRequestException('No file uploaded');
         const loan = await this.prisma.loan.findUnique({
@@ -1189,12 +1190,11 @@ let LoansService = class LoansService {
         fs.writeFileSync(filePath, file.buffer);
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
-        const promissoryNoteNumber = `NOTE-${loanId}`;
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
                 PROMISSORY_NOTE: publicUrl,
-                promissoryNoteNumber: promissoryNoteNumber
+                promissoryNoteNumber: contractNumbers?.promissoryNoteNumber
             },
         });
         await this.prisma.auditLog.create({
@@ -1243,6 +1243,38 @@ let LoansService = class LoansService {
             },
         });
         return { message: 'تم تحميل ملف التسوية بنجاح', path: publicUrl };
+    }
+    async saveContractNumbers(currentUser, loanId, contractNumbers) {
+        console.log('saveContractNumbers - contractNumbers:', contractNumbers);
+        const updateData = {};
+        if (contractNumbers.debtAcknowledgmentNumber) {
+            updateData.debtAcknowledgmentNumber = contractNumbers.debtAcknowledgmentNumber;
+        }
+        if (contractNumbers.promissoryNoteNumber) {
+            updateData.promissoryNoteNumber = contractNumbers.promissoryNoteNumber;
+        }
+        if (Object.keys(updateData).length === 0) {
+            throw new common_1.BadRequestException('No contract numbers provided');
+        }
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+        });
+        if (!loan)
+            throw new common_1.NotFoundException('Loan not found');
+        const updatedLoan = await this.prisma.loan.update({
+            where: { id: loanId },
+            data: updateData,
+        });
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'Loans',
+                action: 'UPDATE',
+                description: `قام المستخدم ${user?.name} بتحديث أرقام العقود للسلفة رقم ${loan.code}`,
+            },
+        });
+        return { message: 'تم حفظ أرقام العقود بنجاح', loan: updatedLoan };
     }
     async convertLoanClient(clientAId, clientBId, loanId, kafeelId, userId) {
         const clientA = await this.prisma.client.findUnique({ where: { id: clientAId } });

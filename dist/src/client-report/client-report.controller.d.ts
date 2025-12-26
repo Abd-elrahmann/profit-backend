@@ -30,6 +30,7 @@ export declare class ClientReportController {
                 remaining: number;
                 totalDiscounts: number;
                 totalInterestPaid: number;
+                averageMonthlyInstallment: number;
             };
         }[];
     }>;

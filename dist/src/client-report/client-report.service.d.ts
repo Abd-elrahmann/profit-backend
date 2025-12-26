@@ -32,6 +32,7 @@ export declare class ClientReportService {
                 remaining: number;
                 totalDiscounts: number;
                 totalInterestPaid: number;
+                averageMonthlyInstallment: number;
             };
         }[];
     }>;
