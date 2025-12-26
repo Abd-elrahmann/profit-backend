@@ -369,6 +369,23 @@ let RepaymentService = class RepaymentService {
                 const closingLines = [];
                 for (const [partnerId, v] of accrualsByPartner) {
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
+                    const partnerProfit = Number(v.amount.toFixed(2));
+                    const companyCut = Number(v.companyCut.toFixed(2));
+                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
+                    await tx.partner.update({
+                        where: { id: partnerId },
+                        data: {
+                            capitalAmount: {
+                                increment: partnerCapitalUsed,
+                            },
+                            totalProfit: {
+                                increment: partnerProfit,
+                            },
+                            totalAmount: {
+                                increment: totalPartnerIncrease,
+                            },
+                        },
+                    });
                     closingLines.push({
                         accountId: LOAN_INCOME.id,
                         debit: Number(v.amount.toFixed(2)),
@@ -408,7 +425,7 @@ let RepaymentService = class RepaymentService {
                         description: `استلام رأس مال من المساهمين الجدد`,
                     });
                 }
-                await this.journalService.createJournal({
+                const journal = await this.journalService.createJournal({
                     periodId,
                     reference: `LOAN-CLOSE-${loan.id}`,
                     description: `إقفال السلفة رقم ${loan.id}`,
@@ -417,6 +434,7 @@ let RepaymentService = class RepaymentService {
                     sourceId: loan.id,
                     lines: closingLines,
                 }, currentUser);
+                await this.journalService.postJournal(journal.journal.id, currentUser);
             }
             if (remaining === 0) {
                 const totalPaidAmount = await tx.repayment.aggregate({
@@ -827,6 +845,23 @@ let RepaymentService = class RepaymentService {
                 const closingLines = [];
                 for (const [partnerId, v] of accrualsByPartner) {
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
+                    const partnerProfit = Number(v.amount.toFixed(2));
+                    const companyCut = Number(v.companyCut.toFixed(2));
+                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
+                    await tx.partner.update({
+                        where: { id: partnerId },
+                        data: {
+                            capitalAmount: {
+                                increment: partnerCapitalUsed,
+                            },
+                            totalProfit: {
+                                increment: partnerProfit,
+                            },
+                            totalAmount: {
+                                increment: totalPartnerIncrease,
+                            },
+                        },
+                    });
                     closingLines.push({
                         accountId: LOAN_INCOME.id,
                         debit: Number(v.amount.toFixed(2)),
@@ -866,7 +901,7 @@ let RepaymentService = class RepaymentService {
                         description: `استلام رأس مال من المساهمين الجدد`,
                     });
                 }
-                await this.journalService.createJournal({
+                const journal = await this.journalService.createJournal({
                     periodId,
                     reference: `LOAN-CLOSE-${loan.id}`,
                     description: `إقفال السلفة رقم ${loan.id}`,
@@ -875,6 +910,7 @@ let RepaymentService = class RepaymentService {
                     sourceId: loan.id,
                     lines: closingLines,
                 }, currentUser);
+                await this.journalService.postJournal(journal.journal.id, currentUser);
             }
             if (remainings === 0) {
                 const totalPaidAmount = await tx.repayment.aggregate({
@@ -1091,6 +1127,23 @@ let RepaymentService = class RepaymentService {
                 const closingLines = [];
                 for (const [partnerId, v] of accrualsByPartner) {
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
+                    const partnerProfit = Number(v.amount.toFixed(2));
+                    const companyCut = Number(v.companyCut.toFixed(2));
+                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
+                    await tx.partner.update({
+                        where: { id: partnerId },
+                        data: {
+                            capitalAmount: {
+                                increment: partnerCapitalUsed,
+                            },
+                            totalProfit: {
+                                increment: partnerProfit,
+                            },
+                            totalAmount: {
+                                increment: totalPartnerIncrease,
+                            },
+                        },
+                    });
                     closingLines.push({
                         accountId: LOAN_INCOME.id,
                         debit: Number(v.amount.toFixed(2)),
@@ -1130,7 +1183,7 @@ let RepaymentService = class RepaymentService {
                         description: `استلام رأس مال من المساهمين الجدد`,
                     });
                 }
-                await this.journalService.createJournal({
+                const journal = await this.journalService.createJournal({
                     periodId,
                     reference: `LOAN-CLOSE-${loan.id}`,
                     description: `إقفال السلفة رقم ${loan.id}`,
@@ -1139,6 +1192,7 @@ let RepaymentService = class RepaymentService {
                     sourceId: loan.id,
                     lines: closingLines,
                 }, currentUserId);
+                await this.journalService.postJournal(journal.journal.id, currentUserId);
             }
             await tx.loan.update({
                 where: { id: loan.id },

@@ -406,6 +406,26 @@ export class RepaymentService {
 
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
 
+                    const partnerProfit = Number(v.amount.toFixed(2));
+                    const companyCut = Number(v.companyCut.toFixed(2));
+
+                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
+
+                    await tx.partner.update({
+                        where: { id: partnerId },
+                        data: {
+                            capitalAmount: {
+                                increment: partnerCapitalUsed,
+                            },
+                            totalProfit: {
+                                increment: partnerProfit,
+                            },
+                            totalAmount: {
+                                increment: totalPartnerIncrease,
+                            },
+                        },
+                    });
+
                     closingLines.push({
                         accountId: LOAN_INCOME.id,
                         debit: Number(v.amount.toFixed(2)),
@@ -981,6 +1001,26 @@ export class RepaymentService {
 
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
 
+                    const partnerProfit = Number(v.amount.toFixed(2));
+                    const companyCut = Number(v.companyCut.toFixed(2));
+
+                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
+
+                    await tx.partner.update({
+                        where: { id: partnerId },
+                        data: {
+                            capitalAmount: {
+                                increment: partnerCapitalUsed,
+                            },
+                            totalProfit: {
+                                increment: partnerProfit,
+                            },
+                            totalAmount: {
+                                increment: totalPartnerIncrease,
+                            },
+                        },
+                    });
+
                     closingLines.push({
                         accountId: LOAN_INCOME.id,
                         debit: Number(v.amount.toFixed(2)),
@@ -1340,6 +1380,26 @@ export class RepaymentService {
                 for (const [partnerId, v] of accrualsByPartner) {
 
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
+
+                    const partnerProfit = Number(v.amount.toFixed(2));
+                    const companyCut = Number(v.companyCut.toFixed(2));
+
+                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
+
+                    await tx.partner.update({
+                        where: { id: partnerId },
+                        data: {
+                            capitalAmount: {
+                                increment: partnerCapitalUsed,
+                            },
+                            totalProfit: {
+                                increment: partnerProfit,
+                            },
+                            totalAmount: {
+                                increment: totalPartnerIncrease,
+                            },
+                        },
+                    });
 
                     closingLines.push({
                         accountId: LOAN_INCOME.id,
