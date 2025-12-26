@@ -50,7 +50,7 @@ let PeriodService = class PeriodService {
                 throw new common_1.BadRequestException(`لا يمكن إغلاق الفترة: هناك ${drafts.length} قيود غير معتمدة.`);
             }
             const accruals = await tx.partnerShareAccrual.findMany({
-                where: { periodId: periodId },
+                where: { periodId: periodId, isClosed: false, isDistributed: false },
                 include: { partner: true },
             });
             const accrualsByPartner = new Map();
@@ -485,7 +485,9 @@ let PeriodService = class PeriodService {
     async calculateOpenPeriodProfits(periodId) {
         const allAccruals = await this.prisma.partnerShareAccrual.findMany({
             where: {
-                periodId: periodId
+                periodId: periodId,
+                isClosed: false,
+                isDistributed: false
             },
             include: {
                 partner: {

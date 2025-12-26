@@ -47,7 +47,7 @@ export class PeriodService {
 
             // Partner profit accrual closing
             const accruals = await tx.partnerShareAccrual.findMany({
-                where: { periodId: periodId },
+                where: { periodId: periodId, isClosed: false, isDistributed: false },
                 include: { partner: true },
             });
 
@@ -585,7 +585,9 @@ export class PeriodService {
         // Get all unclosed accruals (regardless of period)
         const allAccruals = await this.prisma.partnerShareAccrual.findMany({
             where: {
-                periodId: periodId
+                periodId: periodId,
+                isClosed: false,
+                isDistributed: false
             },
             include: {
                 partner: {

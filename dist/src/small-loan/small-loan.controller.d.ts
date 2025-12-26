@@ -4,8 +4,8 @@ export declare class SmallLoanController {
     constructor(service: SmallLoanService);
     create(req: any, body: any): Promise<{
         id: number;
-        createdAt: Date;
         status: import("@prisma/client").$Enums.SmallLoanStatus;
+        createdAt: Date;
         notes: string | null;
         amount: number;
         remaining: number;
@@ -49,8 +49,8 @@ export declare class SmallLoanController {
         message: string;
         loan: {
             id: number;
-            createdAt: Date;
             status: import("@prisma/client").$Enums.SmallLoanStatus;
+            createdAt: Date;
             notes: string | null;
             amount: number;
             remaining: number;

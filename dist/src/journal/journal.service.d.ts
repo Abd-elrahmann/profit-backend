@@ -10,25 +10,25 @@ export declare class JournalService {
             lines: {
                 id: number;
                 description: string | null;
-                credit: number;
                 debit: number;
+                credit: number;
                 balance: number;
+                accountId: number;
                 clientId: number | null;
                 journalId: number;
-                accountId: number;
             }[];
         } & {
             id: number;
-            createdAt: Date;
+            reference: string | null;
             description: string | null;
             date: Date;
             type: import("@prisma/client").$Enums.JournalType;
-            postedById: number | null;
-            reference: string | null;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
+            postedById: number | null;
             periodId: number | null;
+            createdAt: Date;
         };
     }>;
     updateJournal(currentUser: any, id: number, dto: UpdateJournalDto): Promise<{
@@ -37,25 +37,25 @@ export declare class JournalService {
             lines: {
                 id: number;
                 description: string | null;
-                credit: number;
                 debit: number;
+                credit: number;
                 balance: number;
+                accountId: number;
                 clientId: number | null;
                 journalId: number;
-                accountId: number;
             }[];
         } & {
             id: number;
-            createdAt: Date;
+            reference: string | null;
             description: string | null;
             date: Date;
             type: import("@prisma/client").$Enums.JournalType;
-            postedById: number | null;
-            reference: string | null;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
+            postedById: number | null;
             periodId: number | null;
+            createdAt: Date;
         };
     }>;
     deleteJournal(currentUser: any, id: number): Promise<{
@@ -84,17 +84,17 @@ export declare class JournalService {
             createdAtHijri: any;
             postedBy: {
                 id: number;
-                email: string;
                 name: string;
+                email: string;
             } | null;
             id: number;
+            reference: string | null;
             description: string | null;
             type: import("@prisma/client").$Enums.JournalType;
-            postedById: number | null;
-            reference: string | null;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
+            postedById: number | null;
             periodId: number | null;
         }[];
     }>;
@@ -106,68 +106,68 @@ export declare class JournalService {
         };
         postedBy: {
             id: number;
-            email: string;
             name: string;
+            email: string;
         } | null;
         lines: ({
             client: {
                 id: number;
+                status: import("@prisma/client").$Enums.ClientStatus;
+                createdAt: Date;
+                name: string;
+                debit: number;
+                credit: number;
+                balance: number;
                 email: string | null;
                 phone: string;
-                name: string;
-                createdAt: Date;
-                credit: number;
-                debit: number;
-                balance: number;
-                status: import("@prisma/client").$Enums.ClientStatus;
-                nationalId: string;
+                telegramChatId: string | null;
                 birthDate: Date;
+                address: string;
+                nationalId: string;
                 city: string;
                 district: string;
                 employer: string;
                 salary: number;
                 obligations: number;
-                telegramChatId: string | null;
-                address: string;
                 creationReason: string;
                 notes: string | null;
             } | null;
             account: {
                 id: number;
-                name: string;
-                isActive: boolean;
+                type: import("@prisma/client").$Enums.AccountType;
                 createdAt: Date;
+                name: string;
+                debit: number;
+                credit: number;
+                balance: number;
                 code: string;
                 parentId: number | null;
-                type: import("@prisma/client").$Enums.AccountType;
                 level: number;
-                credit: number;
-                debit: number;
-                balance: number;
+                isActive: boolean;
                 nature: import("@prisma/client").$Enums.AccountNature;
                 accountBasicType: import("@prisma/client").$Enums.AccountBasicType;
             };
         } & {
             id: number;
             description: string | null;
-            credit: number;
             debit: number;
+            credit: number;
             balance: number;
+            accountId: number;
             clientId: number | null;
             journalId: number;
-            accountId: number;
         })[];
         id: number;
-        createdAt: Date;
+        reference: string | null;
         description: string | null;
         date: Date;
         type: import("@prisma/client").$Enums.JournalType;
-        postedById: number | null;
-        reference: string | null;
         status: import("@prisma/client").$Enums.JournalStatus;
         sourceId: number | null;
         sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
+        postedById: number | null;
         periodId: number | null;
+        createdAt: Date;
     }>;
     postJournal(id: number, userId: number): Promise<{
         message: string;
