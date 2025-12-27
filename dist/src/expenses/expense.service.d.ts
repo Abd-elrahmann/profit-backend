@@ -20,8 +20,8 @@ export declare class ExpenseService {
         page: number;
         limit: number;
         account: {
-            totalDebit: any;
-            totalCredit: any;
+            totalDebit: number;
+            totalCredit: number;
             balance: number;
         };
         journals: any[];
@@ -65,9 +65,9 @@ export declare class ExpenseService {
     }>;
     getUsersForExpenses(): Promise<{
         id: number;
-        email: string;
-        expenseAccountId: number | null;
         name: string;
         isActive: boolean;
+        email: string;
+        expenseAccountId: number | null;
     }[]>;
 }

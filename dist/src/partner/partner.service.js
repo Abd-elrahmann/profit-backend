@@ -358,7 +358,10 @@ let PartnerService = class PartnerService {
             where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId)
             where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
-        if (filters?.status) {
+        if (filters?.isNewPartner !== undefined) {
+            where.isNewPartner = filters.isNewPartner === 'true';
+        }
+        if (filters?.status && !filters?.isNewPartner) {
             switch (filters.status) {
                 case 'ACTIVE':
                     where.isNewPartner = false;

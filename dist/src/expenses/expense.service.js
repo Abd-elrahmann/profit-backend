@@ -40,7 +40,7 @@ let ExpenseService = class ExpenseService {
         if (!expenses || expenses.length === 0)
             throw new common_1.BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
         const bank = await this.getBankAccount();
-        const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
         if (totalAmount > bank.balance)
             throw new common_1.BadRequestException('رصيد الصندوق غير كافي');
         const journalLines = await Promise.all(expenses.map(async (e) => {
@@ -144,12 +144,12 @@ let ExpenseService = class ExpenseService {
                 accountName: line.account?.name,
                 accountCode: line.account?.code,
             });
-            journalsMap[jId].totalDebit += line.debit;
-            journalsMap[jId].totalCredit += line.credit;
+            journalsMap[jId].totalDebit += Math.round(line.debit * 100) / 100;
+            journalsMap[jId].totalCredit += Math.round(line.credit * 100) / 100;
         });
         const journals = Object.values(journalsMap);
-        const totalDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
-        const totalCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
+        const totalDebit = journals.reduce((sum, j) => sum + Math.round(j.totalDebit * 100), 0) / 100;
+        const totalCredit = journals.reduce((sum, j) => sum + Math.round(j.totalCredit * 100), 0) / 100;
         return {
             total: journals.length,
             page,
@@ -215,7 +215,7 @@ let ExpenseService = class ExpenseService {
         if (journal.sourceType !== 'EXPENSES')
             throw new common_1.BadRequestException('هذا القيد ليس من نوع المصروفات');
         const bank = await this.getBankAccount();
-        const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
         const currentCreditInBank = journal.lines
             .filter((l) => l.accountId === bank.id)
             .reduce((sum, l) => sum + l.credit, 0);
@@ -299,6 +299,7 @@ let ExpenseService = class ExpenseService {
         if (journal.sourceType !== 'EXPENSES')
             throw new common_1.BadRequestException('هذا القيد ليس من نوع المصروفات');
         await this.journalService.unpostJournal(userId, journalId);
+        await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
         await this.prisma.journalLine.deleteMany({ where: { journalId } });
         await this.prisma.journalHeader.delete({ where: { id: journalId } });
         await this.prisma.auditLog.create({

@@ -349,14 +349,21 @@ export class PartnerService {
     }
 
     // GET ALL PARTNERS (with pagination + filters)
-    async getAllPartners(page = 1, filters?: { limit?: number; name?: string; nationalId?: string; status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; withdrawingStatus?: string; }) {
+    async getAllPartners(page = 1, filters?: { limit?: number; name?: string; nationalId?: string; status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; withdrawingStatus?: string; isNewPartner?: string; }) {
         const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
 
         const where: any = {};
         if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId) where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
-        if (filters?.status) {
+
+        // Handle isNewPartner filter
+        if (filters?.isNewPartner !== undefined) {
+            where.isNewPartner = filters.isNewPartner === 'true';
+        }
+
+        // Legacy status filter (for backward compatibility)
+        if (filters?.status && !filters?.isNewPartner) {
             switch (filters.status) {
                 case 'ACTIVE':
                     where.isNewPartner = false;

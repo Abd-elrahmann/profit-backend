@@ -34,13 +34,14 @@ let PartnerController = class PartnerController {
     delete(req, id) {
         return this.partnerService.deletePartner(req.user.id, id);
     }
-    getAll(page, limit, name, nationalId, status, withdrawingStatus) {
+    getAll(page, limit, name, nationalId, status, withdrawingStatus, isNewPartner) {
         return this.partnerService.getAllPartners(page, {
             limit,
             name,
             nationalId,
             status,
             withdrawingStatus,
+            isNewPartner,
         });
     }
     getPartnerById(id) {
@@ -105,8 +106,9 @@ __decorate([
     __param(3, (0, common_1.Query)('nationalId')),
     __param(4, (0, common_1.Query)('status')),
     __param(5, (0, common_1.Query)('withdrawingStatus')),
+    __param(6, (0, common_1.Query)('isNewPartner')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, String, String, String, String]),
+    __metadata("design:paramtypes", [Number, Number, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], PartnerController.prototype, "getAll", null);
 __decorate([

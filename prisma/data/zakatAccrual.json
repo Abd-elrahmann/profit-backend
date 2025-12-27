@@ -5,16 +5,7 @@
     "periodId": null,
     "year": 2025,
     "month": 12,
-    "amount": 250,
-    "createdAt": "2025-12-25T12:33:53.466Z"
-  },
-  {
-    "id": 2,
-    "partnerId": 2,
-    "periodId": null,
-    "year": 2025,
-    "month": 12,
-    "amount": 375,
-    "createdAt": "2025-12-25T12:39:42.187Z"
+    "amount": 2500,
+    "createdAt": "2025-12-26T00:35:51.119Z"
   }
 ]

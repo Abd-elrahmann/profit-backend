@@ -31,7 +31,8 @@ export class ExpenseService {
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
 
         const bank = await this.getBankAccount();
-        const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+        // Fix floating point precision by working with integers (multiply by 100, sum, then divide by 100)
+        const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
 
         if (totalAmount > bank.balance)
             throw new BadRequestException('رصيد الصندوق غير كافي');
@@ -156,15 +157,15 @@ export class ExpenseService {
                 accountCode: line.account?.code,
             });
 
-            journalsMap[jId].totalDebit += line.debit;
-            journalsMap[jId].totalCredit += line.credit;
+            journalsMap[jId].totalDebit += Math.round(line.debit * 100) / 100;
+            journalsMap[jId].totalCredit += Math.round(line.credit * 100) / 100;
         });
 
         const journals = Object.values(journalsMap);
 
         // حساب إجمالي المصروفات من جميع lines
-        const totalDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
-        const totalCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
+        const totalDebit = journals.reduce((sum, j) => sum + Math.round(j.totalDebit * 100), 0) / 100;
+        const totalCredit = journals.reduce((sum, j) => sum + Math.round(j.totalCredit * 100), 0) / 100;
 
         return {
             total: journals.length,
@@ -243,7 +244,8 @@ export class ExpenseService {
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
         const bank = await this.getBankAccount();
-        const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+        // Fix floating point precision by working with integers (multiply by 100, sum, then divide by 100)
+        const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
 
         const currentCreditInBank = journal.lines
             .filter((l) => l.accountId === bank.id)
@@ -342,6 +344,10 @@ export class ExpenseService {
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
         await this.journalService.unpostJournal(userId, journalId);
+
+        // Delete associated expense records first
+        await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
+
         await this.prisma.journalLine.deleteMany({ where: { journalId } });
         await this.prisma.journalHeader.delete({ where: { id: journalId } });
 

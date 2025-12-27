@@ -52,6 +52,7 @@ export class PartnerController {
         @Query('nationalId') nationalId?: string,
         @Query('status') status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN',
         @Query('withdrawingStatus') withdrawingStatus?: string,
+        @Query('isNewPartner') isNewPartner?: string,
     ) {
         return this.partnerService.getAllPartners(page, {
             limit,
@@ -59,6 +60,7 @@ export class PartnerController {
             nationalId,
             status,
             withdrawingStatus,
+            isNewPartner,
         });
     }
 
