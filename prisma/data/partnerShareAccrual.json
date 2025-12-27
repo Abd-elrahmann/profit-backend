@@ -1,0 +1,80 @@
+[
+  {
+    "id": 39,
+    "partnerId": 2,
+    "loanId": 2,
+    "repaymentId": 15,
+    "rawShare": 360,
+    "companyCut": 72,
+    "partnerFinal": 288,
+    "isClosed": true,
+    "isDistributed": true,
+    "periodId": 1,
+    "createdAt": "2025-12-26T20:35:16.965Z"
+  },
+  {
+    "id": 40,
+    "partnerId": 1,
+    "loanId": 2,
+    "repaymentId": 15,
+    "rawShare": 240,
+    "companyCut": 48,
+    "partnerFinal": 192,
+    "isClosed": true,
+    "isDistributed": true,
+    "periodId": 1,
+    "createdAt": "2025-12-26T20:35:16.971Z"
+  },
+  {
+    "id": 41,
+    "partnerId": 2,
+    "loanId": 2,
+    "repaymentId": 16,
+    "rawShare": 360,
+    "companyCut": 72,
+    "partnerFinal": 288,
+    "isClosed": true,
+    "isDistributed": true,
+    "periodId": 1,
+    "createdAt": "2025-12-26T20:35:17.078Z"
+  },
+  {
+    "id": 42,
+    "partnerId": 1,
+    "loanId": 2,
+    "repaymentId": 16,
+    "rawShare": 240,
+    "companyCut": 48,
+    "partnerFinal": 192,
+    "isClosed": true,
+    "isDistributed": true,
+    "periodId": 1,
+    "createdAt": "2025-12-26T20:35:17.079Z"
+  },
+  {
+    "id": 43,
+    "partnerId": 2,
+    "loanId": 2,
+    "repaymentId": 17,
+    "rawShare": 480,
+    "companyCut": 96,
+    "partnerFinal": 384,
+    "isClosed": true,
+    "isDistributed": true,
+    "periodId": 1,
+    "createdAt": "2025-12-26T20:35:17.178Z"
+  },
+  {
+    "id": 44,
+    "partnerId": 1,
+    "loanId": 2,
+    "repaymentId": 17,
+    "rawShare": 320,
+    "companyCut": 64,
+    "partnerFinal": 256,
+    "isClosed": true,
+    "isDistributed": true,
+    "periodId": 1,
+    "createdAt": "2025-12-26T20:35:17.180Z"
+  }
+]

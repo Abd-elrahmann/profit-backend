@@ -407,13 +407,13 @@ export class RepaymentService {
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
 
                     const partnerProfit = Number(v.amount.toFixed(2));
-                    const companyCut = Number(v.companyCut.toFixed(2));
 
                     const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
 
                     await tx.partner.update({
                         where: { id: partnerId },
                         data: {
+                            isNewPartner: false,
                             capitalAmount: {
                                 increment: partnerCapitalUsed,
                             },
@@ -1002,13 +1002,13 @@ export class RepaymentService {
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
 
                     const partnerProfit = Number(v.amount.toFixed(2));
-                    const companyCut = Number(v.companyCut.toFixed(2));
 
                     const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
 
                     await tx.partner.update({
                         where: { id: partnerId },
                         data: {
+                            isNewPartner: false,
                             capitalAmount: {
                                 increment: partnerCapitalUsed,
                             },
@@ -1382,13 +1382,13 @@ export class RepaymentService {
                     const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
 
                     const partnerProfit = Number(v.amount.toFixed(2));
-                    const companyCut = Number(v.companyCut.toFixed(2));
-
+                    
                     const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
 
                     await tx.partner.update({
                         where: { id: partnerId },
                         data: {
+                            isNewPartner: false,
                             capitalAmount: {
                                 increment: partnerCapitalUsed,
                             },

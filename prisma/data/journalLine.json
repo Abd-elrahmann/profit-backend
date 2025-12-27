@@ -1,62 +1,272 @@
 [
   {
-    "id": 5,
-    "journalId": 3,
-    "accountId": 14,
-    "debit": 300,
+    "id": 11,
+    "journalId": 6,
+    "accountId": 17,
+    "debit": 10000,
     "credit": 0,
-    "balance": 300,
+    "balance": 10000,
     "clientId": null,
-    "description": "إثبات سلفة صغيرة"
+    "description": "إيداع رأس مال (مساهم جديد)"
   },
   {
-    "id": 6,
-    "journalId": 3,
-    "accountId": 6,
+    "id": 12,
+    "journalId": 6,
+    "accountId": 21,
     "debit": 0,
-    "credit": 300,
-    "balance": -300,
+    "credit": 10000,
+    "balance": 10000,
     "clientId": null,
-    "description": "صرف نقدي سلفة صغيرة"
+    "description": "رأس مال جديد - يوسف"
   },
   {
-    "id": 7,
-    "journalId": 4,
-    "accountId": 6,
-    "debit": 200,
+    "id": 13,
+    "journalId": 7,
+    "accountId": 17,
+    "debit": 15000,
     "credit": 0,
-    "balance": 200,
+    "balance": 15000,
     "clientId": null,
-    "description": "تحصيل سداد سلفة صغيرة"
+    "description": "إيداع رأس مال (مساهم جديد)"
   },
   {
-    "id": 8,
-    "journalId": 4,
-    "accountId": 14,
+    "id": 14,
+    "journalId": 7,
+    "accountId": 25,
     "debit": 0,
-    "credit": 200,
-    "balance": -200,
+    "credit": 15000,
+    "balance": 15000,
     "clientId": null,
-    "description": "تخفيض مديونية سلفة صغيرة"
+    "description": "رأس مال جديد - abd elrahman"
   },
   {
-    "id": 9,
-    "journalId": 5,
-    "accountId": 6,
-    "debit": 100,
+    "id": 152,
+    "journalId": 44,
+    "accountId": 17,
+    "debit": 3000,
     "credit": 0,
-    "balance": 100,
+    "balance": 3000,
     "clientId": null,
-    "description": "تحصيل سداد سلفة صغيرة"
+    "description": "استلام سداد دفعة للسلفة رقم 2"
   },
   {
-    "id": 10,
-    "journalId": 5,
-    "accountId": 14,
+    "id": 153,
+    "journalId": 44,
+    "accountId": 7,
     "debit": 0,
-    "credit": 100,
-    "balance": -100,
+    "credit": 2400,
+    "balance": -2400,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
+  },
+  {
+    "id": 154,
+    "journalId": 44,
+    "accountId": 8,
+    "debit": 0,
+    "credit": 600,
+    "balance": 600,
+    "clientId": 1,
+    "description": "دخل فوائد السلفة"
+  },
+  {
+    "id": 25,
+    "journalId": 13,
+    "accountId": 7,
+    "debit": 8000,
+    "credit": 0,
+    "balance": 8000,
+    "clientId": 1,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 26,
+    "journalId": 13,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 8000,
+    "balance": -8000,
     "clientId": null,
-    "description": "تخفيض مديونية سلفة صغيرة"
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 27,
+    "journalId": 14,
+    "accountId": 7,
+    "debit": 2000,
+    "credit": 0,
+    "balance": 2000,
+    "clientId": 1,
+    "description": null
+  },
+  {
+    "id": 28,
+    "journalId": 14,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 2000,
+    "balance": -2000,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 155,
+    "journalId": 45,
+    "accountId": 17,
+    "debit": 3000,
+    "credit": 0,
+    "balance": 3000,
+    "clientId": null,
+    "description": "استلام سداد دفعة للسلفة رقم 2"
+  },
+  {
+    "id": 156,
+    "journalId": 45,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 2400,
+    "balance": -2400,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
+  },
+  {
+    "id": 157,
+    "journalId": 45,
+    "accountId": 8,
+    "debit": 0,
+    "credit": 600,
+    "balance": 600,
+    "clientId": 1,
+    "description": "دخل فوائد السلفة"
+  },
+  {
+    "id": 158,
+    "journalId": 46,
+    "accountId": 17,
+    "debit": 4000,
+    "credit": 0,
+    "balance": 4000,
+    "clientId": null,
+    "description": "استلام سداد دفعة للسلفة رقم 2"
+  },
+  {
+    "id": 159,
+    "journalId": 46,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 3200,
+    "balance": -3200,
+    "clientId": 1,
+    "description": "سداد اصل السلفة"
+  },
+  {
+    "id": 160,
+    "journalId": 46,
+    "accountId": 8,
+    "debit": 0,
+    "credit": 800,
+    "balance": 800,
+    "clientId": 1,
+    "description": "دخل فوائد السلفة"
+  },
+  {
+    "id": 161,
+    "journalId": 47,
+    "accountId": 8,
+    "debit": 960,
+    "credit": 0,
+    "balance": -960,
+    "clientId": null,
+    "description": "إقفال أرباح شريك للسلفة 2"
+  },
+  {
+    "id": 162,
+    "journalId": 47,
+    "accountId": 22,
+    "debit": 0,
+    "credit": 960,
+    "balance": 960,
+    "clientId": null,
+    "description": "إثبات مستحق أرباح شريك"
+  },
+  {
+    "id": 163,
+    "journalId": 47,
+    "accountId": 25,
+    "debit": 4800,
+    "credit": 0,
+    "balance": -4800,
+    "clientId": null,
+    "description": "تحويل رأس المال لحقوق الملكية"
+  },
+  {
+    "id": 164,
+    "journalId": 47,
+    "accountId": 23,
+    "debit": 0,
+    "credit": 4800,
+    "balance": 4800,
+    "clientId": null,
+    "description": "إثبات حقوق ملكية"
+  },
+  {
+    "id": 165,
+    "journalId": 47,
+    "accountId": 8,
+    "debit": 640,
+    "credit": 0,
+    "balance": -640,
+    "clientId": null,
+    "description": "إقفال أرباح شريك للسلفة 2"
+  },
+  {
+    "id": 166,
+    "journalId": 47,
+    "accountId": 18,
+    "debit": 0,
+    "credit": 640,
+    "balance": 640,
+    "clientId": null,
+    "description": "إثبات مستحق أرباح شريك"
+  },
+  {
+    "id": 167,
+    "journalId": 47,
+    "accountId": 21,
+    "debit": 3200,
+    "credit": 0,
+    "balance": -3200,
+    "clientId": null,
+    "description": "تحويل رأس المال لحقوق الملكية"
+  },
+  {
+    "id": 168,
+    "journalId": 47,
+    "accountId": 19,
+    "debit": 0,
+    "credit": 3200,
+    "balance": 3200,
+    "clientId": null,
+    "description": "إثبات حقوق ملكية"
+  },
+  {
+    "id": 169,
+    "journalId": 47,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 10000,
+    "balance": -10000,
+    "clientId": null,
+    "description": "تحويل رأس المال للصندوق العام"
+  },
+  {
+    "id": 170,
+    "journalId": 47,
+    "accountId": 6,
+    "debit": 10000,
+    "credit": 0,
+    "balance": 10000,
+    "clientId": null,
+    "description": "استلام رأس مال من المساهمين الجدد"
   }
 ]

@@ -326,7 +326,7 @@ model Partner {
   totalAmount      Float     @default(0)
   contractSignedAt DateTime?
   mudarabahFileUrl String?
-  isActive         Boolean   @default(false)
+  isActive         Boolean   @default(true)
   joinDistribute   Boolean   @default(true)
   WithdrawingStatus PartnerStatus @default(ACTIVE)
   isFrozen         Boolean @default(false)
