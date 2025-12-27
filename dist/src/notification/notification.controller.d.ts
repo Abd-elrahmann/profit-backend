@@ -1,0 +1,133 @@
+import { NotificationService } from './notification.service';
+import { SendNotificationDto } from './dto/notification.dto';
+export declare class NotificationController {
+    private readonly notificationService;
+    constructor(notificationService: NotificationService);
+    getAllNotifications(page: number, limit?: number, type?: string, clientName?: string, loanCode?: string): Promise<{
+        total: number;
+        page: number;
+        limit: number;
+        data: ({
+            client: {
+                id: number;
+                email: string | null;
+                phone: string;
+                name: string;
+                createdAt: Date;
+                credit: number;
+                debit: number;
+                balance: number;
+                status: import("@prisma/client").$Enums.ClientStatus;
+                nationalId: string;
+                birthDate: Date;
+                city: string;
+                district: string;
+                employer: string;
+                salary: number;
+                obligations: number;
+                telegramChatId: string | null;
+                address: string;
+                creationReason: string;
+                notes: string | null;
+            } | null;
+            loan: {
+                id: number;
+                createdAt: Date;
+                code: string;
+                type: import("@prisma/client").$Enums.LoanType;
+                status: import("@prisma/client").$Enums.LoanStatus;
+                clientId: number;
+                kafeelId: number | null;
+                amount: number;
+                interestRate: number;
+                interestAmount: number;
+                totalAmount: number;
+                paymentAmount: number;
+                durationMonths: number;
+                source: import("@prisma/client").$Enums.LoanFundSource;
+                startDate: Date;
+                endDate: Date | null;
+                repaymentDay: Date | null;
+                bankAccountId: number | null;
+                partnerId: number | null;
+                disbursementJournalId: number | null;
+                settlementJournalId: number | null;
+                DEBT_ACKNOWLEDGMENT: string | null;
+                PROMISSORY_NOTE: string | null;
+                SETTLEMENT: string | null;
+                PAYMENT_PROOF: string[];
+                debtAcknowledgmentNumber: string | null;
+                promissoryNoteNumber: string | null;
+                earlyPaidAmount: number | null;
+                earlyPaymentDiscount: number | null;
+                newAmount: number | null;
+            } | null;
+            repayment: {
+                id: number;
+                createdAt: Date;
+                attachments: string[];
+                status: import("@prisma/client").$Enums.PaymentStatus;
+                notes: string | null;
+                clientId: number;
+                amount: number;
+                interestAmount: number;
+                count: number;
+                loanId: number;
+                dueDate: Date;
+                remaining: number;
+                paidAmount: number;
+                principalAmount: number;
+                paymentDate: Date | null;
+                PaymentProof: string | null;
+                reviewStatus: string | null;
+                postponeApproved: boolean | null;
+                postponeReason: string | null;
+                newDueDate: Date | null;
+            } | null;
+        } & {
+            id: number;
+            createdAt: Date;
+            type: import("@prisma/client").$Enums.NotificationType;
+            message: string;
+            clientId: number | null;
+            loanId: number | null;
+            repaymentId: number | null;
+            channel: string | null;
+            title: string;
+            sentAt: Date | null;
+            scheduledAt: Date | null;
+        })[];
+    }>;
+    getByClient(clientId: string): Promise<{
+        id: number;
+        createdAt: Date;
+        type: import("@prisma/client").$Enums.NotificationType;
+        message: string;
+        clientId: number | null;
+        loanId: number | null;
+        repaymentId: number | null;
+        channel: string | null;
+        title: string;
+        sentAt: Date | null;
+        scheduledAt: Date | null;
+    }[]>;
+    sendNotification(dto: SendNotificationDto): Promise<{
+        message: string;
+        data: {
+            id: number;
+            createdAt: Date;
+            type: import("@prisma/client").$Enums.NotificationType;
+            message: string;
+            clientId: number | null;
+            loanId: number | null;
+            repaymentId: number | null;
+            channel: string | null;
+            title: string;
+            sentAt: Date | null;
+            scheduledAt: Date | null;
+        };
+    }>;
+    decodeToken(token: string): Promise<{
+        data: any;
+    }>;
+}
