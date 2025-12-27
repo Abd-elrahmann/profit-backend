@@ -65,9 +65,9 @@ export declare class ExpenseController {
     }>;
     getUsersForExpenses(): Promise<{
         id: number;
-        name: string;
-        isActive: boolean;
         email: string;
         expenseAccountId: number | null;
+        name: string;
+        isActive: boolean;
     }[]>;
 }

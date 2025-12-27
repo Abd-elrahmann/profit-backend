@@ -38,11 +38,19 @@ export class AuthService {
 
   // Login
   async login(data: { email: string; password: string }) {
-    const user = await this.prisma.user.findUnique({ where: { email: data.email } });
+    const user = await this.prisma.user.findUnique({
+      where: { email: data.email },
+      include: { role: true }
+    });
     if (!user) throw new UnauthorizedException('خطأ في بيانات الدخول');
 
     const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) throw new UnauthorizedException('كلمة السر غير صحيحة');
+
+    // فحص وجود دور للمستخدم
+    if (!user.roleId || !user.role) {
+      throw new UnauthorizedException('ليس لديك أي صلاحيات أو أدوار للدخول على النظام. برجاء التواصل مع المدير لتعيين الصلاحية.');
+    }
 
     await this.prisma.user.update({
       where: { id: user.id },

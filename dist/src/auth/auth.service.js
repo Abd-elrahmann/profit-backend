@@ -72,12 +72,18 @@ let AuthService = class AuthService {
         ;
     }
     async login(data) {
-        const user = await this.prisma.user.findUnique({ where: { email: data.email } });
+        const user = await this.prisma.user.findUnique({
+            where: { email: data.email },
+            include: { role: true }
+        });
         if (!user)
             throw new common_1.UnauthorizedException('خطأ في بيانات الدخول');
         const isMatch = await bcrypt.compare(data.password, user.password);
         if (!isMatch)
             throw new common_1.UnauthorizedException('كلمة السر غير صحيحة');
+        if (!user.roleId || !user.role) {
+            throw new common_1.UnauthorizedException('ليس لديك أي صلاحيات أو أدوار للدخول على النظام. برجاء التواصل مع المدير لتعيين الصلاحية.');
+        }
         await this.prisma.user.update({
             where: { id: user.id },
             data: {
