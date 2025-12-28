@@ -330,9 +330,11 @@ export class PartnerService {
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountEquityId } })
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountPayableId } })
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountSavingId } })
+            await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountNewCapitalId } })
             await tx.account.delete({ where: { id: partner.accountPayableId } });
             await tx.account.delete({ where: { id: partner.accountEquityId } });
             await tx.account.delete({ where: { id: partner.accountSavingId } });
+            await tx.account.delete({ where: { id: partner.accountNewCapitalId } });
         });
 
         // create audit log

@@ -36,6 +36,7 @@ export class ZakatService {
     async getPartnerZakatSummary(partnerId: number, year?: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
+            include: { PartnerNewCapital: { select: { amount: true, remaining: true } } }
         });
 
         if (!partner) throw new NotFoundException('Partner not found');
@@ -49,8 +50,15 @@ export class ZakatService {
                 ? new Date(partner.createdAt).getMonth() + 1
                 : 1;
 
+            const baseCapital = Number(partner.capitalAmount ?? 0);
+
+            const newCapitalAmount = partner.PartnerNewCapital
+                .reduce((sum, c) => sum + Number(c.remaining ?? 0), 0);
+
+            const totalAmount = baseCapital + newCapitalAmount;
+
             const remainingMonths = 12 - startMonth + 1;
-            const annualZakat = partner.totalAmount * 0.025;
+            const annualZakat = totalAmount * 0.025;
             const monthlyZakat = annualZakat / remainingMonths;
 
             // Get accruals (one entry per month)
@@ -113,7 +121,7 @@ export class ZakatService {
             return {
                 partnerId,
                 partnerName: partner.name,
-                capitalAmount: partner.totalAmount,
+                capitalAmount: totalAmount,
                 year: yr,
                 annualZakat,
                 monthlyZakat,
@@ -215,8 +223,9 @@ export class ZakatService {
             take: pageLimit,
             orderBy: { id: 'asc' },
             include: {
+                PartnerNewCapital: { select: { amount: true, remaining: true } },
                 ZakatAccrual: {
-                    where: { year }, // Filter accruals by the specified year
+                    where: { year },
                     orderBy: { month: 'asc' },
                 },
             },
@@ -232,7 +241,14 @@ export class ZakatService {
 
             const remainingMonths = 12 - startMonth + 1;
 
-            const annualZakat = p.totalAmount * 0.025;
+            const baseCapital = Number(p.capitalAmount ?? 0);
+
+            const newCapitalAmount = p.PartnerNewCapital
+                .reduce((sum, c) => sum + Number(c.remaining ?? 0), 0);
+
+            const totalAmount = baseCapital + newCapitalAmount;
+
+            const annualZakat = totalAmount * 0.025;
             const zakattofixed = Number(annualZakat.toFixed(2));
             const monthlyZakat = zakattofixed / remainingMonths;
 
@@ -248,7 +264,7 @@ export class ZakatService {
             results.push({
                 partnerId: p.id,
                 partnerName: p.name,
-                capitalAmount: p.totalAmount,
+                capitalAmount: totalAmount,
                 year,
                 annualZakat,
                 monthlyZakat,
