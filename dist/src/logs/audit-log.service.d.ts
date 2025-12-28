@@ -23,9 +23,9 @@ export declare class AuditLogService {
                 name: string;
             };
             id: number;
+            description: string | null;
             screen: string;
             action: string;
-            description: string | null;
             userId: number;
         }[];
     }>;

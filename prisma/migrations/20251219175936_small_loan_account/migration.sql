@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "AccountBasicType" ADD VALUE 'SMALL_LOANS_RECEIVABLE';

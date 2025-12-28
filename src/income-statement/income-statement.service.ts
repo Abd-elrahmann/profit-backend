@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DateTime } from 'luxon';
+import { MAX, max } from 'class-validator';
 
 @Injectable()
 export class IncomeStatementService {
@@ -92,15 +93,36 @@ export class IncomeStatementService {
 
         const partners = await this.prisma.partner.findMany({
             where: {
-                createdAt: { gte: from, lte: to },
-                isActive: true
+                isActive: true,
+
+                OR: [
+                    {
+                        createdAt: {
+                            gte: from,
+                            lte: to,
+                        },
+                    },
+                    {
+                        transactions: {
+                            some: {
+                                date: {
+                                    gte: from,
+                                    lte: to,
+                                },
+                                type: { in: ['DEPOSIT'] },
+                            },
+                        },
+                    },
+                ],
             },
             select: {
                 id: true,
                 name: true,
                 capitalAmount: true,
                 orgProfitPercent: true,
+                transactions: { select: { type: true  , date: true , amount: true} },
                 PartnerNewCapital: { select: { amount: true, remaining: true } },
+                LoanNewCapitalShare: { select: { loan: { select: { status: true } }, amountUsed: true } },
             },
         });
 
@@ -115,18 +137,34 @@ export class IncomeStatementService {
                 0
             ) || 0;
 
+            const usedInActiveLoans = partner.LoanNewCapitalShare?.reduce(
+                (s, lns) => lns.loan?.status === 'ACTIVE' ? s + Number(lns.amountUsed || 0) : s,
+                0
+            ) || 0;
+
+            const isDepositOnly = partner.transactions?.some(t => t.type === 'DEPOSIT');
+            const amount = partner.transactions?.reduce((s, t) => {
+                if (t.date < from) return s;
+                return s + Number(t.amount || 0);
+            }, 0);
+
             return {
                 partnerId: partner.id,
                 partnerName: partner.name,
-                capitalAmount: Number(partner.capitalAmount || 0),
-                newCapitalTotal: totalNewCapital,
+                capitalAmount: isDepositOnly ? 0 : Number(partner.capitalAmount || 0),
+                newCapitalTotal: isDepositOnly? amount : totalNewCapital,
                 newCapitalRemaining: remainingNewCapital,
+                usedInActiveLoans: usedInActiveLoans,
                 profitPercentage: partner.orgProfitPercent,
+                totalAmount: isDepositOnly ? amount : 
+                Number(partner.capitalAmount || 0)
+                    + remainingNewCapital
+                    + Math.max(0, usedInActiveLoans),
             };
         });
 
         const totalCapital = capitalByPartner.reduce(
-            (sum, p) => sum + p.capitalAmount + p.newCapitalTotal,
+            (sum, p) => sum + p.totalAmount,
             0
         );
 

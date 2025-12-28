@@ -22,7 +22,9 @@ export declare class IncomeStatementService {
             capitalAmount: number;
             newCapitalTotal: number;
             newCapitalRemaining: number;
+            usedInActiveLoans: number;
             profitPercentage: number;
+            totalAmount: number;
         }[];
         totalRevenue: number;
         revenues: {

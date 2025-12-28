@@ -24,6 +24,7 @@ model User {
   ResetToken     ResetPasswordToken[]
   ExpenseRecord  ExpenseRecord[]      @relation("UserExpenses")
   EmployeeExpenses ExpenseRecord[]    @relation("EmployeeExpenses")
+  zakatWithdraw    zakatWithdraw[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
   expenseAccountId  Int?               @unique
@@ -478,6 +479,15 @@ model ZakatPayment {
   month      Int?
   amount     Float
   PAYMENT_VOUCHER String?
+  createdAt  DateTime  @default(now())
+}
+
+model zakatWithdraw {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  amount     Int
+  document   String?
   createdAt  DateTime  @default(now())
 }
 

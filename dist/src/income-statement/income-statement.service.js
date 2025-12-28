@@ -86,30 +86,62 @@ let IncomeStatementService = class IncomeStatementService {
         }
         const partners = await this.prisma.partner.findMany({
             where: {
-                createdAt: { gte: from, lte: to },
-                isActive: true
+                isActive: true,
+                OR: [
+                    {
+                        createdAt: {
+                            gte: from,
+                            lte: to,
+                        },
+                    },
+                    {
+                        transactions: {
+                            some: {
+                                date: {
+                                    gte: from,
+                                    lte: to,
+                                },
+                                type: { in: ['DEPOSIT'] },
+                            },
+                        },
+                    },
+                ],
             },
             select: {
                 id: true,
                 name: true,
                 capitalAmount: true,
                 orgProfitPercent: true,
+                transactions: { select: { type: true, date: true, amount: true } },
                 PartnerNewCapital: { select: { amount: true, remaining: true } },
+                LoanNewCapitalShare: { select: { loan: { select: { status: true } }, amountUsed: true } },
             },
         });
         const capitalByPartner = partners.map(partner => {
             const totalNewCapital = partner.PartnerNewCapital?.reduce((s, nc) => s + Number(nc.amount || 0), 0) || 0;
             const remainingNewCapital = partner.PartnerNewCapital?.reduce((s, nc) => s + Number(nc.remaining || 0), 0) || 0;
+            const usedInActiveLoans = partner.LoanNewCapitalShare?.reduce((s, lns) => lns.loan?.status === 'ACTIVE' ? s + Number(lns.amountUsed || 0) : s, 0) || 0;
+            const isDepositOnly = partner.transactions?.some(t => t.type === 'DEPOSIT');
+            const amount = partner.transactions?.reduce((s, t) => {
+                if (t.date < from)
+                    return s;
+                return s + Number(t.amount || 0);
+            }, 0);
             return {
                 partnerId: partner.id,
                 partnerName: partner.name,
-                capitalAmount: Number(partner.capitalAmount || 0),
-                newCapitalTotal: totalNewCapital,
+                capitalAmount: isDepositOnly ? 0 : Number(partner.capitalAmount || 0),
+                newCapitalTotal: isDepositOnly ? amount : totalNewCapital,
                 newCapitalRemaining: remainingNewCapital,
+                usedInActiveLoans: usedInActiveLoans,
                 profitPercentage: partner.orgProfitPercent,
+                totalAmount: isDepositOnly ? amount :
+                    Number(partner.capitalAmount || 0)
+                        + remainingNewCapital
+                        + Math.max(0, usedInActiveLoans),
             };
         });
-        const totalCapital = capitalByPartner.reduce((sum, p) => sum + p.capitalAmount + p.newCapitalTotal, 0);
+        const totalCapital = capitalByPartner.reduce((sum, p) => sum + p.totalAmount, 0);
         const revenueJournals = await this.prisma.journalHeader.findMany({
             where: {
                 date: { gte: from, lte: to },

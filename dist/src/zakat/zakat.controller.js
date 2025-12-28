@@ -19,6 +19,7 @@ const zakat_scheduler_1 = require("./zakat.scheduler");
 const permissions_guard_1 = require("../common/guards/permissions.guard");
 const permissions_decorator_1 = require("../common/decorators/permissions.decorator");
 const jwt_guard_1 = require("../auth/strategy/jwt.guard");
+const platform_express_1 = require("@nestjs/platform-express");
 let ZakatController = class ZakatController {
     zakatService;
     zakatScheduler;
@@ -68,6 +69,9 @@ let ZakatController = class ZakatController {
             }
         }
         return this.zakatService.getZakatAccountReport(month);
+    }
+    uploadMudarabahFile(req, file) {
+        return this.zakatService.uploadDocument(req.user.id, file);
     }
     async testMonthly() {
         await this.zakatScheduler.runMonthlyZakat();
@@ -119,6 +123,16 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ZakatController.prototype, "zakatAccountReport", null);
+__decorate([
+    (0, common_1.Post)('upload'),
+    (0, permissions_decorator_1.Permissions)('zakat', 'canPost'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], ZakatController.prototype, "uploadMudarabahFile", null);
 __decorate([
     (0, common_1.Get)('test/monthly'),
     __metadata("design:type", Function),

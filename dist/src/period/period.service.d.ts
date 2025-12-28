@@ -104,8 +104,8 @@ export declare class PeriodService {
             startDateHijri: any;
             endDateHijri: any;
             id: number;
-            name: string;
             createdAt: Date;
+            name: string;
             startDate: Date;
             endDate: Date | null;
             openingJournalId: number | null;

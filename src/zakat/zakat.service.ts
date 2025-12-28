@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { DateTime } from 'luxon';
 import moment from "moment-hijri";
+import * as fs from 'fs';
+import * as path from 'path';
 
 type ZakatYearSummary = {
     partnerId: number;
@@ -329,6 +331,13 @@ export class ZakatService {
 
         await this.journalService.postJournal(journal.journal.id, userId);
 
+        await this.prisma.zakatWithdraw.create({
+            data: {
+                amount: amount,
+                userId: userId,
+            }
+        })
+
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,
@@ -483,5 +492,34 @@ export class ZakatService {
             totalJournalEntries: zakatAccount.entries.length,
             journalsByMonth: groupedByMonth,
         };
+    }
+
+    async uploadDocument(currentUser, file: Express.Multer.File) {
+        if (!file) throw new BadRequestException('No file uploaded');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        const uploadDir = path.join(process.cwd(), 'uploads', 'zakat');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        const filePath = path.join(uploadDir, file.originalname);
+        fs.writeFileSync(filePath, file.buffer);
+
+        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+
+        const zakatWithdraw = await this.prisma.zakatWithdraw.findFirst({
+            where: { userId: currentUser },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        await this.prisma.zakatWithdraw.update({
+            where: { id: zakatWithdraw?.id },
+            data: { document: publicUrl },
+        });
+
+        return { message: 'تم رفع المستند بنجاح', path: publicUrl };
     }
 }

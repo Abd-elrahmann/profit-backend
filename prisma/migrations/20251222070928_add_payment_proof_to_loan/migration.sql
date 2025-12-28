@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Loan" ADD COLUMN     "PAYMENT_PROOF" TEXT[];

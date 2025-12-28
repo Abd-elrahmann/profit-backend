@@ -8,12 +8,16 @@ import {
   Post,
   Body,
   Req,
+  UseInterceptors,
+  ParseIntPipe,
+  UploadedFile,
 } from '@nestjs/common';
 import { ZakatService } from './zakat.service';
 import { ZakatSchedulerService } from './zakat.scheduler';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('zakat')
@@ -98,6 +102,16 @@ export class ZakatController {
       }
     }
     return this.zakatService.getZakatAccountReport(month);
+  }
+
+  @Post('upload')
+  @Permissions('zakat', 'canPost')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadMudarabahFile(
+    @Req() req,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.zakatService.uploadDocument(req.user.id, file);
   }
 
   // MANUAL TEST: Trigger monthly zakat job

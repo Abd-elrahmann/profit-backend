@@ -51,5 +51,9 @@ export declare class ZakatService {
             requiredZakat: number;
         }>;
     }>;
+    uploadDocument(currentUser: any, file: Express.Multer.File): Promise<{
+        message: string;
+        path: string;
+    }>;
 }
 export {};

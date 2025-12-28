@@ -15,9 +15,9 @@ export declare class AuditLogController {
                 name: string;
             };
             id: number;
+            description: string | null;
             screen: string;
             action: string;
-            description: string | null;
             userId: number;
         }[];
     }>;

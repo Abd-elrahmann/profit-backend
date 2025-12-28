@@ -1,5 +1,0 @@
--- AlterEnum
-ALTER TYPE "JournalSourceType" ADD VALUE 'PARTNER_SAVING_WITHDRAWAL';
-
--- AlterEnum
-ALTER TYPE "TransactionType" ADD VALUE 'SAVING_WITHDRAWAL';

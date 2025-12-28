@@ -71,6 +71,10 @@ export declare class ZakatController {
             requiredZakat: number;
         }>;
     }>;
+    uploadMudarabahFile(req: any, file: Express.Multer.File): Promise<{
+        message: string;
+        path: string;
+    }>;
     testMonthly(): Promise<{
         message: string;
     }>;

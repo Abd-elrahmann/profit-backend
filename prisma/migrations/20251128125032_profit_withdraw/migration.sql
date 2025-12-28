@@ -1,5 +1,0 @@
--- AlterEnum
-ALTER TYPE "JournalSourceType" ADD VALUE 'PARTNER_PROFIT_WITHDRAWAL';
-
--- AlterEnum
-ALTER TYPE "TransactionType" ADD VALUE 'PROFIT_WITHDRAWAL';

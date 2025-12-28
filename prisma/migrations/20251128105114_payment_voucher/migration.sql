@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "ZakatPayment" ADD COLUMN     "PAYMENT_VOUCHER" TEXT;
