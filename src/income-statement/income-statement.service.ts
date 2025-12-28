@@ -1,7 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DateTime } from 'luxon';
-import { MAX, max } from 'class-validator';
 
 @Injectable()
 export class IncomeStatementService {
@@ -149,13 +148,7 @@ export class IncomeStatementService {
             }, 0);
 
             return {
-                partnerId: partner.id,
                 partnerName: partner.name,
-                capitalAmount: isDepositOnly ? 0 : Number(partner.capitalAmount || 0),
-                newCapitalTotal: isDepositOnly? amount : totalNewCapital,
-                newCapitalRemaining: remainingNewCapital,
-                usedInActiveLoans: usedInActiveLoans,
-                profitPercentage: partner.orgProfitPercent,
                 totalAmount: isDepositOnly ? amount : 
                 Number(partner.capitalAmount || 0)
                     + remainingNewCapital
@@ -295,7 +288,6 @@ export class IncomeStatementService {
             },
             totalCapital,
             capitalByPartner,
-            totalRevenue,
             revenues: {
                 total: totalRevenue,
                 generalLoans: totalRevenueGeneral,

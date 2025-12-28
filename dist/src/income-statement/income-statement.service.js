@@ -128,13 +128,7 @@ let IncomeStatementService = class IncomeStatementService {
                 return s + Number(t.amount || 0);
             }, 0);
             return {
-                partnerId: partner.id,
                 partnerName: partner.name,
-                capitalAmount: isDepositOnly ? 0 : Number(partner.capitalAmount || 0),
-                newCapitalTotal: isDepositOnly ? amount : totalNewCapital,
-                newCapitalRemaining: remainingNewCapital,
-                usedInActiveLoans: usedInActiveLoans,
-                profitPercentage: partner.orgProfitPercent,
                 totalAmount: isDepositOnly ? amount :
                     Number(partner.capitalAmount || 0)
                         + remainingNewCapital
@@ -249,7 +243,6 @@ let IncomeStatementService = class IncomeStatementService {
             },
             totalCapital,
             capitalByPartner,
-            totalRevenue,
             revenues: {
                 total: totalRevenue,
                 generalLoans: totalRevenueGeneral,

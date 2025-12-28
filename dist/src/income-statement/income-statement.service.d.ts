@@ -17,16 +17,9 @@ export declare class IncomeStatementService {
         };
         totalCapital: number;
         capitalByPartner: {
-            partnerId: number;
             partnerName: string;
-            capitalAmount: number;
-            newCapitalTotal: number;
-            newCapitalRemaining: number;
-            usedInActiveLoans: number;
-            profitPercentage: number;
             totalAmount: number;
         }[];
-        totalRevenue: number;
         revenues: {
             total: number;
             generalLoans: number;

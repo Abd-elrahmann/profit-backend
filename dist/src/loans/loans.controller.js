@@ -50,15 +50,12 @@ let LoansController = class LoansController {
         return this.loansService.deleteLoan(req.user.id, id);
     }
     async uploadDebtAcknowledgment(req, id, file, body) {
-        console.log('Controller - uploadDebtAcknowledgment - body:', body);
         return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file, body);
     }
     async uploadPromissoryNote(req, id, file, body) {
-        console.log('Controller - uploadPromissoryNote - body:', body);
         return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file, body);
     }
     async saveContractNumbers(req, id, body) {
-        console.log('Controller - saveContractNumbers - body:', body);
         return this.loansService.saveContractNumbers(req.user.id, id, body);
     }
     async uploadSettlementFile(req, id, file) {

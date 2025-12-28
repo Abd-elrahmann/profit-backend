@@ -97,7 +97,6 @@ export class LoansController {
         @UploadedFile() file: Express.Multer.File,
         @Body() body: any
     ) {
-        console.log('Controller - uploadDebtAcknowledgment - body:', body);
         return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file, body);
     }
 
@@ -111,7 +110,6 @@ export class LoansController {
         @UploadedFile() file: Express.Multer.File,
         @Body() body: any
     ) {
-        console.log('Controller - uploadPromissoryNote - body:', body);
         return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file, body);
     }
 
@@ -121,7 +119,6 @@ export class LoansController {
         @Param('id') id: number,
         @Body() body: { debtAcknowledgmentNumber?: string; promissoryNoteNumber?: string }
     ) {
-        console.log('Controller - saveContractNumbers - body:', body);
         return this.loansService.saveContractNumbers(req.user.id, id, body);
     }
 
