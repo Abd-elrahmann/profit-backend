@@ -57,7 +57,17 @@ export class AccountsController {
         @Query('month') month?: string,
         @Query('limit') limit = 10,
     ) {
-        return this.accountsService.getBankAccountReport(month , page , +limit);
+        return this.accountsService.getBankAccountReport(month, page, +limit);
+    }
+
+    @Get('NewBank/:page')
+    @Permissions('treasury', 'canView')
+    getNEWBankAccountReport(
+        @Param('page', ParseIntPipe) page: number,
+        @Query('month') month?: string,
+        @Query('limit') limit = 10,
+    ) {
+        return this.accountsService.getNEWBankAccountReport(month, page, +limit);
     }
 
     @Get(':id')

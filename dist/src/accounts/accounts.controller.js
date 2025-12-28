@@ -42,6 +42,9 @@ let AccountsController = class AccountsController {
     getBankAccountReport(page, month, limit = 10) {
         return this.accountsService.getBankAccountReport(month, page, +limit);
     }
+    getNEWBankAccountReport(page, month, limit = 10) {
+        return this.accountsService.getNEWBankAccountReport(month, page, +limit);
+    }
     getAccountDetails(id) {
         return this.accountsService.getAccountDetails(id);
     }
@@ -101,6 +104,16 @@ __decorate([
     __metadata("design:paramtypes", [Number, String, Object]),
     __metadata("design:returntype", void 0)
 ], AccountsController.prototype, "getBankAccountReport", null);
+__decorate([
+    (0, common_1.Get)('NewBank/:page'),
+    (0, permissions_decorator_1.Permissions)('treasury', 'canView'),
+    __param(0, (0, common_1.Param)('page', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('month')),
+    __param(2, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String, Object]),
+    __metadata("design:returntype", void 0)
+], AccountsController.prototype, "getNEWBankAccountReport", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),

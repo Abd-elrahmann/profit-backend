@@ -8,9 +8,14 @@ export declare class LoansController {
         loan: ({
             client: {
                 id: number;
-                status: import("@prisma/client").$Enums.ClientStatus;
-                createdAt: Date;
+                email: string | null;
+                phone: string;
                 name: string;
+                createdAt: Date;
+                credit: number;
+                debit: number;
+                balance: number;
+                status: import("@prisma/client").$Enums.ClientStatus;
                 nationalId: string;
                 birthDate: Date;
                 city: string;
@@ -18,14 +23,9 @@ export declare class LoansController {
                 employer: string;
                 salary: number;
                 obligations: number;
-                phone: string;
-                email: string | null;
                 telegramChatId: string | null;
                 address: string;
                 creationReason: string;
-                debit: number;
-                credit: number;
-                balance: number;
                 notes: string | null;
             };
             kafeel: {
@@ -33,34 +33,25 @@ export declare class LoansController {
                 nationalId: string;
                 birthDate: Date;
             } | null;
-            bankAccount: {
-                id: number;
-                status: import("@prisma/client").$Enums.AccountStatus;
-                name: string;
-                owner: string;
-                accountNumber: string;
-                IBAN: string;
-                limit: number;
-            } | null;
             partner: {
                 id: number;
-                totalAmount: number;
-                createdAt: Date;
-                name: string;
-                nationalId: string;
-                phone: string | null;
                 email: string | null;
-                address: string;
+                phone: string | null;
+                name: string;
                 isActive: boolean;
+                createdAt: Date;
+                nationalId: string;
+                address: string;
+                totalAmount: number;
                 orgProfitPercent: number;
                 capitalAmount: number;
-                totalProfit: number;
                 contractSignedAt: Date | null;
                 mudarabahFileUrl: string | null;
+                isNewPartner: boolean;
                 joinDistribute: boolean;
+                totalProfit: number;
                 WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
                 isFrozen: boolean;
-                isNewPartner: boolean;
                 accountPayableId: number;
                 accountEquityId: number;
                 accountSavingId: number;
@@ -68,6 +59,15 @@ export declare class LoansController {
                 yearlyZakatRequired: number | null;
                 yearlyZakatPaid: number | null;
                 yearlyZakatBalance: number | null;
+            } | null;
+            bankAccount: {
+                id: number;
+                name: string;
+                limit: number;
+                status: import("@prisma/client").$Enums.AccountStatus;
+                owner: string;
+                accountNumber: string;
+                IBAN: string;
             } | null;
             LoanPartnerShare: {
                 partnerId: number;
@@ -80,7 +80,10 @@ export declare class LoansController {
             }[];
         } & {
             id: number;
+            createdAt: Date;
             code: string;
+            type: import("@prisma/client").$Enums.LoanType;
+            status: import("@prisma/client").$Enums.LoanStatus;
             clientId: number;
             kafeelId: number | null;
             amount: number;
@@ -89,13 +92,10 @@ export declare class LoansController {
             totalAmount: number;
             paymentAmount: number;
             durationMonths: number;
-            type: import("@prisma/client").$Enums.LoanType;
             source: import("@prisma/client").$Enums.LoanFundSource;
-            status: import("@prisma/client").$Enums.LoanStatus;
             startDate: Date;
             endDate: Date | null;
             repaymentDay: Date | null;
-            createdAt: Date;
             bankAccountId: number | null;
             partnerId: number | null;
             disbursementJournalId: number | null;
@@ -140,9 +140,14 @@ export declare class LoansController {
             PAYMENT_PROOF: (string | null)[];
             client: {
                 id: number;
-                status: import("@prisma/client").$Enums.ClientStatus;
-                createdAt: Date;
+                email: string | null;
+                phone: string;
                 name: string;
+                createdAt: Date;
+                credit: number;
+                debit: number;
+                balance: number;
+                status: import("@prisma/client").$Enums.ClientStatus;
                 nationalId: string;
                 birthDate: Date;
                 city: string;
@@ -150,48 +155,34 @@ export declare class LoansController {
                 employer: string;
                 salary: number;
                 obligations: number;
-                phone: string;
-                email: string | null;
                 telegramChatId: string | null;
                 address: string;
                 creationReason: string;
-                debit: number;
-                credit: number;
-                balance: number;
                 notes: string | null;
             };
             kafeel: {
                 id: number;
                 name: string;
             } | null;
-            bankAccount: {
-                id: number;
-                status: import("@prisma/client").$Enums.AccountStatus;
-                name: string;
-                owner: string;
-                accountNumber: string;
-                IBAN: string;
-                limit: number;
-            } | null;
             partner: {
                 id: number;
-                totalAmount: number;
-                createdAt: Date;
-                name: string;
-                nationalId: string;
-                phone: string | null;
                 email: string | null;
-                address: string;
+                phone: string | null;
+                name: string;
                 isActive: boolean;
+                createdAt: Date;
+                nationalId: string;
+                address: string;
+                totalAmount: number;
                 orgProfitPercent: number;
                 capitalAmount: number;
-                totalProfit: number;
                 contractSignedAt: Date | null;
                 mudarabahFileUrl: string | null;
+                isNewPartner: boolean;
                 joinDistribute: boolean;
+                totalProfit: number;
                 WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
                 isFrozen: boolean;
-                isNewPartner: boolean;
                 accountPayableId: number;
                 accountEquityId: number;
                 accountSavingId: number;
@@ -200,8 +191,19 @@ export declare class LoansController {
                 yearlyZakatPaid: number | null;
                 yearlyZakatBalance: number | null;
             } | null;
+            bankAccount: {
+                id: number;
+                name: string;
+                limit: number;
+                status: import("@prisma/client").$Enums.AccountStatus;
+                owner: string;
+                accountNumber: string;
+                IBAN: string;
+            } | null;
             id: number;
             code: string;
+            type: import("@prisma/client").$Enums.LoanType;
+            status: import("@prisma/client").$Enums.LoanStatus;
             clientId: number;
             kafeelId: number | null;
             amount: number;
@@ -210,9 +212,7 @@ export declare class LoansController {
             totalAmount: number;
             paymentAmount: number;
             durationMonths: number;
-            type: import("@prisma/client").$Enums.LoanType;
             source: import("@prisma/client").$Enums.LoanFundSource;
-            status: import("@prisma/client").$Enums.LoanStatus;
             bankAccountId: number | null;
             partnerId: number | null;
             disbursementJournalId: number | null;
@@ -256,13 +256,13 @@ export declare class LoansController {
             interestAmount: number;
             paidAmount: number;
             id: number;
-            clientId: number;
+            attachments: string[];
             status: import("@prisma/client").$Enums.PaymentStatus;
             notes: string | null;
-            loanId: number;
+            clientId: number;
             count: number;
+            loanId: number;
             remaining: number;
-            attachments: string[];
             PaymentProof: string | null;
             reviewStatus: string | null;
             postponeApproved: boolean | null;
@@ -287,23 +287,23 @@ export declare class LoansController {
         client: {
             birthDate: string | null;
             id: number;
-            status: import("@prisma/client").$Enums.ClientStatus;
-            createdAt: Date;
+            email: string | null;
+            phone: string;
             name: string;
+            createdAt: Date;
+            credit: number;
+            debit: number;
+            balance: number;
+            status: import("@prisma/client").$Enums.ClientStatus;
             nationalId: string;
             city: string;
             district: string;
             employer: string;
             salary: number;
             obligations: number;
-            phone: string;
-            email: string | null;
             telegramChatId: string | null;
             address: string;
             creationReason: string;
-            debit: number;
-            credit: number;
-            balance: number;
             notes: string | null;
         };
         kafeel: {
@@ -311,34 +311,25 @@ export declare class LoansController {
             name: string;
             nationalId: string;
         } | null;
-        bankAccount: {
-            id: number;
-            status: import("@prisma/client").$Enums.AccountStatus;
-            name: string;
-            owner: string;
-            accountNumber: string;
-            IBAN: string;
-            limit: number;
-        } | null;
         partner: {
             id: number;
-            totalAmount: number;
-            createdAt: Date;
-            name: string;
-            nationalId: string;
-            phone: string | null;
             email: string | null;
-            address: string;
+            phone: string | null;
+            name: string;
             isActive: boolean;
+            createdAt: Date;
+            nationalId: string;
+            address: string;
+            totalAmount: number;
             orgProfitPercent: number;
             capitalAmount: number;
-            totalProfit: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
+            isNewPartner: boolean;
             joinDistribute: boolean;
+            totalProfit: number;
             WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
             isFrozen: boolean;
-            isNewPartner: boolean;
             accountPayableId: number;
             accountEquityId: number;
             accountSavingId: number;
@@ -346,6 +337,15 @@ export declare class LoansController {
             yearlyZakatRequired: number | null;
             yearlyZakatPaid: number | null;
             yearlyZakatBalance: number | null;
+        } | null;
+        bankAccount: {
+            id: number;
+            name: string;
+            limit: number;
+            status: import("@prisma/client").$Enums.AccountStatus;
+            owner: string;
+            accountNumber: string;
+            IBAN: string;
         } | null;
         LoanPartnerShare: {
             partnerId: number;
@@ -357,7 +357,10 @@ export declare class LoansController {
             percent: number;
         }[];
         id: number;
+        createdAt: Date;
         code: string;
+        type: import("@prisma/client").$Enums.LoanType;
+        status: import("@prisma/client").$Enums.LoanStatus;
         clientId: number;
         kafeelId: number | null;
         amount: number;
@@ -366,13 +369,10 @@ export declare class LoansController {
         totalAmount: number;
         paymentAmount: number;
         durationMonths: number;
-        type: import("@prisma/client").$Enums.LoanType;
         source: import("@prisma/client").$Enums.LoanFundSource;
-        status: import("@prisma/client").$Enums.LoanStatus;
         startDate: Date;
         endDate: Date | null;
         repaymentDay: Date | null;
-        createdAt: Date;
         bankAccountId: number | null;
         partnerId: number | null;
         disbursementJournalId: number | null;
@@ -416,13 +416,13 @@ export declare class LoansController {
             interestAmount: number;
             paidAmount: number;
             id: number;
-            clientId: number;
+            attachments: string[];
             status: import("@prisma/client").$Enums.PaymentStatus;
             notes: string | null;
-            loanId: number;
+            clientId: number;
             count: number;
+            loanId: number;
             remaining: number;
-            attachments: string[];
             PaymentProof: string | null;
             reviewStatus: string | null;
             postponeApproved: boolean | null;
@@ -447,23 +447,23 @@ export declare class LoansController {
         client: {
             birthDate: string | null;
             id: number;
-            status: import("@prisma/client").$Enums.ClientStatus;
-            createdAt: Date;
+            email: string | null;
+            phone: string;
             name: string;
+            createdAt: Date;
+            credit: number;
+            debit: number;
+            balance: number;
+            status: import("@prisma/client").$Enums.ClientStatus;
             nationalId: string;
             city: string;
             district: string;
             employer: string;
             salary: number;
             obligations: number;
-            phone: string;
-            email: string | null;
             telegramChatId: string | null;
             address: string;
             creationReason: string;
-            debit: number;
-            credit: number;
-            balance: number;
             notes: string | null;
         };
         kafeel: {
@@ -471,34 +471,25 @@ export declare class LoansController {
             name: string;
             nationalId: string;
         } | null;
-        bankAccount: {
-            id: number;
-            status: import("@prisma/client").$Enums.AccountStatus;
-            name: string;
-            owner: string;
-            accountNumber: string;
-            IBAN: string;
-            limit: number;
-        } | null;
         partner: {
             id: number;
-            totalAmount: number;
-            createdAt: Date;
-            name: string;
-            nationalId: string;
-            phone: string | null;
             email: string | null;
-            address: string;
+            phone: string | null;
+            name: string;
             isActive: boolean;
+            createdAt: Date;
+            nationalId: string;
+            address: string;
+            totalAmount: number;
             orgProfitPercent: number;
             capitalAmount: number;
-            totalProfit: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
+            isNewPartner: boolean;
             joinDistribute: boolean;
+            totalProfit: number;
             WithdrawingStatus: import("@prisma/client").$Enums.PartnerStatus;
             isFrozen: boolean;
-            isNewPartner: boolean;
             accountPayableId: number;
             accountEquityId: number;
             accountSavingId: number;
@@ -506,6 +497,15 @@ export declare class LoansController {
             yearlyZakatRequired: number | null;
             yearlyZakatPaid: number | null;
             yearlyZakatBalance: number | null;
+        } | null;
+        bankAccount: {
+            id: number;
+            name: string;
+            limit: number;
+            status: import("@prisma/client").$Enums.AccountStatus;
+            owner: string;
+            accountNumber: string;
+            IBAN: string;
         } | null;
         LoanPartnerShare: {
             partnerId: number;
@@ -517,7 +517,10 @@ export declare class LoansController {
             percent: number;
         }[];
         id: number;
+        createdAt: Date;
         code: string;
+        type: import("@prisma/client").$Enums.LoanType;
+        status: import("@prisma/client").$Enums.LoanStatus;
         clientId: number;
         kafeelId: number | null;
         amount: number;
@@ -526,13 +529,10 @@ export declare class LoansController {
         totalAmount: number;
         paymentAmount: number;
         durationMonths: number;
-        type: import("@prisma/client").$Enums.LoanType;
         source: import("@prisma/client").$Enums.LoanFundSource;
-        status: import("@prisma/client").$Enums.LoanStatus;
         startDate: Date;
         endDate: Date | null;
         repaymentDay: Date | null;
-        createdAt: Date;
         bankAccountId: number | null;
         partnerId: number | null;
         disbursementJournalId: number | null;
@@ -551,7 +551,10 @@ export declare class LoansController {
         message: string;
         updated: {
             id: number;
+            createdAt: Date;
             code: string;
+            type: import("@prisma/client").$Enums.LoanType;
+            status: import("@prisma/client").$Enums.LoanStatus;
             clientId: number;
             kafeelId: number | null;
             amount: number;
@@ -560,13 +563,10 @@ export declare class LoansController {
             totalAmount: number;
             paymentAmount: number;
             durationMonths: number;
-            type: import("@prisma/client").$Enums.LoanType;
             source: import("@prisma/client").$Enums.LoanFundSource;
-            status: import("@prisma/client").$Enums.LoanStatus;
             startDate: Date;
             endDate: Date | null;
             repaymentDay: Date | null;
-            createdAt: Date;
             bankAccountId: number | null;
             partnerId: number | null;
             disbursementJournalId: number | null;
@@ -600,7 +600,10 @@ export declare class LoansController {
         message: string;
         loan: {
             id: number;
+            createdAt: Date;
             code: string;
+            type: import("@prisma/client").$Enums.LoanType;
+            status: import("@prisma/client").$Enums.LoanStatus;
             clientId: number;
             kafeelId: number | null;
             amount: number;
@@ -609,13 +612,10 @@ export declare class LoansController {
             totalAmount: number;
             paymentAmount: number;
             durationMonths: number;
-            type: import("@prisma/client").$Enums.LoanType;
             source: import("@prisma/client").$Enums.LoanFundSource;
-            status: import("@prisma/client").$Enums.LoanStatus;
             startDate: Date;
             endDate: Date | null;
             repaymentDay: Date | null;
-            createdAt: Date;
             bankAccountId: number | null;
             partnerId: number | null;
             disbursementJournalId: number | null;

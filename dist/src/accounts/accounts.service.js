@@ -363,6 +363,153 @@ let AccountsService = class AccountsService {
             },
         };
     }
+    async getNEWBankAccountReport(month, page = 1, limit = 20) {
+        const skip = (page - 1) * limit;
+        let monthStart;
+        let monthEnd;
+        if (month) {
+            const [year, monthNum] = month.split("-").map(Number);
+            monthStart = luxon_1.DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: "Asia/Riyadh" }).startOf("day").toUTC().toJSDate();
+            monthEnd = luxon_1.DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: "Asia/Riyadh" }).endOf("month").endOf("day").toUTC().toJSDate();
+        }
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { code: "11001" },
+            include: {
+                entries: {
+                    where: {
+                        journal: {
+                            status: "POSTED",
+                            ...(monthStart &&
+                                monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
+                        },
+                    },
+                    include: {
+                        journal: {
+                            include: {
+                                postedBy: {
+                                    select: { id: true, name: true, email: true },
+                                },
+                            },
+                        },
+                        client: { select: { id: true, name: true } },
+                    },
+                    orderBy: { id: "desc" },
+                    skip,
+                    take: limit,
+                },
+            },
+        });
+        if (!bankAccount)
+            throw new common_1.NotFoundException("Bank account 11001 not found");
+        const totalJournals = await this.prisma.journalLine.count({
+            where: {
+                accountId: bankAccount.id,
+                journal: {
+                    status: "POSTED",
+                    ...(monthStart &&
+                        monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
+                },
+            },
+        });
+        const totalPages = Math.ceil(totalJournals / limit);
+        const loansAccount = await this.prisma.account.findUnique({
+            where: { code: "12000" },
+        });
+        if (!loansAccount)
+            throw new common_1.NotFoundException("Loans account 12000 not found");
+        const groupedByMonth = bankAccount.entries.reduce((acc, line) => {
+            const date = luxon_1.DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
+            const monthKey = date.toFormat("yyyy-LL");
+            if (!acc[monthKey]) {
+                acc[monthKey] = {
+                    entries: [],
+                    totalDebit: 0,
+                    totalCredit: 0,
+                    totalBalance: 0,
+                };
+            }
+            acc[monthKey].entries.push({
+                id: line.journal.id,
+                date: date.toISO(),
+                reference: line.journal.reference,
+                description: line.description ?? line.journal.description,
+                debit: line.debit,
+                credit: line.credit,
+                balance: line.balance,
+                client: line.client ? line.client.name : null,
+                postedBy: line.journal.postedBy?.name ?? null,
+                status: line.journal.status,
+                type: line.journal.type,
+            });
+            acc[monthKey].totalDebit += line.debit ?? 0;
+            acc[monthKey].totalCredit += line.credit ?? 0;
+            acc[monthKey].totalBalance += line.balance ?? 0;
+            return acc;
+        }, {});
+        const repaymentFilter = {};
+        if (monthStart && monthEnd) {
+            repaymentFilter.dueDate = {
+                gte: monthStart,
+                lte: monthEnd,
+            };
+            repaymentFilter.loan = { source: "NEW_CAPITAL" };
+        }
+        const now = luxon_1.DateTime.now().setZone("Asia/Riyadh");
+        const currentMonthStart = now.startOf("month").toUTC().toJSDate();
+        const currentMonthEnd = now.endOf("month").endOf("day").toUTC().toJSDate();
+        const currentMonthRepayments = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: {
+                    gte: currentMonthStart,
+                    lte: currentMonthEnd,
+                },
+                loan: { source: "NEW_CAPITAL" }
+            },
+            select: {
+                amount: true,
+                paidAmount: true,
+            },
+        });
+        const currentMonthTotalAmount = currentMonthRepayments.reduce((sum, x) => sum + Number(x.amount), 0);
+        const currentMonthPaidUntilNow = currentMonthRepayments.reduce((sum, x) => sum + Number(x.paidAmount), 0);
+        const repayments = await this.prisma.repayment.findMany({
+            where: repaymentFilter,
+            select: {
+                amount: true,
+                paidAmount: true,
+            },
+        });
+        const totalAmount = repayments.reduce((sum, x) => sum + Number(x.amount), 0);
+        const paidUntilNow = repayments.reduce((sum, x) => sum + Number(x.paidAmount), 0);
+        return {
+            pagination: {
+                page,
+                limit,
+                totalJournals,
+                totalPages,
+            },
+            account: {
+                id: bankAccount.id,
+                name: bankAccount.name,
+                code: bankAccount.code,
+                debit: bankAccount.debit,
+                credit: bankAccount.credit,
+                balance: bankAccount.balance,
+            },
+            loansBalance: loansAccount.balance,
+            total: bankAccount.balance + loansAccount.balance,
+            totalJournalEntries: totalJournals,
+            journalsByMonth: groupedByMonth,
+            repayments: {
+                totalAmount,
+                paidUntilNow,
+            },
+            currentMonth: {
+                totalAmount: currentMonthTotalAmount,
+                paidUntilNow: currentMonthPaidUntilNow,
+            },
+        };
+    }
 };
 exports.AccountsService = AccountsService;
 exports.AccountsService = AccountsService = __decorate([
