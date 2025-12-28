@@ -623,8 +623,7 @@ export class AccountsService {
                 credit: bankAccount.credit,
                 balance: bankAccount.balance,
             },
-            loansBalance: loansAccount.balance,
-            total: bankAccount.balance + loansAccount.balance,
+            total: bankAccount.balance,
             totalJournalEntries: totalJournals,
             journalsByMonth: groupedByMonth,
             repayments: {

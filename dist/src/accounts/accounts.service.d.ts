@@ -214,7 +214,6 @@ export declare class AccountsService {
             credit: number;
             balance: number;
         };
-        loansBalance: number;
         total: number;
         totalJournalEntries: number;
         journalsByMonth: Record<string, {

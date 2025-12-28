@@ -111,7 +111,6 @@ export declare class AccountsController {
             credit: number;
             balance: number;
         };
-        loansBalance: number;
         total: number;
         totalJournalEntries: number;
         journalsByMonth: Record<string, {
