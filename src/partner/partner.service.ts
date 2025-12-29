@@ -100,7 +100,7 @@ export class PartnerService {
                 contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : null,
                 createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
                 mudarabahFileUrl: dto.mudarabahFileUrl,
-                isActive: dto.isActive ?? false,
+                isActive: dto.isActive ?? true,
                 isNewPartner: dto.isNewPartner ?? true,
                 accountPayableId: payableAccount.id,
                 accountEquityId: equityAccount.id,
