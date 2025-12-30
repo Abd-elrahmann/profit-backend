@@ -92,6 +92,7 @@ export class PartnerService {
                 name: dto.name,
                 nationalId: dto.nationalId,
                 address: dto.address,
+                city: dto.city,
                 phone: dto.phone,
                 email: dto.email,
                 orgProfitPercent: dto.orgProfitPercent,

@@ -210,6 +210,8 @@ let LoansService = class LoansService {
                 repaymentDay: dto.repaymentDay ? new Date(dto.repaymentDay) : new Date(),
                 bankAccountId: dto.bankAccountId,
                 partnerId: dto.partnerId,
+                issuanceCity: dto.issuanceCity,
+                paymentCity: dto.paymentCity,
             },
         });
         if (dto.partnerId && fundSource === client_1.LoanFundSource.GENERAL) {
@@ -825,6 +827,10 @@ let LoansService = class LoansService {
             loanUpdateData.clientId = dto.clientId;
         if (dto.kafeelId !== undefined)
             loanUpdateData.kafeelId = dto.kafeelId;
+        if (dto.issuanceCity !== undefined)
+            loanUpdateData.issuanceCity = dto.issuanceCity;
+        if (dto.paymentCity !== undefined)
+            loanUpdateData.paymentCity = dto.paymentCity;
         if (dto.InterestPercentage !== undefined) {
             loanUpdateData.interestRate = dto.InterestPercentage;
         }

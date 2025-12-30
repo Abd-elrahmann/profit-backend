@@ -15,6 +15,7 @@ class CreatePartnerDto {
     name;
     nationalId;
     address;
+    city;
     phone;
     email;
     orgProfitPercent;
@@ -38,6 +39,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreatePartnerDto.prototype, "address", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreatePartnerDto.prototype, "city", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
@@ -85,6 +91,7 @@ class UpdatePartnerDto {
     name;
     nationalId;
     address;
+    city;
     phone;
     email;
     orgProfitPercent;
@@ -111,6 +118,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdatePartnerDto.prototype, "address", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdatePartnerDto.prototype, "city", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

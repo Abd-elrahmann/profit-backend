@@ -46,6 +46,7 @@ export declare class PartnerService {
             isActive: boolean;
             createdAt: Date;
             nationalId: string;
+            city: string | null;
             address: string;
             totalAmount: number;
             orgProfitPercent: number;
@@ -76,6 +77,7 @@ export declare class PartnerService {
             isActive: boolean;
             createdAt: Date;
             nationalId: string;
+            city: string | null;
             address: string;
             totalAmount: number;
             orgProfitPercent: number;
@@ -176,6 +178,7 @@ export declare class PartnerService {
             isActive: boolean;
             createdAt: Date;
             nationalId: string;
+            city: string | null;
             address: string;
             totalAmount: number;
             orgProfitPercent: number;
@@ -248,6 +251,8 @@ export declare class PartnerService {
             PAYMENT_PROOF: string[];
             debtAcknowledgmentNumber: string | null;
             promissoryNoteNumber: string | null;
+            issuanceCity: string | null;
+            paymentCity: string | null;
             earlyPaidAmount: number | null;
             earlyPaymentDiscount: number | null;
             newAmount: number | null;
@@ -325,6 +330,7 @@ export declare class PartnerService {
         name: string;
         isActive: boolean;
         nationalId: string;
+        city: string | null;
         address: string;
         totalAmount: number;
         orgProfitPercent: number;

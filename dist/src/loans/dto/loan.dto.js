@@ -25,6 +25,8 @@ class CreateLoanDto {
     repaymentDay;
     bankAccountId;
     partnerId;
+    issuanceCity;
+    paymentCity;
 }
 exports.CreateLoanDto = CreateLoanDto;
 __decorate([
@@ -80,6 +82,16 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateLoanDto.prototype, "partnerId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLoanDto.prototype, "issuanceCity", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLoanDto.prototype, "paymentCity", void 0);
 class UpdateLoanDto {
     amount;
     paymentAmount;
@@ -94,6 +106,8 @@ class UpdateLoanDto {
     clientId;
     kafeelId;
     startDate;
+    issuanceCity;
+    paymentCity;
 }
 exports.UpdateLoanDto = UpdateLoanDto;
 __decorate([
@@ -161,4 +175,14 @@ __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], UpdateLoanDto.prototype, "startDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateLoanDto.prototype, "issuanceCity", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateLoanDto.prototype, "paymentCity", void 0);
 //# sourceMappingURL=loan.dto.js.map

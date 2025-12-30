@@ -12,6 +12,8 @@ export declare class CreateLoanDto {
     repaymentDay?: string;
     bankAccountId?: number;
     partnerId?: number;
+    issuanceCity?: string;
+    paymentCity?: string;
 }
 export declare class UpdateLoanDto {
     amount?: number;
@@ -27,4 +29,6 @@ export declare class UpdateLoanDto {
     clientId?: number;
     kafeelId?: number;
     startDate?: string;
+    issuanceCity?: string;
+    paymentCity?: string;
 }

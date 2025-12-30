@@ -12,6 +12,10 @@ export class CreatePartnerDto {
 
     @IsOptional()
     @IsString()
+    city?: string;
+
+    @IsOptional()
+    @IsString()
     phone?: string;
 
     @IsOptional()
@@ -57,6 +61,10 @@ export class UpdatePartnerDto {
     @IsOptional()
     @IsString()
     address?: string;
+
+    @IsOptional()
+    @IsString()
+    city?: string;
 
     @IsOptional()
     @IsString()

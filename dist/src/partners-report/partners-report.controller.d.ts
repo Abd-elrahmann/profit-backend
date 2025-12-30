@@ -76,6 +76,8 @@ export declare class PartnersReportController {
             PAYMENT_PROOF: string[];
             debtAcknowledgmentNumber: string | null;
             promissoryNoteNumber: string | null;
+            issuanceCity: string | null;
+            paymentCity: string | null;
             earlyPaidAmount: number | null;
             earlyPaymentDiscount: number | null;
             newAmount: number | null;

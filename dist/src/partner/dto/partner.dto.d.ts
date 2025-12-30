@@ -2,6 +2,7 @@ export declare class CreatePartnerDto {
     name: string;
     nationalId: string;
     address: string;
+    city?: string;
     phone?: string;
     email?: string;
     orgProfitPercent: number;
@@ -16,6 +17,7 @@ export declare class UpdatePartnerDto {
     name?: string;
     nationalId?: string;
     address?: string;
+    city?: string;
     phone?: string;
     email?: string;
     orgProfitPercent?: number;

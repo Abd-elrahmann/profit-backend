@@ -193,6 +193,8 @@ model Loan {
   PAYMENT_PROOF       String[]
   debtAcknowledgmentNumber String?
   promissoryNoteNumber     String?
+  issuanceCity            String?  
+  paymentCity             String? 
   earlyPaidAmount       Float?      @default(0)
   earlyPaymentDiscount  Float?      @default(0)
   newAmount             Int?        @default(0)
@@ -319,6 +321,7 @@ model Partner {
   name             String
   nationalId       String
   address          String
+  city             String?
   phone            String?
   email            String?
   orgProfitPercent Float
