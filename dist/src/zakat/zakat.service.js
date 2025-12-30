@@ -68,6 +68,7 @@ let ZakatService = class ZakatService {
     async getPartnerZakatSummary(partnerId, year) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
+            include: { PartnerNewCapital: { select: { amount: true, remaining: true } } }
         });
         if (!partner)
             throw new common_1.NotFoundException('Partner not found');
@@ -76,8 +77,12 @@ let ZakatService = class ZakatService {
             const startMonth = yr === partnerStartYear
                 ? new Date(partner.createdAt).getMonth() + 1
                 : 1;
+            const baseCapital = Number(partner.capitalAmount ?? 0);
+            const newCapitalAmount = partner.PartnerNewCapital
+                .reduce((sum, c) => sum + Number(c.remaining ?? 0), 0);
+            const totalAmount = baseCapital + newCapitalAmount;
             const remainingMonths = 12 - startMonth + 1;
-            const annualZakat = partner.totalAmount * 0.025;
+            const annualZakat = totalAmount * 0.025;
             const monthlyZakat = annualZakat / remainingMonths;
             const accruals = await this.prisma.zakatAccrual.findMany({
                 where: { partnerId, year: yr },
@@ -121,7 +126,7 @@ let ZakatService = class ZakatService {
             return {
                 partnerId,
                 partnerName: partner.name,
-                capitalAmount: partner.totalAmount,
+                capitalAmount: totalAmount,
                 year: yr,
                 annualZakat,
                 monthlyZakat,
@@ -207,6 +212,7 @@ let ZakatService = class ZakatService {
             take: pageLimit,
             orderBy: { id: 'asc' },
             include: {
+                PartnerNewCapital: { select: { amount: true, remaining: true } },
                 ZakatAccrual: {
                     where: { year },
                     orderBy: { month: 'asc' },
@@ -220,7 +226,11 @@ let ZakatService = class ZakatService {
                 ? new Date(p.createdAt).getMonth() + 1
                 : 1;
             const remainingMonths = 12 - startMonth + 1;
-            const annualZakat = p.totalAmount * 0.025;
+            const baseCapital = Number(p.capitalAmount ?? 0);
+            const newCapitalAmount = p.PartnerNewCapital
+                .reduce((sum, c) => sum + Number(c.remaining ?? 0), 0);
+            const totalAmount = baseCapital + newCapitalAmount;
+            const annualZakat = totalAmount * 0.025;
             const zakattofixed = Number(annualZakat.toFixed(2));
             const monthlyZakat = zakattofixed / remainingMonths;
             const payments = await this.prisma.zakatPayment.aggregate({
@@ -232,7 +242,7 @@ let ZakatService = class ZakatService {
             results.push({
                 partnerId: p.id,
                 partnerName: p.name,
-                capitalAmount: p.totalAmount,
+                capitalAmount: totalAmount,
                 year,
                 annualZakat,
                 monthlyZakat,
