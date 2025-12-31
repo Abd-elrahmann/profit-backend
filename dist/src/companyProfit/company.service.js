@@ -162,11 +162,22 @@ let CompanyService = class CompanyService {
             };
         });
         const totalCompanyProfitFromPeriods = periods.reduce((sum, p) => sum + p.companyProfit, 0);
+        const upcomingCompanyProfitAgg = await this.prisma.partnerShareAccrual.aggregate({
+            _sum: {
+                companyCut: true,
+            },
+            where: {
+                isClosed: false,
+                isDistributed: false,
+            },
+        });
+        const upcomingCompanyProfit = Number(upcomingCompanyProfitAgg._sum.companyCut || 0);
         return {
             totalPages,
             currentPage: page,
             limit,
             availableAmount: companyProfitAccount.balance,
+            upcomingProfit: upcomingCompanyProfit,
             totalWithdrawals,
             data: formattedWithdrawals,
             periodsProfit: {

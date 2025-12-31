@@ -10,6 +10,7 @@ export declare class CompanyController {
         currentPage: number;
         limit: number;
         availableAmount: number;
+        upcomingProfit: number;
         totalWithdrawals: number;
         data: {
             id: number;

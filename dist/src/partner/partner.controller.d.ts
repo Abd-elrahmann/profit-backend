@@ -39,13 +39,14 @@ export declare class PartnerController {
         } & {
             name: string;
             nationalId: string;
-            city: string | null;
             address: string;
+            city: string | null;
             phone: string | null;
             email: string | null;
             orgProfitPercent: number;
             capitalAmount: number;
             totalProfit: number;
+            upcomingProfit: number;
             totalAmount: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
@@ -70,13 +71,14 @@ export declare class PartnerController {
         partner: {
             name: string;
             nationalId: string;
-            city: string | null;
             address: string;
+            city: string | null;
             phone: string | null;
             email: string | null;
             orgProfitPercent: number;
             capitalAmount: number;
             totalProfit: number;
+            upcomingProfit: number;
             totalAmount: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
@@ -164,13 +166,14 @@ export declare class PartnerController {
             }[];
             name: string;
             nationalId: string;
-            city: string | null;
             address: string;
+            city: string | null;
             phone: string | null;
             email: string | null;
             orgProfitPercent: number;
             capitalAmount: number;
             totalProfit: number;
+            upcomingProfit: number;
             totalAmount: number;
             contractSignedAt: Date | null;
             mudarabahFileUrl: string | null;
@@ -317,13 +320,14 @@ export declare class PartnerController {
         }[];
         name: string;
         nationalId: string;
-        city: string | null;
         address: string;
+        city: string | null;
         phone: string | null;
         email: string | null;
         orgProfitPercent: number;
         capitalAmount: number;
         totalProfit: number;
+        upcomingProfit: number;
         totalAmount: number;
         mudarabahFileUrl: string | null;
         isActive: boolean;

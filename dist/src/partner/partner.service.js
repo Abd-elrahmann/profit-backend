@@ -139,6 +139,7 @@ let PartnerService = class PartnerService {
                 createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
                 mudarabahFileUrl: dto.mudarabahFileUrl,
                 isActive: dto.isActive ?? true,
+                joinDistribute: dto.joinDistribute ?? true,
                 isNewPartner: dto.isNewPartner ?? true,
                 accountPayableId: payableAccount.id,
                 accountEquityId: equityAccount.id,
@@ -390,7 +391,7 @@ let PartnerService = class PartnerService {
             throw new common_1.NotFoundException('Page not found');
         const totalActiveCapital = await this.prisma.partner.aggregate({
             _sum: { totalAmount: true },
-            where: { isNewPartner: false },
+            where: { isNewPartner: false, joinDistribute: true },
         });
         const allNewCapital = await this.prisma.partnerNewCapital.aggregate({
             _sum: { remaining: true },
@@ -412,10 +413,14 @@ let PartnerService = class PartnerService {
         const enrichedPartners = partners.map(p => {
             const newCapital = p.PartnerNewCapital?.reduce((sum, nc) => sum + nc.remaining, 0) || 0;
             const generalPercent = totalGeneralCapital > 0
-                ? Number(((p.totalAmount / totalGeneralCapital) * 100).toFixed(2))
+                ? (p.joinDistribute
+                    ? Number(((p.totalAmount / totalGeneralCapital) * 100).toFixed(2))
+                    : 0)
                 : 0;
             const newCapitalPercent = totalNewCapital > 0
-                ? Number(((newCapital / totalNewCapital) * 100).toFixed(2))
+                ? (p.joinDistribute
+                    ? Number(((newCapital / totalNewCapital) * 100).toFixed(2))
+                    : 0)
                 : 0;
             return {
                 ...p,
@@ -463,18 +468,18 @@ let PartnerService = class PartnerService {
                 .toFormat("yyyy-LL-dd HH:mm:ss");
         };
         const generalPartners = await this.prisma.partner.findMany({
-            where: { isNewPartner: false, isFrozen: false },
+            where: { isNewPartner: false, isFrozen: false, joinDistribute: true },
             select: { totalAmount: true },
         });
         const totalGeneralCapital = generalPartners.reduce((sum, p) => sum + p.totalAmount, 0);
-        const generalProfitPercent = totalGeneralCapital > 0 && partner.isFrozen === false
+        const generalProfitPercent = totalGeneralCapital > 0 && partner.isFrozen === false && partner.joinDistribute === true
             ? Number(((partner.totalAmount / totalGeneralCapital) * 100).toFixed(2))
             : 0;
         const allNewCapital = await this.prisma.partnerNewCapital.aggregate({
             _sum: { remaining: true },
         });
         const totalNewCapital = allNewCapital._sum.remaining || 0;
-        const newCapitalPercent = totalNewCapital > 0
+        const newCapitalPercent = totalNewCapital > 0 && partner.joinDistribute === true
             ? Number(((newCapitalAmount / totalNewCapital) * 100).toFixed(2))
             : 0;
         const calculateDuration = (from) => {

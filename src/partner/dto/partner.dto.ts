@@ -47,6 +47,10 @@ export class CreatePartnerDto {
     @IsOptional()
     @IsBoolean()
     isNewPartner?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    joinDistribute?: boolean;
 }
 
 export class UpdatePartnerDto {

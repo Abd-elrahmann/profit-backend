@@ -18,6 +18,7 @@ export declare class CompanyService {
         currentPage: number;
         limit: number;
         availableAmount: number;
+        upcomingProfit: number;
         totalWithdrawals: number;
         data: {
             id: number;

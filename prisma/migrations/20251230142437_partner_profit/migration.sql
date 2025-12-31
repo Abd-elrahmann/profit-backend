@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Partner" ADD COLUMN     "upcomingProfit" DOUBLE PRECISION NOT NULL DEFAULT 0;

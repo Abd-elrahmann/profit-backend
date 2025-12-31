@@ -8,7 +8,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DateTime } from 'luxon';
 import * as dotenv from 'dotenv';
-import { JournalLineDto } from 'src/journal/dto/journal.dto';
 dotenv.config();
 
 @Injectable()
@@ -186,16 +185,9 @@ export class RepaymentService {
         if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounts setup');
 
-        let creditAccount;
-        if (loan.source === LoanFundSource.GENERAL) {
-            creditAccount = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'BANK' },
-            });
-        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
-            creditAccount = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
-            });
-        }
+        const creditAccount = await this.prisma.account.findFirstOrThrow({
+            where: { accountBasicType: 'BANK' },
+        });
 
         return await this.prisma.$transaction(async (tx) => {
             // Create Journal Entry using journalService
@@ -234,7 +226,7 @@ export class RepaymentService {
 
             await this.journalService.postJournal(journal.journal.id, currentUser);
 
-            const updatedRepayment = await tx.repayment.update({
+            await tx.repayment.update({
                 where: { id },
                 data: {
                     paidAmount: totalAmount,
@@ -246,248 +238,11 @@ export class RepaymentService {
                 },
             });
 
-            let partnerShares: any[] = [];
-
-            if (loan.source === LoanFundSource.GENERAL) {
-                partnerShares = await tx.loanPartnerShare.findMany({
-                    where: { loanId: loan.id },
-                    include: { partner: { select: { orgProfitPercent: true } } },
-                });
-            } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
-                partnerShares = await tx.loanNewCapitalShare.findMany({
-                    where: { loanId: loan.id },
-                    include: { partner: { select: { orgProfitPercent: true } } },
-                });
-            }
-
-            const currentPeriod = await this.prisma.periodHeader.findFirst({
-                where: { endDate: null },
-                orderBy: { startDate: 'desc' },
-            });
-            if (!currentPeriod) {
-                throw new BadRequestException('No open period found. Please create a period first.');
-            }
-            const periodId = currentPeriod.id;
-
-            const totalInterest = interestAmount;
-
-            const totalRepayments = await tx.repayment.count({
-                where: { loanId: loan.id },
-            });
-
-            let repaymentIndex = await tx.repayment.count({
-                where: { loanId: loan.id, id: { lt: repayment.id } },
-            });
-
-            // Process each partner
-            for (const ps of partnerShares) {
-                const sharePercent =
-                    loan.source === LoanFundSource.GENERAL
-                        ? Number(ps.sharePercent || 0)
-                        : Number(ps.percent || 0);
-
-                const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
-
-                // theoretical totals
-                const totalRawShareFinal = Number(((loan.interestAmount * sharePercent) / 100).toFixed(2));
-                const totalCompanyCutFinal = Number(((totalRawShareFinal * orgCutPercent) / 100).toFixed(2));
-
-                let rawShare = Number(((interestAmount * sharePercent) / 100).toFixed(2));
-                let companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
-                let partnerFinal = rawShare - companyCut;
-
-                const isLastRepayment = repaymentIndex + 1 === totalRepayments;
-
-                if (isLastRepayment) {
-                    const prev = await tx.partnerShareAccrual.aggregate({
-                        where: {
-                            loanId: loan.id,
-                            partnerId: ps.partnerId,
-                        },
-                        _sum: { rawShare: true, companyCut: true },
-                    });
-
-                    const prevRaw = prev._sum.rawShare || 0;
-                    const prevCut = prev._sum.companyCut || 0;
-
-                    rawShare = Number((totalRawShareFinal - prevRaw).toFixed(2));
-                    companyCut = Number((totalCompanyCutFinal - prevCut).toFixed(2));
-                    partnerFinal = Number((rawShare - companyCut).toFixed(2));
-                }
-
-                await tx.partnerShareAccrual.create({
-                    data: {
-                        periodId,
-                        loanId: loan.id,
-                        repaymentId: repayment.id,
-                        partnerId: ps.partnerId,
-                        rawShare,
-                        companyCut,
-                        partnerFinal,
-                        isClosed: loan.source === LoanFundSource.NEW_CAPITAL ? true : false,
-                        isDistributed: loan.source === LoanFundSource.NEW_CAPITAL ? true : false,
-                    },
-                });
-            }
-
             const remaining = await tx.repayment.count({
                 where: { loanId: loan.id, status: { not: PaymentStatus.PAID } },
             });
 
-            if (remaining === 0 && loan.source === LoanFundSource.NEW_CAPITAL) {
-
-                const LOAN_INCOME = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'LOAN_INCOME' },
-                });
-
-                const NEW_CAPITAL_BANK = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'NEW_CAPITAL_BANK' },
-                });
-
-                const GENERAL_BANK = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'BANK' },
-                });
-
-                const partnerAccruals = await tx.partnerShareAccrual.findMany({
-                    where: { loanId: loan.id },
-                    include: { partner: true },
-                });
-
-                const accrualsByPartner = new Map<number, {
-
-                    amount: number;
-                    companyCut: number;
-                    payableAccountId: number;
-                    NEW_CAPITAL_AccountId: number;
-                    EQUITY_AccountId: number;
-
-                }>();
-
-                for (const a of partnerAccruals) {
-                    const entry = accrualsByPartner.get(a.partnerId) ?? {
-                        amount: 0,
-                        companyCut: 0,
-                        payableAccountId: a.partner.accountPayableId,
-                        NEW_CAPITAL_AccountId: a.partner.accountNewCapitalId,
-                        EQUITY_AccountId: a.partner.accountEquityId,
-                    };
-
-                    entry.amount += Number(a.partnerFinal || 0);
-                    entry.companyCut += Number(a.companyCut || 0);
-                    accrualsByPartner.set(a.partnerId, entry);
-                }
-
-                const shares = await tx.loanNewCapitalShare.findMany({
-                    where: { loanId: loan.id },
-                });
-
-                const capitalByPartner = new Map<number, number>();
-
-                for (const s of shares) {
-                    capitalByPartner.set(
-                        s.partnerId,
-                        Number(s.amountUsed || 0),
-                    );
-                }
-
-                const totalCapitalUsed = shares.reduce((sum, s) => sum + Number(s.amountUsed || 0), 0,);
-
-                const totalProfit = Array.from(accrualsByPartner.values())
-                    .reduce((sum, v) => sum + v.amount, 0);
-
-                const totalCompanyShare = Array.from(accrualsByPartner.values())
-                    .reduce((sum, v) => sum + v.companyCut, 0);
-
-                const total = totalCapitalUsed + totalProfit + totalCompanyShare;
-
-                const closingLines: JournalLineDto[] = [];
-
-                for (const [partnerId, v] of accrualsByPartner) {
-
-                    const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
-
-                    const partnerProfit = Number(v.amount.toFixed(2));
-
-                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
-
-                    await tx.partner.update({
-                        where: { id: partnerId },
-                        data: {
-                            isNewPartner: false,
-                            capitalAmount: {
-                                increment: partnerCapitalUsed,
-                            },
-                            totalProfit: {
-                                increment: partnerProfit,
-                            },
-                            totalAmount: {
-                                increment: totalPartnerIncrease,
-                            },
-                        },
-                    });
-
-                    closingLines.push({
-                        accountId: LOAN_INCOME.id,
-                        debit: Number(v.amount.toFixed(2)),
-                        credit: 0,
-                        description: `إقفال أرباح شريك للسلفة ${loan.id}`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.payableAccountId,
-                        debit: 0,
-                        credit: Number(v.amount.toFixed(2)),
-                        description: `إثبات مستحق أرباح شريك`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.NEW_CAPITAL_AccountId,
-                        debit: Number(partnerCapitalUsed.toFixed(2)),
-                        credit: 0,
-                        description: `تحويل رأس المال لحقوق الملكية`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.EQUITY_AccountId,
-                        debit: 0,
-                        credit: Number(partnerCapitalUsed.toFixed(2)),
-                        description: `إثبات حقوق ملكية`,
-                    });
-                }
-
-                if (total > 0) {
-                    closingLines.push({
-                        accountId: NEW_CAPITAL_BANK.id,
-                        debit: 0,
-                        credit: Number(total.toFixed(2)),
-                        description: `تحويل رأس المال للصندوق العام`,
-                    });
-
-                    closingLines.push({
-                        accountId: GENERAL_BANK.id,
-                        debit: Number(total.toFixed(2)),
-                        credit: 0,
-                        description: `استلام رأس مال من المساهمين الجدد`,
-                    });
-                }
-
-                const journal = await this.journalService.createJournal(
-                    {
-                        periodId,
-                        reference: `LOAN-CLOSE-${loan.id}`,
-                        description: `إقفال السلفة رقم ${loan.id}`,
-                        type: 'CLOSING',
-                        sourceType: JournalSourceType.LOAN,
-                        sourceId: loan.id,
-                        lines: closingLines,
-                    },
-                    currentUser,
-                );
-                await this.journalService.postJournal(journal.journal.id, currentUser);
-            }
-
             if (remaining === 0) {
-
                 const totalPaidAmount = await tx.repayment.aggregate({
                     where: { loanId: loan.id },
                     _sum: { paidAmount: true },
@@ -782,16 +537,9 @@ export class RepaymentService {
         if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounting accounts');
 
-        let creditAccount;
-        if (loan.source === LoanFundSource.GENERAL) {
-            creditAccount = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'BANK' },
-            });
-        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
-            creditAccount = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
-            });
-        }
+        const creditAccount = await this.prisma.account.findFirstOrThrow({
+            where: { accountBasicType: 'BANK' },
+        });
 
         return await this.prisma.$transaction(async tx => {
 
@@ -826,7 +574,7 @@ export class RepaymentService {
             interestPart = roundToTwo(interestPart);
 
             // Create Journal Entry for this partial payment
-            await this.journalService.createJournal(
+            const journal = await this.journalService.createJournal(
                 {
                     reference: `PARTIAL-${repayment.id}-${Date.now()}`,
                     description: `سداد جزئي للدفعة رقم ${repayment.id} للسلفة رقم ${loan.id}`,
@@ -858,6 +606,7 @@ export class RepaymentService {
                 },
                 currentUser
             );
+            await this.journalService.postJournal(journal.journal.id, currentUser)
 
             // Update repayment record
             const updated = await tx.repayment.update({
@@ -871,215 +620,9 @@ export class RepaymentService {
                 },
             });
 
-            // Create partner share accrual for this partial payment
-            let partnerShares: any[] = [];
-
-            if (loan.source === LoanFundSource.GENERAL) {
-                partnerShares = await tx.loanPartnerShare.findMany({
-                    where: { loanId: loan.id, isActive: true },
-                    include: { partner: { select: { orgProfitPercent: true } } },
-                });
-            } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
-                partnerShares = await tx.loanNewCapitalShare.findMany({
-                    where: { loanId: loan.id },
-                    include: { partner: { select: { orgProfitPercent: true } } },
-                });
-            }
-
-            const currentPeriod = await this.prisma.periodHeader.findFirst({
-                where: { endDate: null },
-                orderBy: { startDate: 'desc' },
-            });
-            if (!currentPeriod) {
-                throw new BadRequestException('No open period found. Please create a period first.');
-            }
-            const periodId = currentPeriod.id;
-
-            for (const ps of partnerShares) {
-                const sharePercent =
-                    loan.source === LoanFundSource.GENERAL
-                        ? Number(ps.sharePercent || 0)
-                        : Number(ps.percent || 0);
-
-                const partnerPercentage = sharePercent / 100;
-                const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
-
-                const rawShare = Number((interestPart * partnerPercentage).toFixed(2));
-                const companyCut = Number((rawShare * orgCutPercent / 100).toFixed(2));
-                const partnerFinal = Number((rawShare - companyCut).toFixed(2));
-
-                if (rawShare === 0 && companyCut === 0) continue;
-
-                await tx.partnerShareAccrual.create({
-                    data: {
-                        periodId,
-                        partnerId: ps.partnerId,
-                        loanId: loan.id,
-                        repaymentId: repayment.id,
-                        rawShare,
-                        companyCut,
-                        partnerFinal,
-                        isClosed: loan.source === LoanFundSource.NEW_CAPITAL ? true : false,
-                        isDistributed: loan.source === LoanFundSource.NEW_CAPITAL ? true : false,
-                    },
-                });
-            }
-
             const remainings = await tx.repayment.count({
                 where: { loanId: loan.id, status: { not: PaymentStatus.PAID } },
             });
-
-            if (remainings === 0 && loan.source === LoanFundSource.NEW_CAPITAL) {
-
-                const LOAN_INCOME = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'LOAN_INCOME' },
-                });
-
-                const NEW_CAPITAL_BANK = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'NEW_CAPITAL_BANK' },
-                });
-
-                const GENERAL_BANK = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'BANK' },
-                });
-
-                const partnerAccruals = await tx.partnerShareAccrual.findMany({
-                    where: { loanId: loan.id },
-                    include: { partner: true },
-                });
-
-                const accrualsByPartner = new Map<number, {
-
-                    amount: number;
-                    companyCut: number;
-                    payableAccountId: number;
-                    NEW_CAPITAL_AccountId: number;
-                    EQUITY_AccountId: number;
-
-                }>();
-
-                for (const a of partnerAccruals) {
-                    const entry = accrualsByPartner.get(a.partnerId) ?? {
-                        amount: 0,
-                        companyCut: 0,
-                        payableAccountId: a.partner.accountPayableId,
-                        NEW_CAPITAL_AccountId: a.partner.accountNewCapitalId,
-                        EQUITY_AccountId: a.partner.accountEquityId,
-                    };
-
-                    entry.amount += Number(a.partnerFinal || 0);
-                    entry.companyCut += Number(a.companyCut || 0);
-                    accrualsByPartner.set(a.partnerId, entry);
-                }
-
-                const shares = await tx.loanNewCapitalShare.findMany({
-                    where: { loanId: loan.id },
-                });
-
-                const capitalByPartner = new Map<number, number>();
-
-                for (const s of shares) {
-                    capitalByPartner.set(
-                        s.partnerId,
-                        Number(s.amountUsed || 0),
-                    );
-                }
-
-                const totalCapitalUsed = shares.reduce((sum, s) => sum + Number(s.amountUsed || 0), 0,);
-
-                const totalProfit = Array.from(accrualsByPartner.values())
-                    .reduce((sum, v) => sum + v.amount, 0);
-
-                const totalCompanyShare = Array.from(accrualsByPartner.values())
-                    .reduce((sum, v) => sum + v.companyCut, 0);
-
-                const total = totalCapitalUsed + totalProfit + totalCompanyShare;
-
-                const closingLines: JournalLineDto[] = [];
-
-                for (const [partnerId, v] of accrualsByPartner) {
-
-                    const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
-
-                    const partnerProfit = Number(v.amount.toFixed(2));
-
-                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
-
-                    await tx.partner.update({
-                        where: { id: partnerId },
-                        data: {
-                            isNewPartner: false,
-                            capitalAmount: {
-                                increment: partnerCapitalUsed,
-                            },
-                            totalProfit: {
-                                increment: partnerProfit,
-                            },
-                            totalAmount: {
-                                increment: totalPartnerIncrease,
-                            },
-                        },
-                    });
-
-                    closingLines.push({
-                        accountId: LOAN_INCOME.id,
-                        debit: Number(v.amount.toFixed(2)),
-                        credit: 0,
-                        description: `إقفال أرباح شريك للسلفة ${loan.id}`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.payableAccountId,
-                        debit: 0,
-                        credit: Number(v.amount.toFixed(2)),
-                        description: `إثبات مستحق أرباح شريك`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.NEW_CAPITAL_AccountId,
-                        debit: Number(partnerCapitalUsed.toFixed(2)),
-                        credit: 0,
-                        description: `تحويل رأس المال لحقوق الملكية`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.EQUITY_AccountId,
-                        debit: 0,
-                        credit: Number(partnerCapitalUsed.toFixed(2)),
-                        description: `إثبات حقوق ملكية`,
-                    });
-                }
-
-                if (total > 0) {
-                    closingLines.push({
-                        accountId: NEW_CAPITAL_BANK.id,
-                        debit: 0,
-                        credit: Number(total.toFixed(2)),
-                        description: `تحويل رأس المال للصندوق العام`,
-                    });
-
-                    closingLines.push({
-                        accountId: GENERAL_BANK.id,
-                        debit: Number(total.toFixed(2)),
-                        credit: 0,
-                        description: `استلام رأس مال من المساهمين الجدد`,
-                    });
-                }
-
-                const journal = await this.journalService.createJournal(
-                    {
-                        periodId,
-                        reference: `LOAN-CLOSE-${loan.id}`,
-                        description: `إقفال السلفة رقم ${loan.id}`,
-                        type: 'CLOSING',
-                        sourceType: JournalSourceType.LOAN,
-                        sourceId: loan.id,
-                        lines: closingLines,
-                    },
-                    currentUser,
-                );
-                await this.journalService.postJournal(journal.journal.id, currentUser);
-            }
 
             if (remainings === 0) {
 
@@ -1174,16 +717,9 @@ export class RepaymentService {
         if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounts setup');
 
-        let creditAccount;
-        if (loan.source === LoanFundSource.GENERAL) {
-            creditAccount = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'BANK' },
-            });
-        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
-            creditAccount = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
-            });
-        }
+        const creditAccount = await this.prisma.account.findFirstOrThrow({
+            where: { accountBasicType: 'BANK' },
+        });
 
         const roundToTwo = (num) => Math.round(num * 100) / 100;
 
@@ -1208,6 +744,7 @@ export class RepaymentService {
                 },
                 currentUserId
             );
+            await this.journalService.postJournal(journal.journal.id, currentUserId)
 
             // Step 6: Update repayments
             const discountRatio = earlyPaymentDiscount / totalRemainingInterest;
@@ -1262,16 +799,11 @@ export class RepaymentService {
                 });
             }
 
-            const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;
+            const partnerAccruals = await this.prisma.partnerShareAccrual.findMany({
+                where: { loanId: loanId },
+            })
 
-            const currentPeriod = await this.prisma.periodHeader.findFirst({
-                where: { endDate: null },
-                orderBy: { startDate: 'desc' },
-            });
-            if (!currentPeriod) {
-                throw new BadRequestException('No open period found. Please create a period first.');
-            }
-            const periodId = currentPeriod.id;
+            const realizedInterest = Number(loan.interestAmount) - earlyPaymentDiscount;
 
             if (realizedInterest > 0) {
                 for (const ps of partnerShares) {
@@ -1281,184 +813,46 @@ export class RepaymentService {
                             ? Number(ps.sharePercent || 0)
                             : Number(ps.percent || 0);
 
-                    const orgCutPercent = Number(ps.partner.orgProfitPercent || 0);
+                    const existingAccrual = partnerAccruals.find(
+                        (acc) => acc.partnerId === ps.partnerId
+                    );
+
+                    let oldcut = 0;
+                    if (existingAccrual && existingAccrual.rawShare > 0) {
+                        oldcut = Number(
+                            ((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2)
+                        );
+                    }
 
                     const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
-                    const companyCut = Number(((rawShare * orgCutPercent) / 100).toFixed(2));
+                    const companyCut = Number(((rawShare * oldcut) / 100).toFixed(2));
                     const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+
+                    const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
+                    const ratio = Number((oldPartnerFinal - partnerFinal).toFixed(2));
 
                     if (rawShare === 0 && companyCut === 0) continue;
 
-                    await tx.partnerShareAccrual.create({
-                        data: {
-                            periodId,
-                            loanId: loan.id,
-                            repaymentId: null,
-                            partnerId: ps.partnerId,
-                            rawShare,
-                            companyCut,
-                            partnerFinal,
-                            isClosed: loan.source === LoanFundSource.NEW_CAPITAL ? true : false,
-                            isDistributed: loan.source === LoanFundSource.NEW_CAPITAL ? true : false,
-                        },
-                    });
-                }
-            }
-
-            const remaining = await tx.repayment.count({
-                where: { loanId: loan.id, status: { not: PaymentStatus.PAID } },
-            });
-
-            if (remaining === 0 && loan.source === LoanFundSource.NEW_CAPITAL) {
-
-                const LOAN_INCOME = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'LOAN_INCOME' },
-                });
-
-                const NEW_CAPITAL_BANK = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'NEW_CAPITAL_BANK' },
-                });
-
-                const GENERAL_BANK = await tx.account.findFirstOrThrow({
-                    where: { accountBasicType: 'BANK' },
-                });
-
-                const partnerAccruals = await tx.partnerShareAccrual.findMany({
-                    where: { loanId: loan.id },
-                    include: { partner: true },
-                });
-
-                const accrualsByPartner = new Map<number, {
-
-                    amount: number;
-                    companyCut: number;
-                    payableAccountId: number;
-                    NEW_CAPITAL_AccountId: number;
-                    EQUITY_AccountId: number;
-
-                }>();
-
-                for (const a of partnerAccruals) {
-                    const entry = accrualsByPartner.get(a.partnerId) ?? {
-                        amount: 0,
-                        companyCut: 0,
-                        payableAccountId: a.partner.accountPayableId,
-                        NEW_CAPITAL_AccountId: a.partner.accountNewCapitalId,
-                        EQUITY_AccountId: a.partner.accountEquityId,
-                    };
-
-                    entry.amount += Number(a.partnerFinal || 0);
-                    entry.companyCut += Number(a.companyCut || 0);
-                    accrualsByPartner.set(a.partnerId, entry);
-                }
-
-                const shares = await tx.loanNewCapitalShare.findMany({
-                    where: { loanId: loan.id },
-                });
-
-                const capitalByPartner = new Map<number, number>();
-
-                for (const s of shares) {
-                    capitalByPartner.set(
-                        s.partnerId,
-                        Number(s.amountUsed || 0),
-                    );
-                }
-
-                const totalCapitalUsed = shares.reduce((sum, s) => sum + Number(s.amountUsed || 0), 0,);
-
-                const totalProfit = Array.from(accrualsByPartner.values())
-                    .reduce((sum, v) => sum + v.amount, 0);
-
-                const totalCompanyShare = Array.from(accrualsByPartner.values())
-                    .reduce((sum, v) => sum + v.companyCut, 0);
-
-                const total = totalCapitalUsed + totalProfit + totalCompanyShare;
-
-                const closingLines: JournalLineDto[] = [];
-
-                for (const [partnerId, v] of accrualsByPartner) {
-
-                    const partnerCapitalUsed = capitalByPartner.get(partnerId) || 0;
-
-                    const partnerProfit = Number(v.amount.toFixed(2));
-                    
-                    const totalPartnerIncrease = partnerCapitalUsed + partnerProfit;
-
-                    await tx.partner.update({
-                        where: { id: partnerId },
-                        data: {
-                            isNewPartner: false,
-                            capitalAmount: {
-                                increment: partnerCapitalUsed,
+                    if (existingAccrual) {
+                        await tx.partnerShareAccrual.update({
+                            where: { id: existingAccrual.id },
+                            data: {
+                                rawShare,
+                                companyCut,
+                                partnerFinal,
                             },
-                            totalProfit: {
-                                increment: partnerProfit,
-                            },
-                            totalAmount: {
-                                increment: totalPartnerIncrease,
-                            },
-                        },
-                    });
+                        });
 
-                    closingLines.push({
-                        accountId: LOAN_INCOME.id,
-                        debit: Number(v.amount.toFixed(2)),
-                        credit: 0,
-                        description: `إقفال أرباح شريك للسلفة ${loan.id}`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.payableAccountId,
-                        debit: 0,
-                        credit: Number(v.amount.toFixed(2)),
-                        description: `إثبات مستحق أرباح شريك`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.NEW_CAPITAL_AccountId,
-                        debit: Number(partnerCapitalUsed.toFixed(2)),
-                        credit: 0,
-                        description: `تحويل رأس المال لحقوق الملكية`,
-                    });
-
-                    closingLines.push({
-                        accountId: v.EQUITY_AccountId,
-                        debit: 0,
-                        credit: Number(partnerCapitalUsed.toFixed(2)),
-                        description: `إثبات حقوق ملكية`,
-                    });
+                        await tx.partner.update({
+                            where: { id: existingAccrual.partnerId },
+                            data: {
+                                upcomingProfit: {
+                                    decrement: ratio,
+                                },
+                            }
+                        })
+                    }
                 }
-
-                if (total > 0) {
-                    closingLines.push({
-                        accountId: NEW_CAPITAL_BANK.id,
-                        debit: 0,
-                        credit: Number(total.toFixed(2)),
-                        description: `تحويل رأس المال للصندوق العام`,
-                    });
-
-                    closingLines.push({
-                        accountId: GENERAL_BANK.id,
-                        debit: Number(total.toFixed(2)),
-                        credit: 0,
-                        description: `استلام رأس مال من المساهمين الجدد`,
-                    });
-                }
-
-                const journal = await this.journalService.createJournal(
-                    {
-                        periodId,
-                        reference: `LOAN-CLOSE-${loan.id}`,
-                        description: `إقفال السلفة رقم ${loan.id}`,
-                        type: 'CLOSING',
-                        sourceType: JournalSourceType.LOAN,
-                        sourceId: loan.id,
-                        lines: closingLines,
-                    },
-                    currentUserId,
-                );
-                await this.journalService.postJournal(journal.journal.id, currentUserId);
             }
 
             // Step 8: Update loan

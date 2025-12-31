@@ -102,6 +102,7 @@ export class PartnerService {
                 createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
                 mudarabahFileUrl: dto.mudarabahFileUrl,
                 isActive: dto.isActive ?? true,
+                joinDistribute: dto.joinDistribute ?? true,
                 isNewPartner: dto.isNewPartner ?? true,
                 accountPayableId: payableAccount.id,
                 accountEquityId: equityAccount.id,
@@ -398,7 +399,7 @@ export class PartnerService {
         // Total active capital for percent calculation
         const totalActiveCapital = await this.prisma.partner.aggregate({
             _sum: { totalAmount: true },
-            where: { isNewPartner: false },
+            where: { isNewPartner: false, joinDistribute: true },
         });
 
         const allNewCapital = await this.prisma.partnerNewCapital.aggregate({
@@ -429,12 +430,16 @@ export class PartnerService {
 
             const generalPercent =
                 totalGeneralCapital > 0
-                    ? Number(((p.totalAmount / totalGeneralCapital) * 100).toFixed(2))
+                    ? (p.joinDistribute
+                        ? Number(((p.totalAmount / totalGeneralCapital) * 100).toFixed(2))
+                        : 0)
                     : 0;
 
             const newCapitalPercent =
                 totalNewCapital > 0
-                    ? Number(((newCapital / totalNewCapital) * 100).toFixed(2))
+                    ? (p.joinDistribute
+                        ? Number(((newCapital / totalNewCapital) * 100).toFixed(2))
+                        : 0)
                     : 0;
 
             return {
@@ -497,7 +502,7 @@ export class PartnerService {
         };
 
         const generalPartners = await this.prisma.partner.findMany({
-            where: { isNewPartner: false, isFrozen: false },
+            where: { isNewPartner: false, isFrozen: false, joinDistribute: true },
             select: { totalAmount: true },
         });
 
@@ -507,7 +512,7 @@ export class PartnerService {
         );
 
         const generalProfitPercent =
-            totalGeneralCapital > 0 && partner.isFrozen === false
+            totalGeneralCapital > 0 && partner.isFrozen === false && partner.joinDistribute === true
                 ? Number(((partner.totalAmount / totalGeneralCapital) * 100).toFixed(2))
                 : 0;
 
@@ -518,7 +523,7 @@ export class PartnerService {
         const totalNewCapital = allNewCapital._sum.remaining || 0;
 
         const newCapitalPercent =
-            totalNewCapital > 0
+            totalNewCapital > 0 && partner.joinDistribute === true
                 ? Number(((newCapitalAmount / totalNewCapital) * 100).toFixed(2))
                 : 0;
 

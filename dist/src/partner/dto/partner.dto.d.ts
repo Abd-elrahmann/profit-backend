@@ -12,6 +12,7 @@ export declare class CreatePartnerDto {
     mudarabahFileUrl?: string;
     isActive?: boolean;
     isNewPartner?: boolean;
+    joinDistribute?: boolean;
 }
 export declare class UpdatePartnerDto {
     name?: string;

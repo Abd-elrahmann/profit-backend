@@ -93,6 +93,7 @@ export class IncomeStatementService {
         const partners = await this.prisma.partner.findMany({
             where: {
                 isActive: true,
+                joinDistribute: true,
 
                 OR: [
                     {

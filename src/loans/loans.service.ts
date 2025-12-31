@@ -9,6 +9,7 @@ import * as path from 'path';
 import { DateTime } from 'luxon';
 import * as dotenv from 'dotenv';
 import moment from "moment-hijri";
+import { JournalLineDto } from 'src/journal/dto/journal.dto';
 dotenv.config();
 
 @Injectable()
@@ -56,6 +57,220 @@ export class LoansService {
         return moment(date)
             .locale('ar-SA')
             .format('iDD iMMMM iYYYY')
+    }
+
+    private async createPartnerAccrualsOnActivation(loanId: number) {
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: {
+                LoanPartnerShare: true,
+                LoanNewCapitalShare: true,
+                partner: true
+            }
+        });
+
+        if (!loan) return;
+
+        let partnerShares: any[] = [];
+
+        if (loan.source === LoanFundSource.GENERAL) {
+            partnerShares = await this.prisma.loanPartnerShare.findMany({
+                where: { loanId: loan.id, isActive: true },
+                include: { partner: { select: { orgProfitPercent: true } } },
+            });
+        } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+            partnerShares = await this.prisma.loanNewCapitalShare.findMany({
+                where: { loanId: loan.id },
+                include: { partner: { select: { orgProfitPercent: true } } },
+            });
+        }
+
+        const currentPeriod = await this.prisma.periodHeader.findFirst({
+            where: { endDate: null },
+            orderBy: { startDate: 'desc' },
+        });
+        if (!currentPeriod) {
+            throw new BadRequestException('No open period found. Please create a period first.');
+        }
+        const periodId = currentPeriod.id;
+
+        for (const share of partnerShares) {
+            const sharePercent =
+                loan.source === LoanFundSource.GENERAL
+                    ? Number(share.sharePercent || 0)
+                    : Number(share.percent || 0);
+
+            const orgCutPercent = Number(share.partner.orgProfitPercent || 0);
+
+            const rawShare = loan.interestAmount * (sharePercent / 100);
+            const companyCut = Number((rawShare * orgCutPercent / 100).toFixed(2));
+            const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+            if (rawShare === 0 && companyCut === 0) continue;
+
+            await this.prisma.partnerShareAccrual.create({
+                data: {
+                    periodId,
+                    partnerId: share.partnerId,
+                    loanId: loan.id,
+                    rawShare,
+                    companyCut,
+                    partnerFinal,
+                },
+            });
+        }
+    }
+
+    private async handleNewCapitalOnActivation(
+        tx: Prisma.TransactionClient,
+        loan: any,
+        currentUser: number,
+    ) {
+        let shares: any[] = [];
+
+        if (loan.source === LoanFundSource.NEW_CAPITAL) {
+            shares = await tx.loanNewCapitalShare.findMany({
+                where: { loanId: loan.id },
+            });
+        } else if (loan.source === LoanFundSource.GENERAL) {
+            shares = await tx.loanPartnerShare.findMany({
+                where: { loanId: loan.id },
+            });
+        }
+
+        const lines: JournalLineDto[] = [];
+
+        for (const s of shares) {
+            const partner = await tx.partner.findUniqueOrThrow({
+                where: { id: s.partnerId },
+            });
+
+            const profit = await tx.partnerShareAccrual.findFirstOrThrow({
+                where: { partnerId: s.partnerId, loanId: s.loanId, isClosed: false },
+            });
+
+            await tx.partner.update({
+                where: { id: s.partnerId },
+                data: {
+                    upcomingProfit: {
+                        increment: profit.partnerFinal,
+                    },
+                },
+            });
+
+            if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
+
+            const used = Number(s.amountUsed || 0);
+            if (used <= 0) continue;
+
+            await tx.partner.update({
+                where: { id: s.partnerId },
+                data: {
+                    isNewPartner: false,
+                    capitalAmount: {
+                        increment: used,
+                    },
+                    totalAmount: {
+                        increment: used,
+                    },
+                }
+            }),
+
+                lines.push({
+                    accountId: partner.accountNewCapitalId,
+                    debit: Number(used.toFixed(2)),
+                    credit: 0,
+                    description: `تحويل رأس مال شريك إلى عام ${loan.id}`,
+                });
+
+            lines.push({
+                accountId: partner.accountEquityId,
+                debit: 0,
+                credit: Number(used.toFixed(2)),
+                description: `إثبات رأس مال الشريك`,
+            });
+        }
+
+        if (loan.source !== LoanFundSource.NEW_CAPITAL || lines.length === 0) return;
+
+        const journal = await this.journalService.createJournal(
+            {
+                reference: `LOAN-ACT-${loan.id}`,
+                description: `تحويل رأس مال الشركاء إلى العام`,
+                type: 'GENERAL',
+                sourceType: JournalSourceType.LOAN,
+                sourceId: loan.id,
+                lines,
+            },
+            currentUser,
+        );
+
+        await this.journalService.postJournal(journal.journal.id, currentUser);
+    }
+
+    private async handleNewCapitalOnDeactivation(
+        tx: Prisma.TransactionClient,
+        loanId: number,
+    ) {
+        const loan = await tx.loan.findUnique({
+            where: { id: loanId },
+            include: {
+                LoanNewCapitalShare: true,
+                LoanPartnerShare: true,
+            },
+        });
+
+        if (!loan) return;
+
+        let shares: any[] = [];
+        if (loan.source === LoanFundSource.NEW_CAPITAL) {
+            shares = loan.LoanNewCapitalShare;
+        } else if (loan.source === LoanFundSource.GENERAL) {
+            shares = loan.LoanPartnerShare.filter(p => p.isActive);
+        }
+
+        for (const s of shares) {
+            const profit = await tx.partnerShareAccrual.findFirst({
+                where: {
+                    partnerId: s.partnerId,
+                    loanId: loanId,
+                    isClosed: false,
+                },
+                include: { partner: true }
+            });
+
+            if (!profit) continue;
+
+            await tx.partner.update({
+                where: { id: s.partnerId },
+                data: {
+                    upcomingProfit: {
+                        decrement: profit.partnerFinal,
+                    },
+                },
+            });
+
+            if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
+
+            const used = Number(s.amountUsed || 0);
+            if (used <= 0) continue;
+
+            const capitalAmount = profit?.partner.capitalAmount || 0;
+
+            const check = capitalAmount <= used;
+
+            await tx.partner.update({
+                where: { id: s.partnerId },
+                data: {
+                    capitalAmount: {
+                        decrement: used,
+                    },
+                    totalAmount: {
+                        decrement: used,
+                    },
+                    isNewPartner: check,
+                },
+            });
+        }
     }
 
     // Create Loan
@@ -113,7 +328,9 @@ export class LoansService {
             totalAmount = principal.mul(interestRate.div(100).add(1));
             totalInterest = totalAmount.minus(principal);
         } else {
-            throw new BadRequestException('يجب ادخال مبلغ او نسبة الفائدة');
+            totalInterest = new Decimal(0);
+            interestRate = new Decimal(0);
+            totalAmount = principal;
         }
 
         const paymentAmount = new Decimal(dto.paymentAmount);
@@ -154,7 +371,7 @@ export class LoansService {
 
             if (totalNewCapital.lt(principal)) {
                 throw new BadRequestException(
-                    `رصيد رأس المال الجديد غير كافٍ. المتاح: ${totalNewCapital.toFixed(2)}`,
+                    `رصيد رأس المال الجديد غير كافٍ.المتاح: ${totalNewCapital.toFixed(2)}`,
                 );
             }
         }
@@ -175,7 +392,7 @@ export class LoansService {
         const now = new Date();
         const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
         const clientIdStr = String(client.id).padStart(3, '0');
-        const code = `LN-${datePart}-${clientIdStr}`;
+        const code = `LN - ${datePart} - ${clientIdStr}`;
 
         // Create loan
         const loan = await this.prisma.loan.create({
@@ -469,7 +686,7 @@ export class LoansService {
 
         const { journal } = await this.journalService.createJournal(
             {
-                reference: `LN-${loan.id}`,
+                reference: `LN - ${loan.id}`,
                 description: `صرف سلفة للعميل ${loan.clientId}`,
                 type: 'GENERAL',
                 sourceType: JournalSourceType.LOAN,
@@ -496,7 +713,7 @@ export class LoansService {
         await this.journalService.postJournal(journal.id, userId);
 
         const clientjournal = await this.journalService.createJournal({
-            reference: `int-${loan.id}`,
+            reference: `int - ${loan.id}`,
             description: `تحويل فوائد سلفة للعميل ${loan.clientId} إلى حسابه`,
             type: 'GENERAL',
             sourceType: 'LOAN_INTEREST',
@@ -516,6 +733,17 @@ export class LoansService {
                 disbursementJournalId: journal.id,
             },
         });
+
+        await this.createPartnerAccrualsOnActivation(id);
+
+        await this.prisma.$transaction(async (tx) => {
+            await this.handleNewCapitalOnActivation(
+                tx,
+                loan,
+                userId,
+            );
+        });
+
 
         await this.updateClientStatus(loan.clientId);
 
@@ -586,7 +814,7 @@ export class LoansService {
                     try {
                         await this.journalService.unpostJournal(currentUser, journalId);
                     } catch (e) {
-                        console.warn(`⚠️ Skipped unposting journal ${journalId}:`, e.message);
+                        console.warn(`⚠️ Skipped unposting journal ${journalId}: `, e.message);
                     }
                 }
 
@@ -609,6 +837,8 @@ export class LoansService {
             });
 
             await this.updateClientStatus(loan.clientId);
+
+            await this.handleNewCapitalOnDeactivation(tx, id);
 
             await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
 
@@ -1581,7 +1811,7 @@ export class LoansService {
             if (!receivableAccount) throw new NotFoundException('Loans receivable account not found');
 
             const { journal } = await this.journalService.createJournal({
-                reference: `CONV-${Date.now()}`,
+                reference: `CONV - ${Date.now()}`,
                 description: `تحويل رصيد السلفة رقم ${loanId} من العميل ${clientAId} إلى العميل ${clientBId}`,
                 type: 'GENERAL',
                 sourceType: 'LOAN_CONVERSION',
