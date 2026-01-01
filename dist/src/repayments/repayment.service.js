@@ -209,7 +209,7 @@ let RepaymentService = class RepaymentService {
         const creditAccount = await this.prisma.account.findFirstOrThrow({
             where: { accountBasicType: 'BANK' },
         });
-        return await this.prisma.$transaction(async (tx) => {
+        await this.prisma.$transaction(async (tx) => {
             const journal = await this.journalService.createJournal({
                 reference: `REP-${repayment.id}`,
                 description: `الموافقة على سداد دفعة رقم ${repayment.id} للسلفة رقم ${loan.id}`,
@@ -292,7 +292,6 @@ let RepaymentService = class RepaymentService {
             catch (error) {
                 console.error('❌ Failed to send Telegram notification:', error.message);
             }
-            await this.updateClientStatus(loan.clientId);
             await this.prisma.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -301,12 +300,12 @@ let RepaymentService = class RepaymentService {
                     description: `قام المستخدم ${user?.name} بالموافقة على السداد للدفعة رقم ${id}`,
                 },
             });
-            return {
-                message: 'تم الموافقة على السداد بنجاح',
-                repaymentId: id,
-                journalId: journal.journal.id,
-            };
         }, { timeout: 20000 });
+        await this.updateClientStatus(loan.clientId);
+        return {
+            message: 'تم الموافقة على السداد بنجاح',
+            repaymentId: id,
+        };
     }
     async rejectRepayment(currentUser, id, dto) {
         const repayment = await this.prisma.repayment.findUnique({
@@ -332,6 +331,7 @@ let RepaymentService = class RepaymentService {
                 include: { lines: true },
             });
             if (journal) {
+                await this.journalService.unpostJournal(currentUser, journal.id);
                 await tx.journalLine.deleteMany({ where: { journalId: journal.id } });
                 await tx.journalHeader.delete({ where: { id: journal.id } });
             }
@@ -581,6 +581,7 @@ let RepaymentService = class RepaymentService {
                     },
                 });
             }
+            await this.updateClientStatus(loan.clientId);
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -642,12 +643,14 @@ let RepaymentService = class RepaymentService {
                 reference: `EARLY-${loan.id}`,
                 description: `سداد مبكر للسلفة رقم ${loan.code} بخصم مبلغ ${earlyPaymentDiscount}`,
                 type: 'GENERAL',
-                sourceType: client_1.JournalSourceType.LOAN,
-                sourceId: loan.id,
+                sourceType: client_1.JournalSourceType.REPAYMENT,
+                sourceId: unpaidRepayments[0].id,
                 lines: [
                     { accountId: creditAccount.id, debit: finalPayment, credit: 0, description: `استلام سداد مبكر من العميل ${loan.client.name}` },
                     { accountId: loansReceivable.id, debit: 0, credit: totalRemainingPrincipal, description: 'سداد أصل السلفة بالكامل', clientId: loan.client.id },
                     { accountId: loanIncome.id, debit: 0, credit: totalRemainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر', clientId: loan.client.id, },
+                    { accountId: loansReceivable.id, debit: earlyPaymentDiscount, credit: 0, description: 'خصم' },
+                    { accountId: loansReceivable.id, debit: 0, credit: earlyPaymentDiscount, description: 'خصم', clientId: loan.client.id },
                 ],
             }, currentUserId);
             await this.journalService.postJournal(journal.journal.id, currentUserId);
@@ -681,6 +684,7 @@ let RepaymentService = class RepaymentService {
                     },
                 });
             }
+            await this.updateClientStatus(loan.clientId);
             let partnerShares = [];
             if (loan.source === client_1.LoanFundSource.GENERAL) {
                 partnerShares = await tx.loanPartnerShare.findMany({
@@ -768,7 +772,7 @@ let RepaymentService = class RepaymentService {
         for (const id of ids) {
             try {
                 const res = await this.approveRepayment(currentUser, id, dto);
-                results.push({ id, status: 'success', message: res.message, journalId: res.journalId });
+                results.push({ id, status: 'success', message: res.message });
             }
             catch (error) {
                 results.push({ id, status: 'failed', message: error.message });

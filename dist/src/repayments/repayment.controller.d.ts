@@ -97,7 +97,6 @@ export declare class RepaymentController {
     approveRepayment(req: any, id: number, dto: RepaymentDto): Promise<{
         message: string;
         repaymentId: number;
-        journalId: number;
     }>;
     rejectRepayment(req: any, id: number, dto: RepaymentDto): Promise<{
         message: string;

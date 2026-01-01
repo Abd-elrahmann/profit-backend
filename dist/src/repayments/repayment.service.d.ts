@@ -102,7 +102,6 @@ export declare class RepaymentService {
     approveRepayment(currentUser: any, id: number, dto: RepaymentDto): Promise<{
         message: string;
         repaymentId: number;
-        journalId: number;
     }>;
     rejectRepayment(currentUser: any, id: number, dto: RepaymentDto): Promise<{
         message: string;

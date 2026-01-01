@@ -61,8 +61,8 @@ let LoansController = class LoansController {
     async uploadSettlementFile(req, id, file) {
         return this.loansService.uploadSettlementFile(req.user.id, id, file);
     }
-    async convertClient(req, loanId, fromClientId, toClientId, kafeelId) {
-        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId, req.user.id);
+    async transferPartialLoanAmount(req, loanId, fromClientId, toClientId, kafeelId, amount, takeFromLast) {
+        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId, req.user.id, takeFromLast);
     }
 };
 exports.LoansController = LoansController;
@@ -196,10 +196,12 @@ __decorate([
     __param(2, (0, common_1.Body)('fromClientId', common_1.ParseIntPipe)),
     __param(3, (0, common_1.Body)('toClientId', common_1.ParseIntPipe)),
     __param(4, (0, common_1.Body)('kafeelId', common_1.ParseIntPipe)),
+    __param(5, (0, common_1.Body)('amount', common_1.ParseIntPipe)),
+    __param(6, (0, common_1.Body)('takeFromLast')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, Number, Number, Number]),
+    __metadata("design:paramtypes", [Object, Number, Number, Number, Number, Number, Boolean]),
     __metadata("design:returntype", Promise)
-], LoansController.prototype, "convertClient", null);
+], LoansController.prototype, "transferPartialLoanAmount", null);
 exports.LoansController = LoansController = __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('loans'),

@@ -21,8 +21,13 @@ export class LoansService {
 
     private async updateClientStatus(clientId: number) {
         const loans = await this.prisma.loan.findMany({
-            where: { clientId, status: LoanStatus.ACTIVE },
-            include: { repayments: true },
+            where: {
+                clientId,
+                status: LoanStatus.ACTIVE,
+            },
+            include: {
+                repayments: true,
+            },
         });
 
         if (loans.length === 0) {
@@ -34,16 +39,22 @@ export class LoansService {
         }
 
         const allRepayments = loans.flatMap(l => l.repayments);
-        const overdue = allRepayments.filter(
-            r => r.status === 'OVERDUE' || (r.status !== 'PAID' && r.dueDate < new Date()),
+        const now = new Date();
+
+        const hasOverdue = allRepayments.some(r =>
+            r.status === 'OVERDUE' ||
+            (r.status === 'PENDING' && r.dueDate < now)
         );
-        const unpaid = allRepayments.filter(r => r.status !== 'PAID');
+
+        const allPaid = allRepayments.every(r =>
+            r.status === 'PAID' || r.status === 'EARLY_PAID'
+        );
 
         let newStatus: any = 'نشط';
 
-        if (overdue.length > 0) {
+        if (hasOverdue) {
             newStatus = 'متعثر';
-        } else if (unpaid.length === 0) {
+        } else if (allPaid) {
             newStatus = 'منتهي';
         }
 
@@ -1842,6 +1853,189 @@ export class LoansService {
         return {
             message: 'تم تحويل السلفة بنجاح',
             totalTransferredAmount,
+        };
+    }
+
+    async transferPartialLoanAmount(
+        fromClientId: number,
+        toClientId: number,
+        loanId: number,
+        amountToTransfer: number,
+        kafeelId: number,
+        userId: number,
+        takeFromLast: boolean = true // true = LIFO, false = FIFO
+    ) {
+        if (amountToTransfer <= 0) {
+            throw new BadRequestException('مبلغ التحويل يجب أن يكون أكبر من صفر');
+        }
+
+        const fromClient = await this.prisma.client.findUnique({ where: { id: fromClientId } });
+        const toClient = await this.prisma.client.findUnique({
+            where: { id: toClientId },
+            include: { kafeelS: true },
+        });
+
+        if (!fromClient || !toClient) {
+            throw new NotFoundException('Client not found');
+        }
+
+        const selectedKafeel = toClient.kafeelS.find(k => k.id === kafeelId);
+        if (!selectedKafeel) {
+            throw new BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+        }
+
+        function round2(n: number) {
+            return Math.round(n * 100) / 100;
+        }
+
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: {
+                repayments: {
+                    where: { remaining: { gt: 0 } },
+                    orderBy: { dueDate: takeFromLast ? 'desc' : 'asc' },
+                },
+            },
+        });
+
+        if (!loan) throw new NotFoundException('Loan not found');
+        if (loan.clientId !== fromClientId) {
+            throw new BadRequestException('السلفة لا تنتمي للعميل المصدر');
+        }
+
+        const totalRemaining = loan.repayments.reduce((sum, r) => sum + r.remaining, 0);
+        if (amountToTransfer > totalRemaining) {
+            throw new BadRequestException('المبلغ المطلوب أكبر من المتبقي على السلفة');
+        }
+
+        let remainingToTransfer = amountToTransfer;
+
+        const splits: { repaymentId: number; remaining: number; amount: number; dueDate: Date }[] = [];
+        for (const rep of loan.repayments) {
+            if (remainingToTransfer <= 0) break;
+            const taken = Math.min(rep.remaining, remainingToTransfer);
+            splits.push({ repaymentId: rep.id, remaining: rep.remaining, amount: taken, dueDate: rep.dueDate });
+            remainingToTransfer -= taken;
+        }
+
+        if (splits.length === 0) {
+            throw new BadRequestException('لا يوجد أقساط صالحة للتحويل');
+        }
+
+        const lastSplit = splits[splits.length - 1];
+
+        const result = await this.prisma.$transaction(async (tx) => {
+            const newLoan = await tx.loan.create({
+                data: {
+                    code: `SPLIT-${loan.code}-${Date.now()}`,
+                    clientId: toClientId,
+                    kafeelId,
+                    amount: amountToTransfer,
+                    interestRate: loan.interestRate,
+                    interestAmount: 0,
+                    totalAmount: amountToTransfer,
+                    paymentAmount: loan.paymentAmount,
+                    durationMonths: loan.durationMonths,
+                    type: loan.type,
+                    source: loan.source,
+                    status: 'ACTIVE',
+                    startDate: new Date(),
+                    repaymentDay: lastSplit.dueDate,
+                    issuanceCity: loan.issuanceCity,
+                    paymentCity: loan.paymentCity,
+                    partnerId: loan.partnerId,
+                    bankAccountId: loan.bankAccountId
+                },
+            });
+
+            let count = 1;
+
+            for (const split of splits) {
+
+                const oldRepayment = await tx.repayment.findUnique({
+                    where: { id: split.repaymentId },
+                });
+
+                if (!oldRepayment) continue;
+
+                const ratio = split.amount / oldRepayment.remaining;
+                const principalTaken = round2(oldRepayment.principalAmount * ratio);
+                const interestTaken = round2(oldRepayment.interestAmount * ratio);
+
+                const newPrincipal = round2(oldRepayment.principalAmount - principalTaken);
+                const newInterest = round2(oldRepayment.interestAmount - interestTaken);
+
+                const isFullyTransferred = split.amount === oldRepayment.remaining;
+
+                await tx.repayment.update({
+                    where: { id: split.repaymentId },
+                    data: {
+                        remaining: round2(oldRepayment.remaining - split.amount),
+                        principalAmount: newPrincipal,
+                        interestAmount: newInterest,
+                        status: isFullyTransferred ? 'PAID' : 'PENDING',
+                    },
+                });
+
+                await tx.repayment.create({
+                    data: {
+                        loanId: newLoan.id,
+                        clientId: toClientId,
+                        count: count,
+                        dueDate: split.dueDate,
+                        amount: principalTaken + interestTaken,
+                        remaining: principalTaken + interestTaken,
+                        paidAmount: 0,
+                        principalAmount: principalTaken,
+                        interestAmount: interestTaken,
+                        status: 'PENDING',
+                    },
+                });
+
+                count++;
+            }
+
+            const receivableAccount = await tx.account.findFirst({
+                where: { accountBasicType: 'LOANS_RECEIVABLE' },
+            });
+            if (!receivableAccount) throw new NotFoundException('Loans receivable account not found');
+
+            const { journal } = await this.journalService.createJournal(
+                {
+                    reference: `LOAN-SPLIT-${Date.now()}`,
+                    description: `تحويل جزئي من السلفة ${loanId} من العميل ${fromClientId} إلى العميل ${toClientId}`,
+                    type: 'GENERAL',
+                    sourceType: 'LOAN_CONVERSION',
+                    sourceId: loanId,
+                    lines: [
+                        { accountId: receivableAccount.id, debit: amountToTransfer, credit: 0, clientId: toClientId },
+                        { accountId: receivableAccount.id, debit: 0, credit: amountToTransfer, clientId: fromClientId },
+                    ],
+                },
+                userId,
+            );
+
+            await this.journalService.postJournal(journal.id, userId);
+
+            await tx.auditLog.create({
+                data: {
+                    userId,
+                    screen: 'Loans',
+                    action: 'UPDATE',
+                    description: `تحويل مبلغ ${amountToTransfer} من السلفة ${loanId} من العميل ${fromClientId} إلى العميل ${toClientId}`,
+                },
+            });
+
+            return { newLoanId: newLoan.id };
+        });
+
+        await this.updateClientStatus(fromClientId);
+        await this.updateClientStatus(toClientId);
+
+        return {
+            message: 'تم تحويل جزء من السلفة بنجاح',
+            transferredAmount: amountToTransfer,
+            newLoanId: result.newLoanId,
         };
     }
 }
