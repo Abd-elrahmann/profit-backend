@@ -132,19 +132,19 @@ export class LoansController {
         return this.loansService.uploadSettlementFile(req.user.id, id, file);
     }
 
-    // @Patch('convert-client/:loanId')
-    // @Permissions('loans', 'canUpdate')
-    // async convertClient(
-    //     @Req() req,
-    //     @Param('loanId', ParseIntPipe) loanId: number,
-    //     @Body('fromClientId', ParseIntPipe) fromClientId: number,
-    //     @Body('toClientId', ParseIntPipe) toClientId: number,
-    //     @Body('kafeelId', ParseIntPipe) kafeelId: number,
-    // ) {
-    //     return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId, req.user.id);
-    // }
-
     @Patch('convert-client/:loanId')
+    @Permissions('loans', 'canUpdate')
+    async convertClient(
+        @Req() req,
+        @Param('loanId', ParseIntPipe) loanId: number,
+        @Body('fromClientId', ParseIntPipe) fromClientId: number,
+        @Body('toClientId', ParseIntPipe) toClientId: number,
+        @Body('kafeelId', ParseIntPipe) kafeelId: number,
+    ) {
+        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId, req.user.id);
+    }
+
+    @Patch('convert-partial/:loanId')
     @Permissions('loans', 'canUpdate')
     async transferPartialLoanAmount(
         @Req() req,
@@ -153,8 +153,7 @@ export class LoansController {
         @Body('toClientId', ParseIntPipe) toClientId: number,
         @Body('kafeelId', ParseIntPipe) kafeelId: number,
         @Body('amount', ParseIntPipe) amount: number,
-        @Body('takeFromLast') takeFromLast: boolean,
     ) {
-        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId, req.user.id, takeFromLast);
+        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId, req.user.id);
     }
 }

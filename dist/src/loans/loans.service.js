@@ -1551,7 +1551,7 @@ let LoansService = class LoansService {
             totalTransferredAmount,
         };
     }
-    async transferPartialLoanAmount(fromClientId, toClientId, loanId, amountToTransfer, kafeelId, userId, takeFromLast = true) {
+    async transferPartialLoanAmount(fromClientId, toClientId, loanId, amountToTransfer, kafeelId, userId) {
         if (amountToTransfer <= 0) {
             throw new common_1.BadRequestException('مبلغ التحويل يجب أن يكون أكبر من صفر');
         }
@@ -1575,7 +1575,7 @@ let LoansService = class LoansService {
             include: {
                 repayments: {
                     where: { remaining: { gt: 0 } },
-                    orderBy: { dueDate: takeFromLast ? 'desc' : 'asc' },
+                    orderBy: { dueDate: 'asc' },
                 },
             },
         });
@@ -1600,7 +1600,6 @@ let LoansService = class LoansService {
         if (splits.length === 0) {
             throw new common_1.BadRequestException('لا يوجد أقساط صالحة للتحويل');
         }
-        const lastSplit = splits[splits.length - 1];
         const result = await this.prisma.$transaction(async (tx) => {
             const newLoan = await tx.loan.create({
                 data: {
@@ -1617,7 +1616,7 @@ let LoansService = class LoansService {
                     source: loan.source,
                     status: 'ACTIVE',
                     startDate: new Date(),
-                    repaymentDay: lastSplit.dueDate,
+                    repaymentDay: splits[0].dueDate,
                     issuanceCity: loan.issuanceCity,
                     paymentCity: loan.paymentCity,
                     partnerId: loan.partnerId,

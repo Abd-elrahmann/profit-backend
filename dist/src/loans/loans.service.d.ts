@@ -506,7 +506,7 @@ export declare class LoansService {
         message: string;
         totalTransferredAmount: number;
     }>;
-    transferPartialLoanAmount(fromClientId: number, toClientId: number, loanId: number, amountToTransfer: number, kafeelId: number, userId: number, takeFromLast?: boolean): Promise<{
+    transferPartialLoanAmount(fromClientId: number, toClientId: number, loanId: number, amountToTransfer: number, kafeelId: number, userId: number): Promise<{
         message: string;
         transferredAmount: number;
         newLoanId: number;

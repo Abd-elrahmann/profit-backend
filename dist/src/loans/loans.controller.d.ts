@@ -655,7 +655,11 @@ export declare class LoansController {
         message: string;
         path: string;
     }>;
-    transferPartialLoanAmount(req: any, loanId: number, fromClientId: number, toClientId: number, kafeelId: number, amount: number, takeFromLast: boolean): Promise<{
+    convertClient(req: any, loanId: number, fromClientId: number, toClientId: number, kafeelId: number): Promise<{
+        message: string;
+        totalTransferredAmount: number;
+    }>;
+    transferPartialLoanAmount(req: any, loanId: number, fromClientId: number, toClientId: number, kafeelId: number, amount: number): Promise<{
         message: string;
         transferredAmount: number;
         newLoanId: number;

@@ -61,8 +61,11 @@ let LoansController = class LoansController {
     async uploadSettlementFile(req, id, file) {
         return this.loansService.uploadSettlementFile(req.user.id, id, file);
     }
-    async transferPartialLoanAmount(req, loanId, fromClientId, toClientId, kafeelId, amount, takeFromLast) {
-        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId, req.user.id, takeFromLast);
+    async convertClient(req, loanId, fromClientId, toClientId, kafeelId) {
+        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId, req.user.id);
+    }
+    async transferPartialLoanAmount(req, loanId, fromClientId, toClientId, kafeelId, amount) {
+        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId, req.user.id);
     }
 };
 exports.LoansController = LoansController;
@@ -196,10 +199,21 @@ __decorate([
     __param(2, (0, common_1.Body)('fromClientId', common_1.ParseIntPipe)),
     __param(3, (0, common_1.Body)('toClientId', common_1.ParseIntPipe)),
     __param(4, (0, common_1.Body)('kafeelId', common_1.ParseIntPipe)),
-    __param(5, (0, common_1.Body)('amount', common_1.ParseIntPipe)),
-    __param(6, (0, common_1.Body)('takeFromLast')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, Number, Number, Number, Number, Boolean]),
+    __metadata("design:paramtypes", [Object, Number, Number, Number, Number]),
+    __metadata("design:returntype", Promise)
+], LoansController.prototype, "convertClient", null);
+__decorate([
+    (0, common_1.Patch)('convert-partial/:loanId'),
+    (0, permissions_decorator_1.Permissions)('loans', 'canUpdate'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('loanId', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)('fromClientId', common_1.ParseIntPipe)),
+    __param(3, (0, common_1.Body)('toClientId', common_1.ParseIntPipe)),
+    __param(4, (0, common_1.Body)('kafeelId', common_1.ParseIntPipe)),
+    __param(5, (0, common_1.Body)('amount', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number, Number, Number, Number]),
     __metadata("design:returntype", Promise)
 ], LoansController.prototype, "transferPartialLoanAmount", null);
 exports.LoansController = LoansController = __decorate([
