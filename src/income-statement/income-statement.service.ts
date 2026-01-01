@@ -2,6 +2,15 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DateTime } from 'luxon';
 
+type LoanRevenueEntry = {
+    loanId: number;
+    rawShare: number;
+    companyCut: number;
+    partnerShare: number;
+    description: string;
+};
+
+
 @Injectable()
 export class IncomeStatementService {
     constructor(private prisma: PrismaService) { }
@@ -120,7 +129,7 @@ export class IncomeStatementService {
                 name: true,
                 capitalAmount: true,
                 orgProfitPercent: true,
-                transactions: { select: { type: true  , date: true , amount: true} },
+                transactions: { select: { type: true, date: true, amount: true } },
                 PartnerNewCapital: { select: { amount: true, remaining: true } },
                 LoanNewCapitalShare: { select: { loan: { select: { status: true } }, amountUsed: true } },
             },
@@ -150,8 +159,8 @@ export class IncomeStatementService {
 
             return {
                 partnerName: partner.name,
-                totalAmount: isDepositOnly ? amount : 
-                Number(partner.capitalAmount || 0)
+                totalAmount: isDepositOnly ? amount :
+                    Number(partner.capitalAmount || 0)
                     + remainingNewCapital
                     + Math.max(0, usedInActiveLoans),
             };
@@ -162,16 +171,36 @@ export class IncomeStatementService {
             0
         );
 
-        const revenueJournals = await this.prisma.journalHeader.findMany({
+        // const revenueJournals = await this.prisma.journalHeader.findMany({
+        //     where: {
+        //         date: { gte: from, lte: to },
+        //         status: 'POSTED',
+        //     },
+        //     include: {
+        //         lines: {
+        //             include: {
+        //                 account: true,
+        //                 client: true,
+        //             },
+        //         },
+        //     },
+        // });
+
+        const accruals = await this.prisma.partnerShareAccrual.findMany({
             where: {
-                date: { gte: from, lte: to },
-                status: 'POSTED',
+                loan: {
+                    createdAt: {
+                        gte: from,
+                        lte: to,
+                    },
+                },
             },
             include: {
-                lines: {
-                    include: {
-                        account: true,
-                        client: true,
+                loan: {
+                    select: {
+                        id: true,
+                        source: true,
+                        client: { select: { id: true, name: true } },
                     },
                 },
             },
@@ -180,71 +209,88 @@ export class IncomeStatementService {
         const DATE_FORMAT = 'yyyy-MM-dd';
 
         let totalRevenue = 0;
+        let totalCompanyRevenue = 0;
+        let totalPartnersRevenue = 0;
         let totalRevenueGeneral = 0;
         let totalRevenueNewCapital = 0;
 
         const revenueByClientMap = new Map<number, any>();
 
-        for (const journal of revenueJournals) {
+        for (const acc of accruals) {
+            const raw = Number(acc.rawShare || 0);
+            const company = Number(acc.companyCut || 0);
+            const partner = Number(acc.partnerFinal || 0);
 
-            if (journal.sourceType !== 'REPAYMENT' || !journal.sourceId) continue;
+            if (raw <= 0) continue;
 
-            const repayment = await this.prisma.repayment.findUnique({
-                where: { id: journal.sourceId },
-                include: { loan: true },
-            });
+            totalRevenue += raw;
+            totalCompanyRevenue += company;
+            totalPartnersRevenue += partner;
 
-            if (!repayment || !repayment.loan) continue;
-
-            const revenueLine = journal.lines.find(
-                l => l.account.type === 'REVENUE' && l.credit > 0
-            );
-            if (!revenueLine) continue;
-
-            const amount = revenueLine.credit - revenueLine.debit;
-            if (amount <= 0) continue;
-
-            totalRevenue += amount;
-
-            if (repayment.loan.source === 'GENERAL') {
-                totalRevenueGeneral += amount;
-            } else if (repayment.loan.source === 'NEW_CAPITAL') {
-                totalRevenueNewCapital += amount;
+            if (acc.loan?.source === 'GENERAL') {
+                totalRevenueGeneral += raw;
+            } else if (acc.loan?.source === 'NEW_CAPITAL') {
+                totalRevenueNewCapital += raw;
             }
 
-            const clientLine = journal.lines.find(
-                l => l.clientId !== null
-            );
-            if (!clientLine || !clientLine.client) continue;
+            const client = acc.loan?.client;
+            if (!client) continue;
 
-            const clientId = clientLine.client.id;
+            if (!revenueByClientMap.has(client.id)) {
+                revenueByClientMap.set(client.id, {
+                    clientId: client.id,
+                    clientName: client.name,
 
-            if (!revenueByClientMap.has(clientId)) {
-                revenueByClientMap.set(clientId, {
-                    clientId,
-                    clientName: clientLine.client.name,
-                    totalAmount: 0,
-                    entries: [],
+                    grossRevenue: 0,
+                    companyRevenue: 0,
+                    partnersRevenue: 0,
+
+                    entries: new Map<number, LoanRevenueEntry>(),
                 });
             }
 
-            const clientGroup = revenueByClientMap.get(clientId);
+            const clientGroup = revenueByClientMap.get(client.id);
 
-            clientGroup.totalAmount += amount;
-            clientGroup.entries.push({
-                journalId: journal.id,
-                date: DateTime
-                    .fromJSDate(journal.date)
-                    .setZone('Asia/Riyadh')
-                    .toFormat(DATE_FORMAT),
-                amount,
-                description:
-                    revenueLine.description ||
-                    journal.description ||
-                    'إيراد',
-            });
+            clientGroup.grossRevenue += raw;
+            clientGroup.companyRevenue += company;
+            clientGroup.partnersRevenue += partner;
+
+            const loanId = acc.loan?.id;
+            if (!loanId) continue;
+
+            if (!clientGroup.entries.has(loanId)) {
+                clientGroup.entries.set(loanId, {
+                    loanId,
+                    rawShare: 0,
+                    companyCut: 0,
+                    partnerShare: 0,
+                    description: 'توزيع فائدة السلفة',
+                });
+            }
+
+            const loanEntry = clientGroup.entries.get(loanId)!;
+
+            loanEntry.rawShare += raw;
+            loanEntry.companyCut += company;
+            loanEntry.partnerShare += partner;
         }
-        const revenueByClient = Array.from(revenueByClientMap.values());
+
+        const revenueByClient = Array.from(revenueByClientMap.values()).map(c => ({
+            clientId: c.clientId,
+            clientName: c.clientName,
+
+            totalRevenue: Number(c.grossRevenue.toFixed(2)),
+            companyRevenue: Number(c.companyRevenue.toFixed(2)),
+            partnersRevenue: Number(c.partnersRevenue.toFixed(2)),
+
+            entries: Array.from(c.entries.values()).map((e: LoanRevenueEntry) => ({
+                loanId: e.loanId,
+                rawShare: Number(e.rawShare.toFixed(2)),
+                companyCut: Number(e.companyCut.toFixed(2)),
+                partnerShare: Number(e.partnerShare.toFixed(2)),
+                description: e.description,
+            })),
+        }));
 
         const expenseRecords = await this.prisma.expenseRecord.findMany({
             where: { createdAt: { gte: from, lte: to } },
@@ -272,7 +318,7 @@ export class IncomeStatementService {
             };
         });
 
-        const netProfit = totalRevenueGeneral - totalExpenses;
+        const netProfit = totalRevenue - totalExpenses;
 
         return {
             period: {

@@ -20,7 +20,10 @@ export class RepaymentService {
 
     private async updateClientStatus(clientId: number) {
         const loans = await this.prisma.loan.findMany({
-            where: { clientId },
+            where: {
+                clientId,
+                status: 'ACTIVE'
+            },
             include: { repayments: true },
         });
 
@@ -34,9 +37,9 @@ export class RepaymentService {
 
         const allRepayments = loans.flatMap(l => l.repayments);
         const overdue = allRepayments.filter(
-            r => r.status === 'OVERDUE' || (r.status !== 'PAID' && r.dueDate < new Date()),
+            r => r.status === 'OVERDUE' || (r.status == 'PENDING' && r.dueDate < new Date()),
         );
-        const unpaid = allRepayments.filter(r => r.status !== 'PAID');
+        const unpaid = allRepayments.filter(r => r.status == 'PENDING');
 
         let newStatus: any = 'نشط';
 

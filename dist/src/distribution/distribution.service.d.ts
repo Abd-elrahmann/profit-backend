@@ -40,15 +40,15 @@ export declare class DistributionService {
         distributionJournal: {
             id: number;
             createdAt: Date;
-            periodId: number | null;
-            reference: string | null;
             description: string | null;
             date: Date;
             type: import("@prisma/client").$Enums.JournalType;
+            postedById: number | null;
+            reference: string | null;
             status: import("@prisma/client").$Enums.JournalStatus;
             sourceId: number | null;
             sourceType: import("@prisma/client").$Enums.JournalSourceType | null;
-            postedById: number | null;
+            periodId: number | null;
         } | null;
     }[]>;
 }

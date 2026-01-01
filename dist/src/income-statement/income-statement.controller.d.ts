@@ -19,7 +19,20 @@ export declare class IncomeStatementController {
             generalLoans: number;
             newCapitalLoans: number;
         };
-        revenueByClient: any[];
+        revenueByClient: {
+            clientId: any;
+            clientName: any;
+            totalRevenue: number;
+            companyRevenue: number;
+            partnersRevenue: number;
+            entries: {
+                loanId: number;
+                rawShare: number;
+                companyCut: number;
+                partnerShare: number;
+                description: string;
+            }[];
+        }[];
         totalExpenses: number;
         detailedExpenses: {
             type: string;
