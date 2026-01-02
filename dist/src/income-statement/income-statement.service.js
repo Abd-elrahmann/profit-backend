@@ -121,7 +121,6 @@ let IncomeStatementService = class IncomeStatementService {
         const capitalByPartner = partners.map(partner => {
             const totalNewCapital = partner.PartnerNewCapital?.reduce((s, nc) => s + Number(nc.amount || 0), 0) || 0;
             const remainingNewCapital = partner.PartnerNewCapital?.reduce((s, nc) => s + Number(nc.remaining || 0), 0) || 0;
-            const usedInActiveLoans = partner.LoanNewCapitalShare?.reduce((s, lns) => lns.loan?.status === 'ACTIVE' ? s + Number(lns.amountUsed || 0) : s, 0) || 0;
             const isDepositOnly = partner.transactions?.some(t => t.type === 'DEPOSIT');
             const amount = partner.transactions?.reduce((s, t) => {
                 if (t.date < from)
@@ -133,7 +132,6 @@ let IncomeStatementService = class IncomeStatementService {
                 totalAmount: isDepositOnly ? amount :
                     Number(partner.capitalAmount || 0)
                         + remainingNewCapital
-                        + Math.max(0, usedInActiveLoans),
             };
         });
         const totalCapital = capitalByPartner.reduce((sum, p) => sum + p.totalAmount, 0);

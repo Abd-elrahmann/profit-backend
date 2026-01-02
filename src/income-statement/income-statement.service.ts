@@ -146,11 +146,6 @@ export class IncomeStatementService {
                 0
             ) || 0;
 
-            const usedInActiveLoans = partner.LoanNewCapitalShare?.reduce(
-                (s, lns) => lns.loan?.status === 'ACTIVE' ? s + Number(lns.amountUsed || 0) : s,
-                0
-            ) || 0;
-
             const isDepositOnly = partner.transactions?.some(t => t.type === 'DEPOSIT');
             const amount = partner.transactions?.reduce((s, t) => {
                 if (t.date < from) return s;
@@ -162,7 +157,6 @@ export class IncomeStatementService {
                 totalAmount: isDepositOnly ? amount :
                     Number(partner.capitalAmount || 0)
                     + remainingNewCapital
-                    + Math.max(0, usedInActiveLoans),
             };
         });
 
@@ -170,21 +164,6 @@ export class IncomeStatementService {
             (sum, p) => sum + p.totalAmount,
             0
         );
-
-        // const revenueJournals = await this.prisma.journalHeader.findMany({
-        //     where: {
-        //         date: { gte: from, lte: to },
-        //         status: 'POSTED',
-        //     },
-        //     include: {
-        //         lines: {
-        //             include: {
-        //                 account: true,
-        //                 client: true,
-        //             },
-        //         },
-        //     },
-        // });
 
         const accruals = await this.prisma.partnerShareAccrual.findMany({
             where: {

@@ -7,8 +7,8 @@ export declare class SmallLoanService {
     private toRiyadh;
     create(body: any, currentUser: number): Promise<{
         id: number;
-        status: import("@prisma/client").$Enums.SmallLoanStatus;
         createdAt: Date;
+        status: import("@prisma/client").$Enums.SmallLoanStatus;
         notes: string | null;
         amount: number;
         remaining: number;
@@ -48,8 +48,8 @@ export declare class SmallLoanService {
         message: string;
         loan: {
             id: number;
-            status: import("@prisma/client").$Enums.SmallLoanStatus;
             createdAt: Date;
+            status: import("@prisma/client").$Enums.SmallLoanStatus;
             notes: string | null;
             amount: number;
             remaining: number;
