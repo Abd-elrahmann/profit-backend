@@ -1567,16 +1567,13 @@ let LoansService = class LoansService {
         if (!fromClient || !toClient) {
             throw new common_1.NotFoundException('Client not found');
         }
-        let selectedKafeel = null;
         if (kafeelId) {
-            selectedKafeel = toClient.kafeelS.find(k => k.id === kafeelId);
-            if (!selectedKafeel) {
+            const valid = toClient.kafeelS.some(k => k.id === kafeelId);
+            if (!valid) {
                 throw new common_1.BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
             }
         }
-        function round2(n) {
-            return Math.round(n * 100) / 100;
-        }
+        const round2 = (n) => Math.round(n * 100) / 100;
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
             include: {
@@ -1591,34 +1588,70 @@ let LoansService = class LoansService {
         if (loan.clientId !== fromClientId) {
             throw new common_1.BadRequestException('السلفة لا تنتمي للعميل المصدر');
         }
-        const totalRemaining = loan.repayments.reduce((sum, r) => sum + r.remaining, 0);
+        const totalRemaining = loan.repayments.reduce((s, r) => s + r.remaining, 0);
         if (amountToTransfer > totalRemaining) {
             throw new common_1.BadRequestException('المبلغ المطلوب أكبر من المتبقي على السلفة');
         }
         let remainingToTransfer = amountToTransfer;
         const splits = [];
-        for (const rep of loan.repayments) {
+        for (const r of loan.repayments) {
             if (remainingToTransfer <= 0)
                 break;
-            const taken = Math.min(rep.remaining, remainingToTransfer);
-            splits.push({ repaymentId: rep.id, remaining: rep.remaining, amount: taken, dueDate: rep.dueDate });
+            const taken = Math.min(r.remaining, remainingToTransfer);
+            splits.push({
+                repaymentId: r.id,
+                amount: taken,
+                dueDate: r.dueDate,
+            });
             remainingToTransfer -= taken;
         }
-        if (splits.length === 0) {
+        if (!splits.length) {
             throw new common_1.BadRequestException('لا يوجد أقساط صالحة للتحويل');
         }
         const result = await this.prisma.$transaction(async (tx) => {
-            const newLoanInterestAmount = round2(amountToTransfer * (loan.interestRate / 100));
-            const newLoanTotalAmount = round2(amountToTransfer + newLoanInterestAmount);
+            let actualPrincipal = 0;
+            let actualInterest = 0;
+            const takenMap = new Map();
+            for (const split of splits) {
+                const rep = await tx.repayment.findUnique({ where: { id: split.repaymentId } });
+                if (!rep)
+                    continue;
+                const originalRemaining = rep.remaining;
+                const originalPrincipal = rep.principalAmount;
+                const originalInterest = rep.interestAmount;
+                const ratio = split.amount / originalRemaining;
+                const principalTaken = round2(originalPrincipal * ratio);
+                const interestTaken = round2(originalInterest * ratio);
+                actualPrincipal += principalTaken;
+                actualInterest += interestTaken;
+                takenMap.set(rep.id, {
+                    principal: principalTaken,
+                    interest: interestTaken,
+                });
+                await tx.repayment.update({
+                    where: { id: rep.id },
+                    data: {
+                        remaining: round2(originalRemaining - split.amount),
+                        principalAmount: round2(originalPrincipal - principalTaken),
+                        interestAmount: round2(originalInterest - interestTaken),
+                        status: split.amount === originalRemaining
+                            ? 'PAID'
+                            : 'PENDING',
+                    },
+                });
+            }
+            actualPrincipal = round2(actualPrincipal);
+            actualInterest = round2(actualInterest);
+            const totalTransferred = round2(actualPrincipal + actualInterest);
             const newLoan = await tx.loan.create({
                 data: {
                     code: `SPLIT-${loan.code}-${Date.now()}`,
                     clientId: toClientId,
                     kafeelId,
-                    amount: amountToTransfer,
+                    amount: actualPrincipal,
                     interestRate: loan.interestRate,
-                    interestAmount: newLoanInterestAmount,
-                    totalAmount: newLoanTotalAmount,
+                    interestAmount: actualInterest,
+                    totalAmount: totalTransferred,
                     paymentAmount: loan.paymentAmount,
                     durationMonths: loan.durationMonths,
                     type: loan.type,
@@ -1629,82 +1662,54 @@ let LoansService = class LoansService {
                     issuanceCity: loan.issuanceCity,
                     paymentCity: loan.paymentCity,
                     partnerId: loan.partnerId,
-                    bankAccountId: loan.bankAccountId
-                },
-            });
-            const remainingAmount = round2(loan.amount - amountToTransfer);
-            const remainingInterestAmount = round2(remainingAmount * (loan.interestRate / 100));
-            await tx.loan.update({
-                where: { id: loanId },
-                data: {
-                    amount: remainingAmount,
-                    interestAmount: remainingInterestAmount,
-                    totalAmount: round2(remainingAmount + remainingInterestAmount),
+                    bankAccountId: loan.bankAccountId,
                 },
             });
             let count = 1;
             for (const split of splits) {
-                const oldRepayment = await tx.repayment.findUnique({
-                    where: { id: split.repaymentId },
-                });
-                if (!oldRepayment)
+                const taken = takenMap.get(split.repaymentId);
+                if (!taken)
                     continue;
-                const ratio = split.amount / oldRepayment.remaining;
-                const principalTaken = round2(oldRepayment.principalAmount * ratio);
-                const interestTaken = round2(oldRepayment.interestAmount * ratio);
-                const newPrincipal = round2(oldRepayment.principalAmount - principalTaken);
-                const newInterest = round2(oldRepayment.interestAmount - interestTaken);
-                const isFullyTransferred = split.amount === oldRepayment.remaining;
-                await tx.repayment.update({
-                    where: { id: split.repaymentId },
-                    data: {
-                        remaining: round2(oldRepayment.remaining - split.amount),
-                        principalAmount: newPrincipal,
-                        interestAmount: newInterest,
-                        status: isFullyTransferred ? 'PAID' : 'PENDING',
-                    },
-                });
                 await tx.repayment.create({
                     data: {
                         loanId: newLoan.id,
                         clientId: toClientId,
-                        count: count,
+                        count: count++,
                         dueDate: split.dueDate,
-                        amount: principalTaken + interestTaken,
-                        remaining: principalTaken + interestTaken,
+                        amount: round2(taken.principal + taken.interest),
+                        remaining: round2(taken.principal + taken.interest),
                         paidAmount: 0,
-                        principalAmount: principalTaken,
-                        interestAmount: interestTaken,
+                        principalAmount: taken.principal,
+                        interestAmount: taken.interest,
                         status: 'PENDING',
                     },
                 });
-                count++;
             }
-            const receivableAccount = await tx.account.findFirst({
+            await tx.loan.update({
+                where: { id: loanId },
+                data: {
+                    amount: { decrement: actualPrincipal },
+                    interestAmount: { decrement: actualInterest },
+                    totalAmount: { decrement: totalTransferred },
+                },
+            });
+            const receivable = await tx.account.findFirst({
                 where: { accountBasicType: 'LOANS_RECEIVABLE' },
             });
-            if (!receivableAccount)
+            if (!receivable)
                 throw new common_1.NotFoundException('Loans receivable account not found');
             const { journal } = await this.journalService.createJournal({
                 reference: `LOAN-SPLIT-${Date.now()}`,
-                description: `تحويل جزئي من السلفة ${loanId} من العميل ${fromClientId} إلى العميل ${toClientId}`,
+                description: `تحويل جزئي من السلفة ${loanId}`,
                 type: 'GENERAL',
                 sourceType: 'LOAN_CONVERSION',
                 sourceId: loanId,
                 lines: [
-                    { accountId: receivableAccount.id, debit: amountToTransfer, credit: 0, clientId: toClientId },
-                    { accountId: receivableAccount.id, debit: 0, credit: amountToTransfer, clientId: fromClientId },
+                    { accountId: receivable.id, debit: totalTransferred, credit: 0, clientId: toClientId },
+                    { accountId: receivable.id, debit: 0, credit: totalTransferred, clientId: fromClientId },
                 ],
             }, userId);
             await this.journalService.postJournal(journal.id, userId);
-            await tx.auditLog.create({
-                data: {
-                    userId,
-                    screen: 'Loans',
-                    action: 'UPDATE',
-                    description: `تحويل مبلغ ${amountToTransfer} من السلفة ${loanId} من العميل ${fromClientId} إلى العميل ${toClientId}`,
-                },
-            });
             return { newLoanId: newLoan.id };
         });
         await this.updateClientStatus(fromClientId);
