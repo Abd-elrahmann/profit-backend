@@ -491,6 +491,29 @@ let JournalService = class JournalService {
             return results;
         });
     }
+    async checkUnpostedOpeningJournals() {
+        const unpostedOpeningJournals = await this.prisma.journalHeader.findMany({
+            where: {
+                type: 'OPENING',
+                status: 'DRAFT'
+            },
+            select: {
+                id: true,
+                reference: true,
+                description: true,
+                date: true,
+                createdAt: true
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+        return {
+            hasUnpostedOpeningJournals: unpostedOpeningJournals.length > 0,
+            unpostedOpeningJournals,
+            count: unpostedOpeningJournals.length
+        };
+    }
 };
 exports.JournalService = JournalService;
 exports.JournalService = JournalService = __decorate([

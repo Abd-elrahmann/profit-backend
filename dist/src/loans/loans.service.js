@@ -1482,14 +1482,18 @@ let LoansService = class LoansService {
         const clientB = await this.prisma.client.findUnique({ where: { id: clientBId }, include: { kafeelS: true } });
         if (!clientA || !clientB)
             throw new common_1.NotFoundException('Client not found');
-        if (!clientB.kafeelS || clientB.kafeelS.length === 0) {
-            throw new common_1.BadRequestException('العميل المحول إليه لا يملك كفلاء');
+        let selectedKafeel = null;
+        let newKafeelId = null;
+        if (kafeelId) {
+            if (!clientB.kafeelS || clientB.kafeelS.length === 0) {
+                throw new common_1.BadRequestException('العميل المحول إليه لا يملك كفلاء');
+            }
+            selectedKafeel = clientB.kafeelS.find(k => k.id === kafeelId);
+            if (!selectedKafeel) {
+                throw new common_1.BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+            }
+            newKafeelId = selectedKafeel.id;
         }
-        const selectedKafeel = clientB.kafeelS.find(k => k.id === kafeelId);
-        if (!selectedKafeel) {
-            throw new common_1.BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
-        }
-        const newKafeelId = clientB.kafeelS[0].id;
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
             include: { repayments: true },
@@ -1509,7 +1513,7 @@ let LoansService = class LoansService {
                 where: { id: loanId },
                 data: {
                     clientId: clientBId,
-                    kafeelId: selectedKafeel.id,
+                    kafeelId: newKafeelId,
                 },
             });
             for (const rep of remainingReps) {
@@ -1563,9 +1567,12 @@ let LoansService = class LoansService {
         if (!fromClient || !toClient) {
             throw new common_1.NotFoundException('Client not found');
         }
-        const selectedKafeel = toClient.kafeelS.find(k => k.id === kafeelId);
-        if (!selectedKafeel) {
-            throw new common_1.BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+        let selectedKafeel = null;
+        if (kafeelId) {
+            selectedKafeel = toClient.kafeelS.find(k => k.id === kafeelId);
+            if (!selectedKafeel) {
+                throw new common_1.BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+            }
         }
         function round2(n) {
             return Math.round(n * 100) / 100;
@@ -1601,6 +1608,8 @@ let LoansService = class LoansService {
             throw new common_1.BadRequestException('لا يوجد أقساط صالحة للتحويل');
         }
         const result = await this.prisma.$transaction(async (tx) => {
+            const newLoanInterestAmount = round2(amountToTransfer * (loan.interestRate / 100));
+            const newLoanTotalAmount = round2(amountToTransfer + newLoanInterestAmount);
             const newLoan = await tx.loan.create({
                 data: {
                     code: `SPLIT-${loan.code}-${Date.now()}`,
@@ -1608,8 +1617,8 @@ let LoansService = class LoansService {
                     kafeelId,
                     amount: amountToTransfer,
                     interestRate: loan.interestRate,
-                    interestAmount: 0,
-                    totalAmount: amountToTransfer,
+                    interestAmount: newLoanInterestAmount,
+                    totalAmount: newLoanTotalAmount,
                     paymentAmount: loan.paymentAmount,
                     durationMonths: loan.durationMonths,
                     type: loan.type,
@@ -1621,6 +1630,16 @@ let LoansService = class LoansService {
                     paymentCity: loan.paymentCity,
                     partnerId: loan.partnerId,
                     bankAccountId: loan.bankAccountId
+                },
+            });
+            const remainingAmount = round2(loan.amount - amountToTransfer);
+            const remainingInterestAmount = round2(remainingAmount * (loan.interestRate / 100));
+            await tx.loan.update({
+                where: { id: loanId },
+                data: {
+                    amount: remainingAmount,
+                    interestAmount: remainingInterestAmount,
+                    totalAmount: round2(remainingAmount + remainingInterestAmount),
                 },
             });
             let count = 1;

@@ -47,6 +47,9 @@ let JournalController = class JournalController {
             dateTo,
         });
     }
+    async checkUnpostedOpeningJournals() {
+        return this.journalService.checkUnpostedOpeningJournals();
+    }
     getById(id) {
         return this.journalService.getJournalById(id);
     }
@@ -111,6 +114,13 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], JournalController.prototype, "getAll", null);
+__decorate([
+    (0, common_1.Get)('check-opening-journals'),
+    (0, permissions_decorator_1.Permissions)('journals', 'canView'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], JournalController.prototype, "checkUnpostedOpeningJournals", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, permissions_decorator_1.Permissions)('journals', 'canView'),

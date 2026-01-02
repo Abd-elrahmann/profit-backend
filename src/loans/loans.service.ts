@@ -1765,22 +1765,27 @@ export class LoansService {
         return { message: 'تم حفظ أرقام العقود بنجاح', loan: updatedLoan };
     }
 
-    async convertLoanClient(clientAId: number, clientBId: number, loanId: number, kafeelId: number, userId: number) {
+    async convertLoanClient(clientAId: number, clientBId: number, loanId: number, kafeelId: number | null, userId: number) {
         const clientA = await this.prisma.client.findUnique({ where: { id: clientAId } });
         const clientB = await this.prisma.client.findUnique({ where: { id: clientBId }, include: { kafeelS: true } });
         if (!clientA || !clientB) throw new NotFoundException('Client not found');
 
-        if (!clientB.kafeelS || clientB.kafeelS.length === 0) {
-            throw new BadRequestException('العميل المحول إليه لا يملك كفلاء');
+        let selectedKafeel: any = null;
+        let newKafeelId: number | null = null;
+
+        if (kafeelId) {
+            if (!clientB.kafeelS || clientB.kafeelS.length === 0) {
+                throw new BadRequestException('العميل المحول إليه لا يملك كفلاء');
+            }
+
+            selectedKafeel = clientB.kafeelS.find(k => k.id === kafeelId);
+
+            if (!selectedKafeel) {
+                throw new BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+            }
+
+            newKafeelId = selectedKafeel!.id;
         }
-
-        const selectedKafeel = clientB.kafeelS.find(k => k.id === kafeelId);
-
-        if (!selectedKafeel) {
-            throw new BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
-        }
-
-        const newKafeelId = clientB.kafeelS[0].id;
 
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
@@ -1804,7 +1809,7 @@ export class LoansService {
                 where: { id: loanId },
                 data: {
                     clientId: clientBId,
-                    kafeelId: selectedKafeel.id,
+                    kafeelId: newKafeelId,
                 },
             });
 
@@ -1861,7 +1866,7 @@ export class LoansService {
         toClientId: number,
         loanId: number,
         amountToTransfer: number,
-        kafeelId: number,
+        kafeelId: number | null,
         userId: number,
     ) {
         if (amountToTransfer <= 0) {
@@ -1878,9 +1883,12 @@ export class LoansService {
             throw new NotFoundException('Client not found');
         }
 
-        const selectedKafeel = toClient.kafeelS.find(k => k.id === kafeelId);
-        if (!selectedKafeel) {
-            throw new BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+        let selectedKafeel: any = null;
+        if (kafeelId) {
+            selectedKafeel = toClient.kafeelS.find(k => k.id === kafeelId);
+            if (!selectedKafeel) {
+                throw new BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
+            }
         }
 
         function round2(n: number) {
@@ -1922,6 +1930,10 @@ export class LoansService {
         }
 
         const result = await this.prisma.$transaction(async (tx) => {
+            // Calculate interest for the new loan
+            const newLoanInterestAmount = round2(amountToTransfer * (loan.interestRate / 100));
+            const newLoanTotalAmount = round2(amountToTransfer + newLoanInterestAmount);
+
             const newLoan = await tx.loan.create({
                 data: {
                     code: `SPLIT-${loan.code}-${Date.now()}`,
@@ -1929,8 +1941,8 @@ export class LoansService {
                     kafeelId,
                     amount: amountToTransfer,
                     interestRate: loan.interestRate,
-                    interestAmount: 0,
-                    totalAmount: amountToTransfer,
+                    interestAmount: newLoanInterestAmount,
+                    totalAmount: newLoanTotalAmount,
                     paymentAmount: loan.paymentAmount,
                     durationMonths: loan.durationMonths,
                     type: loan.type,
@@ -1942,6 +1954,19 @@ export class LoansService {
                     paymentCity: loan.paymentCity,
                     partnerId: loan.partnerId,
                     bankAccountId: loan.bankAccountId
+                },
+            });
+
+            // Update original loan amount and interest
+            const remainingAmount = round2(loan.amount - amountToTransfer);
+            const remainingInterestAmount = round2(remainingAmount * (loan.interestRate / 100));
+
+            await tx.loan.update({
+                where: { id: loanId },
+                data: {
+                    amount: remainingAmount,
+                    interestAmount: remainingInterestAmount,
+                    totalAmount: round2(remainingAmount + remainingInterestAmount),
                 },
             });
 

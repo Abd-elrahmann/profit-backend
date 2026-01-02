@@ -502,11 +502,11 @@ export declare class LoansService {
             newAmount: number | null;
         };
     }>;
-    convertLoanClient(clientAId: number, clientBId: number, loanId: number, kafeelId: number, userId: number): Promise<{
+    convertLoanClient(clientAId: number, clientBId: number, loanId: number, kafeelId: number | null, userId: number): Promise<{
         message: string;
         totalTransferredAmount: number;
     }>;
-    transferPartialLoanAmount(fromClientId: number, toClientId: number, loanId: number, amountToTransfer: number, kafeelId: number, userId: number): Promise<{
+    transferPartialLoanAmount(fromClientId: number, toClientId: number, loanId: number, amountToTransfer: number, kafeelId: number | null, userId: number): Promise<{
         message: string;
         transferredAmount: number;
         newLoanId: number;

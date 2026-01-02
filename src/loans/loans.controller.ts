@@ -139,9 +139,9 @@ export class LoansController {
         @Param('loanId', ParseIntPipe) loanId: number,
         @Body('fromClientId', ParseIntPipe) fromClientId: number,
         @Body('toClientId', ParseIntPipe) toClientId: number,
-        @Body('kafeelId', ParseIntPipe) kafeelId: number,
+        @Body('kafeelId') kafeelId?: number | null,
     ) {
-        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId, req.user.id);
+        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId || null, req.user.id);
     }
 
     @Patch('convert-partial/:loanId')
@@ -151,9 +151,9 @@ export class LoansController {
         @Param('loanId', ParseIntPipe) loanId: number,
         @Body('fromClientId', ParseIntPipe) fromClientId: number,
         @Body('toClientId', ParseIntPipe) toClientId: number,
-        @Body('kafeelId', ParseIntPipe) kafeelId: number,
         @Body('amount', ParseIntPipe) amount: number,
+        @Body('kafeelId') kafeelId?: number | null,
     ) {
-        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId, req.user.id);
+        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId || null, req.user.id);
     }
 }

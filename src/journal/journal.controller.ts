@@ -57,6 +57,13 @@ export class JournalController {
         });
     }
 
+    // CHECK UNPOSTED OPENING JOURNALS
+    @Get('check-opening-journals')
+    @Permissions('journals', 'canView')
+    async checkUnpostedOpeningJournals() {
+        return this.journalService.checkUnpostedOpeningJournals();
+    }
+
     @Get(':id')
     @Permissions('journals', 'canView')
     getById(@Param('id', ParseIntPipe) id: number) {

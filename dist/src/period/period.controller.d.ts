@@ -93,8 +93,8 @@ export declare class PeriodController {
             startDateHijri: any;
             endDateHijri: any;
             id: number;
-            name: string;
             createdAt: Date;
+            name: string;
             startDate: Date;
             endDate: Date | null;
             openingJournalId: number | null;
