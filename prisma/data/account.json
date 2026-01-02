@@ -15,21 +15,6 @@
     "createdAt": "2025-12-11T13:30:34.335Z"
   },
   {
-    "id": 9,
-    "name": "إيراد الشركة من نسب المساهمين",
-    "code": "42000",
-    "parentId": 4,
-    "type": "REVENUE",
-    "level": 2,
-    "isActive": true,
-    "credit": 0,
-    "debit": 0,
-    "balance": 0,
-    "nature": "CREDIT",
-    "accountBasicType": "COMPANY_SHARES",
-    "createdAt": "2025-10-28T12:36:55.726Z"
-  },
-  {
     "id": 10,
     "name": "حساب المصروفات",
     "code": "51000",
@@ -105,6 +90,21 @@
     "createdAt": "2025-12-24T12:37:27.772Z"
   },
   {
+    "id": 14,
+    "name": "سلف صغيرة",
+    "code": "12001",
+    "parentId": 1,
+    "type": "ASSET",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "DEBIT",
+    "accountBasicType": "SMALL_LOANS_RECEIVABLE",
+    "createdAt": "2025-12-19T17:57:52.537Z"
+  },
+  {
     "id": 17,
     "name": "صندوق رؤوس أموال المساهمين الجدد",
     "code": "11001",
@@ -118,21 +118,6 @@
     "nature": "DEBIT",
     "accountBasicType": "NEW_CAPITAL_BANK",
     "createdAt": "2025-12-24T17:42:40.313Z"
-  },
-  {
-    "id": 8,
-    "name": "إيرادات فوائد القروض",
-    "code": "41000",
-    "parentId": 4,
-    "type": "REVENUE",
-    "level": 2,
-    "isActive": true,
-    "credit": 0,
-    "debit": 0,
-    "balance": 0,
-    "nature": "CREDIT",
-    "accountBasicType": "LOAN_INCOME",
-    "createdAt": "2025-10-28T12:36:47.784Z"
   },
   {
     "id": 7,
@@ -165,19 +150,19 @@
     "createdAt": "2025-10-27T18:38:07.619Z"
   },
   {
-    "id": 14,
-    "name": "سلف صغيرة",
-    "code": "12001",
-    "parentId": 1,
-    "type": "ASSET",
+    "id": 8,
+    "name": "إيرادات فوائد القروض",
+    "code": "41000",
+    "parentId": 4,
+    "type": "REVENUE",
     "level": 2,
     "isActive": true,
     "credit": 0,
     "debit": 0,
     "balance": 0,
-    "nature": "DEBIT",
-    "accountBasicType": "SMALL_LOANS_RECEIVABLE",
-    "createdAt": "2025-12-19T17:57:52.537Z"
+    "nature": "CREDIT",
+    "accountBasicType": "LOAN_INCOME",
+    "createdAt": "2025-10-28T12:36:47.784Z"
   },
   {
     "id": 4,
@@ -238,6 +223,21 @@
     "nature": "CREDIT",
     "accountBasicType": "OTHER",
     "createdAt": "2025-10-27T18:28:55.794Z"
+  },
+  {
+    "id": 9,
+    "name": "إيراد الشركة من نسب المساهمين",
+    "code": "42000",
+    "parentId": 4,
+    "type": "REVENUE",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "CREDIT",
+    "accountBasicType": "COMPANY_SHARES",
+    "createdAt": "2025-10-28T12:36:55.726Z"
   },
   {
     "id": 11,
