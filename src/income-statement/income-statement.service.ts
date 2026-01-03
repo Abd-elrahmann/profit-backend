@@ -155,6 +155,9 @@ export class IncomeStatementService {
 
             return {
                 partnerName: partner.name,
+                capitalAmount: isDepositOnly ? amount :
+                    Number(partner.capitalAmount || 0) + remainingNewCapital,
+                totalProfit: Number(partner.totalProfit || 0),
                 totalAmount: isDepositOnly ? amount :
                     Number(partner.capitalAmount || 0)
                     + Number(partner.totalProfit || 0)
