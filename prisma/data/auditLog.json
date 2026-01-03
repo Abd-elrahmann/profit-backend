@@ -2246,5 +2246,1333 @@
     "action": "POST",
     "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-SPLIT-1767371411580",
     "createdAt": "2026-01-02T16:30:11.659Z"
+  },
+  {
+    "id": 539,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم SPLIT-LN - 20260102 - 003-1767371411556 للعميل 2",
+    "createdAt": "2026-01-03T15:20:03.925Z"
+  },
+  {
+    "id": 540,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 14",
+    "createdAt": "2026-01-03T15:20:06.206Z"
+  },
+  {
+    "id": 541,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 14",
+    "createdAt": "2026-01-03T15:20:06.229Z"
+  },
+  {
+    "id": 542,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260102 - 003 للعميل 3",
+    "createdAt": "2026-01-03T15:20:06.272Z"
+  },
+  {
+    "id": 543,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم SPLIT-LN - 20251231 - 002-1767308384494 للعميل 3",
+    "createdAt": "2026-01-03T15:20:08.118Z"
+  },
+  {
+    "id": 544,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 6",
+    "createdAt": "2026-01-03T15:20:14.233Z"
+  },
+  {
+    "id": 545,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 6",
+    "createdAt": "2026-01-03T15:20:14.256Z"
+  },
+  {
+    "id": 546,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20251231 - 002 للعميل 2",
+    "createdAt": "2026-01-03T15:20:14.292Z"
+  },
+  {
+    "id": 547,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم SPLIT-LN - 20260102 - 003-1767371411556 للعميل 2",
+    "createdAt": "2026-01-03T15:20:20.300Z"
+  },
+  {
+    "id": 548,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN - 20260102 - 003 للعميل 3",
+    "createdAt": "2026-01-03T15:20:23.097Z"
+  },
+  {
+    "id": 549,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم SPLIT-LN - 20251231 - 002-1767308384494 للعميل 3",
+    "createdAt": "2026-01-03T15:20:25.395Z"
+  },
+  {
+    "id": 550,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN - 20251231 - 002 للعميل 2",
+    "createdAt": "2026-01-03T15:20:28.709Z"
+  },
+  {
+    "id": 551,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-SPLIT-1767368908678",
+    "createdAt": "2026-01-03T15:20:52.458Z"
+  },
+  {
+    "id": 552,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-SPLIT-1767369876709",
+    "createdAt": "2026-01-03T15:20:52.482Z"
+  },
+  {
+    "id": 553,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-SPLIT-1767371411580",
+    "createdAt": "2026-01-03T15:20:52.501Z"
+  },
+  {
+    "id": 554,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-SPLIT-1767305601467",
+    "createdAt": "2026-01-03T15:20:52.520Z"
+  },
+  {
+    "id": 555,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-SPLIT-1767308384538",
+    "createdAt": "2026-01-03T15:20:52.538Z"
+  },
+  {
+    "id": 556,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-SPLIT-1767371411580",
+    "createdAt": "2026-01-03T15:20:56.613Z"
+  },
+  {
+    "id": 557,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-SPLIT-1767369876709",
+    "createdAt": "2026-01-03T15:21:00.138Z"
+  },
+  {
+    "id": 558,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-SPLIT-1767368908678",
+    "createdAt": "2026-01-03T15:21:03.676Z"
+  },
+  {
+    "id": 559,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-SPLIT-1767308384538",
+    "createdAt": "2026-01-03T15:21:07.118Z"
+  },
+  {
+    "id": 560,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-SPLIT-1767305601467",
+    "createdAt": "2026-01-03T15:21:10.619Z"
+  },
+  {
+    "id": 561,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-10",
+    "createdAt": "2026-01-03T15:24:47.885Z"
+  },
+  {
+    "id": 562,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء شريك جديد: test 1 برأس مال 1000",
+    "createdAt": "2026-01-03T15:24:47.915Z"
+  },
+  {
+    "id": 563,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: test 1",
+    "createdAt": "2026-01-03T15:24:53.487Z"
+  },
+  {
+    "id": 564,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي CAP-11",
+    "createdAt": "2026-01-03T15:25:09.666Z"
+  },
+  {
+    "id": 565,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء شريك جديد: test 2 برأس مال 1000",
+    "createdAt": "2026-01-03T15:25:09.702Z"
+  },
+  {
+    "id": 566,
+    "userId": 1,
+    "screen": "Partners",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل ملف المضاربة للشريك: test 2",
+    "createdAt": "2026-01-03T15:25:14.062Z"
+  },
+  {
+    "id": 567,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-10",
+    "createdAt": "2026-01-03T15:25:27.615Z"
+  },
+  {
+    "id": 568,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي CAP-11",
+    "createdAt": "2026-01-03T15:25:27.632Z"
+  },
+  {
+    "id": 569,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 5000",
+    "createdAt": "2026-01-03T15:26:13.660Z"
+  },
+  {
+    "id": 570,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:26:13.846Z"
+  },
+  {
+    "id": 571,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:26:13.927Z"
+  },
+  {
+    "id": 572,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:26:15.623Z"
+  },
+  {
+    "id": 573,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T15:26:17.172Z"
+  },
+  {
+    "id": 574,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:26:17.202Z"
+  },
+  {
+    "id": 575,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T15:26:18.825Z"
+  },
+  {
+    "id": 576,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T15:39:34.397Z"
+  },
+  {
+    "id": 577,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 5000",
+    "createdAt": "2026-01-03T15:40:26.879Z"
+  },
+  {
+    "id": 578,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:40:27.080Z"
+  },
+  {
+    "id": 579,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:40:27.243Z"
+  },
+  {
+    "id": 580,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:40:29.285Z"
+  },
+  {
+    "id": 581,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T15:40:32.132Z"
+  },
+  {
+    "id": 582,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:40:32.226Z"
+  },
+  {
+    "id": 583,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T15:40:33.913Z"
+  },
+  {
+    "id": 584,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T15:45:54.329Z"
+  },
+  {
+    "id": 585,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 5000",
+    "createdAt": "2026-01-03T15:47:04.783Z"
+  },
+  {
+    "id": 586,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:47:04.979Z"
+  },
+  {
+    "id": 587,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:47:05.113Z"
+  },
+  {
+    "id": 588,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:47:07.430Z"
+  },
+  {
+    "id": 589,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T15:47:09.167Z"
+  },
+  {
+    "id": 590,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T15:47:09.197Z"
+  },
+  {
+    "id": 591,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T15:47:10.647Z"
+  },
+  {
+    "id": 592,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T15:49:28.423Z"
+  },
+  {
+    "id": 593,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T15:49:28.452Z"
+  },
+  {
+    "id": 594,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T15:49:28.464Z"
+  },
+  {
+    "id": 595,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T15:49:28.489Z"
+  },
+  {
+    "id": 596,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T15:49:28.577Z"
+  },
+  {
+    "id": 597,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T15:49:28.632Z"
+  },
+  {
+    "id": 598,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T15:49:28.641Z"
+  },
+  {
+    "id": 599,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:00:02.988Z"
+  },
+  {
+    "id": 600,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:00:03.041Z"
+  },
+  {
+    "id": 601,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:00:03.140Z"
+  },
+  {
+    "id": 602,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:00:07.259Z"
+  },
+  {
+    "id": 603,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:00:07.284Z"
+  },
+  {
+    "id": 604,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:00:07.294Z"
+  },
+  {
+    "id": 605,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:00:07.325Z"
+  },
+  {
+    "id": 606,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T16:00:21.810Z"
+  },
+  {
+    "id": 607,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T16:00:25.125Z"
+  },
+  {
+    "id": 608,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:00:42.532Z"
+  },
+  {
+    "id": 609,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:00:42.556Z"
+  },
+  {
+    "id": 610,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:00:42.619Z"
+  },
+  {
+    "id": 611,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:00:46.509Z"
+  },
+  {
+    "id": 612,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:00:46.543Z"
+  },
+  {
+    "id": 613,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:00:46.554Z"
+  },
+  {
+    "id": 614,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:00:46.574Z"
+  },
+  {
+    "id": 615,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T16:00:46.645Z"
+  },
+  {
+    "id": 616,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T16:00:46.711Z"
+  },
+  {
+    "id": 617,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:00:46.722Z"
+  },
+  {
+    "id": 618,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:04:59.430Z"
+  },
+  {
+    "id": 619,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 20",
+    "createdAt": "2026-01-03T16:04:59.469Z"
+  },
+  {
+    "id": 620,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:04:59.484Z"
+  },
+  {
+    "id": 621,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 20",
+    "createdAt": "2026-01-03T16:05:04.378Z"
+  },
+  {
+    "id": 622,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:05:04.554Z"
+  },
+  {
+    "id": 623,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T16:05:17.407Z"
+  },
+  {
+    "id": 624,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-ACT-20",
+    "createdAt": "2026-01-03T16:05:19.358Z"
+  },
+  {
+    "id": 625,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:05:29.530Z"
+  },
+  {
+    "id": 626,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 5000",
+    "createdAt": "2026-01-03T16:07:25.998Z"
+  },
+  {
+    "id": 627,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:07:26.213Z"
+  },
+  {
+    "id": 628,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:07:26.362Z"
+  },
+  {
+    "id": 629,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:07:28.128Z"
+  },
+  {
+    "id": 630,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T16:07:29.646Z"
+  },
+  {
+    "id": 631,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:07:29.683Z"
+  },
+  {
+    "id": 632,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T16:07:31.218Z"
+  },
+  {
+    "id": 633,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:11:11.262Z"
+  },
+  {
+    "id": 634,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء سلفة جديدة للعميل youssef khaled بمبلغ 5000",
+    "createdAt": "2026-01-03T16:11:37.399Z"
+  },
+  {
+    "id": 635,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:11:37.635Z"
+  },
+  {
+    "id": 636,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:11:37.764Z"
+  },
+  {
+    "id": 637,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:11:39.465Z"
+  },
+  {
+    "id": 638,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل إقرار الدين للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T16:11:42.333Z"
+  },
+  {
+    "id": 639,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "UPDATE",
+    "description": "قام المستخدم ادمن بتحديث أرقام العقود للسلفة رقم LN - 20260103 - 003",
+    "createdAt": "2026-01-03T16:11:42.363Z"
+  },
+  {
+    "id": 640,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بتحميل سند لأمر للسلفة رقم LN - 20260103 - 003 الخاص بالعميل youssef khaled",
+    "createdAt": "2026-01-03T16:11:44.087Z"
+  },
+  {
+    "id": 641,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:12:06.445Z"
+  },
+  {
+    "id": 642,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:12:06.470Z"
+  },
+  {
+    "id": 643,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:12:06.481Z"
+  },
+  {
+    "id": 644,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:12:06.505Z"
+  },
+  {
+    "id": 645,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:12:06.601Z"
+  },
+  {
+    "id": 646,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:12:06.668Z"
+  },
+  {
+    "id": 647,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:12:06.680Z"
+  },
+  {
+    "id": 648,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:18:21.854Z"
+  },
+  {
+    "id": 649,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:18:21.917Z"
+  },
+  {
+    "id": 650,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:18:21.988Z"
+  },
+  {
+    "id": 651,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:18:26.712Z"
+  },
+  {
+    "id": 652,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:18:26.742Z"
+  },
+  {
+    "id": 653,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:18:26.754Z"
+  },
+  {
+    "id": 654,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:18:26.778Z"
+  },
+  {
+    "id": 655,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:18:43.616Z"
+  },
+  {
+    "id": 656,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:18:43.644Z"
+  },
+  {
+    "id": 657,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:18:43.665Z"
+  },
+  {
+    "id": 658,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:18:48.866Z"
+  },
+  {
+    "id": 659,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:18:52.488Z"
+  },
+  {
+    "id": 660,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:18:55.662Z"
+  },
+  {
+    "id": 661,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:19:13.573Z"
+  },
+  {
+    "id": 662,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:19:19.218Z"
+  },
+  {
+    "id": 663,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:19:19.247Z"
+  },
+  {
+    "id": 664,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:19:19.261Z"
+  },
+  {
+    "id": 665,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:19:19.289Z"
+  },
+  {
+    "id": 666,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:19:19.361Z"
+  },
+  {
+    "id": 667,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:19:19.427Z"
+  },
+  {
+    "id": 668,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:19:19.438Z"
+  },
+  {
+    "id": 669,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:24:02.419Z"
+  },
+  {
+    "id": 670,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:24:02.449Z"
+  },
+  {
+    "id": 671,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:24:02.533Z"
+  },
+  {
+    "id": 672,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "UNPOST",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:24:11.534Z"
+  },
+  {
+    "id": 673,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:24:15.273Z"
+  },
+  {
+    "id": 674,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:24:21.016Z"
+  },
+  {
+    "id": 675,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:24:21.041Z"
+  },
+  {
+    "id": 676,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:24:21.051Z"
+  },
+  {
+    "id": 677,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:24:21.081Z"
+  },
+  {
+    "id": 678,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:24:21.178Z"
+  },
+  {
+    "id": 679,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:24:21.239Z"
+  },
+  {
+    "id": 680,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:24:21.248Z"
+  },
+  {
+    "id": 681,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:26:19.784Z"
+  },
+  {
+    "id": 682,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:26:19.814Z"
+  },
+  {
+    "id": 683,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:26:19.869Z"
+  },
+  {
+    "id": 684,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:26:29.182Z"
+  },
+  {
+    "id": 685,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:26:31.606Z"
+  },
+  {
+    "id": 686,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:27:20.899Z"
+  },
+  {
+    "id": 687,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T16:27:20.928Z"
+  },
+  {
+    "id": 688,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:27:20.939Z"
+  },
+  {
+    "id": 689,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T16:27:20.966Z"
+  },
+  {
+    "id": 690,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:27:21.074Z"
+  },
+  {
+    "id": 691,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T16:27:21.160Z"
+  },
+  {
+    "id": 692,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T16:27:21.174Z"
+  },
+  {
+    "id": 693,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T18:19:11.459Z"
+  },
+  {
+    "id": 694,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T18:19:11.508Z"
+  },
+  {
+    "id": 695,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بإلغاء تفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T18:19:11.607Z"
+  },
+  {
+    "id": 696,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإلغاء اعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T18:19:18.123Z"
+  },
+  {
+    "id": 697,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "DELETE",
+    "description": "قام المستخدم ادمن بحذف قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T18:19:20.486Z"
+  },
+  {
+    "id": 698,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T18:19:28.739Z"
+  },
+  {
+    "id": 699,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LN - 22",
+    "createdAt": "2026-01-03T18:19:28.786Z"
+  },
+  {
+    "id": 700,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T18:19:28.799Z"
+  },
+  {
+    "id": 701,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي int - 22",
+    "createdAt": "2026-01-03T18:19:28.823Z"
+  },
+  {
+    "id": 704,
+    "userId": 1,
+    "screen": "Loans",
+    "action": "POST",
+    "description": "قام المستخدم ادمن بتفعيل السلفة رقم LN - 20260103 - 003 للعميل 3",
+    "createdAt": "2026-01-03T18:19:29.003Z"
+  },
+  {
+    "id": 702,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "CREATE",
+    "description": "قام المستخدم ادمن بإنشاء قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T18:19:28.916Z"
+  },
+  {
+    "id": 703,
+    "userId": 1,
+    "screen": "Journals",
+    "action": "POST",
+    "description": "قام المستخدم ادمن باعتماد قيد يومية برقم مرجعي LOAN-ACT-22",
+    "createdAt": "2026-01-03T18:19:28.990Z"
   }
 ]

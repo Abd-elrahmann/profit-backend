@@ -1,54 +1,54 @@
 [
   {
-    "id": 65,
-    "partnerId": 8,
-    "loanId": 6,
-    "repaymentId": null,
-    "rawShare": 1000,
-    "companyCut": 200,
-    "partnerFinal": 800,
-    "isClosed": false,
-    "isDistributed": false,
-    "periodId": 1,
-    "createdAt": "2026-01-01T19:10:15.558Z"
-  },
-  {
-    "id": 66,
+    "id": 103,
     "partnerId": 9,
-    "loanId": 6,
+    "loanId": 22,
     "repaymentId": null,
-    "rawShare": 1000,
-    "companyCut": 200,
-    "partnerFinal": 800,
+    "rawShare": 735.29,
+    "companyCut": 147.06,
+    "partnerFinal": 588.24,
     "isClosed": false,
     "isDistributed": false,
     "periodId": 1,
-    "createdAt": "2026-01-01T19:10:15.562Z"
+    "createdAt": "2026-01-03T18:19:28.839Z"
   },
   {
-    "id": 69,
+    "id": 104,
+    "partnerId": 10,
+    "loanId": 22,
+    "repaymentId": null,
+    "rawShare": 147.06,
+    "companyCut": 29.41,
+    "partnerFinal": 117.65,
+    "isClosed": false,
+    "isDistributed": false,
+    "periodId": 1,
+    "createdAt": "2026-01-03T18:19:28.845Z"
+  },
+  {
+    "id": 105,
+    "partnerId": 11,
+    "loanId": 22,
+    "repaymentId": null,
+    "rawShare": 147.06,
+    "companyCut": 29.41,
+    "partnerFinal": 117.65,
+    "isClosed": false,
+    "isDistributed": false,
+    "periodId": 1,
+    "createdAt": "2026-01-03T18:19:28.849Z"
+  },
+  {
+    "id": 106,
     "partnerId": 8,
-    "loanId": 14,
+    "loanId": 22,
     "repaymentId": null,
-    "rawShare": 1000,
-    "companyCut": 200,
-    "partnerFinal": 800,
+    "rawShare": 1470.59,
+    "companyCut": 294.12,
+    "partnerFinal": 1176.46,
     "isClosed": false,
     "isDistributed": false,
     "periodId": 1,
-    "createdAt": "2026-01-02T15:35:59.655Z"
-  },
-  {
-    "id": 70,
-    "partnerId": 9,
-    "loanId": 14,
-    "repaymentId": null,
-    "rawShare": 1000,
-    "companyCut": 200,
-    "partnerFinal": 800,
-    "isClosed": false,
-    "isDistributed": false,
-    "periodId": 1,
-    "createdAt": "2026-01-02T15:35:59.667Z"
+    "createdAt": "2026-01-03T18:19:28.852Z"
   }
 ]

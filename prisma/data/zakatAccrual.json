@@ -16,5 +16,221 @@
     "month": 12,
     "amount": 250,
     "createdAt": "2025-12-31T16:36:29.928Z"
+  },
+  {
+    "id": 10,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 1,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.895Z"
+  },
+  {
+    "id": 11,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 2,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.898Z"
+  },
+  {
+    "id": 12,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 3,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.899Z"
+  },
+  {
+    "id": 13,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 4,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.900Z"
+  },
+  {
+    "id": 14,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 5,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.902Z"
+  },
+  {
+    "id": 15,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 6,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.903Z"
+  },
+  {
+    "id": 16,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 7,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.904Z"
+  },
+  {
+    "id": 17,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 8,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.906Z"
+  },
+  {
+    "id": 18,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 9,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.908Z"
+  },
+  {
+    "id": 19,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 10,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.910Z"
+  },
+  {
+    "id": 20,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 11,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.912Z"
+  },
+  {
+    "id": 21,
+    "partnerId": 10,
+    "periodId": null,
+    "year": 2026,
+    "month": 12,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:24:47.913Z"
+  },
+  {
+    "id": 22,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 1,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.676Z"
+  },
+  {
+    "id": 23,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 2,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.679Z"
+  },
+  {
+    "id": 24,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 3,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.681Z"
+  },
+  {
+    "id": 25,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 4,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.683Z"
+  },
+  {
+    "id": 26,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 5,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.685Z"
+  },
+  {
+    "id": 27,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 6,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.687Z"
+  },
+  {
+    "id": 28,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 7,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.689Z"
+  },
+  {
+    "id": 29,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 8,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.692Z"
+  },
+  {
+    "id": 30,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 9,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.694Z"
+  },
+  {
+    "id": 31,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 10,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.696Z"
+  },
+  {
+    "id": 32,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 11,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.698Z"
+  },
+  {
+    "id": 33,
+    "partnerId": 11,
+    "periodId": null,
+    "year": 2026,
+    "month": 12,
+    "amount": 2.083333333333333,
+    "createdAt": "2026-01-03T15:25:09.700Z"
   }
 ]
