@@ -136,6 +136,9 @@ export class LoansService {
         loan: any,
         currentUser: number,
     ) {
+
+        const round2 = (n: number) => Math.round(n * 100) / 100;
+
         let shares: any[] = [];
 
         if (loan.source === LoanFundSource.NEW_CAPITAL) {
@@ -170,7 +173,7 @@ export class LoansService {
 
             if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
 
-            const used = Number(s.amountUsed || 0);
+            const used = round2(Number(s.amountUsed || 0));
             if (used <= 0) continue;
 
             await tx.partner.update({
@@ -188,7 +191,7 @@ export class LoansService {
 
                 lines.push({
                     accountId: partner.accountNewCapitalId,
-                    debit: Number(used.toFixed(2)),
+                    debit: used,
                     credit: 0,
                     description: `تحويل رأس مال شريك إلى عام ${loan.id}`,
                 });
@@ -196,7 +199,7 @@ export class LoansService {
             lines.push({
                 accountId: partner.accountEquityId,
                 debit: 0,
-                credit: Number(used.toFixed(2)),
+                credit: used,
                 description: `إثبات رأس مال الشريك`,
             });
         }
@@ -222,6 +225,9 @@ export class LoansService {
         tx: Prisma.TransactionClient,
         loanId: number,
     ) {
+
+        const round2 = (n: number) => Math.round(n * 100) / 100;
+
         const loan = await tx.loan.findUnique({
             where: { id: loanId },
             include: {
@@ -262,7 +268,7 @@ export class LoansService {
 
             if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
 
-            const used = Number(s.amountUsed || 0);
+            const used = round2(Number(s.amountUsed || 0));
             if (used <= 0) continue;
 
             const capitalAmount = profit?.partner.capitalAmount || 0;
