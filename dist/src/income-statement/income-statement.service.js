@@ -112,6 +112,7 @@ let IncomeStatementService = class IncomeStatementService {
                 id: true,
                 name: true,
                 capitalAmount: true,
+                totalProfit: true,
                 orgProfitPercent: true,
                 transactions: { select: { type: true, date: true, amount: true } },
                 PartnerNewCapital: { select: { amount: true, remaining: true } },
@@ -131,6 +132,7 @@ let IncomeStatementService = class IncomeStatementService {
                 partnerName: partner.name,
                 totalAmount: isDepositOnly ? amount :
                     Number(partner.capitalAmount || 0)
+                        + Number(partner.totalProfit || 0)
                         + remainingNewCapital
             };
         });
