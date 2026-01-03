@@ -22,7 +22,6 @@ export declare class UpdatePartnerDto {
     phone?: string;
     email?: string;
     orgProfitPercent?: number;
-    capitalAmount?: number;
     contractSignedAt?: string;
     createdAt?: string;
     mudarabahFileUrl?: string;

@@ -9,6 +9,7 @@ export declare class CreateLoanDto {
     type: LoanType;
     source: LoanFundSource;
     startDate?: string;
+    promissionaryDate?: string;
     repaymentDay?: string;
     bankAccountId?: number;
     partnerId?: number;
@@ -29,6 +30,7 @@ export declare class UpdateLoanDto {
     clientId?: number;
     kafeelId?: number;
     startDate?: string;
+    promissionaryDate?: string;
     issuanceCity?: string;
     paymentCity?: string;
 }

@@ -22,6 +22,7 @@ class CreateLoanDto {
     type;
     source;
     startDate;
+    promissionaryDate;
     repaymentDay;
     bankAccountId;
     partnerId;
@@ -73,6 +74,11 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
+], CreateLoanDto.prototype, "promissionaryDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
 ], CreateLoanDto.prototype, "repaymentDay", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
@@ -106,6 +112,7 @@ class UpdateLoanDto {
     clientId;
     kafeelId;
     startDate;
+    promissionaryDate;
     issuanceCity;
     paymentCity;
 }
@@ -175,6 +182,11 @@ __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], UpdateLoanDto.prototype, "startDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateLoanDto.prototype, "promissionaryDate", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

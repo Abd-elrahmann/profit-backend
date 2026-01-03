@@ -35,6 +35,10 @@ export class CreateLoanDto {
 
     @IsOptional()
     @IsDateString()
+    promissionaryDate?: string;
+
+    @IsOptional()
+    @IsDateString()
     repaymentDay?: string;
 
     @IsNumber()
@@ -104,6 +108,10 @@ export class UpdateLoanDto {
     @IsOptional()
     @IsDateString()
     startDate?: string;
+
+    @IsOptional()
+    @IsDateString()
+    promissionaryDate?: string;
 
     @IsOptional()
     @IsString()

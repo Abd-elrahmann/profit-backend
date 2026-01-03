@@ -83,10 +83,6 @@ export class UpdatePartnerDto {
     orgProfitPercent?: number;
 
     @IsOptional()
-    @IsNumber()
-    capitalAmount?: number;
-
-    @IsOptional()
     @IsDateString()
     contractSignedAt?: string;
 

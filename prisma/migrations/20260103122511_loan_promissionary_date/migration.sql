@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Loan" ADD COLUMN     "fromClientId" INTEGER,
+ADD COLUMN     "promissionaryDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- AddForeignKey
+ALTER TABLE "Loan" ADD CONSTRAINT "Loan_fromClientId_fkey" FOREIGN KEY ("fromClientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;

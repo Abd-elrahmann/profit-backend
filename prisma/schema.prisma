@@ -113,6 +113,7 @@ model Client {
   documents      ClientDocument[]
   repayment      Repayment[]
   loans          Loan[]
+  toLoan         Loan[]  @relation("convert")
   kafeelS         Kafeel[]
   notes          String?
   createdAt      DateTime         @default(now())
@@ -179,6 +180,9 @@ model Loan {
   repayments     Repayment[]
   Notification   Notification[]
   createdAt      DateTime    @default(now())
+  promissionaryDate      DateTime    @default(now())
+  fromClientId     Int?
+  fromclient     Client?      @relation("convert", fields: [fromClientId], references: [id])
   client         Client      @relation(fields: [clientId], references: [id])
   kafeel         Kafeel?     @relation(fields: [kafeelId], references: [id])
   bankAccountId  Int?

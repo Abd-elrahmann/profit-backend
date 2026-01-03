@@ -101,7 +101,6 @@ class UpdatePartnerDto {
     phone;
     email;
     orgProfitPercent;
-    capitalAmount;
     contractSignedAt;
     createdAt;
     mudarabahFileUrl;
@@ -144,11 +143,6 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], UpdatePartnerDto.prototype, "orgProfitPercent", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], UpdatePartnerDto.prototype, "capitalAmount", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),

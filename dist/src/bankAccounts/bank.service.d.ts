@@ -58,6 +58,8 @@ export declare class BankService {
             startDate: Date;
             endDate: Date | null;
             repaymentDay: Date | null;
+            promissionaryDate: Date;
+            fromClientId: number | null;
             bankAccountId: number | null;
             partnerId: number | null;
             disbursementJournalId: number | null;

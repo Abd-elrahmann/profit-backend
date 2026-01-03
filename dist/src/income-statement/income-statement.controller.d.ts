@@ -12,6 +12,9 @@ export declare class IncomeStatementController {
         totalCapital: number;
         capitalByPartner: {
             partnerName: string;
+            capitalAmount: number;
+            totalProfit: number;
+            newCapitalAmount: number;
             totalAmount: number;
         }[];
         revenues: {

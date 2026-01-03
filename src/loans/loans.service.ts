@@ -421,6 +421,7 @@ export class LoansService {
                 source: fundSource,
                 startDate: dto.startDate ? new Date(dto.startDate) : new Date(),
                 createdAt: dto.startDate ? new Date(dto.startDate) : new Date(),
+                promissionaryDate: dto.promissionaryDate ? new Date(dto.promissionaryDate) : new Date(),
                 status: LoanStatus.PENDING,
                 repaymentDay: dto.repaymentDay ? new Date(dto.repaymentDay) : new Date(),
                 bankAccountId: dto.bankAccountId,
@@ -892,7 +893,8 @@ export class LoansService {
                 client: true,
                 bankAccount: true,
                 partner: true,
-                kafeel: { select: { id: true, name: true } }
+                kafeel: { select: { id: true, name: true } },
+                fromclient: { select: { id: true, name: true } }
             },
             skip: (page - 1) * limit,
             take: limit,
@@ -975,6 +977,7 @@ export class LoansService {
                 kafeel: { select: { name: true, nationalId: true, birthDate: true } },
                 LoanPartnerShare: { select: { partnerId: true, sharePercent: true } },
                 LoanNewCapitalShare: { select: { partnerId: true, amountUsed: true, percent: true } },
+                fromclient: { select: { id: true, name: true } }
             },
         });
         if (!loan) throw new NotFoundException('Loan not found');
@@ -1175,6 +1178,7 @@ export class LoansService {
         if (dto.paymentAmount !== undefined) loanUpdateData.paymentAmount = dto.paymentAmount;
         if (dto.type !== undefined) loanUpdateData.type = dto.type;
         if (dto.startDate !== undefined) loanUpdateData.startDate = new Date(dto.startDate);
+        if (dto.promissionaryDate !== undefined) loanUpdateData.promissionaryDate = new Date(dto.promissionaryDate);
         if (dto.repaymentDay !== undefined) {
             loanUpdateData.repaymentDay = new Date(dto.repaymentDay);
         }
@@ -1998,6 +2002,7 @@ export class LoansService {
                     paymentCity: loan.paymentCity,
                     partnerId: loan.partnerId,
                     bankAccountId: loan.bankAccountId,
+                    fromClientId: fromClientId,
                 },
             });
 
