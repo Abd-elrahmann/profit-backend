@@ -501,7 +501,7 @@ export class LoansService {
                     where: { id: p.id },
                     data: {
                         remaining: {
-                            decrement: Number(usedAmount),
+                            decrement: usedAmount,
                         },
                     },
                 });
