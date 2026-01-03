@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const journal_service_1 = require("../journal/journal.service");
 const client_1 = require("@prisma/client");
+const library_1 = require("@prisma/client/runtime/library");
 const moment_hijri_1 = __importDefault(require("moment-hijri"));
 let ExpenseService = class ExpenseService {
     prisma;
@@ -41,7 +42,7 @@ let ExpenseService = class ExpenseService {
             throw new common_1.BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
         const bank = await this.getBankAccount();
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
-        if (totalAmount > bank.balance)
+        if (new library_1.Decimal(totalAmount).gt(new library_1.Decimal(bank.balance)))
             throw new common_1.BadRequestException('رصيد الصندوق غير كافي');
         const journalLines = await Promise.all(expenses.map(async (e) => {
             let expenseAccountId;

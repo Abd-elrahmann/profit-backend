@@ -16,6 +16,7 @@ exports.JournalService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const library_1 = require("@prisma/client/runtime/library");
 const luxon_1 = require("luxon");
 const moment_hijri_1 = __importDefault(require("moment-hijri"));
 let JournalService = class JournalService {
@@ -387,9 +388,9 @@ let JournalService = class JournalService {
         const newCredit = action === 'POST'
             ? account.credit + creditChange
             : account.credit - creditChange;
-        const newBalance = account.nature === 'DEBIT'
-            ? newDebit - newCredit
-            : newCredit - newDebit;
+        const newBalance = Number(account.nature === 'DEBIT'
+            ? new library_1.Decimal(newDebit).minus(newCredit)
+            : new library_1.Decimal(newCredit).minus(newDebit));
         await tx.account.update({
             where: { id: account.id },
             data: { debit: newDebit, credit: newCredit, balance: newBalance },
@@ -406,7 +407,7 @@ let JournalService = class JournalService {
                 const updatedCredit = action === 'POST'
                     ? client.credit + creditChange
                     : client.credit - creditChange;
-                const updatedBalance = updatedDebit - updatedCredit;
+                const updatedBalance = Number(new library_1.Decimal(updatedDebit).minus(updatedCredit));
                 await tx.client.update({
                     where: { id: clientId },
                     data: {

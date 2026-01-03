@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { JournalSourceType } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import { DateTime } from 'luxon';
 
 @Injectable()
@@ -41,7 +42,7 @@ export class SmallLoanService {
         if (!bank || !smallLoanAccount)
             throw new BadRequestException('الحسابات المحاسبية غير مكتملة');
 
-        if (amount > bank.balance)
+        if (new Decimal(amount).gt(new Decimal(bank.balance)))
             throw new BadRequestException('رصيد البنك لا يسمح بصرف السلفة');
 
         return this.prisma.$transaction(async (tx) => {

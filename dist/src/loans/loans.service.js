@@ -349,7 +349,7 @@ let LoansService = class LoansService {
             });
             if (!bank)
                 throw new common_1.NotFoundException('Bank account not found');
-            if (principal.gt(bank.balance)) {
+            if (principal.gt(new library_1.Decimal(bank.balance))) {
                 throw new common_1.BadRequestException('السلفة أكبر من رصيد البنك المتاح');
             }
         }

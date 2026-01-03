@@ -46,6 +46,7 @@ exports.PartnerWithdrawService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const journal_service_1 = require("../journal/journal.service");
+const library_1 = require("@prisma/client/runtime/library");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 let PartnerWithdrawService = class PartnerWithdrawService {
@@ -403,7 +404,7 @@ let PartnerWithdrawService = class PartnerWithdrawService {
             throw new common_1.BadRequestException('BANK account not found');
         if (!partner.accountEquityId)
             throw new common_1.BadRequestException('Partner equity account not configured');
-        if (bankAccount.balance < totalToPay)
+        if (new library_1.Decimal(bankAccount.balance).lt(new library_1.Decimal(totalToPay)))
             throw new common_1.BadRequestException(`رصيد الصندوق غير كافي ,الرصيد المتاح هو ${bankAccount.balance}`);
         return await this.prisma.$transaction(async (tx) => {
             const createdJournalIds = [];

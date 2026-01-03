@@ -363,7 +363,7 @@ export class LoansService {
                 where: { accountBasicType: 'BANK' },
             });
             if (!bank) throw new NotFoundException('Bank account not found');
-            if (principal.gt(bank.balance)) {
+            if (principal.gt(new Decimal(bank.balance))) {
                 throw new BadRequestException('السلفة أكبر من رصيد البنك المتاح');
             }
         }

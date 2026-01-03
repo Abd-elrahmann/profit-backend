@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JournalStatus, JournalSourceType } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import { DateTime } from 'luxon';
 import moment from "moment-hijri";
 
@@ -478,10 +479,11 @@ export class JournalService {
             ? account.credit + creditChange
             : account.credit - creditChange;
 
-        const newBalance =
+        const newBalance = Number(
             account.nature === 'DEBIT'
-                ? newDebit - newCredit
-                : newCredit - newDebit;
+                ? new Decimal(newDebit).minus(newCredit)
+                : new Decimal(newCredit).minus(newDebit)
+        );
 
         await tx.account.update({
             where: { id: account.id },
@@ -500,7 +502,7 @@ export class JournalService {
                 const updatedCredit = action === 'POST'
                     ? client.credit + creditChange
                     : client.credit - creditChange;
-                const updatedBalance = updatedDebit - updatedCredit;
+                const updatedBalance = Number(new Decimal(updatedDebit).minus(updatedCredit));
 
                 await tx.client.update({
                     where: { id: clientId },

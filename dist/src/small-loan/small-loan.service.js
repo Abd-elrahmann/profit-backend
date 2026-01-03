@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const journal_service_1 = require("../journal/journal.service");
 const client_1 = require("@prisma/client");
+const library_1 = require("@prisma/client/runtime/library");
 const luxon_1 = require("luxon");
 let SmallLoanService = class SmallLoanService {
     prisma;
@@ -42,7 +43,7 @@ let SmallLoanService = class SmallLoanService {
         });
         if (!bank || !smallLoanAccount)
             throw new common_1.BadRequestException('الحسابات المحاسبية غير مكتملة');
-        if (amount > bank.balance)
+        if (new library_1.Decimal(amount).gt(new library_1.Decimal(bank.balance)))
             throw new common_1.BadRequestException('رصيد البنك لا يسمح بصرف السلفة');
         return this.prisma.$transaction(async (tx) => {
             const loan = await tx.smallLoan.create({

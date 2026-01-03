@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { JournalStatus, JournalSourceType } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import moment from "moment-hijri";
 
 @Injectable()
@@ -34,7 +35,7 @@ export class ExpenseService {
         // Fix floating point precision by working with integers (multiply by 100, sum, then divide by 100)
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
 
-        if (totalAmount > bank.balance)
+        if (new Decimal(totalAmount).gt(new Decimal(bank.balance)))
             throw new BadRequestException('رصيد الصندوق غير كافي');
 
         const journalLines = await Promise.all(

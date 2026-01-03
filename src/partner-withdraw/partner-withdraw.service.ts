@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
+import { Decimal } from '@prisma/client/runtime/library';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -445,7 +446,7 @@ export class PartnerWithdrawService {
 
         if (!partner.accountEquityId) throw new BadRequestException('Partner equity account not configured');
 
-        if (bankAccount.balance < totalToPay) throw new BadRequestException(`رصيد الصندوق غير كافي ,الرصيد المتاح هو ${bankAccount.balance}`);
+        if (new Decimal(bankAccount.balance).lt(new Decimal(totalToPay))) throw new BadRequestException(`رصيد الصندوق غير كافي ,الرصيد المتاح هو ${bankAccount.balance}`);
 
         return await this.prisma.$transaction(async (tx) => {
             const createdJournalIds: number[] = [];
