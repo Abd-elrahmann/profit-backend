@@ -1,0 +1,20 @@
+[
+  {
+    "id": 2,
+    "clientId": 2,
+    "clientIdImage": "http://localhost:3000/uploads/clients/30301090200415/client_id_1.png",
+    "clientWorkCard": "http://localhost:3000/uploads/clients/30301090200415/client_workcard_1.webp",
+    "salaryReport": null,
+    "simaReport": null,
+    "createdAt": "2025-12-29T12:41:03.035Z"
+  },
+  {
+    "id": 3,
+    "clientId": 3,
+    "clientIdImage": "http://localhost:3000/uploads/clients/30301090200/client_id_1.png",
+    "clientWorkCard": "http://localhost:3000/uploads/clients/30301090200/client_workcard_1.png",
+    "salaryReport": null,
+    "simaReport": null,
+    "createdAt": "2026-01-01T19:12:30.468Z"
+  }
+]

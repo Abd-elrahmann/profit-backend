@@ -392,6 +392,7 @@ model LoanNewCapitalShare {
   percent       Float
   partner Partner @relation(fields: [partnerId], references: [id])
   loan    Loan?   @relation(fields: [loanId], references: [id])
+  @@unique([loanId, partnerId])
 }
 
 model PartnerWithdrawalSchedule {

@@ -114,8 +114,9 @@ export class LoansService {
             const orgCutPercent = Number(share.partner.orgProfitPercent || 0);
 
             const rawShare = loan.interestAmount * (sharePercent / 100);
-            const companyCut = Number((rawShare * orgCutPercent / 100).toFixed(2));
-            const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+            const companyCut = rawShare * (orgCutPercent / 100);
+            const partnerFinal = rawShare - companyCut;
+
             if (rawShare === 0 && companyCut === 0) continue;
 
             await this.prisma.partnerShareAccrual.create({
@@ -123,9 +124,9 @@ export class LoansService {
                     periodId,
                     partnerId: share.partnerId,
                     loanId: loan.id,
-                    rawShare,
-                    companyCut,
-                    partnerFinal,
+                    rawShare: Number(rawShare),
+                    companyCut: Number(companyCut),   
+                    partnerFinal: Number(partnerFinal),
                 },
             });
         }
@@ -477,17 +478,65 @@ export class LoansService {
                 new Decimal(0),
             );
 
-            for (const p of newCapitalPartners) {
-                const shareRatio = new Decimal(p.remaining).div(totalNewCapital);
-                const usedAmount = principal.mul(shareRatio).toDecimalPlaces(2);
+            const partners = [...newCapitalPartners].sort(
+                (a, b) => Number(b.remaining) - Number(a.remaining)
+            );
 
+            let distributed = 0;
+
+            for (let i = 0; i < partners.length; i++) {
+                const p = partners[i];
+
+                const shareRatio = new Decimal(p.remaining).div(totalNewCapital);
+
+                let usedAmount: number;
+
+                if (i === 0) {
+                    usedAmount = 0;
+                } else {
+                    usedAmount = Math.round(
+                        principal.mul(shareRatio).toNumber() * 100
+                    ) / 100;
+
+                    distributed += usedAmount;
+                }
+
+                const percent = usedAmount > 0 ? (usedAmount / principal.toNumber()) * 100 : 0;
 
                 await this.prisma.loanNewCapitalShare.create({
                     data: {
                         loanId: loan.id,
                         partnerId: p.partnerId,
-                        amountUsed: Number(usedAmount),
-                        percent: Number(shareRatio.mul(100).toDecimalPlaces(2)),
+                        amountUsed: usedAmount,
+                        percent: percent,
+                    },
+                });
+            }
+
+            const diff = Math.round(
+                (principal.toNumber() - distributed) * 100
+            ) / 100;
+
+            await this.prisma.loanNewCapitalShare.update({
+                where: {
+                    loanId_partnerId: {
+                        loanId: loan.id,
+                        partnerId: partners[0].partnerId,
+                    },
+                },
+                data: {
+                    amountUsed: diff,
+                    percent: (diff / principal.toNumber()) * 100
+                },
+            });
+
+            for (const p of partners) {
+                const share = await this.prisma.loanNewCapitalShare.findUnique({
+                    where: {
+                        loanId_partnerId: {
+                            loanId: loan.id,
+                            partnerId: p.partnerId,
+                        },
                     },
                 });
 
@@ -495,11 +544,35 @@ export class LoansService {
                     where: { id: p.id },
                     data: {
                         remaining: {
-                            decrement: Number(usedAmount),
+                            decrement: share!.amountUsed,
                         },
                     },
                 });
             }
+
+            // for (const p of newCapitalPartners) {
+            //     const shareRatio = new Decimal(p.remaining).div(totalNewCapital);
+            //     const usedAmount = principal.mul(shareRatio).toDecimalPlaces(2);
+
+
+            //     await this.prisma.loanNewCapitalShare.create({
+            //         data: {
+            //             loanId: loan.id,
+            //             partnerId: p.partnerId,
+            //             amountUsed: Number(usedAmount),
+            //             percent: Number(shareRatio.mul(100).toDecimalPlaces(2)),
+            //         },
+            //     });
+
+            //     await this.prisma.partnerNewCapital.update({
+            //         where: { id: p.id },
+            //         data: {
+            //             remaining: {
+            //                 decrement: Number(usedAmount),
+            //             },
+            //         },
+            //     });
+            // }
         }
 
         // Update bank account

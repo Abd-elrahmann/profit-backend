@@ -1,0 +1,16 @@
+[
+  {
+    "id": 9,
+    "loanId": 6,
+    "partnerId": 8,
+    "amountUsed": 5000,
+    "percent": 50
+  },
+  {
+    "id": 10,
+    "loanId": 6,
+    "partnerId": 9,
+    "amountUsed": 5000,
+    "percent": 50
+  }
+]
