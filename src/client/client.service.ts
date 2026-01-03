@@ -11,6 +11,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { PaymentStatus, LoanStatus, ClientStatus } from '@prisma/client';
 import { DateTime } from 'luxon';
+import { not } from 'rxjs/internal/util/not';
 
 @Injectable()
 export class ClientService {
@@ -389,6 +390,19 @@ export class ClientService {
             include: { kafeelS: true }, // fetch all kafeels
         });
         if (!client) throw new NotFoundException('Client not found');
+
+        const loanCount = await this.prisma.loan.count({
+            where: {
+                clientId,
+                status: {
+                    not: 'COMPLETED',
+                },
+            },
+        });
+
+        if (loanCount > 0) {
+            throw new BadRequestException('لا يمكن حذف العميل لأنه لديه سلف غير مكتملة');
+        }
 
         // 2️⃣ Fetch user for audit log
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });

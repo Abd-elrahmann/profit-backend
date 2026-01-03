@@ -105,7 +105,8 @@ export class LoansService {
         }
         const periodId = currentPeriod.id;
 
-        for (const share of partnerShares) {
+        // Step 1: calculate raw values
+        const rawShares = partnerShares.map(share => {
             const sharePercent =
                 loan.source === LoanFundSource.GENERAL
                     ? Number(share.sharePercent || 0)
@@ -117,16 +118,44 @@ export class LoansService {
             const companyCut = rawShare * (orgCutPercent / 100);
             const partnerFinal = rawShare - companyCut;
 
-            if (rawShare === 0 && companyCut === 0) continue;
+            return { share, rawShare, companyCut, partnerFinal };
+        }).filter(r => r.rawShare !== 0 || r.companyCut !== 0);
+
+        if (rawShares.length === 0) return;
+
+        // Step 2: find the largest partnerFinal to absorb rounding difference
+        let maxIndex = 0;
+        let maxValue = -Infinity;
+        rawShares.forEach((r, idx) => {
+            if (r.partnerFinal > maxValue) {
+                maxValue = r.partnerFinal;
+                maxIndex = idx;
+            }
+        });
+
+        // Step 3: calculate total unrounded partnerFinal
+        const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
+
+        // Step 4: create accruals with rounding
+        let accumulated = 0;
+        for (let i = 0; i < rawShares.length; i++) {
+            let partnerFinalRounded;
+            if (i === maxIndex) {
+                // largest share absorbs rounding difference
+                partnerFinalRounded = Number((totalPartnerFinal - accumulated).toFixed(2));
+            } else {
+                partnerFinalRounded = Number(rawShares[i].partnerFinal.toFixed(2));
+                accumulated += partnerFinalRounded;
+            }
 
             await this.prisma.partnerShareAccrual.create({
                 data: {
                     periodId,
-                    partnerId: share.partnerId,
+                    partnerId: rawShares[i].share.partnerId,
                     loanId: loan.id,
-                    rawShare: Number(rawShare),
-                    companyCut: Number(companyCut),   
-                    partnerFinal: Number(partnerFinal),
+                    rawShare: Number(rawShares[i].rawShare.toFixed(2)),
+                    companyCut: Number(rawShares[i].companyCut.toFixed(2)),
+                    partnerFinal: partnerFinalRounded,
                 },
             });
         }

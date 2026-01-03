@@ -227,43 +227,104 @@ export class PartnerService {
     }
 
     // UPDATE PARTNER
-    async updatePartner(currentUser, id: number, dto: UpdatePartnerDto) {
-        const partner = await this.prisma.partner.findUnique({ where: { id } });
+    async updatePartner(currentUser: number, id: number, dto: UpdatePartnerDto) {
+        const partner = await this.prisma.partner.findUnique({
+            where: { id },
+            include: {
+                AccountPayable: true,
+                AccountEquity: true,
+                AccountSaving: true,
+                AccountNewCapital: true,
+            },
+        });
         if (!partner) throw new NotFoundException('Partner not found');
 
-        const user = await this.prisma.user.findUnique({
-            where: { id: currentUser },
-        });
+        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        if (dto.isActive === false) {
-            dto.joinDistribute = false;
-        }
+        if (dto.isActive === false) dto.joinDistribute = false;
+        if (dto.isActive === true) dto.joinDistribute = true;
 
-        if (dto.isActive === true) {
-            dto.joinDistribute = true;
-        }
+        const contractSignedAt = dto.contractSignedAt ? new Date(dto.contractSignedAt) : partner.contractSignedAt;
+        const createdAt = dto.createdAt ? new Date(dto.createdAt) : partner.createdAt;
 
-        const updated = await this.prisma.partner.update({
-            where: { id },
-            data: {
-                ...dto,
-                contractSignedAt: dto.contractSignedAt
-                    ? new Date(dto.contractSignedAt)
-                    : partner.contractSignedAt,
-                createdAt: dto.createdAt
-                    ? new Date(dto.createdAt)
-                    : partner.createdAt,
-            },
-        });
+        const updated = await this.prisma.$transaction(async (tx) => {
+            const updatedPartner = await tx.partner.update({
+                where: { id },
+                data: {
+                    ...dto,
+                    contractSignedAt,
+                    createdAt,
+                },
+            });
 
-        // create audit log
-        await this.prisma.auditLog.create({
-            data: {
-                userId: currentUser,
-                screen: 'Partners',
-                action: 'UPDATE',
-                description: `قام المستخدم ${user?.name} بتحديث بيانات الشريك: ${partner.name}`,
-            },
+            let capitalDiff = 0;
+            if (dto.capitalAmount !== undefined) {
+                capitalDiff = dto.capitalAmount - partner.capitalAmount;
+
+                await tx.partner.update({
+                    where: { id },
+                    data: {
+                        capitalAmount: dto.capitalAmount,
+                        totalAmount: dto.capitalAmount,
+                    },
+                });
+            }
+            const journal = await tx.journalHeader.findFirst({
+                where: {
+                    sourceType: 'PARTNER',
+                    sourceId: partner.id,
+                    status: 'DRAFT',
+                },
+                include: { lines: true },
+            });
+
+            if (journal && capitalDiff !== 0) {
+                for (const line of journal.lines) {
+                    if (line.accountId === partner.AccountNewCapital.id) {
+                        if (capitalDiff > 0) {
+                            line.debit += capitalDiff;
+                            line.credit = 0;
+                        } else {
+                            line.debit = 0;
+                            line.credit += -capitalDiff;
+                        }
+                        line.balance += capitalDiff;
+                    }
+                    if (line.accountId === partner.AccountEquity.id) {
+                        // Adjust debit/credit for equity
+                        if (capitalDiff > 0) {
+                            line.credit += capitalDiff;
+                            line.debit = 0;
+                        } else {
+                            line.debit += -capitalDiff;
+                            line.credit = 0;
+                        }
+                        line.balance += capitalDiff;
+                    }
+
+                    await tx.journalLine.update({
+                        where: { id: line.id },
+                        data: { debit: line.debit, credit: line.credit, balance: line.balance },
+                    });
+                }
+
+                await tx.journalHeader.update({
+                    where: { id: journal.id },
+                    data: { description: `تعديل رأس المال لشريك ${partner.name}` },
+                });
+            }
+
+            // 4️⃣ Create audit log
+            await tx.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'Partners',
+                    action: 'UPDATE',
+                    description: `قام المستخدم ${user?.name} بتحديث بيانات الشريك: ${partner.name}`,
+                },
+            });
+
+            return updatedPartner;
         });
 
         return {

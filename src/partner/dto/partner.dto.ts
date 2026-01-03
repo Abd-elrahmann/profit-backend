@@ -80,6 +80,10 @@ export class UpdatePartnerDto {
 
     @IsOptional()
     @IsNumber()
+    capitalAmount: number;
+
+    @IsOptional()
+    @IsNumber()
     orgProfitPercent?: number;
 
     @IsOptional()
