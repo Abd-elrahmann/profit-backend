@@ -442,12 +442,12 @@ let LoansService = class LoansService {
             const totalNewCapital = newCapitalPartners.reduce((sum, p) => sum.plus(p.remaining), new library_1.Decimal(0));
             for (const p of newCapitalPartners) {
                 const shareRatio = new library_1.Decimal(p.remaining).div(totalNewCapital);
-                const usedAmount = principal.mul(shareRatio).toDecimalPlaces(2);
+                const usedAmount = Math.round(principal.mul(shareRatio).toNumber() * 100) / 100;
                 await this.prisma.loanNewCapitalShare.create({
                     data: {
                         loanId: loan.id,
                         partnerId: p.partnerId,
-                        amountUsed: Number(usedAmount),
+                        amountUsed: usedAmount,
                         percent: Number(shareRatio.mul(100).toDecimalPlaces(2)),
                     },
                 });
