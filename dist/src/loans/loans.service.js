@@ -158,7 +158,6 @@ let LoansService = class LoansService {
         }
     }
     async handleNewCapitalOnActivation(tx, loan, currentUser) {
-        const round2 = (n) => Math.round(n * 100) / 100;
         let shares = [];
         if (loan.source === client_1.LoanFundSource.NEW_CAPITAL) {
             shares = await tx.loanNewCapitalShare.findMany({
@@ -188,7 +187,7 @@ let LoansService = class LoansService {
             });
             if (loan.source !== client_1.LoanFundSource.NEW_CAPITAL)
                 continue;
-            const used = round2(Number(s.amountUsed || 0));
+            const used = Number(new library_1.Decimal(s.amountUsed || 0).toDecimalPlaces(2));
             if (used <= 0)
                 continue;
             await tx.partner.update({
@@ -229,7 +228,6 @@ let LoansService = class LoansService {
         await this.journalService.postJournal(journal.journal.id, currentUser);
     }
     async handleNewCapitalOnDeactivation(tx, loanId) {
-        const round2 = (n) => Math.round(n * 100) / 100;
         const loan = await tx.loan.findUnique({
             where: { id: loanId },
             include: {
@@ -267,7 +265,7 @@ let LoansService = class LoansService {
             });
             if (loan.source !== client_1.LoanFundSource.NEW_CAPITAL)
                 continue;
-            const used = round2(Number(s.amountUsed || 0));
+            const used = Number(new library_1.Decimal(s.amountUsed || 0).toDecimalPlaces(2));
             if (used <= 0)
                 continue;
             const capitalAmount = profit?.partner.capitalAmount || 0;
@@ -442,12 +440,12 @@ let LoansService = class LoansService {
             const totalNewCapital = newCapitalPartners.reduce((sum, p) => sum.plus(p.remaining), new library_1.Decimal(0));
             for (const p of newCapitalPartners) {
                 const shareRatio = new library_1.Decimal(p.remaining).div(totalNewCapital);
-                const usedAmount = Math.round(principal.mul(shareRatio).toNumber() * 100) / 100;
+                const usedAmount = principal.mul(shareRatio).toDecimalPlaces(2);
                 await this.prisma.loanNewCapitalShare.create({
                     data: {
                         loanId: loan.id,
                         partnerId: p.partnerId,
-                        amountUsed: usedAmount,
+                        amountUsed: Number(usedAmount),
                         percent: Number(shareRatio.mul(100).toDecimalPlaces(2)),
                     },
                 });
@@ -1580,7 +1578,6 @@ let LoansService = class LoansService {
                 throw new common_1.BadRequestException('الكفيل المختار لا ينتمي إلى العميل المحول إليه');
             }
         }
-        const round2 = (n) => Math.round(n * 100) / 100;
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
             include: {
@@ -1626,30 +1623,30 @@ let LoansService = class LoansService {
                 const originalRemaining = rep.remaining;
                 const originalPrincipal = rep.principalAmount;
                 const originalInterest = rep.interestAmount;
-                const ratio = split.amount / originalRemaining;
-                const principalTaken = round2(originalPrincipal * ratio);
-                const interestTaken = round2(originalInterest * ratio);
-                actualPrincipal += principalTaken;
-                actualInterest += interestTaken;
+                const ratio = new library_1.Decimal(split.amount).div(new library_1.Decimal(originalRemaining));
+                const principalTaken = new library_1.Decimal(originalPrincipal).mul(ratio).toDecimalPlaces(2);
+                const interestTaken = new library_1.Decimal(originalInterest).mul(ratio).toDecimalPlaces(2);
+                actualPrincipal += Number(principalTaken);
+                actualInterest += Number(interestTaken);
                 takenMap.set(rep.id, {
-                    principal: principalTaken,
-                    interest: interestTaken,
+                    principal: Number(principalTaken),
+                    interest: Number(interestTaken),
                 });
                 await tx.repayment.update({
                     where: { id: rep.id },
                     data: {
-                        remaining: round2(originalRemaining - split.amount),
-                        principalAmount: round2(originalPrincipal - principalTaken),
-                        interestAmount: round2(originalInterest - interestTaken),
+                        remaining: Number(new library_1.Decimal(originalRemaining).minus(split.amount).toDecimalPlaces(2)),
+                        principalAmount: Number(new library_1.Decimal(originalPrincipal).minus(principalTaken).toDecimalPlaces(2)),
+                        interestAmount: Number(new library_1.Decimal(originalInterest).minus(interestTaken).toDecimalPlaces(2)),
                         status: split.amount === originalRemaining
                             ? 'PAID'
                             : 'PENDING',
                     },
                 });
             }
-            actualPrincipal = round2(actualPrincipal);
-            actualInterest = round2(actualInterest);
-            const totalTransferred = round2(actualPrincipal + actualInterest);
+            actualPrincipal = Number(new library_1.Decimal(actualPrincipal).toDecimalPlaces(2));
+            actualInterest = Number(new library_1.Decimal(actualInterest).toDecimalPlaces(2));
+            const totalTransferred = Number(new library_1.Decimal(actualPrincipal).plus(actualInterest).toDecimalPlaces(2));
             const newLoan = await tx.loan.create({
                 data: {
                     code: `SPLIT-${loan.code}-${Date.now()}`,
@@ -1684,8 +1681,8 @@ let LoansService = class LoansService {
                         clientId: toClientId,
                         count: count++,
                         dueDate: split.dueDate,
-                        amount: round2(taken.principal + taken.interest),
-                        remaining: round2(taken.principal + taken.interest),
+                        amount: Number(new library_1.Decimal(taken.principal).plus(taken.interest).toDecimalPlaces(2)),
+                        remaining: Number(new library_1.Decimal(taken.principal).plus(taken.interest).toDecimalPlaces(2)),
                         paidAmount: 0,
                         principalAmount: taken.principal,
                         interestAmount: taken.interest,

@@ -137,8 +137,6 @@ export class LoansService {
         currentUser: number,
     ) {
 
-        const round2 = (n: number) => Math.round(n * 100) / 100;
-
         let shares: any[] = [];
 
         if (loan.source === LoanFundSource.NEW_CAPITAL) {
@@ -173,7 +171,7 @@ export class LoansService {
 
             if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
 
-            const used = round2(Number(s.amountUsed || 0));
+            const used = Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2));
             if (used <= 0) continue;
 
             await tx.partner.update({
@@ -226,8 +224,6 @@ export class LoansService {
         loanId: number,
     ) {
 
-        const round2 = (n: number) => Math.round(n * 100) / 100;
-
         const loan = await tx.loan.findUnique({
             where: { id: loanId },
             include: {
@@ -268,7 +264,7 @@ export class LoansService {
 
             if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
 
-            const used = round2(Number(s.amountUsed || 0));
+            const used = Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2));
             if (used <= 0) continue;
 
             const capitalAmount = profit?.partner.capitalAmount || 0;
@@ -483,16 +479,14 @@ export class LoansService {
 
             for (const p of newCapitalPartners) {
                 const shareRatio = new Decimal(p.remaining).div(totalNewCapital);
-                const usedAmount = Math.round(
-                    principal.mul(shareRatio).toNumber() * 100
-                ) / 100;
+                const usedAmount = principal.mul(shareRatio).toDecimalPlaces(2);
 
 
                 await this.prisma.loanNewCapitalShare.create({
                     data: {
                         loanId: loan.id,
                         partnerId: p.partnerId,
-                        amountUsed: usedAmount,
+                        amountUsed: Number(usedAmount),
                         percent: Number(shareRatio.mul(100).toDecimalPlaces(2)),
                     },
                 });
@@ -501,7 +495,7 @@ export class LoansService {
                     where: { id: p.id },
                     data: {
                         remaining: {
-                            decrement: usedAmount,
+                            decrement: Number(usedAmount),
                         },
                     },
                 });
@@ -1903,8 +1897,6 @@ export class LoansService {
             }
         }
 
-        const round2 = (n: number) => Math.round(n * 100) / 100;
-
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
             include: {
@@ -1961,25 +1953,25 @@ export class LoansService {
                 const originalPrincipal = rep.principalAmount;
                 const originalInterest = rep.interestAmount;
 
-                const ratio = split.amount / originalRemaining;
+                const ratio = new Decimal(split.amount).div(new Decimal(originalRemaining));
 
-                const principalTaken = round2(originalPrincipal * ratio);
-                const interestTaken = round2(originalInterest * ratio);
+                const principalTaken = new Decimal(originalPrincipal).mul(ratio).toDecimalPlaces(2);
+                const interestTaken = new Decimal(originalInterest).mul(ratio).toDecimalPlaces(2);
 
-                actualPrincipal += principalTaken;
-                actualInterest += interestTaken;
+                actualPrincipal += Number(principalTaken);
+                actualInterest += Number(interestTaken);
 
                 takenMap.set(rep.id, {
-                    principal: principalTaken,
-                    interest: interestTaken,
+                    principal: Number(principalTaken),
+                    interest: Number(interestTaken),
                 });
 
                 await tx.repayment.update({
                     where: { id: rep.id },
                     data: {
-                        remaining: round2(originalRemaining - split.amount),
-                        principalAmount: round2(originalPrincipal - principalTaken),
-                        interestAmount: round2(originalInterest - interestTaken),
+                        remaining: Number(new Decimal(originalRemaining).minus(split.amount).toDecimalPlaces(2)),
+                        principalAmount: Number(new Decimal(originalPrincipal).minus(principalTaken).toDecimalPlaces(2)),
+                        interestAmount: Number(new Decimal(originalInterest).minus(interestTaken).toDecimalPlaces(2)),
                         status: split.amount === originalRemaining
                             ? 'PAID'
                             : 'PENDING',
@@ -1987,9 +1979,9 @@ export class LoansService {
                 });
             }
 
-            actualPrincipal = round2(actualPrincipal);
-            actualInterest = round2(actualInterest);
-            const totalTransferred = round2(actualPrincipal + actualInterest);
+            actualPrincipal = Number(new Decimal(actualPrincipal).toDecimalPlaces(2));
+            actualInterest = Number(new Decimal(actualInterest).toDecimalPlaces(2));
+            const totalTransferred = Number(new Decimal(actualPrincipal).plus(actualInterest).toDecimalPlaces(2));
 
             const newLoan = await tx.loan.create({
                 data: {
@@ -2026,8 +2018,8 @@ export class LoansService {
                         clientId: toClientId,
                         count: count++,
                         dueDate: split.dueDate,
-                        amount: round2(taken.principal + taken.interest),
-                        remaining: round2(taken.principal + taken.interest),
+                        amount: Number(new Decimal(taken.principal).plus(taken.interest).toDecimalPlaces(2)),
+                        remaining: Number(new Decimal(taken.principal).plus(taken.interest).toDecimalPlaces(2)),
                         paidAmount: 0,
                         principalAmount: taken.principal,
                         interestAmount: taken.interest,
