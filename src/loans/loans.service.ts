@@ -283,14 +283,23 @@ export class LoansService {
 
             if (!profit) continue;
 
-            await tx.partner.update({
+            const currentPartner = await tx.partner.findUnique({
                 where: { id: s.partnerId },
-                data: {
-                    upcomingProfit: {
-                        decrement: profit.partnerFinal,
-                    },
-                },
+                select: { upcomingProfit: true },
             });
+
+            if (currentPartner) {
+                const currentProfit = Number(currentPartner.upcomingProfit || 0);
+                const decrementAmount = Number(profit.partnerFinal || 0);
+                const newProfit = Math.max(0, currentProfit - decrementAmount);
+
+                await tx.partner.update({
+                    where: { id: s.partnerId },
+                    data: {
+                        upcomingProfit: newProfit,
+                    },
+                });
+            }
 
             if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
 
@@ -1668,6 +1677,31 @@ export class LoansService {
             }
 
             await tx.loanNewCapitalShare.deleteMany({ where: { loanId: id } });
+
+            // Correct upcomingProfit before deleting partnerShareAccrual
+            const accrualsToDelete = await tx.partnerShareAccrual.findMany({
+                where: { loanId: id },
+            });
+
+            for (const accrual of accrualsToDelete) {
+                const partner = await tx.partner.findUnique({
+                    where: { id: accrual.partnerId },
+                    select: { upcomingProfit: true },
+                });
+
+                if (partner) {
+                    const currentProfit = Number(partner.upcomingProfit || 0);
+                    const decrementAmount = Number(accrual.partnerFinal || 0);
+                    const newProfit = Math.max(0, currentProfit - decrementAmount);
+
+                    await tx.partner.update({
+                        where: { id: accrual.partnerId },
+                        data: {
+                            upcomingProfit: newProfit,
+                        },
+                    });
+                }
+            }
 
             await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
 
