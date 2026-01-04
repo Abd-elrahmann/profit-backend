@@ -136,6 +136,28 @@ export class IncomeStatementService {
             },
         });
 
+        const partnerProfitInPeriod = await this.prisma.partnerShareAccrual.groupBy({
+            by: ['partnerId'],
+            where: {
+                createdAt: {
+                    gte: from,
+                    lte: to,
+                },
+            },
+            _sum: {
+                partnerFinal: true,
+            },
+        });
+
+        const partnerProfitMap = new Map<number, number>();
+
+        for (const p of partnerProfitInPeriod) {
+            partnerProfitMap.set(
+                p.partnerId,
+                Number(p._sum.partnerFinal || 0)
+            );
+        }
+
         const capitalByPartner = partners.map(partner => {
             const totalNewCapital = partner.PartnerNewCapital?.reduce(
                 (s, nc) => s + Number(nc.amount || 0),
@@ -147,6 +169,8 @@ export class IncomeStatementService {
                 0
             ) || 0;
 
+            const periodProfit = partnerProfitMap.get(partner.id) || 0;
+
             const isDepositOnly = partner.transactions?.some(t => t.type === 'DEPOSIT');
             const amount = partner.transactions?.reduce((s, t) => {
                 if (t.date < from) return s;
@@ -157,7 +181,7 @@ export class IncomeStatementService {
                 partnerName: partner.name,
                 capitalAmount: isDepositOnly ? amount :
                     Number(partner.capitalAmount || 0),
-                totalProfit: Number(partner.totalProfit || 0),
+                totalProfit: Number(periodProfit),
                 newCapitalAmount: remainingNewCapital,
                 totalAmount: isDepositOnly ? amount :
                     Number(partner.capitalAmount || 0)

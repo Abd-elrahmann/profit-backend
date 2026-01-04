@@ -322,6 +322,24 @@ export class AccountsService {
         if (!loansAccount)
             throw new NotFoundException("Loans account 12000 not found");
 
+        const interestAgg = await this.prisma.partnerShareAccrual.aggregate({
+            _sum: {
+                companyCut: true,
+                partnerFinal: true,
+            },
+            where: monthStart && monthEnd ? {
+                createdAt: {
+                    gte: monthStart,
+                    lte: monthEnd,
+                },
+            } : undefined,
+        });
+
+        const totalInterest =
+            Number(interestAgg._sum.companyCut || 0) +
+            Number(interestAgg._sum.partnerFinal || 0);
+
+
         const groupedByMonth = bankAccount.entries.reduce(
             (acc, line) => {
                 const date = DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
@@ -413,6 +431,9 @@ export class AccountsService {
             0
         );
 
+        const loansWithInterest =
+            Number(loansAccount.balance || 0) + totalInterest;
+
         return {
             pagination: {
                 page,
@@ -429,7 +450,10 @@ export class AccountsService {
                 balance: bankAccount.balance,
             },
             loansBalance: loansAccount.balance,
-            total: bankAccount.balance + loansAccount.balance,
+            loansInterest: totalInterest,
+            loansWithInterest,
+            total: bankAccount.balance + loansWithInterest,
+
             totalJournalEntries: totalJournals,
             journalsByMonth: groupedByMonth,
             repayments: {

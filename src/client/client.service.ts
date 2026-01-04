@@ -384,19 +384,15 @@ export class ClientService {
 
     // DELETE CLIENT
     async deleteClient(currentUser: number, clientId: number) {
-        // 1️⃣ Fetch client with all related kafeels
         const client = await this.prisma.client.findUnique({
             where: { id: clientId },
-            include: { kafeelS: true }, // fetch all kafeels
+            include: { kafeelS: true },
         });
         if (!client) throw new NotFoundException('Client not found');
 
         const loanCount = await this.prisma.loan.count({
             where: {
                 clientId,
-                status: {
-                    not: 'COMPLETED',
-                },
             },
         });
 
@@ -404,28 +400,19 @@ export class ClientService {
             throw new BadRequestException('لا يمكن حذف العميل لأنه لديه سلف غير مكتملة');
         }
 
-        // 2️⃣ Fetch user for audit log
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // 3️⃣ Transaction: delete related data
         await this.prisma.$transaction(async (tx) => {
-            // Delete client documents
             await tx.clientDocument.deleteMany({ where: { clientId } });
 
-            // Delete loans
-            await tx.loan.deleteMany({ where: { clientId } });
-
-            // Delete kafeels
             if (client.kafeelS && client.kafeelS.length > 0) {
                 const kafeelIds = client.kafeelS.map((k) => k.id);
                 await tx.kafeel.deleteMany({ where: { id: { in: kafeelIds } } });
             }
 
-            // Delete client
             await tx.client.delete({ where: { id: clientId } });
         });
 
-        // 4️⃣ Delete client folder from filesystem
         try {
             const clientDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId || 'unknown');
             if (fs.existsSync(clientDir)) {
@@ -438,7 +425,6 @@ export class ClientService {
             console.warn('⚠️ Failed to delete client folder:', (err as Error).message);
         }
 
-        // 5️⃣ Create audit log
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,

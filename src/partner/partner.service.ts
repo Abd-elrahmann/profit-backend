@@ -231,9 +231,7 @@ export class PartnerService {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
             include: {
-                AccountPayable: true,
                 AccountEquity: true,
-                AccountSaving: true,
                 AccountNewCapital: true,
             },
         });
@@ -244,77 +242,140 @@ export class PartnerService {
         if (dto.isActive === false) dto.joinDistribute = false;
         if (dto.isActive === true) dto.joinDistribute = true;
 
-        const contractSignedAt = dto.contractSignedAt ? new Date(dto.contractSignedAt) : partner.contractSignedAt;
-        const createdAt = dto.createdAt ? new Date(dto.createdAt) : partner.createdAt;
+        const contractSignedAt = dto.contractSignedAt
+            ? new Date(dto.contractSignedAt)
+            : partner.contractSignedAt;
+
+        const createdAt = dto.createdAt
+            ? new Date(dto.createdAt)
+            : partner.createdAt;
+
+        const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        const newCapitalBank = await this.prisma.account.findUnique({ where: { code: '11001' } });
 
         const updated = await this.prisma.$transaction(async (tx) => {
+            const partnerUpdateData: any = {
+                ...dto,
+                contractSignedAt,
+                createdAt,
+            };
+
+            if (partner.isNewPartner) {
+                delete partnerUpdateData.capitalAmount;
+                delete partnerUpdateData.totalAmount;
+            }
+
             const updatedPartner = await tx.partner.update({
                 where: { id },
-                data: {
-                    ...dto,
-                    contractSignedAt,
-                    createdAt,
-                },
+                data: partnerUpdateData,
             });
 
-            let capitalDiff = 0;
             if (dto.capitalAmount !== undefined) {
-                capitalDiff = dto.capitalAmount - partner.capitalAmount;
-
-                await tx.partner.update({
-                    where: { id },
-                    data: {
-                        capitalAmount: dto.capitalAmount,
-                        totalAmount: dto.capitalAmount,
-                    },
-                });
-            }
-            const journal = await tx.journalHeader.findFirst({
-                where: {
-                    sourceType: 'PARTNER',
-                    sourceId: partner.id,
-                    status: 'DRAFT',
-                },
-                include: { lines: true },
-            });
-
-            if (journal && capitalDiff !== 0) {
-                for (const line of journal.lines) {
-                    if (line.accountId === partner.AccountNewCapital.id) {
-                        if (capitalDiff > 0) {
-                            line.debit += capitalDiff;
-                            line.credit = 0;
-                        } else {
-                            line.debit = 0;
-                            line.credit += -capitalDiff;
-                        }
-                        line.balance += capitalDiff;
-                    }
-                    if (line.accountId === partner.AccountEquity.id) {
-                        // Adjust debit/credit for equity
-                        if (capitalDiff > 0) {
-                            line.credit += capitalDiff;
-                            line.debit = 0;
-                        } else {
-                            line.debit += -capitalDiff;
-                            line.credit = 0;
-                        }
-                        line.balance += capitalDiff;
-                    }
-
-                    await tx.journalLine.update({
-                        where: { id: line.id },
-                        data: { debit: line.debit, credit: line.credit, balance: line.balance },
+                if (!partner.isNewPartner) {
+                    await tx.partner.update({
+                        where: { id },
+                        data: {
+                            capitalAmount: dto.capitalAmount,
+                            totalAmount: dto.capitalAmount,
+                        },
+                    });
+                } else {
+                    await tx.partnerNewCapital.updateMany({
+                        where: { partnerId: partner.id },
+                        data: {
+                            amount: dto.capitalAmount,
+                            remaining: dto.capitalAmount,
+                        },
                     });
                 }
-
-                await tx.journalHeader.update({
-                    where: { id: journal.id },
-                    data: { description: `تعديل رأس المال لشريك ${partner.name}` },
-                });
             }
 
-            // 4️⃣ Create audit log
+            let oldCapitalAmount = 0;
+
+            if (partner.isNewPartner) {
+                const newCapital = await tx.partnerNewCapital.findFirst({
+                    where: { partnerId: partner.id },
+                    select: { amount: true },
+                });
+
+                oldCapitalAmount = newCapital?.amount ?? 0;
+            } else {
+                oldCapitalAmount = partner.capitalAmount;
+            }
+
+            if (dto.capitalAmount !== undefined && dto.capitalAmount !== oldCapitalAmount) {
+                const journal = await tx.journalHeader.findFirst({
+                    where: {
+                        sourceType: 'PARTNER',
+                        sourceId: partner.id,
+                        status: 'DRAFT',
+                    },
+                    include: { lines: true },
+                });
+
+                if (!journal) throw new BadRequestException('لا يمكن تعديل القيد لأنه معتمد');
+
+                if (journal && dto.capitalAmount !== undefined) {
+                    for (const line of journal.lines) {
+
+                        if (partner.isNewPartner) {
+                            if (line.accountId === newCapitalBank?.id) {
+                                await tx.journalLine.update({
+                                    where: { id: line.id },
+                                    data: {
+                                        debit: dto.capitalAmount,
+                                        credit: 0,
+                                        balance: dto.capitalAmount,
+                                    },
+                                });
+                            }
+
+                            if (line.accountId === partner.AccountNewCapital.id) {
+                                await tx.journalLine.update({
+                                    where: { id: line.id },
+                                    data: {
+                                        debit: 0,
+                                        credit: dto.capitalAmount,
+                                        balance: dto.capitalAmount,
+                                    },
+                                });
+                            }
+                        }
+
+                        else {
+                            if (line.accountId === bank?.id) {
+                                await tx.journalLine.update({
+                                    where: { id: line.id },
+                                    data: {
+                                        debit: dto.capitalAmount,
+                                        credit: 0,
+                                        balance: dto.capitalAmount,
+                                    },
+                                });
+                            }
+
+                            if (line.accountId === partner.AccountEquity.id) {
+                                await tx.journalLine.update({
+                                    where: { id: line.id },
+                                    data: {
+                                        debit: 0,
+                                        credit: dto.capitalAmount,
+                                        balance: dto.capitalAmount,
+                                    },
+                                });
+                            }
+                        }
+                    }
+
+                    await tx.journalHeader.update({
+                        where: { id: journal.id },
+                        data: {
+                            description: `تعديل رأس المال لشريك ${partner.name}`,
+                        },
+                    });
+                }
+            }
+
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -345,14 +406,16 @@ export class PartnerService {
             where: { id: currentUser },
         });
 
-        // Remove partner upload directory (if exists)
         try {
-            const partnerDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId);
+            const partnerDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId || 'unknown');
             if (fs.existsSync(partnerDir)) {
                 fs.rmSync(partnerDir, { recursive: true, force: true });
+                console.log(`🗑️ Deleted folder: ${partnerDir}`);
+            } else {
+                console.warn(`⚠️ Folder not found for partners: ${partnerDir}`);
             }
         } catch (err) {
-            console.warn('Could not remove partner upload directory:', err.message);
+            console.warn('⚠️ Failed to delete partners folder:', (err as Error).message);
         }
 
         await this.prisma.$transaction(async (tx) => {
