@@ -1,11 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DateTime } from 'luxon';
 import moment from "moment-hijri";
+import { JournalService } from '../journal/journal.service';
+import { JournalSourceType, JournalType, TransactionType } from '@prisma/client';
 
 @Injectable()
 export class SavingService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly journalService: JournalService,
+    ) { }
 
     private toHijri(date: Date) {
         return moment(date)
@@ -80,7 +85,7 @@ export class SavingService {
         const totalPartners = await this.prisma.partner.count({ where });
         const totalPages = Math.ceil(totalPartners / limit);
         if (page > totalPages && totalPartners > 0) throw new NotFoundException('Page not found');
-        
+
 
         // Fetch partners with saving accruals only (NO PARTNER DATA INCLUDES)
         const partners = await this.prisma.partner.findMany({
@@ -206,5 +211,192 @@ export class SavingService {
             totalJournalEntries: savingAccount.entries.length,
             journalsByMonth: groupedByMonth,
         };
+    }
+
+    private calculateEqualWithdrawWithAbsorption(
+        partners: { id: number; saving: number }[],
+        totalWithdraw: number
+    ) {
+        const result = partners.map(p => ({
+            partnerId: p.id,
+            savingBefore: p.saving,
+            savingAfter: p.saving,
+            withdraw: 0,
+        }));
+
+        let remainingAmount = totalWithdraw;
+        let remainingPartners = [...result];
+
+        while (remainingAmount > 0 && remainingPartners.length > 0) {
+            const share = remainingAmount / remainingPartners.length;
+
+            const stillEligible: typeof remainingPartners = [];
+
+            for (const p of remainingPartners) {
+                const canPay = Math.min(p.savingAfter, share);
+
+                p.withdraw += canPay;
+                p.savingAfter -= canPay;
+                remainingAmount -= canPay;
+
+                if (p.savingAfter > 0) {
+                    stillEligible.push(p);
+                }
+            }
+
+            remainingPartners = stillEligible;
+        }
+
+        // rounding بدون فرق فلس
+        let distributed = 0;
+        for (const p of result) {
+            p.withdraw = Math.floor(p.withdraw * 100) / 100;
+            distributed += p.withdraw;
+            p.savingAfter = Number((p.savingBefore - p.withdraw).toFixed(2));
+        }
+
+        const remainder = Number((totalWithdraw - distributed).toFixed(2));
+        if (remainder !== 0) {
+            const largest = result.reduce((a, b) =>
+                a.withdraw > b.withdraw ? a : b
+            );
+            largest.withdraw += remainder;
+            largest.savingAfter = Number(
+                (largest.savingBefore - largest.withdraw).toFixed(2)
+            );
+        }
+
+        return result;
+    }
+
+    async previewGlobalSavingWithdrawal(amount: number) {
+        if (amount <= 0)
+            throw new BadRequestException('المبلغ يجب أن يكون أكبر من صفر');
+
+        const partners = await this.prisma.partner.findMany({
+            where: {
+                AccountSaving: { balance: { gt: 0 } },
+            },
+            include: { AccountSaving: true },
+        });
+
+        if (!partners.length)
+            throw new BadRequestException('لا يوجد شركاء لديهم رصيد توفير');
+
+        const totalSaving = partners.reduce(
+            (s, p) => s + Number(p.AccountSaving.balance),
+            0
+        );
+
+        if (amount > totalSaving)
+            throw new BadRequestException('المبلغ أكبر من إجمالي التوفير');
+
+        const distribution = this.calculateEqualWithdrawWithAbsorption(
+            partners.map(p => ({
+                id: p.id,
+                saving: Number(p.AccountSaving.balance),
+            })),
+            amount
+        );
+
+        return {
+            amount,
+            totalSaving,
+            partnersCount: partners.length,
+            distribution,
+        };
+    }
+
+    async withdrawFromAllPartnersSavings(
+        currentUser: number,
+        amount: number,
+        description?: string
+    ) {
+        const preview = await this.previewGlobalSavingWithdrawal(amount);
+
+        const bank = await this.prisma.account.findUnique({
+            where: { code: '11000' },
+        });
+        if (!bank) throw new NotFoundException('Bank not found');
+
+        const savingAccount = await this.prisma.account.findFirst({
+            where: { accountBasicType: 'SAVINGS' },
+        });
+        if (!savingAccount)
+            throw new NotFoundException('Saving account not found');
+
+        const reference = `SW-${Date.now()}`;
+
+        return this.prisma.$transaction(async (tx) => {
+
+            const partnerSavingLines = [] as any;
+
+            for (const item of preview.distribution) {
+                if (item.withdraw <= 0) continue;
+
+                const partner = await this.prisma.partner.findUnique({
+                    where: { id: item.partnerId },
+                    select: {
+                        accountSavingId: true,
+                        name: true,
+                    },
+                });
+
+                partnerSavingLines.push({
+                    accountId: partner!.accountSavingId,
+                    debit: item.withdraw,
+                    credit: 0,
+                    description: `سحب من توفير الشريك ${partner!.name}`,
+                });
+            }
+
+            const savingAccountLine = {
+                accountId: savingAccount.id,
+                debit: 0,
+                credit: amount,
+                description: 'سحب من صندوق الادخار',
+            };
+
+            const journal = await this.journalService.createJournal(
+                {
+                    reference,
+                    description:
+                        description ??
+                        `سحب جماعي من حسابات التوفير بقيمة ${amount}`,
+                    type: JournalType.GENERAL,
+                    sourceType: JournalSourceType.PARTNER_SAVING_WITHDRAWAL,
+                    lines: [
+                        ...partnerSavingLines,
+                        savingAccountLine,
+                    ],
+                },
+                currentUser,
+            );
+
+            await this.journalService.postJournal(journal.journal.id, currentUser);
+
+            for (const item of preview.distribution) {
+                if (item.withdraw <= 0) continue;
+
+                await tx.partnerTransaction.create({
+                    data: {
+                        partnerId: item.partnerId,
+                        type: TransactionType.SAVING_WITHDRAWAL,
+                        amount: item.withdraw,
+                        reference: `${reference} - P${item.partnerId}`,
+                        description:
+                            description ??
+                            `سحب جماعي من التوفير`,
+                        journalId: journal.journal.id,
+                    },
+                });
+            }
+
+            return {
+                message: 'تم السحب الجماعي من حساب التوفير بنجاح',
+                journalId: journal.journal.id,
+                distribution: preview.distribution,
+            };
+        });
     }
 }

@@ -406,6 +406,28 @@ export class PartnerService {
             where: { id: currentUser },
         });
 
+        const journals = await this.prisma.journalHeader.findMany({
+            where: {
+                sourceType: JournalSourceType.PARTNER,
+                sourceId: partner.id,
+            },
+            select: { id: true, status: true },
+        });
+
+        const postedJournal = journals.find(j => j.status === JournalStatus.POSTED);
+
+        if (postedJournal) {
+            throw new BadRequestException(
+                'لا يمكن حذف الشريك لأنه يوجد قيد محاسبي معتمد'
+            );
+        }
+
+        const active = await this.prisma.partnerShareAccrual.findMany({
+            where: { partnerId: id }
+        })
+
+        if (active) throw new NotFoundException('لا يمكن حذف المستثمر');
+
         try {
             const partnerDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId || 'unknown');
             if (fs.existsSync(partnerDir)) {

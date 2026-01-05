@@ -309,7 +309,7 @@ export class ExpenseService {
             },
         });
 
-        if (isPosted) await this.journalService.postJournal(journalId, userId);
+        await this.journalService.postJournal(journalId, userId);
 
         await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
 
@@ -344,7 +344,9 @@ export class ExpenseService {
         if (journal.sourceType !== 'EXPENSES')
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
-        await this.journalService.unpostJournal(userId, journalId);
+        if (journal.status == 'POSTED') {
+            await this.journalService.unpostJournal(userId, journalId);
+        }
 
         // Delete associated expense records first
         await this.prisma.expenseRecord.deleteMany({ where: { journalId } });

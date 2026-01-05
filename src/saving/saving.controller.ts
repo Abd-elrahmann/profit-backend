@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { SavingService } from './saving.service';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
@@ -8,6 +8,24 @@ import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 @Controller('saving')
 export class SavingController {
     constructor(private readonly savingService: SavingService) { }
+
+    @Get('preview/withdraw')
+    @Permissions('saving', 'canView')
+    previewGlobalSavingWithdraw(
+        @Body('amount', ParseIntPipe) amount: number,
+    ) {
+        return this.savingService.previewGlobalSavingWithdrawal(amount);
+    }
+
+    @Post('withdraw')
+    @Permissions('saving', 'canAdd')
+    withdrawFromAllPartnersSavings(
+        @Body('amount', ParseIntPipe) amount: number,
+        @Body('description') description: string,
+        @Req() req
+    ) {
+        return this.savingService.withdrawFromAllPartnersSavings(req.user.id, amount, description);
+    }
 
     @Get('partner/:id')
     @Permissions('saving', 'canView')
