@@ -105,13 +105,6 @@ export class LoansService {
         }
         const periodId = currentPeriod.id;
 
-        console.log(
-            partnerShares.map(p => ({
-                partnerId: p.partnerId,
-                percent: loan.source === LoanFundSource.GENERAL ? p.sharePercent : p.percent
-            }))
-        );
-
         // Step 1: calculate raw values
         const rawShares = partnerShares.map(share => {
             const sharePercent =
@@ -144,20 +137,17 @@ export class LoansService {
         const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
 
         // Step 4: create accruals with rounding
-        const roundedTotal = Number(totalPartnerFinal.toFixed(2));
+        let accumulated = 0;
+        const partnerFinalRoundedArr = rawShares.map(r => Number(r.partnerFinal.toFixed(2)));
+        const roundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
+        const diff = Number((totalPartnerFinal - roundedSum).toFixed(2));
 
-        let sumRoundedOthers = 0;
+        if (diff !== 0) {
+            // adjust the last partner only if diff exists
+            partnerFinalRoundedArr[partnerFinalRoundedArr.length - 1] += diff;
+        }
 
         for (let i = 0; i < rawShares.length; i++) {
-            let partnerFinalRounded;
-
-            if (i !== maxIndex) {
-                partnerFinalRounded = Number(rawShares[i].partnerFinal.toFixed(2));
-                sumRoundedOthers += partnerFinalRounded;
-            } else {
-                partnerFinalRounded = Number((roundedTotal - sumRoundedOthers).toFixed(2));
-            }
-
             await this.prisma.partnerShareAccrual.create({
                 data: {
                     periodId,
@@ -165,7 +155,7 @@ export class LoansService {
                     loanId: loan.id,
                     rawShare: Number(rawShares[i].rawShare.toFixed(2)),
                     companyCut: Number(rawShares[i].companyCut.toFixed(2)),
-                    partnerFinal: partnerFinalRounded,
+                    partnerFinal: partnerFinalRoundedArr[i],
                 },
             });
         }
