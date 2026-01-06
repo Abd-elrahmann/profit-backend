@@ -18,6 +18,11 @@ export class NotificationService {
 
     private generateShortToken(data: any) {
         const secret = process.env.PAYMENT_SECRET;
+
+        if (!secret) {
+            throw new Error('NOTIFICATION_SECRET is not defined');
+        }
+
         const json = JSON.stringify(data);
 
         // AES encrypt and Base64URL encode
@@ -27,6 +32,10 @@ export class NotificationService {
 
     private decryptShortToken(token: string) {
         const secret = process.env.PAYMENT_SECRET;
+
+        if (!secret) {
+            throw new Error('NOTIFICATION_SECRET is not defined');
+        }
 
         // Convert Base64URL → Base64
         let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
