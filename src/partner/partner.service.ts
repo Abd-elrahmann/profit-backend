@@ -600,7 +600,9 @@ export class PartnerService {
 
                 total: newCapital + p.totalAmount,
 
-                totalSaving: p.AccountSaving.balance,
+                totalSaving: p.AccountSaving.credit,
+                totalAvilableSaving: p.AccountSaving.balance,
+                totalWithdrawal: p.AccountSaving.debit,
             };
         });
 
@@ -699,7 +701,9 @@ export class PartnerService {
             newCapitalAmount,
             newCapitalPercent,
             total: newCapitalAmount + partner.totalAmount,
-            totalSaving: partner.AccountSaving?.balance ?? 0,
+            totalSaving: partner.AccountSaving?.credit ?? 0,
+            totalAvilableSaving: partner.AccountSaving?.balance ?? 0,
+            totalWithdrawal: partner.AccountSaving?.debit ?? 0,
             duration,
             withdrawalReceipt: partner.PartnerWithdrawal?.[0]?.WITHDRAWAL_RECEIPT || null,
             HIjriCreatedAt: toHijri(partner.createdAt),
