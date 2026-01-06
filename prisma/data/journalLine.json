@@ -1,0 +1,592 @@
+[
+  {
+    "id": 572,
+    "journalId": 181,
+    "accountId": 7,
+    "debit": 2000,
+    "credit": 0,
+    "balance": 2000,
+    "clientId": 3,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 573,
+    "journalId": 181,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 2000,
+    "balance": -2000,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 463,
+    "journalId": 79,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم جديد)"
+  },
+  {
+    "id": 464,
+    "journalId": 79,
+    "accountId": 53,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "رأس مال جديد - محمد"
+  },
+  {
+    "id": 574,
+    "journalId": 182,
+    "accountId": 7,
+    "debit": 1000,
+    "credit": 0,
+    "balance": 1000,
+    "clientId": 3,
+    "description": null
+  },
+  {
+    "id": 575,
+    "journalId": 182,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 1000,
+    "balance": -1000,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 576,
+    "journalId": 183,
+    "accountId": 53,
+    "debit": 1000,
+    "credit": 0,
+    "balance": -1000,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 27"
+  },
+  {
+    "id": 577,
+    "journalId": 183,
+    "accountId": 51,
+    "debit": 0,
+    "credit": 1000,
+    "balance": 1000,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 465,
+    "journalId": 78,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم جديد)"
+  },
+  {
+    "id": 466,
+    "journalId": 78,
+    "accountId": 49,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "رأس مال جديد - يوسف"
+  },
+  {
+    "id": 578,
+    "journalId": 183,
+    "accountId": 49,
+    "debit": 1000,
+    "credit": 0,
+    "balance": -1000,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 27"
+  },
+  {
+    "id": 579,
+    "journalId": 183,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 1000,
+    "balance": 1000,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 475,
+    "journalId": 151,
+    "accountId": 7,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": 3,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 476,
+    "journalId": 151,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 477,
+    "journalId": 152,
+    "accountId": 7,
+    "debit": 250,
+    "credit": 0,
+    "balance": 250,
+    "clientId": 3,
+    "description": null
+  },
+  {
+    "id": 478,
+    "journalId": 152,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 250,
+    "balance": -250,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 479,
+    "journalId": 153,
+    "accountId": 53,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 24"
+  },
+  {
+    "id": 480,
+    "journalId": 153,
+    "accountId": 51,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 481,
+    "journalId": 153,
+    "accountId": 49,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 24"
+  },
+  {
+    "id": 482,
+    "journalId": 153,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 502,
+    "journalId": 158,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 503,
+    "journalId": 158,
+    "accountId": 50,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 504,
+    "journalId": 158,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 505,
+    "journalId": 158,
+    "accountId": 46,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 506,
+    "journalId": 158,
+    "accountId": 8,
+    "debit": 50,
+    "credit": 0,
+    "balance": -50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 507,
+    "journalId": 158,
+    "accountId": 9,
+    "debit": 0,
+    "credit": 50,
+    "balance": 50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 508,
+    "journalId": 159,
+    "accountId": 52,
+    "debit": 0,
+    "credit": 25,
+    "balance": 25,
+    "clientId": null,
+    "description": "تسجيل ادخار (25) للشريك محمد"
+  },
+  {
+    "id": 509,
+    "journalId": 159,
+    "accountId": 50,
+    "debit": 25,
+    "credit": 0,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك محمد"
+  },
+  {
+    "id": 510,
+    "journalId": 159,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 25,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك محمد"
+  },
+  {
+    "id": 511,
+    "journalId": 159,
+    "accountId": 12,
+    "debit": 25,
+    "credit": 0,
+    "balance": 25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك محمد"
+  },
+  {
+    "id": 512,
+    "journalId": 160,
+    "accountId": 48,
+    "debit": 0,
+    "credit": 25,
+    "balance": 25,
+    "clientId": null,
+    "description": "تسجيل ادخار (25) للشريك يوسف"
+  },
+  {
+    "id": 513,
+    "journalId": 160,
+    "accountId": 46,
+    "debit": 25,
+    "credit": 0,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك يوسف"
+  },
+  {
+    "id": 514,
+    "journalId": 160,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 25,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك يوسف"
+  },
+  {
+    "id": 515,
+    "journalId": 160,
+    "accountId": 12,
+    "debit": 25,
+    "credit": 0,
+    "balance": 25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك يوسف"
+  },
+  {
+    "id": 516,
+    "journalId": 161,
+    "accountId": 52,
+    "debit": 10,
+    "credit": 0,
+    "balance": -10,
+    "clientId": null,
+    "description": "سحب من توفير الشريك محمد"
+  },
+  {
+    "id": 517,
+    "journalId": 161,
+    "accountId": 48,
+    "debit": 10,
+    "credit": 0,
+    "balance": -10,
+    "clientId": null,
+    "description": "سحب من توفير الشريك يوسف"
+  },
+  {
+    "id": 518,
+    "journalId": 161,
+    "accountId": 12,
+    "debit": 0,
+    "credit": 20,
+    "balance": -20,
+    "clientId": null,
+    "description": "سحب من صندوق الادخار"
+  },
+  {
+    "id": 519,
+    "journalId": 162,
+    "accountId": 7,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": 3,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 520,
+    "journalId": 162,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 521,
+    "journalId": 163,
+    "accountId": 7,
+    "debit": 250,
+    "credit": 0,
+    "balance": 250,
+    "clientId": 3,
+    "description": null
+  },
+  {
+    "id": 522,
+    "journalId": 163,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 250,
+    "balance": -250,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 523,
+    "journalId": 164,
+    "accountId": 53,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 25"
+  },
+  {
+    "id": 524,
+    "journalId": 164,
+    "accountId": 51,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 525,
+    "journalId": 164,
+    "accountId": 49,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 25"
+  },
+  {
+    "id": 526,
+    "journalId": 164,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 532,
+    "journalId": 166,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 533,
+    "journalId": 166,
+    "accountId": 50,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 534,
+    "journalId": 166,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 535,
+    "journalId": 166,
+    "accountId": 46,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 536,
+    "journalId": 166,
+    "accountId": 8,
+    "debit": 50,
+    "credit": 0,
+    "balance": -50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 537,
+    "journalId": 166,
+    "accountId": 9,
+    "debit": 0,
+    "credit": 50,
+    "balance": 50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 538,
+    "journalId": 167,
+    "accountId": 52,
+    "debit": 0,
+    "credit": 25,
+    "balance": 25,
+    "clientId": null,
+    "description": "تسجيل ادخار (25) للشريك محمد"
+  },
+  {
+    "id": 539,
+    "journalId": 167,
+    "accountId": 50,
+    "debit": 25,
+    "credit": 0,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك محمد"
+  },
+  {
+    "id": 540,
+    "journalId": 167,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 25,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك محمد"
+  },
+  {
+    "id": 541,
+    "journalId": 167,
+    "accountId": 12,
+    "debit": 25,
+    "credit": 0,
+    "balance": 25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك محمد"
+  },
+  {
+    "id": 542,
+    "journalId": 168,
+    "accountId": 48,
+    "debit": 0,
+    "credit": 25,
+    "balance": 25,
+    "clientId": null,
+    "description": "تسجيل ادخار (25) للشريك يوسف"
+  },
+  {
+    "id": 543,
+    "journalId": 168,
+    "accountId": 46,
+    "debit": 25,
+    "credit": 0,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك يوسف"
+  },
+  {
+    "id": 544,
+    "journalId": 168,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 25,
+    "balance": -25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك يوسف"
+  },
+  {
+    "id": 545,
+    "journalId": 168,
+    "accountId": 12,
+    "debit": 25,
+    "credit": 0,
+    "balance": 25,
+    "clientId": null,
+    "description": "خصم ادخار للشريك يوسف"
+  }
+]
