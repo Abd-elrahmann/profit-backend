@@ -66,7 +66,7 @@ export class SavingService {
         return Object.values(summaryByPeriod);
     }
 
-    // Get all partners savings summaries (paginated) per period with filters
+    // Get all partners savings summaries
     async getAllPartnerSavings(
         page: number = 1,
         filters?: { limit?: number; name?: string; nationalId?: string; phone?: string }
@@ -79,15 +79,15 @@ export class SavingService {
         if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId) where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
         if (filters?.phone) where.phone = { contains: filters.phone, mode: 'insensitive' };
+
         where.PartnerSavingAccrual = { some: {} };
 
-        // Count total partners
         const totalPartners = await this.prisma.partner.count({ where });
         const totalPages = Math.ceil(totalPartners / limit);
-        if (page > totalPages && totalPartners > 0) throw new NotFoundException('Page not found');
+        if (page > totalPages && totalPartners > 0) {
+            throw new NotFoundException('Page not found');
+        }
 
-
-        // Fetch partners with saving accruals and transactions
         const partners = await this.prisma.partner.findMany({
             where,
             skip,
@@ -97,92 +97,79 @@ export class SavingService {
                 PartnerSavingAccrual: {
                     include: {
                         accrual: {
-                            include: {
-                                period: true,
-                            },
+                            include: { period: true },
                         },
                     },
                 },
                 transactions: {
-                    where: {
-                        type: {
-                            in: ['DEPOSIT', 'WITHDRAWAL', 'SAVING_WITHDRAWAL']
-                        }
-                    },
-                    orderBy: { date: 'desc' },
+                    where: { type: 'SAVING_WITHDRAWAL' },
                 },
             },
         });
 
-        // Format periods and group savings WITHOUT duplicated nested structures
         const data = partners.map((p) => {
-            const periodMap = new Map<string, any>();
+            let totalSavings = 0;
+            let totalWithdrawals = 0;
 
+            // 1️⃣ sum all savings
             p.PartnerSavingAccrual.forEach((s) => {
-                const period = s.accrual?.period;
-                const periodName = period?.name || 'Unknown';
-
-                if (!periodMap.has(periodName)) {
-                    periodMap.set(periodName, {
-                        period: {
-                            id: period?.id,
-                            name: period?.name,
-                            startDate: period?.startDate,
-                            endDate: period?.endDate,
-                            startdateHijri: period?.startDate ? this.toHijri(period.startDate) : null,
-                            enddateHijri: period?.endDate ? this.toHijri(period.endDate) : null,
-                        },
-                        totalSavings: 0, // إجمالي المدخرات الأساسية
-                        totalWithdrawals: 0, // إجمالي السحوبات
-                        currentBalance: 0, // الرصيد الحالي
-                        accrualCount: 0, // to avoid returning full accrual objects
-                    });
-                }
-
-                const record = periodMap.get(periodName);
-                record.totalSavings += Number(s.savingAmount);
-                record.accrualCount += 1; // count only, not full object
+                totalSavings += Number(s.savingAmount);
             });
 
-            // Calculate current balance for each period
-            Array.from(periodMap.values()).forEach(record => {
-                // Calculate withdrawals for this period
-                const periodWithdrawals = p.transactions
-                    .filter(t => {
-                        // يمكن تحسين هذا المنطق لربط السحوبات بالفترات الزمنية
-                        return t.type === 'SAVING_WITHDRAWAL' || t.type === 'WITHDRAWAL';
-                    })
-                    .reduce((total, t) => total + Number(t.amount), 0);
-
-                record.totalWithdrawals = periodWithdrawals;
-                record.currentBalance = record.totalSavings - periodWithdrawals;
+            // 2️⃣ sum all withdrawals
+            p.transactions.forEach((t) => {
+                totalWithdrawals += Number(t.amount);
             });
 
-            // Filter out periods with zero balance
-            const periodsWithBalance = Array.from(periodMap.values()).filter(period => period.currentBalance > 0);
+            const currentBalance = totalSavings - totalWithdrawals;
 
-            // Only return partners who have at least one period with balance > 0
-            if (periodsWithBalance.length === 0) {
-                return null;
-            }
+            // 3️⃣ get last period from savings accruals
+            const periods = p.PartnerSavingAccrual
+                .map((s) => s.accrual?.period)
+                .filter(Boolean);
+
+            const uniquePeriods = Array.from(
+                new Map(periods.map((p) => [p.id, p])).values()
+            );
+
+            const lastPeriod = uniquePeriods.sort((a, b) =>
+                new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+            )[0];
 
             return {
                 partnerId: p.id,
                 partnerName: p.name,
-                periods: periodsWithBalance,
+                totalPeriods: uniquePeriods.length, // 👈 عدد الفترات
+                periods: [
+                    {
+                        period: lastPeriod
+                            ? {
+                                id: lastPeriod.id,
+                                name: lastPeriod.name,
+                                startDate: lastPeriod.startDate,
+                                endDate: lastPeriod.endDate,
+                                startdateHijri: this.toHijri(lastPeriod.startDate),
+                                enddateHijri: lastPeriod.endDate
+                                    ? this.toHijri(lastPeriod.endDate)
+                                    : null,
+                            }
+                            : null,
+                        totalSavings,
+                        totalWithdrawals,
+                        currentBalance,
+                    },
+                ],
             };
         });
 
-        // Filter out partners with no balance
-        const filteredData = data.filter(partner => partner !== null);
-
-        // Recalculate pagination based on filtered data
-        const filteredTotalPartners = filteredData.length;
-        const filteredTotalPages = Math.ceil(filteredTotalPartners / limit);
-
         return {
-            data: filteredData,
-            pagination: { totalPartners: filteredTotalPartners, totalPages: filteredTotalPages, currentPage: page, limit },
+            data,
+            pagination: {
+                totalPartners,
+                totalPages,
+                currentPage: page,
+                limit,
+            },
         };
     }
 

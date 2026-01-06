@@ -423,10 +423,12 @@ export class PartnerService {
         }
 
         const active = await this.prisma.partnerShareAccrual.findMany({
-            where: { partnerId: id }
+            where: { partnerId: partner.id }
         })
 
-        if (active) throw new NotFoundException('لا يمكن حذف المستثمر');
+        if (active.length > 0) {
+            throw new BadRequestException('لا يمكن حذف المستثمر');
+        }
 
         try {
             const partnerDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId || 'unknown');
@@ -1031,7 +1033,12 @@ export class PartnerService {
                 await this.journalService.unpostJournal(currentUser, journal.id);
             }
 
-            await this.journalService.deleteJournal(currentUser, journal.id);
+            await this.prisma.journalLine.deleteMany({
+                where: { journalId: journal.id },
+            });
+            await this.prisma.journalHeader.deleteMany({
+                where: { id: journal.id },
+            });
         }
 
         // update partner capitalAmount

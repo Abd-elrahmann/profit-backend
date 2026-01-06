@@ -931,8 +931,22 @@ export class LoansService {
                 select: { id: true },
             });
 
+            const activateJournal = await tx.journalHeader.findFirst({
+                where: {
+                    sourceType: 'LOAN',
+                    sourceId: loan.id,
+                    reference: { contains: 'ACT' },
+                },
+                select: { id: true },
+            });
+
             // Combine all journal IDs to handle
-            const allJournalIds = [...loanJournalIds, ...repaymentJournalIds, ...interestJournal ? [interestJournal.id] : []];
+            const allJournalIds = [
+                ...loanJournalIds,
+                ...repaymentJournalIds,
+                ...(interestJournal ? [interestJournal.id] : []),
+                ...(activateJournal ? [activateJournal.id] : []),
+            ];
 
             if (allJournalIds.length > 0) {
                 // Unpost all before deletion
