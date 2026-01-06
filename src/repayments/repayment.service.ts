@@ -178,6 +178,17 @@ export class RepaymentService {
         const interestAmount = roundToTwo(repayment.interestAmount);
         const principalAmount = roundToTwo(repayment.principalAmount);
 
+        const discount = dto.discount ? roundToTwo(dto.discount) : 0;
+        if (discount > interestAmount) {
+            throw new BadRequestException(
+                `الخصم لا يمكن أن يتجاوز الفائدة  (${interestAmount})`
+            );
+        }
+
+        const total = roundToTwo(totalAmount - discount);
+
+        const netInterest = roundToTwo(interestAmount - discount);
+
         const loansReceivable = await this.prisma.account.findFirst({
             where: { accountBasicType: 'LOANS_RECEIVABLE' },
         });
@@ -204,7 +215,7 @@ export class RepaymentService {
                     lines: [
                         {
                             accountId: creditAccount.id,
-                            debit: totalAmount,
+                            debit: total,
                             credit: 0,
                             description: `استلام سداد دفعة للسلفة رقم ${loan.id}`,
                         },
@@ -218,10 +229,12 @@ export class RepaymentService {
                         {
                             accountId: loanIncome.id,
                             debit: 0,
-                            credit: interestAmount,
+                            credit: netInterest,
                             description: 'دخل فوائد السلفة',
                             clientId: loan.client.id,
                         },
+                        { accountId: loansReceivable.id, debit: discount, credit: 0, description: 'خصم' },
+                        { accountId: loansReceivable.id, debit: 0, credit: discount, description: 'خصم', clientId: loan.client.id },
                     ],
                 },
                 currentUser,
@@ -232,12 +245,74 @@ export class RepaymentService {
             await tx.repayment.update({
                 where: { id },
                 data: {
-                    paidAmount: totalAmount,
+                    paidAmount: total,
                     status: PaymentStatus.PAID,
                     paymentDate: new Date(),
                     notes: dto.notes,
                     reviewStatus: 'APPROVED',
                     remaining: 0,
+                    interestAmount: netInterest,
+                },
+            });
+
+            let partnerShares: any[] = [];
+            if (loan.source === LoanFundSource.GENERAL) {
+                partnerShares = await tx.loanPartnerShare.findMany({
+                    where: { loanId: loan.id },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+                partnerShares = await tx.loanNewCapitalShare.findMany({
+                    where: { loanId: loan.id },
+                    include: { partner: { select: { orgProfitPercent: true } } },
+                });
+            }
+
+            const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
+
+            const realizedInterest = loan.interestAmount - discount;
+
+            if (realizedInterest > 0) {
+                for (const ps of partnerShares) {
+                    const sharePercent =
+                        loan.source === LoanFundSource.GENERAL
+                            ? Number(ps.sharePercent || 0)
+                            : Number(ps.percent || 0);
+
+                    const existingAccrual = partnerAccruals.find(acc => acc.partnerId === ps.partnerId);
+
+                    let oldcut = 0;
+                    if (existingAccrual && existingAccrual.rawShare > 0) {
+                        oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
+                    }
+
+                    const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
+                    const companyCut = Number(((rawShare * oldcut) / 100).toFixed(2));
+                    const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+
+                    const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
+                    const ratio = Number((oldPartnerFinal - partnerFinal).toFixed(2));
+
+                    if (rawShare === 0 && companyCut === 0) continue;
+
+                    if (existingAccrual) {
+                        await tx.partnerShareAccrual.update({
+                            where: { id: existingAccrual.id },
+                            data: { rawShare, companyCut, partnerFinal },
+                        });
+
+                        await tx.partner.update({
+                            where: { id: existingAccrual.partnerId },
+                            data: { upcomingProfit: { decrement: ratio } },
+                        });
+                    }
+                }
+            }
+
+            await tx.loan.update({
+                where: { id: loan.id },
+                data: {
+                    newAmount: loan.newAmount ? loan.newAmount - discount : loan.totalAmount - discount,
                 },
             });
 
@@ -307,7 +382,7 @@ export class RepaymentService {
         };
     }
 
-    // Reject repayment   
+    // Reject repayment
     async rejectRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -325,9 +400,10 @@ export class RepaymentService {
             where: { id: currentUser },
         });
 
-        // Start transaction to keep data consistent
+        // Check if repayment was already approved
+        const wasApproved = repayment.status === PaymentStatus.PAID;
+
         return await this.prisma.$transaction(async (tx) => {
-            // Find any journal created for this repayment
             const journal = await tx.journalHeader.findFirst({
                 where: {
                     sourceType: JournalSourceType.REPAYMENT,
@@ -337,36 +413,115 @@ export class RepaymentService {
             });
 
             if (journal) {
-                await this.journalService.unpostJournal(currentUser, journal.id)
+                await this.journalService.unpostJournal(currentUser, journal.id);
                 await tx.journalLine.deleteMany({ where: { journalId: journal.id } });
                 await tx.journalHeader.delete({ where: { id: journal.id } });
             }
 
-            // Reset repayment fields
-            const updatedRepayment = await tx.repayment.update({
-                where: { id },
-                data: {
-                    status: PaymentStatus.PENDING,
-                    remaining: repayment.amount,
-                    paidAmount: 0,
-                    paymentDate: null,
-                    reviewStatus: 'REJECTED',
-                    notes: dto.notes,
-                    attachments: [],
-                    PaymentProof: null,
-                },
-            });
+            if (wasApproved) {
+                let partnerShares: any[] = [];
+                if (loan.source === LoanFundSource.GENERAL) {
+                    partnerShares = await tx.loanPartnerShare.findMany({
+                        where: { loanId: loan.id },
+                        include: { partner: { select: { orgProfitPercent: true, upcomingProfit: true } } },
+                    });
+                } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
+                    partnerShares = await tx.loanNewCapitalShare.findMany({
+                        where: { loanId: loan.id },
+                        include: { partner: { select: { orgProfitPercent: true, upcomingProfit: true } } },
+                    });
+                }
 
-            await tx.partnerShareAccrual.deleteMany({
-                where: { repaymentId: repayment.id },
-            });
+                const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
 
-            // Send notification via WhatsApp
+                const totalInterest = await tx.repayment.aggregate({
+                    where: { loanId: loan.id },
+                    _sum: { interestAmount: true },
+                }).then(res => res._sum.interestAmount || 0);
+
+                const discount = repayment.amount - repayment.paidAmount;
+                const realizedInterest = totalInterest + discount;
+
+                if (realizedInterest > 0) {
+                    for (const ps of partnerShares) {
+                        const sharePercent =
+                            loan.source === LoanFundSource.GENERAL
+                                ? Number(ps.sharePercent || 0)
+                                : Number(ps.percent || 0);
+
+                        const existingAccrual = partnerAccruals.find(acc => acc.partnerId === ps.partnerId);
+                        if (!existingAccrual) continue;
+
+                        const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
+                        let companyCut = 0;
+                        if (existingAccrual.rawShare > 0) {
+                            const oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
+                            companyCut = Number(((rawShare * oldcut) / 100).toFixed(2));
+                        }
+                        const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+
+                        const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
+                        const ratio = Number((partnerFinal - oldPartnerFinal).toFixed(2));
+
+                        await tx.partner.update({
+                            where: { id: ps.partnerId },
+                            data: { upcomingProfit: { increment: ratio } },
+                        });
+
+                        await tx.partnerShareAccrual.update({
+                            where: { id: existingAccrual.id },
+                            data: { rawShare, companyCut, partnerFinal },
+                        });
+                    }
+                }
+            }
+
+            if (wasApproved) {
+                const discount = repayment.amount - repayment.paidAmount;
+                await tx.loan.update({
+                    where: { id: loan.id },
+                    data: {
+                        newAmount: loan.newAmount ? loan.newAmount + discount : loan.totalAmount,
+                        endDate: null,
+                    },
+                });
+
+                await tx.repayment.update({
+                    where: { id },
+                    data: {
+                        status: PaymentStatus.PENDING,
+                        remaining: repayment.amount,
+                        paidAmount: 0,
+                        paymentDate: null,
+                        reviewStatus: 'REJECTED',
+                        notes: dto.notes,
+                        attachments: [],
+                        PaymentProof: null,
+                        interestAmount: repayment.interestAmount + discount,
+                    },
+                });
+            } else {
+                await tx.repayment.update({
+                    where: { id },
+                    data: {
+                        status: PaymentStatus.PENDING,
+                        remaining: repayment.amount,
+                        paidAmount: 0,
+                        paymentDate: null,
+                        reviewStatus: 'REJECTED',
+                        notes: dto.notes,
+                        attachments: [],
+                        PaymentProof: null,
+                        interestAmount: repayment.interestAmount,
+                    },
+                });
+            }
+
             try {
                 await this.notificationService.sendNotification({
                     templateType: TemplateType.PAYMENT_REJECTED,
-                    clientId: repayment.loan.clientId,
-                    loanId: repayment.loan.id,
+                    clientId: loan.clientId,
+                    loanId: loan.id,
                     repaymentId: repayment.id,
                     channel: 'WHATSAPP',
                 });
@@ -374,27 +529,27 @@ export class RepaymentService {
                 console.error('❌ Failed to send WhatsApp notification:', error.message);
             }
 
-            // Send notification via Telegram
             try {
                 await this.notificationService.sendNotification({
                     templateType: TemplateType.PAYMENT_REJECTED,
-                    clientId: repayment.loan.clientId,
-                    loanId: repayment.loan.id,
+                    clientId: loan.clientId,
+                    loanId: loan.id,
                     repaymentId: repayment.id,
                     channel: 'TELEGRAM',
                 });
             } catch (error) {
                 console.error('❌ Failed to send Telegram notification:', error.message);
             }
+
             await this.updateClientStatus(loan.clientId);
 
-            // create audit log
-            await this.prisma.auditLog.create({
+            await tx.auditLog.create({
                 data: {
                     userId: currentUser,
                     screen: 'Repayments',
                     action: 'POST',
-                    description: `قام المستخدم ${user?.name} برفض السداد للدفعة رقم ${id}`,
+                    description: `قام المستخدم ${user?.name} برفض السداد للدفعة رقم ${id} ${wasApproved ? 'وعكس الموافقة السابقة' : ''
+                        }`,
                 },
             });
 

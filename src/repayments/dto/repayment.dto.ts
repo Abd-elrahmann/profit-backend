@@ -16,4 +16,8 @@ export class RepaymentDto {
   @IsOptional()
   @IsDateString()
   newDueDate?: string;
+
+  @IsOptional()
+  @IsNumber()
+  discount?: number;
 }
