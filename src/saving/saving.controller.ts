@@ -12,7 +12,7 @@ export class SavingController {
     @Get('preview/withdraw')
     @Permissions('saving', 'canView')
     previewGlobalSavingWithdraw(
-        @Body('amount', ParseIntPipe) amount: number,
+        @Query('amount', ParseIntPipe) amount: number,
     ) {
         return this.savingService.previewGlobalSavingWithdrawal(amount);
     }

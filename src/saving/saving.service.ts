@@ -87,7 +87,7 @@ export class SavingService {
         if (page > totalPages && totalPartners > 0) throw new NotFoundException('Page not found');
 
 
-        // Fetch partners with saving accruals only (NO PARTNER DATA INCLUDES)
+        // Fetch partners with saving accruals and transactions
         const partners = await this.prisma.partner.findMany({
             where,
             skip,
@@ -102,6 +102,14 @@ export class SavingService {
                             },
                         },
                     },
+                },
+                transactions: {
+                    where: {
+                        type: {
+                            in: ['DEPOSIT', 'WITHDRAWAL', 'SAVING_WITHDRAWAL']
+                        }
+                    },
+                    orderBy: { date: 'desc' },
                 },
             },
         });
@@ -124,26 +132,57 @@ export class SavingService {
                             startdateHijri: period?.startDate ? this.toHijri(period.startDate) : null,
                             enddateHijri: period?.endDate ? this.toHijri(period.endDate) : null,
                         },
-                        total: 0,
+                        totalSavings: 0, // إجمالي المدخرات الأساسية
+                        totalWithdrawals: 0, // إجمالي السحوبات
+                        currentBalance: 0, // الرصيد الحالي
                         accrualCount: 0, // to avoid returning full accrual objects
                     });
                 }
 
                 const record = periodMap.get(periodName);
-                record.total += Number(s.savingAmount);
+                record.totalSavings += Number(s.savingAmount);
                 record.accrualCount += 1; // count only, not full object
             });
+
+            // Calculate current balance for each period
+            Array.from(periodMap.values()).forEach(record => {
+                // Calculate withdrawals for this period
+                const periodWithdrawals = p.transactions
+                    .filter(t => {
+                        // يمكن تحسين هذا المنطق لربط السحوبات بالفترات الزمنية
+                        return t.type === 'SAVING_WITHDRAWAL' || t.type === 'WITHDRAWAL';
+                    })
+                    .reduce((total, t) => total + Number(t.amount), 0);
+
+                record.totalWithdrawals = periodWithdrawals;
+                record.currentBalance = record.totalSavings - periodWithdrawals;
+            });
+
+            // Filter out periods with zero balance
+            const periodsWithBalance = Array.from(periodMap.values()).filter(period => period.currentBalance > 0);
+
+            // Only return partners who have at least one period with balance > 0
+            if (periodsWithBalance.length === 0) {
+                return null;
+            }
 
             return {
                 partnerId: p.id,
                 partnerName: p.name,
-                periods: Array.from(periodMap.values()),
+                periods: periodsWithBalance,
             };
         });
 
+        // Filter out partners with no balance
+        const filteredData = data.filter(partner => partner !== null);
+
+        // Recalculate pagination based on filtered data
+        const filteredTotalPartners = filteredData.length;
+        const filteredTotalPages = Math.ceil(filteredTotalPartners / limit);
+
         return {
-            data,
-            pagination: { totalPartners, totalPages, currentPage: page, limit },
+            data: filteredData,
+            pagination: { totalPartners: filteredTotalPartners, totalPages: filteredTotalPages, currentPage: page, limit },
         };
     }
 
@@ -214,7 +253,7 @@ export class SavingService {
     }
 
     private calculateEqualWithdrawWithAbsorption(
-        partners: { id: number; saving: number }[],
+        partners: { id: number; name: string; saving: number }[],
         totalWithdraw: number
     ) {
         const result = partners.map(p => ({
@@ -294,6 +333,7 @@ export class SavingService {
         const distribution = this.calculateEqualWithdrawWithAbsorption(
             partners.map(p => ({
                 id: p.id,
+                name: p.name,
                 saving: Number(p.AccountSaving.balance),
             })),
             amount
@@ -303,7 +343,13 @@ export class SavingService {
             amount,
             totalSaving,
             partnersCount: partners.length,
-            distribution,
+            distribution: distribution.map(item => {
+                const partner = partners.find(p => p.id === item.partnerId);
+                return {
+                    ...item,
+                    partnerName: partner?.name || 'غير معروف'
+                };
+            }),
         };
     }
 
