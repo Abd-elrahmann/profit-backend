@@ -137,15 +137,18 @@ export class LoansService {
         const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
 
         // Step 4: create accruals with rounding
-        let accumulated = 0;
+        const roundedTotal = Number(totalPartnerFinal.toFixed(2));
+
+        let sumRoundedOthers = 0;
+
         for (let i = 0; i < rawShares.length; i++) {
             let partnerFinalRounded;
-            if (i === maxIndex) {
-                // largest share absorbs rounding difference
-                partnerFinalRounded = Number((totalPartnerFinal - accumulated).toFixed(2));
-            } else {
+
+            if (i !== maxIndex) {
                 partnerFinalRounded = Number(rawShares[i].partnerFinal.toFixed(2));
-                accumulated += partnerFinalRounded;
+                sumRoundedOthers += partnerFinalRounded;
+            } else {
+                partnerFinalRounded = Number((roundedTotal - sumRoundedOthers).toFixed(2));
             }
 
             await this.prisma.partnerShareAccrual.create({
