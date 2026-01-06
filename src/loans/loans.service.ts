@@ -105,6 +105,13 @@ export class LoansService {
         }
         const periodId = currentPeriod.id;
 
+        console.log(
+            partnerShares.map(p => ({
+                partnerId: p.partnerId,
+                percent: loan.source === LoanFundSource.GENERAL ? p.sharePercent : p.percent
+            }))
+        );
+
         // Step 1: calculate raw values
         const rawShares = partnerShares.map(share => {
             const sharePercent =
