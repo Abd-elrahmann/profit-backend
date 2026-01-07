@@ -252,6 +252,7 @@ export class RepaymentService {
                     reviewStatus: 'APPROVED',
                     remaining: 0,
                     interestAmount: netInterest,
+                    discount: discount
                 },
             });
 
@@ -270,10 +271,51 @@ export class RepaymentService {
 
             const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
 
-            const realizedInterest = loan.interestAmount - discount;
+            // if (realizedInterest > 0) {
+            //     for (const ps of partnerShares) {
+            //         const sharePercent =
+            //             loan.source === LoanFundSource.GENERAL
+            //                 ? Number(ps.sharePercent || 0)
+            //                 : Number(ps.percent || 0);
 
+            //         const existingAccrual = partnerAccruals.find(acc => acc.partnerId === ps.partnerId);
+
+            //         let oldcut = 0;
+            //         if (existingAccrual && existingAccrual.rawShare > 0) {
+            //             oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
+            //         }
+
+            //         const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
+            //         const companyCut = Number(((rawShare * oldcut) / 100).toFixed(2));
+            //         const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+
+            //         const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
+            //         const ratio = Number((oldPartnerFinal - partnerFinal).toFixed(2));
+
+            //         if (rawShare === 0 && companyCut === 0) continue;
+
+            //         if (existingAccrual) {
+            //             await tx.partnerShareAccrual.update({
+            //                 where: { id: existingAccrual.id },
+            //                 data: { rawShare, companyCut, partnerFinal },
+            //             });
+
+            //             await tx.partner.update({
+            //                 where: { id: existingAccrual.partnerId },
+            //                 data: { upcomingProfit: { decrement: ratio } },
+            //             });
+            //         }
+            //     }
+            // }
+
+            const totalInterest = await tx.repayment.aggregate({
+                where: { loanId: loan.id },
+                _sum: { interestAmount: true },
+            }).then(res => res._sum.interestAmount || 0);
+
+            const realizedInterest = totalInterest - discount;
             if (realizedInterest > 0) {
-                for (const ps of partnerShares) {
+                const rawShares = partnerShares.map(ps => {
                     const sharePercent =
                         loan.source === LoanFundSource.GENERAL
                             ? Number(ps.sharePercent || 0)
@@ -286,24 +328,71 @@ export class RepaymentService {
                         oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
                     }
 
-                    const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
-                    const companyCut = Number(((rawShare * oldcut) / 100).toFixed(2));
-                    const partnerFinal = Number((rawShare - companyCut).toFixed(2));
+                    const rawShare = realizedInterest * (sharePercent / 100);
+                    const companyCut = ((rawShare * oldcut) / 100);
+                    const partnerFinal = rawShare - companyCut;
 
                     const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
                     const ratio = Number((oldPartnerFinal - partnerFinal).toFixed(2));
 
-                    if (rawShare === 0 && companyCut === 0) continue;
+                    return {
+                        partnerId: ps.partnerId,
+                        rawShare,
+                        companyCut,
+                        partnerFinal,
+                        oldPartnerFinal,
+                        ratio
+                    };
+                }).filter(r => r.rawShare !== 0 || r.companyCut !== 0);
 
-                    if (existingAccrual) {
+                if (rawShares.length > 0) {
+                    let maxIndex = 0;
+                    let maxValue = -Infinity;
+                    rawShares.forEach((r, idx) => {
+                        if (r.partnerFinal > maxValue) {
+                            maxValue = r.partnerFinal;
+                            maxIndex = idx;
+                        }
+                    });
+
+                    const totalPartnerFinal = rawShares.reduce(
+                        (sum, r) => sum + r.partnerFinal,
+                        0
+                    );
+
+                    const partnerFinalRounded = rawShares.map(r =>
+                        Number(r.partnerFinal.toFixed(2))
+                    );
+
+                    const roundedSum = partnerFinalRounded.reduce((a, b) => a + b, 0);
+                    const diff = Number((totalPartnerFinal - roundedSum).toFixed(2));
+
+                    if (diff !== 0) {
+                        partnerFinalRounded[maxIndex] += diff;
+                    }
+
+                    for (let i = 0; i < rawShares.length; i++) {
+                        const r = rawShares[i];
+
                         await tx.partnerShareAccrual.update({
-                            where: { id: existingAccrual.id },
-                            data: { rawShare, companyCut, partnerFinal },
+                            where: {
+                                partnerId_loanId: {
+                                    partnerId: r.partnerId,
+                                    loanId: loan.id,
+                                },
+                            },
+                            data: {
+                                rawShare: Number(rawShares[i].rawShare.toFixed(2)),
+                                companyCut: Number(rawShares[i].companyCut.toFixed(2)),
+                                partnerFinal: partnerFinalRounded[i],
+                            },
                         });
 
                         await tx.partner.update({
-                            where: { id: existingAccrual.partnerId },
-                            data: { upcomingProfit: { decrement: ratio } },
+                            where: { id: r.partnerId },
+                            data: {
+                                upcomingProfit: { decrement: rawShares[i].ratio },
+                            },
                         });
                     }
                 }
