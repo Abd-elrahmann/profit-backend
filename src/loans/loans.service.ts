@@ -496,7 +496,7 @@ export class LoansService {
                         data: {
                             loanId: loan.id,
                             partnerId: p.id,
-                            sharePercent: Number(percent.toFixed(2)),
+                            sharePercent: percent,
                             isActive: true,
                         },
                     });
@@ -1162,6 +1162,7 @@ export class LoansService {
                 postponeReason: true,
                 newDueDate: true,
                 createdAt: true,
+                discount: true,
             },
         });
 
@@ -1844,7 +1845,7 @@ export class LoansService {
         });
         if (!loan) throw new NotFoundException('Loan not found');
 
-        if (loan.status !== LoanStatus.COMPLETED) {
+        if (loan.status == LoanStatus.COMPLETED) {
             throw new BadRequestException('فقط السلف المكتملة يمكن تحميل ملف التسوية لها');
         }
 
@@ -1863,10 +1864,22 @@ export class LoansService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
+        const totalPaidAmount = await this.prisma.repayment.aggregate({
+            where: { loanId: loan.id },
+            _sum: { paidAmount: true },
+        }).then(res => res._sum.paidAmount || 0);
+
         await this.prisma.loan.update({
-            where: { id: loanId },
-            data: { SETTLEMENT: publicUrl },
+            where: { id: loan.id },
+            data: {
+                SETTLEMENT: publicUrl,
+                status: 'COMPLETED',
+                endDate: new Date(),
+                newAmount: totalPaidAmount
+            },
         });
+
+        await this.updateClientStatus(loan.clientId);
 
         await this.prisma.auditLog.create({
             data: {
