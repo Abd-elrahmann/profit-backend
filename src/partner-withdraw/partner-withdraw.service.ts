@@ -995,6 +995,19 @@ export class PartnerWithdrawService {
             data: { WITHDRAWAL_RECEIPT: publicUrl },
         });
 
+        const lastPartnerCount = await this.prisma.partnerCount.findFirst({
+            orderBy: { count: 'desc' },
+        });
+
+        const newCount = lastPartnerCount ? lastPartnerCount.count + 1 : 1;
+
+        await this.prisma.partnerCount.create({
+            data: {
+                partnerId: partner.id,
+                count: newCount,
+            },
+        });
+
         // Create audit log
         await this.prisma.auditLog.create({
             data: {
@@ -1110,5 +1123,13 @@ export class PartnerWithdrawService {
                 schedule: newSchedule,
             };
         });
+    }
+
+    async getNextPartnerCount(): Promise<number> {
+        const lastPartnerCount = await this.prisma.partnerCount.findFirst({
+            orderBy: { count: 'desc' },
+        });
+
+        return lastPartnerCount ? lastPartnerCount.count + 1 : 1;
     }
 }

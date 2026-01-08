@@ -151,4 +151,10 @@ export class RepaymentController {
             file,
         );
     }
+
+    @Get('next-count')
+    @Permissions('repayments', 'canView')
+    async getNextRepaymentCount() {
+        return this.repaymentService.getNextRepaymentCount();
+    }
 }

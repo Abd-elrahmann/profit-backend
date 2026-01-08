@@ -1,0 +1,236 @@
+[
+  {
+    "id": 46,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 1,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.371Z"
+  },
+  {
+    "id": 47,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 2,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.380Z"
+  },
+  {
+    "id": 48,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 3,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.383Z"
+  },
+  {
+    "id": 49,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 4,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.386Z"
+  },
+  {
+    "id": 50,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 5,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.389Z"
+  },
+  {
+    "id": 51,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 6,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.391Z"
+  },
+  {
+    "id": 52,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 7,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.394Z"
+  },
+  {
+    "id": 53,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 8,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.396Z"
+  },
+  {
+    "id": 54,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 9,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.399Z"
+  },
+  {
+    "id": 55,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 10,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.401Z"
+  },
+  {
+    "id": 56,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 11,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.404Z"
+  },
+  {
+    "id": 57,
+    "partnerId": 13,
+    "periodId": null,
+    "year": 2026,
+    "month": 12,
+    "amount": 3.125,
+    "createdAt": "2026-01-07T01:35:38.407Z"
+  },
+  {
+    "id": 8,
+    "partnerId": 8,
+    "periodId": null,
+    "year": 2025,
+    "month": 12,
+    "amount": 250,
+    "createdAt": "2025-12-31T16:34:30.705Z"
+  },
+  {
+    "id": 9,
+    "partnerId": 9,
+    "periodId": null,
+    "year": 2025,
+    "month": 12,
+    "amount": 250,
+    "createdAt": "2025-12-31T16:36:29.928Z"
+  },
+  {
+    "id": 58,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 1,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.645Z"
+  },
+  {
+    "id": 59,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 2,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.648Z"
+  },
+  {
+    "id": 60,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 3,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.650Z"
+  },
+  {
+    "id": 61,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 4,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.651Z"
+  },
+  {
+    "id": 62,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 5,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.653Z"
+  },
+  {
+    "id": 63,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 6,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.656Z"
+  },
+  {
+    "id": 64,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 7,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.658Z"
+  },
+  {
+    "id": 65,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 8,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.660Z"
+  },
+  {
+    "id": 66,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 9,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.661Z"
+  },
+  {
+    "id": 67,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 10,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.663Z"
+  },
+  {
+    "id": 68,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 11,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.664Z"
+  },
+  {
+    "id": 69,
+    "partnerId": 14,
+    "periodId": null,
+    "year": 2026,
+    "month": 12,
+    "amount": 1.041666666666667,
+    "createdAt": "2026-01-08T13:53:48.665Z"
+  }
+]

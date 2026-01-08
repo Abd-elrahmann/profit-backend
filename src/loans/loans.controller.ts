@@ -156,4 +156,12 @@ export class LoansController {
     ) {
         return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId || null, req.user.id);
     }
+
+    @Get('get/counts/:loanId')
+    @Permissions('loans', 'canView')
+    async getLoanCountById(
+        @Param('loanId', ParseIntPipe) loanId: number,
+    ) {
+        return this.loansService.getLoanCountById(loanId);
+    }
 }

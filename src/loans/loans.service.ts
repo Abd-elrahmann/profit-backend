@@ -161,83 +161,182 @@ export class LoansService {
         }
     }
 
+    private async createPartnerAccrualsOnActivationMix(loanId: number) {
+        const loan = await this.prisma.loan.findUnique({
+            where: { id: loanId },
+            include: {
+                LoanPartnerShare: {
+                    where: { isActive: true },
+                    include: { partner: { select: { id: true, orgProfitPercent: true } } },
+                },
+                LoanNewCapitalShare: {
+                    include: { partner: { select: { id: true, orgProfitPercent: true } } },
+                },
+            },
+        });
+
+        if (!loan) return;
+
+        const period = await this.prisma.periodHeader.findFirst({
+            where: { endDate: null },
+            orderBy: { startDate: 'desc' },
+        });
+
+        if (!period) {
+            throw new BadRequestException('No open period found');
+        }
+
+        const periodId = period.id;
+
+        const createAccruals = async (
+            interestAmount: number,
+            shares: {
+                partnerId: number;
+                percent: number;
+                orgProfitPercent: number;
+            }[],
+        ) => {
+            if (interestAmount <= 0 || shares.length === 0) return;
+
+            const raw = shares.map(s => {
+                const rawShare = interestAmount * (s.percent / 100);
+                const companyCut = rawShare * (s.orgProfitPercent / 100);
+                const partnerFinal = rawShare - companyCut;
+
+                return {
+                    partnerId: s.partnerId,
+                    rawShare,
+                    companyCut,
+                    partnerFinal,
+                };
+            });
+
+            const roundedFinals = raw.map(r => Number(r.partnerFinal.toFixed(2)));
+            const totalRounded = roundedFinals.reduce((a, b) => a + b, 0);
+            const diff = Number(
+                (raw.reduce((s, r) => s + r.partnerFinal, 0) - totalRounded).toFixed(2)
+            );
+
+            if (diff !== 0) {
+                let maxIndex = 0;
+                raw.forEach((r, i) => {
+                    if (r.partnerFinal > raw[maxIndex].partnerFinal) {
+                        maxIndex = i;
+                    }
+                });
+                roundedFinals[maxIndex] += diff;
+            }
+
+            for (let i = 0; i < raw.length; i++) {
+                await this.prisma.partnerShareAccrual.create({
+                    data: {
+                        periodId,
+                        loanId: loan.id,
+                        partnerId: raw[i].partnerId,
+                        rawShare: Number(raw[i].rawShare.toFixed(2)),
+                        companyCut: Number(raw[i].companyCut.toFixed(2)),
+                        partnerFinal: roundedFinals[i],
+                    },
+                });
+            }
+        };
+
+        if (loan.generalInterestAmount !== null && loan.newCapitalInterestAmount !== null) {
+            await createAccruals(
+                loan.generalInterestAmount,
+                loan.LoanPartnerShare.map(s => ({
+                    partnerId: s.partnerId,
+                    percent: Number(s.sharePercent),
+                    orgProfitPercent: Number(s.partner.orgProfitPercent || 0),
+                })),
+            );
+
+            await createAccruals(
+                loan.newCapitalInterestAmount,
+                loan.LoanNewCapitalShare.map(s => ({
+                    partnerId: s.partnerId,
+                    percent: Number(s.percent),
+                    orgProfitPercent: Number(s.partner.orgProfitPercent || 0),
+                })),
+            );
+        }
+    }
+
     private async handleNewCapitalOnActivation(
         tx: Prisma.TransactionClient,
         loan: any,
         currentUser: number,
     ) {
+        const accruals = await tx.partnerShareAccrual.findMany({
+            where: {
+                loanId: loan.id,
+                isClosed: false,
+            },
+        });
 
-        let shares: any[] = [];
-
-        if (loan.source === LoanFundSource.NEW_CAPITAL) {
-            shares = await tx.loanNewCapitalShare.findMany({
-                where: { loanId: loan.id },
-            });
-        } else if (loan.source === LoanFundSource.GENERAL) {
-            shares = await tx.loanPartnerShare.findMany({
-                where: { loanId: loan.id },
+        for (const acc of accruals) {
+            await tx.partner.update({
+                where: { id: acc.partnerId },
+                data: {
+                    upcomingProfit: {
+                        increment: Number(acc.partnerFinal),
+                    },
+                },
             });
         }
+
+        if (
+            loan.source !== LoanFundSource.NEW_CAPITAL &&
+            loan.source !== LoanFundSource.MIX
+        ) {
+            return;
+        }
+
+        const shares = await tx.loanNewCapitalShare.findMany({
+            where: { loanId: loan.id },
+        });
 
         const lines: JournalLineDto[] = [];
 
         for (const s of shares) {
+            const used = Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2));
+            if (used <= 0) continue;
+
             const partner = await tx.partner.findUniqueOrThrow({
                 where: { id: s.partnerId },
             });
-
-            const profit = await tx.partnerShareAccrual.findFirstOrThrow({
-                where: { partnerId: s.partnerId, loanId: s.loanId, isClosed: false },
-            });
-
-            await tx.partner.update({
-                where: { id: s.partnerId },
-                data: {
-                    upcomingProfit: {
-                        increment: profit.partnerFinal,
-                    },
-                },
-            });
-
-            if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
-
-            const used = Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2));
-            if (used <= 0) continue;
 
             await tx.partner.update({
                 where: { id: s.partnerId },
                 data: {
                     isNewPartner: false,
-                    capitalAmount: {
-                        increment: used,
-                    },
-                    totalAmount: {
-                        increment: used,
-                    },
-                }
-            }),
+                    capitalAmount: { increment: used },
+                    totalAmount: { increment: used },
+                },
+            });
 
-                lines.push({
+            lines.push(
+                {
                     accountId: partner.accountNewCapitalId,
                     debit: used,
                     credit: 0,
-                    description: `تحويل رأس مال شريك إلى عام ${loan.id}`,
-                });
-
-            lines.push({
-                accountId: partner.accountEquityId,
-                debit: 0,
-                credit: used,
-                description: `إثبات رأس مال الشريك`,
-            });
+                    description: `تحويل رأس مال شريك إلى العام (قرض ${loan.id})`,
+                },
+                {
+                    accountId: partner.accountEquityId,
+                    debit: 0,
+                    credit: used,
+                    description: `إثبات رأس مال الشريك`,
+                },
+            );
         }
 
-        if (loan.source !== LoanFundSource.NEW_CAPITAL || lines.length === 0) return;
+        if (lines.length === 0) return;
 
         const journal = await this.journalService.createJournal(
             {
                 reference: `LOAN-ACT-${loan.id}`,
-                description: `تحويل رأس مال الشركاء إلى العام`,
+                description: `تحويل رأس المال الجديد إلى العام`,
                 type: 'GENERAL',
                 sourceType: JournalSourceType.LOAN,
                 sourceId: loan.id,
@@ -253,76 +352,75 @@ export class LoansService {
         tx: Prisma.TransactionClient,
         loanId: number,
     ) {
-
         const loan = await tx.loan.findUnique({
             where: { id: loanId },
             include: {
                 LoanNewCapitalShare: true,
-                LoanPartnerShare: true,
             },
         });
 
         if (!loan) return;
 
-        let shares: any[] = [];
-        if (loan.source === LoanFundSource.NEW_CAPITAL) {
-            shares = loan.LoanNewCapitalShare;
-        } else if (loan.source === LoanFundSource.GENERAL) {
-            shares = loan.LoanPartnerShare.filter(p => p.isActive);
-        }
+        const accruals = await tx.partnerShareAccrual.findMany({
+            where: {
+                loanId,
+                isClosed: false,
+            },
+        });
 
-        for (const s of shares) {
-            const profit = await tx.partnerShareAccrual.findFirst({
-                where: {
-                    partnerId: s.partnerId,
-                    loanId: loanId,
-                    isClosed: false,
-                },
-                include: { partner: true }
-            });
-
-            if (!profit) continue;
-
-            const currentPartner = await tx.partner.findUnique({
-                where: { id: s.partnerId },
+        for (const acc of accruals) {
+            const partner = await tx.partner.findUnique({
+                where: { id: acc.partnerId },
                 select: { upcomingProfit: true },
             });
 
-            if (currentPartner) {
-                const currentProfit = Number(currentPartner.upcomingProfit || 0);
-                const decrementAmount = Number(profit.partnerFinal || 0);
-                const newProfit = Math.max(0, currentProfit - decrementAmount);
+            const current = Number(partner?.upcomingProfit || 0);
+            const decrement = Number(acc.partnerFinal || 0);
 
-                await tx.partner.update({
-                    where: { id: s.partnerId },
-                    data: {
-                        upcomingProfit: newProfit,
-                    },
-                });
-            }
+            await tx.partner.update({
+                where: { id: acc.partnerId },
+                data: {
+                    upcomingProfit: Math.max(0, current - decrement),
+                },
+            });
+        }
 
-            if (loan.source !== LoanFundSource.NEW_CAPITAL) continue;
+        if (
+            loan.source !== LoanFundSource.NEW_CAPITAL &&
+            loan.source !== LoanFundSource.MIX
+        ) {
+            return;
+        }
 
+        for (const s of loan.LoanNewCapitalShare) {
             const used = Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2));
             if (used <= 0) continue;
 
-            const capitalAmount = profit?.partner.capitalAmount || 0;
+            const partner = await tx.partner.findUnique({
+                where: { id: s.partnerId },
+                select: { capitalAmount: true },
+            });
 
-            const check = capitalAmount <= used;
+            const remainingCapital = Number(partner?.capitalAmount || 0) - used;
 
             await tx.partner.update({
                 where: { id: s.partnerId },
                 data: {
-                    capitalAmount: {
-                        decrement: used,
-                    },
-                    totalAmount: {
-                        decrement: used,
-                    },
-                    isNewPartner: check,
+                    capitalAmount: { decrement: used },
+                    totalAmount: { decrement: used },
+                    isNewPartner: remainingCapital <= 0,
                 },
             });
         }
+    }
+
+    async getLoanCountById(id: number) {
+        const loanCount = await this.prisma.loanCount.findFirst({
+            where: { loanId: id },
+            select: { loanId: true, count: true }
+        });
+        if (!loanCount) throw new NotFoundException('Loan count not found');
+        return loanCount;
     }
 
     // Create Loan
@@ -331,40 +429,6 @@ export class LoansService {
         if (!client) throw new NotFoundException('Client not found');
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
-
-        let fundSource = dto.source;
-
-        if (fundSource === LoanFundSource.NEW_CAPITAL) {
-            if (!dto.partnerId) {
-                throw new BadRequestException('يجب اختيار مستثمر عند استخدام رأس المال الجديد');
-            }
-
-            const partnerNewCapital = await this.prisma.partnerNewCapital.findFirst({
-                where: {
-                    partnerId: dto.partnerId,
-                    remaining: { gt: 0 },
-                },
-            });
-
-            if (!partnerNewCapital) {
-                throw new BadRequestException(
-                    'هذا المستثمر لا يملك رأس مال جديد متاح'
-                );
-            }
-        }
-
-        if (dto.partnerId) {
-            const partnerCheck = await this.prisma.partner.findUnique({
-                where: { id: dto.partnerId },
-                select: { joinDistribute: true },
-            });
-
-            if (partnerCheck?.joinDistribute === false) throw new NotFoundException('هذا المستثمر لا يمكن دخوله في التوزيع');
-        }
-
-        const bankAccount = await this.prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
-        if (!bankAccount) throw new NotFoundException('Bank account not found');
-        if (bankAccount.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
 
         const principal = new Decimal(dto.amount);
         let totalInterest: Decimal;
@@ -385,13 +449,74 @@ export class LoansService {
             totalAmount = principal;
         }
 
-        const paymentAmount = new Decimal(dto.paymentAmount);
+        let fundSource = dto.source;
 
-        // Calculate full installments and remainder
-        const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
-        const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
-        let months = fullMonths;
-        const hasRemainder = lastPayment.gt(0);
+        let generalAmount = new Decimal(0);
+        let newCapitalAmount = new Decimal(0);
+
+        if (fundSource === LoanFundSource.GENERAL) {
+            generalAmount = principal;
+        }
+
+        if (fundSource === LoanFundSource.NEW_CAPITAL) {
+            newCapitalAmount = principal;
+        }
+
+        if (fundSource === LoanFundSource.MIX) {
+            const bankAccount = await this.prisma.account.findFirst({
+                where: { accountBasicType: 'BANK' },
+            });
+            if (!bankAccount) {
+                throw new NotFoundException('Bank account not found');
+            }
+
+            const bankBalance = new Decimal(bankAccount.balance);
+
+            if (bankBalance.gte(principal)) {
+                generalAmount = principal;
+            } else {
+                generalAmount = bankBalance;
+                newCapitalAmount = principal.minus(bankBalance);
+            }
+        }
+
+        if (generalAmount.gt(0)) {
+            const generalPartners = await this.prisma.partner.findMany({
+                where: {
+                    isActive: true,
+                    joinDistribute: true,
+                    totalAmount: { gt: 0 }
+                },
+            });
+
+            const totalCapital = generalPartners.reduce(
+                (sum, p) => sum.plus(p.totalAmount),
+                new Decimal(0),
+            );
+
+            if (totalCapital.lt(generalAmount)) {
+                throw new BadRequestException(
+                    `رصيد رأس المال غير كافٍ. المطلوب: ${generalAmount.toFixed(2)}`
+                );
+            }
+        }
+
+        if (newCapitalAmount.gt(0)) {
+            const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
+                where: { remaining: { gt: 0 } },
+            });
+
+            const totalNewCapital = newCapitalPartners.reduce(
+                (sum, p) => sum.plus(p.remaining),
+                new Decimal(0),
+            );
+
+            if (totalNewCapital.lt(newCapitalAmount)) {
+                throw new BadRequestException(
+                    `رصيد رأس المال الجديد غير كافٍ. المطلوب: ${newCapitalAmount.toFixed(2)}`
+                );
+            }
+        }
 
         if (fundSource === LoanFundSource.GENERAL) {
             const bank = await this.prisma.account.findFirst({
@@ -403,30 +528,36 @@ export class LoansService {
             }
         }
 
-        let newCapitalPartners: any[] = [];
-        let totalNewCapital = new Decimal(0);
-
-        if (fundSource === LoanFundSource.NEW_CAPITAL) {
-            newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
-                where: { remaining: { gt: 0 } },
-                include: { Partner: true },
+        if (dto.partnerId) {
+            const partnerCheck = await this.prisma.partner.findUnique({
+                where: { id: dto.partnerId },
+                select: { joinDistribute: true },
             });
 
-            if (newCapitalPartners.length === 0) {
-                throw new BadRequestException('لا يوجد رأس مال جديد متاح');
-            }
-
-            totalNewCapital = newCapitalPartners.reduce(
-                (sum, p) => sum.plus(p.remaining),
-                new Decimal(0),
-            );
-
-            if (totalNewCapital.lt(principal)) {
-                throw new BadRequestException(
-                    `رصيد رأس المال الجديد غير كافٍ.المتاح: ${totalNewCapital.toFixed(2)}`,
-                );
-            }
+            if (partnerCheck?.joinDistribute === false) throw new NotFoundException('هذا المستثمر لا يمكن دخوله في التوزيع');
         }
+
+        const interestRatio = interestRate.div(100);
+
+        const generalInterestAmount = generalAmount.gt(0)
+            ? generalAmount.mul(interestRatio)
+            : new Decimal(0);
+
+        const newCapitalInterestAmount = newCapitalAmount.gt(0)
+            ? newCapitalAmount.mul(interestRatio)
+            : new Decimal(0);
+
+        const paymentAmount = new Decimal(dto.paymentAmount);
+
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
+        if (!bankAccount) throw new NotFoundException('Bank account not found');
+        if (bankAccount.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
+
+        // Calculate full installments and remainder
+        const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
+        const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
+        let months = fullMonths;
+        const hasRemainder = lastPayment.gt(0);
 
         // Validate Kafeel
         if (dto.kafeelId) {
@@ -457,6 +588,10 @@ export class LoansService {
                 interestAmount: Number(totalInterest.toFixed(2)),
                 totalAmount: Number(totalAmount.toFixed(2)),
                 paymentAmount: Number(paymentAmount.toFixed(2)),
+                generalAmount: Number(generalAmount.toFixed(2)),
+                newCapitalAmount: Number(newCapitalAmount.toFixed(2)),
+                generalInterestAmount: Number(generalInterestAmount.toFixed(2)),
+                newCapitalInterestAmount: Number(newCapitalInterestAmount.toFixed(2)),
                 durationMonths: months,
                 type: dto.type,
                 source: fundSource,
@@ -472,148 +607,102 @@ export class LoansService {
             },
         });
 
-        if (dto.partnerId && fundSource === LoanFundSource.GENERAL) {
-            const partner = await this.prisma.partner.findUnique({
-                where: { id: dto.partnerId },
-                select: { id: true, totalAmount: true, isActive: true, joinDistribute: true },
+        const lastLoanCount = await this.prisma.loanCount.findFirst({
+            orderBy: { count: 'desc' },
+        });
+
+        const newCount = lastLoanCount ? lastLoanCount.count + 1 : 1;
+
+        await this.prisma.loanCount.create({
+            data: {
+                loanId: loan.id,
+                count: newCount,
+            },
+        });
+
+        if (
+            (fundSource === LoanFundSource.GENERAL || fundSource === LoanFundSource.MIX) &&
+            generalAmount.gt(0)
+        ) {
+            const partners = await this.prisma.partner.findMany({
+                where: {
+                    isActive: true,
+                    joinDistribute: true,
+                    totalAmount: { gt: 0 }
+                },
+                select: { id: true, totalAmount: true },
             });
 
-            if (!partner) throw new NotFoundException('Partner not found');
+            const totalCapital = partners.reduce(
+                (sum, p) => sum + p.totalAmount,
+                0,
+            );
 
-            // Get all partners
-            const allPartners = await this.prisma.partner.findMany({
-                select: { id: true, totalAmount: true, isActive: true, joinDistribute: true },
-            });
+            for (const p of partners) {
+                const percent =
+                    totalCapital > 0
+                        ? (p.totalAmount / totalCapital) * 100
+                        : 0;
 
-            if (partner.isActive) {
-                // Distribute among active partners only
-                const activePartners = allPartners.filter(p => p.isActive);
-                const totalActiveCapital = activePartners.reduce((sum, p) => sum + p.totalAmount, 0);
-
-                for (const p of activePartners) {
-                    const percent = totalActiveCapital > 0 ? (p.totalAmount / totalActiveCapital) * 100 : 0;
-                    await this.prisma.loanPartnerShare.create({
-                        data: {
-                            loanId: loan.id,
-                            partnerId: p.id,
-                            sharePercent: percent,
-                            isActive: true,
-                        },
-                    });
-                }
+                await this.prisma.loanPartnerShare.create({
+                    data: {
+                        loanId: loan.id,
+                        partnerId: p.id,
+                        sharePercent: percent,
+                        isActive: true,
+                    },
+                });
             }
         }
 
-        if (fundSource === LoanFundSource.NEW_CAPITAL) {
-            const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
-                where: {
-                    remaining: { gt: 0 },
-                },
+        if (
+            (fundSource === LoanFundSource.NEW_CAPITAL || fundSource === LoanFundSource.MIX) &&
+            newCapitalAmount.gt(0)
+        ) {
+            const partners = await this.prisma.partnerNewCapital.findMany({
+                where: { remaining: { gt: 0 } },
+                orderBy: { remaining: 'desc' },
             });
 
-            const totalNewCapital = newCapitalPartners.reduce(
+            const totalNewCapital = partners.reduce(
                 (sum, p) => sum.plus(p.remaining),
                 new Decimal(0),
             );
 
-            const partners = [...newCapitalPartners].sort(
-                (a, b) => Number(b.remaining) - Number(a.remaining)
-            );
-
-            let distributed = 0;
+            let distributed = new Decimal(0);
 
             for (let i = 0; i < partners.length; i++) {
                 const p = partners[i];
 
-                const shareRatio = new Decimal(p.remaining).div(totalNewCapital);
+                const usedAmount =
+                    i === partners.length - 1
+                        ? newCapitalAmount.minus(distributed)
+                        : newCapitalAmount
+                            .mul(new Decimal(p.remaining).div(totalNewCapital))
+                            .toDecimalPlaces(2);
 
-                let usedAmount: number;
-
-                if (i === 0) {
-                    usedAmount = 0;
-                } else {
-                    usedAmount = Math.round(
-                        principal.mul(shareRatio).toNumber() * 100
-                    ) / 100;
-
-                    distributed += usedAmount;
-                }
-
-                const percent = usedAmount > 0 ? (usedAmount / principal.toNumber()) * 100 : 0;
+                distributed = distributed.plus(usedAmount);
 
                 await this.prisma.loanNewCapitalShare.create({
                     data: {
                         loanId: loan.id,
                         partnerId: p.partnerId,
-                        amountUsed: usedAmount,
-                        percent: percent,
-                    },
-                });
-            }
-
-            const diff = Math.round(
-                (principal.toNumber() - distributed) * 100
-            ) / 100;
-
-            await this.prisma.loanNewCapitalShare.update({
-                where: {
-                    loanId_partnerId: {
-                        loanId: loan.id,
-                        partnerId: partners[0].partnerId,
-                    },
-                },
-                data: {
-                    amountUsed: diff,
-                    percent: (diff / principal.toNumber()) * 100
-                },
-            });
-
-            for (const p of partners) {
-                const share = await this.prisma.loanNewCapitalShare.findUnique({
-                    where: {
-                        loanId_partnerId: {
-                            loanId: loan.id,
-                            partnerId: p.partnerId,
-                        },
+                        amountUsed: Number(usedAmount),
+                        percent: Number(
+                            usedAmount.div(newCapitalAmount).mul(100)
+                        ),
                     },
                 });
 
                 await this.prisma.partnerNewCapital.update({
                     where: { id: p.id },
                     data: {
-                        remaining: {
-                            decrement: share!.amountUsed,
-                        },
+                        remaining: { decrement: Number(usedAmount) },
                     },
                 });
             }
-
-            // for (const p of newCapitalPartners) {
-            //     const shareRatio = new Decimal(p.remaining).div(totalNewCapital);
-            //     const usedAmount = principal.mul(shareRatio).toDecimalPlaces(2);
-
-
-            //     await this.prisma.loanNewCapitalShare.create({
-            //         data: {
-            //             loanId: loan.id,
-            //             partnerId: p.partnerId,
-            //             amountUsed: Number(usedAmount),
-            //             percent: Number(shareRatio.mul(100).toDecimalPlaces(2)),
-            //         },
-            //     });
-
-            //     await this.prisma.partnerNewCapital.update({
-            //         where: { id: p.id },
-            //         data: {
-            //             remaining: {
-            //                 decrement: Number(usedAmount),
-            //             },
-            //         },
-            //     });
-            // }
         }
 
-        // Update bank account
         const account = await this.prisma.bANK_accounts.update({
             where: { id: dto.bankAccountId },
             data: { limit: { decrement: 1 } },
@@ -797,18 +886,48 @@ export class LoansService {
             where: { accountBasicType: 'LOANS_RECEIVABLE' },
         });
 
+        if (!receivable)
+            throw new BadRequestException('Loan receivable account must exist');
+
         let creditAccount;
+        let journalLines: any[] = [];
+
         if (loan.source === LoanFundSource.GENERAL) {
             creditAccount = await this.prisma.account.findFirstOrThrow({
                 where: { accountBasicType: 'BANK' },
             });
+            journalLines = [
+                { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
+                { accountId: creditAccount.id, debit: 0, credit: loan.amount, description: 'سلفة عميل' },
+            ];
         } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
             creditAccount = await this.prisma.account.findFirstOrThrow({
                 where: { accountBasicType: 'NEW_CAPITAL_BANK' },
             });
+            journalLines = [
+                { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
+                { accountId: creditAccount.id, debit: 0, credit: loan.amount, description: 'سلفة عميل' },
+            ];
+        } else if (loan.source === LoanFundSource.MIX) {
+            const newCapitalBank = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'NEW_CAPITAL_BANK' },
+            });
+            const generalBank = await this.prisma.account.findFirstOrThrow({
+                where: { accountBasicType: 'BANK' },
+            });
+
+            journalLines.push(
+                { accountId: newCapitalBank.id, debit: 0, credit: loan.newCapitalAmount, description: 'تحويل من رأس المال الجديد إلى البنك' },
+                { accountId: generalBank.id, debit: loan.newCapitalAmount, credit: 0, description: 'تحويل من رأس المال الجديد إلى البنك' },
+            );
+
+            journalLines.push(
+                { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
+                { accountId: generalBank.id, debit: 0, credit: loan.amount, description: 'سلفة عميل' },
+            );
+
+            creditAccount = generalBank;
         }
-        if (!receivable)
-            throw new BadRequestException('Loan receivable account must exist');
 
         const { journal } = await this.journalService.createJournal(
             {
@@ -817,21 +936,7 @@ export class LoansService {
                 type: 'GENERAL',
                 sourceType: JournalSourceType.LOAN,
                 sourceId: loan.id,
-                lines: [
-                    {
-                        accountId: receivable.id,
-                        debit: loan.amount,
-                        credit: 0,
-                        description: 'سلفة عميل',
-                        clientId: loan.clientId,
-                    },
-                    {
-                        accountId: creditAccount.id,
-                        debit: 0,
-                        credit: loan.amount,
-                        description: 'سلفة عميل',
-                    },
-                ],
+                lines: journalLines,
             },
             userId,
         );
@@ -860,7 +965,11 @@ export class LoansService {
             },
         });
 
-        await this.createPartnerAccrualsOnActivation(id);
+        if (loan.source === LoanFundSource.MIX) {
+            await this.createPartnerAccrualsOnActivationMix(id);
+        } else {
+            await this.createPartnerAccrualsOnActivation(id);
+        }
 
         await this.prisma.$transaction(async (tx) => {
             await this.handleNewCapitalOnActivation(
@@ -1719,6 +1828,8 @@ export class LoansService {
             }
 
             await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
+
+            await tx.loanCount.deleteMany({ where: { loanId: id } });
 
             await tx.loan.delete({ where: { id } });
 

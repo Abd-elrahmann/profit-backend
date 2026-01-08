@@ -96,4 +96,10 @@ export class PartnerWithdrawController {
     ) {
         return this.service.uploadWithdrawalReceipt(req.user.id, partnerId, file);
     }
+
+    @Get('next-count')
+    @Permissions('partners-withdraw', 'canView')
+    async getNextPartnerCount() {
+        return this.service.getNextPartnerCount();
+    }
 }

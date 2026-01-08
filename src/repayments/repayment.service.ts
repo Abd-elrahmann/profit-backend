@@ -494,39 +494,6 @@ export class RepaymentService {
                 const discount = repayment.discount ? repayment.discount : 0;
                 const realizedInterest = totalInterest + discount;
 
-                // if (realizedInterest > 0) {
-                //     for (const ps of partnerShares) {
-                //         const sharePercent =
-                //             loan.source === LoanFundSource.GENERAL
-                //                 ? Number(ps.sharePercent || 0)
-                //                 : Number(ps.percent || 0);
-
-                //         const existingAccrual = partnerAccruals.find(acc => acc.partnerId === ps.partnerId);
-                //         if (!existingAccrual) continue;
-
-                //         const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
-                //         let companyCut = 0;
-                //         if (existingAccrual.rawShare > 0) {
-                //             const oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
-                //             companyCut = Number(((rawShare * oldcut) / 100).toFixed(2));
-                //         }
-                //         const partnerFinal = Number((rawShare - companyCut).toFixed(2));
-
-                //         const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
-                //         const ratio = Number((partnerFinal - oldPartnerFinal).toFixed(2));
-
-                //         await tx.partner.update({
-                //             where: { id: ps.partnerId },
-                //             data: { upcomingProfit: { increment: ratio } },
-                //         });
-
-                //         await tx.partnerShareAccrual.update({
-                //             where: { id: existingAccrual.id },
-                //             data: { rawShare, companyCut, partnerFinal },
-                //         });
-                //     }
-                // }
-
                 if (realizedInterest > 0) {
                     const rawShares = partnerShares.map(ps => {
                         const sharePercent =
@@ -663,6 +630,7 @@ export class RepaymentService {
                     },
                 });
             }
+            await tx.repaymentCount.deleteMany({ where: { repaymentId: repayment.id } });
 
             try {
                 await this.notificationService.sendNotification({
@@ -793,6 +761,19 @@ export class RepaymentService {
         await this.prisma.repayment.update({
             where: { id },
             data: { PaymentProof: publicUrl }
+        });
+
+        const lastRepaymentCount = await this.prisma.repaymentCount.findFirst({
+            orderBy: { count: 'desc' },
+        });
+
+        const newCount = lastRepaymentCount ? lastRepaymentCount.count + 1 : 1;
+
+        await this.prisma.repaymentCount.create({
+            data: {
+                repaymentId: repayment.id,
+                count: newCount,
+            },
         });
 
         // create audit log
@@ -1302,10 +1283,31 @@ export class RepaymentService {
             });
         }
 
+        const lastRepaymentCount = await this.prisma.repaymentCount.findFirst({
+            orderBy: { count: 'desc' },
+        });
+
+        const newCount = lastRepaymentCount ? lastRepaymentCount.count + 1 : 1;
+
+        await this.prisma.repaymentCount.create({
+            data: {
+                repaymentId: repayments[0].id,
+                count: newCount,
+            },
+        });
+
         return {
             message: 'تم رفع إثبات السداد بنجاح لجميع الدفعات',
             fileUrl: publicUrl,
             repaymentsCount: repayments.length,
         };
+    }
+
+    async getNextRepaymentCount(): Promise<number> {
+        const lastRepaymentCount = await this.prisma.repaymentCount.findFirst({
+            orderBy: { count: 'desc' },
+        });
+
+        return lastRepaymentCount ? lastRepaymentCount.count + 1 : 1;
     }
 }
