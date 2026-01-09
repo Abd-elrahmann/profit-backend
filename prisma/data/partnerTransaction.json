@@ -1,0 +1,24 @@
+[
+  {
+    "id": 7,
+    "partnerId": 9,
+    "type": "SAVING_WITHDRAWAL",
+    "amount": 10,
+    "date": "2026-01-06T12:00:45.622Z",
+    "reference": "SW-1767700845398 - P9",
+    "description": "",
+    "journalId": 161,
+    "createdAt": "2026-01-06T12:00:45.622Z"
+  },
+  {
+    "id": 8,
+    "partnerId": 8,
+    "type": "SAVING_WITHDRAWAL",
+    "amount": 10,
+    "date": "2026-01-06T12:00:45.624Z",
+    "reference": "SW-1767700845398 - P8",
+    "description": "",
+    "journalId": 161,
+    "createdAt": "2026-01-06T12:00:45.624Z"
+  }
+]

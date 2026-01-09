@@ -1,0 +1,362 @@
+[
+  {
+    "id": 463,
+    "journalId": 79,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم جديد)"
+  },
+  {
+    "id": 464,
+    "journalId": 79,
+    "accountId": 53,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "رأس مال جديد - محمد"
+  },
+  {
+    "id": 465,
+    "journalId": 78,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم جديد)"
+  },
+  {
+    "id": 466,
+    "journalId": 78,
+    "accountId": 49,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "رأس مال جديد - يوسف"
+  },
+  {
+    "id": 643,
+    "journalId": 200,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم جديد)"
+  },
+  {
+    "id": 644,
+    "journalId": 200,
+    "accountId": 73,
+    "debit": 0,
+    "credit": 500,
+    "balance": 500,
+    "clientId": null,
+    "description": "رأس مال جديد - test"
+  },
+  {
+    "id": 475,
+    "journalId": 151,
+    "accountId": 7,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": 3,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 476,
+    "journalId": 151,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 477,
+    "journalId": 152,
+    "accountId": 7,
+    "debit": 250,
+    "credit": 0,
+    "balance": 250,
+    "clientId": 3,
+    "description": null
+  },
+  {
+    "id": 478,
+    "journalId": 152,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 250,
+    "balance": -250,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 479,
+    "journalId": 153,
+    "accountId": 53,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 24"
+  },
+  {
+    "id": 480,
+    "journalId": 153,
+    "accountId": 51,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 481,
+    "journalId": 153,
+    "accountId": 49,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 24"
+  },
+  {
+    "id": 482,
+    "journalId": 153,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 502,
+    "journalId": 158,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 503,
+    "journalId": 158,
+    "accountId": 50,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 504,
+    "journalId": 158,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 505,
+    "journalId": 158,
+    "accountId": 46,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 506,
+    "journalId": 158,
+    "accountId": 8,
+    "debit": 50,
+    "credit": 0,
+    "balance": -50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 507,
+    "journalId": 158,
+    "accountId": 9,
+    "debit": 0,
+    "credit": 50,
+    "balance": 50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 519,
+    "journalId": 162,
+    "accountId": 7,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": 3,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 520,
+    "journalId": 162,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 521,
+    "journalId": 163,
+    "accountId": 7,
+    "debit": 250,
+    "credit": 0,
+    "balance": 250,
+    "clientId": 3,
+    "description": null
+  },
+  {
+    "id": 522,
+    "journalId": 163,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 250,
+    "balance": -250,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 523,
+    "journalId": 164,
+    "accountId": 53,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 25"
+  },
+  {
+    "id": 524,
+    "journalId": 164,
+    "accountId": 51,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 525,
+    "journalId": 164,
+    "accountId": 49,
+    "debit": 250,
+    "credit": 0,
+    "balance": -250,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى عام 25"
+  },
+  {
+    "id": 526,
+    "journalId": 164,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 250,
+    "balance": 250,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 532,
+    "journalId": 166,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 533,
+    "journalId": 166,
+    "accountId": 50,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 534,
+    "journalId": 166,
+    "accountId": 8,
+    "debit": 100,
+    "credit": 0,
+    "balance": -100,
+    "clientId": null,
+    "description": "نصيب المساهمين للفترة"
+  },
+  {
+    "id": 535,
+    "journalId": 166,
+    "accountId": 46,
+    "debit": 0,
+    "credit": 100,
+    "balance": 100,
+    "clientId": null,
+    "description": "نصيب المساهم من أرباح الشركة"
+  },
+  {
+    "id": 536,
+    "journalId": 166,
+    "accountId": 8,
+    "debit": 50,
+    "credit": 0,
+    "balance": -50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 537,
+    "journalId": 166,
+    "accountId": 9,
+    "debit": 0,
+    "credit": 50,
+    "balance": 50,
+    "clientId": null,
+    "description": "نصيب الشركة من أرباح المساهمين"
+  },
+  {
+    "id": 608,
+    "journalId": 190,
+    "accountId": 6,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم قديم)"
+  },
+  {
+    "id": 609,
+    "journalId": 190,
+    "accountId": 67,
+    "debit": 0,
+    "credit": 500,
+    "balance": 500,
+    "clientId": null,
+    "description": "رأس مال test"
+  }
+]

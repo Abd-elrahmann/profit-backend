@@ -170,6 +170,10 @@ model Loan {
   interestAmount Float
   totalAmount    Float
   paymentAmount  Float
+  generalAmount Float?
+  newCapitalAmount Float?
+  generalInterestAmount Float? 
+  newCapitalInterestAmount Float?
   durationMonths Int
   type           LoanType
   source         LoanFundSource
@@ -205,6 +209,28 @@ model Loan {
   profitAccruals PartnerShareAccrual[]
   LoanPartnerShare LoanPartnerShare[]
   LoanNewCapitalShare LoanNewCapitalShare[]
+  LoanCount  LoanCount[]
+}
+
+model LoanCount {
+  id        Int      @id @default(autoincrement())
+  loanId    Int
+  count     Int      @default(0)
+  loan    Loan    @relation(fields: [loanId], references: [id])
+}
+
+model RepaymentCount {
+  id          Int        @id @default(autoincrement())
+  repaymentId Int
+  count       Int        @default(0)
+  repayment   Repayment  @relation(fields: [repaymentId], references: [id])
+}
+
+model PartnerCount {
+  id        Int      @id @default(autoincrement())
+  partnerId Int
+  count     Int      @default(0)
+  partner   Partner  @relation(fields: [partnerId], references: [id])
 }
 
 model LoanPartnerShare {
@@ -228,6 +254,7 @@ enum LoanType {
 enum LoanFundSource {
   GENERAL
   NEW_CAPITAL
+  MIX
 }
 
 enum LoanStatus {
@@ -263,7 +290,7 @@ model Repayment {
   client         Client      @relation(fields: [clientId], references: [id])
   Notification Notification[]
   profitAccruals PartnerShareAccrual[]
-
+  RepaymentCount RepaymentCount[]
 }
 
 model SmallLoan {
@@ -365,6 +392,7 @@ model Partner {
   PartnerWithdrawal PartnerWithdrawal[]
   PartnerNewCapital PartnerNewCapital[]
   LoanNewCapitalShare LoanNewCapitalShare[]
+  PartnerCount PartnerCount[]
 
   createdAt DateTime @default(now())
 }
