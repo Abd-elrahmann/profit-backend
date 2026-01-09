@@ -1074,6 +1074,12 @@ export class LoansService {
                     where: { id: { in: allJournalIds } },
                 });
             }
+            // Delete RepaymentCount records before deleting Repayments
+            if (repaymentIds.length > 0) {
+                await tx.repaymentCount.deleteMany({
+                    where: { repaymentId: { in: repaymentIds } },
+                });
+            }
             await tx.repayment.deleteMany({ where: { loanId: id } });
 
             await tx.loan.update({
@@ -1783,6 +1789,12 @@ export class LoansService {
                 await tx.journalHeader.deleteMany({ where: { id: { in: headerIds } } });
             }
 
+            // Delete RepaymentCount records before deleting Repayments
+            if (repaymentIds.length > 0) {
+                await tx.repaymentCount.deleteMany({
+                    where: { repaymentId: { in: repaymentIds } },
+                });
+            }
             await tx.repayment.deleteMany({ where: { loanId: id } });
 
             await tx.loanPartnerShare.deleteMany({ where: { loanId: id } });
