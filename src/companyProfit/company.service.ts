@@ -206,7 +206,7 @@ export class CompanyService {
             });
 
         const upcomingCompanyProfit =
-            Number(upcomingCompanyProfitAgg._sum.companyCut || 0);
+            Number(upcomingCompanyProfitAgg._sum.companyCut || 0).toFixed(2);
 
         return {
             totalPages,

@@ -627,14 +627,23 @@ export class PeriodService {
                     accountPayableId: accrual.partner.accountPayableId
                 };
 
-                current.totalProfit += Number(accrual.partnerFinal || 0);
+                current.totalProfit = Number(
+                    (current.totalProfit + Number(accrual.partnerFinal || 0)).toFixed(2)
+                );
                 profitByPartner.set(partnerId, current);
 
-                companyProfit += Number(accrual.companyCut || 0);
+                companyProfit = Number(
+                    (companyProfit + Number(accrual.companyCut || 0)).toFixed(2)
+                );
             }
 
             partnerProfits.push(...Array.from(profitByPartner.values()));
-            totalPartnerProfit = partnerProfits.reduce((sum, partner) => sum + partner.totalProfit, 0);
+            totalPartnerProfit = Number(
+                partnerProfits
+                    .reduce((sum, partner) => sum + partner.totalProfit, 0)
+                    .toFixed(2)
+            );
+
         }
 
         return {

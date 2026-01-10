@@ -133,18 +133,35 @@ export class LoansService {
             }
         });
 
-        // Step 3: calculate total unrounded partnerFinal
+        // Step 3: calculate total unrounded values
+        const totalRawShare = rawShares.reduce((sum, r) => sum + r.rawShare, 0);
+        const totalCompanyCut = rawShares.reduce((sum, r) => sum + r.companyCut, 0);
         const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
 
-        // Step 4: create accruals with rounding
-        let accumulated = 0;
+        // Step 4: round individual values
+        const rawShareRoundedArr = rawShares.map(r => Number(r.rawShare.toFixed(2)));
+        const companyCutRoundedArr = rawShares.map(r => Number(r.companyCut.toFixed(2)));
         const partnerFinalRoundedArr = rawShares.map(r => Number(r.partnerFinal.toFixed(2)));
-        const roundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
-        const diff = Number((totalPartnerFinal - roundedSum).toFixed(2));
 
-        if (diff !== 0) {
-            // adjust the last partner only if diff exists
-            partnerFinalRoundedArr[partnerFinalRoundedArr.length - 1] += diff;
+        // Step 5: calculate rounding differences and adjust the largest values
+        const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
+        const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
+
+        const companyCutRoundedSum = companyCutRoundedArr.reduce((a, b) => a + b, 0);
+        const companyCutDiff = Number((totalCompanyCut - companyCutRoundedSum).toFixed(2));
+
+        const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
+        const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
+
+        // Adjust the partner with largest partnerFinal to absorb all differences
+        if (rawShareDiff !== 0) {
+            rawShareRoundedArr[maxIndex] += rawShareDiff;
+        }
+        if (companyCutDiff !== 0) {
+            companyCutRoundedArr[maxIndex] += companyCutDiff;
+        }
+        if (partnerFinalDiff !== 0) {
+            partnerFinalRoundedArr[maxIndex] += partnerFinalDiff;
         }
 
         for (let i = 0; i < rawShares.length; i++) {
@@ -153,8 +170,8 @@ export class LoansService {
                     periodId,
                     partnerId: rawShares[i].share.partnerId,
                     loanId: loan.id,
-                    rawShare: Number(rawShares[i].rawShare.toFixed(2)),
-                    companyCut: Number(rawShares[i].companyCut.toFixed(2)),
+                    rawShare: rawShareRoundedArr[i],
+                    companyCut: companyCutRoundedArr[i],
                     partnerFinal: partnerFinalRoundedArr[i],
                 },
             });
@@ -211,20 +228,43 @@ export class LoansService {
                 };
             });
 
-            const roundedFinals = raw.map(r => Number(r.partnerFinal.toFixed(2)));
-            const totalRounded = roundedFinals.reduce((a, b) => a + b, 0);
-            const diff = Number(
-                (raw.reduce((s, r) => s + r.partnerFinal, 0) - totalRounded).toFixed(2)
-            );
+            // Find the partner with the largest partnerFinal
+            let maxIndex = 0;
+            raw.forEach((r, i) => {
+                if (r.partnerFinal > raw[maxIndex].partnerFinal) {
+                    maxIndex = i;
+                }
+            });
 
-            if (diff !== 0) {
-                let maxIndex = 0;
-                raw.forEach((r, i) => {
-                    if (r.partnerFinal > raw[maxIndex].partnerFinal) {
-                        maxIndex = i;
-                    }
-                });
-                roundedFinals[maxIndex] += diff;
+            // Calculate totals before rounding
+            const totalRawShare = raw.reduce((s, r) => s + r.rawShare, 0);
+            const totalCompanyCut = raw.reduce((s, r) => s + r.companyCut, 0);
+            const totalPartnerFinal = raw.reduce((s, r) => s + r.partnerFinal, 0);
+
+            // Round individual values
+            const roundedRawShares = raw.map(r => Number(r.rawShare.toFixed(2)));
+            const roundedCompanyCuts = raw.map(r => Number(r.companyCut.toFixed(2)));
+            const roundedFinals = raw.map(r => Number(r.partnerFinal.toFixed(2)));
+
+            // Calculate rounding differences
+            const rawShareRoundedSum = roundedRawShares.reduce((a, b) => a + b, 0);
+            const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
+
+            const companyCutRoundedSum = roundedCompanyCuts.reduce((a, b) => a + b, 0);
+            const companyCutDiff = Number((totalCompanyCut - companyCutRoundedSum).toFixed(2));
+
+            const finalRoundedSum = roundedFinals.reduce((a, b) => a + b, 0);
+            const finalDiff = Number((totalPartnerFinal - finalRoundedSum).toFixed(2));
+
+            // Adjust the partner with the largest value to absorb all differences
+            if (rawShareDiff !== 0) {
+                roundedRawShares[maxIndex] += rawShareDiff;
+            }
+            if (companyCutDiff !== 0) {
+                roundedCompanyCuts[maxIndex] += companyCutDiff;
+            }
+            if (finalDiff !== 0) {
+                roundedFinals[maxIndex] += finalDiff;
             }
 
             for (let i = 0; i < raw.length; i++) {
@@ -233,8 +273,8 @@ export class LoansService {
                         periodId,
                         loanId: loan.id,
                         partnerId: raw[i].partnerId,
-                        rawShare: Number(raw[i].rawShare.toFixed(2)),
-                        companyCut: Number(raw[i].companyCut.toFixed(2)),
+                        rawShare: roundedRawShares[i],
+                        companyCut: roundedCompanyCuts[i],
                         partnerFinal: roundedFinals[i],
                     },
                 });
@@ -275,12 +315,20 @@ export class LoansService {
         });
 
         for (const acc of accruals) {
+
+            const partner = await tx.partner.findUniqueOrThrow({
+                where: { id: acc.partnerId },
+                select: { upcomingProfit: true },
+            });
+
+            const newProfit = new Decimal(partner.upcomingProfit || 0)
+                .plus(acc.partnerFinal)
+                .toDecimalPlaces(2);
+
             await tx.partner.update({
                 where: { id: acc.partnerId },
                 data: {
-                    upcomingProfit: {
-                        increment: Number(acc.partnerFinal),
-                    },
+                    upcomingProfit: Number(newProfit),
                 },
             });
         }
@@ -374,13 +422,18 @@ export class LoansService {
                 select: { upcomingProfit: true },
             });
 
-            const current = Number(partner?.upcomingProfit || 0);
-            const decrement = Number(acc.partnerFinal || 0);
+            const current = new Decimal(partner?.upcomingProfit || 0);
+            const decrement = new Decimal(acc.partnerFinal || 0);
+
+            const updated = Decimal.max(
+                new Decimal(0),
+                current.minus(decrement)
+            ).toDecimalPlaces(2);
 
             await tx.partner.update({
                 where: { id: acc.partnerId },
                 data: {
-                    upcomingProfit: Math.max(0, current - decrement),
+                    upcomingProfit: Number(updated),
                 },
             });
         }
@@ -694,10 +747,16 @@ export class LoansService {
                     },
                 });
 
+                const currentPartner = await this.prisma.partnerNewCapital.findUnique({
+                    where: { id: p.id },
+                    select: { remaining: true },
+                });
+                const newRemaining = Math.max(0, Number(currentPartner?.remaining || 0) - Number(usedAmount));
+
                 await this.prisma.partnerNewCapital.update({
                     where: { id: p.id },
                     data: {
-                        remaining: { decrement: Number(usedAmount) },
+                        remaining: newRemaining,
                     },
                 });
             }
@@ -1485,10 +1544,16 @@ export class LoansService {
                     },
                 });
 
+                const currentPartner = await this.prisma.partnerNewCapital.findUnique({
+                    where: { id: p.id },
+                    select: { remaining: true },
+                });
+                const newRemaining = Math.max(0, Number(currentPartner?.remaining || 0) - Number(usedAmount));
+
                 await this.prisma.partnerNewCapital.update({
                     where: { id: p.id },
                     data: {
-                        remaining: { decrement: Number(usedAmount) },
+                        remaining: newRemaining,
                     },
                 });
             }
@@ -1710,10 +1775,16 @@ export class LoansService {
                     },
                 });
 
+                const currentPartner = await this.prisma.partnerNewCapital.findUnique({
+                    where: { id: p.id },
+                    select: { remaining: true },
+                });
+                const newRemaining = Math.max(0, Number(currentPartner?.remaining || 0) - Number(usedAmount));
+
                 await this.prisma.partnerNewCapital.update({
                     where: { id: p.id },
                     data: {
-                        remaining: { decrement: Number(usedAmount) },
+                        remaining: newRemaining,
                     },
                 });
 
