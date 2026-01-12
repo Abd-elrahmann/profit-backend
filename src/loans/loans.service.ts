@@ -557,16 +557,18 @@ export class LoansService {
         }
 
         if (newCapitalAmount.gt(0)) {
-            const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
-                where: { remaining: { gt: 0 } },
+            // Check account balance (code 11001) instead of partnerNewCapital remaining
+            const newCapitalBank = await this.prisma.account.findUnique({
+                where: { code: '11001' },
             });
+            
+            if (!newCapitalBank) {
+                throw new NotFoundException('حساب رأس المال الجديد (11001) غير موجود');
+            }
 
-            const totalNewCapital = newCapitalPartners.reduce(
-                (sum, p) => sum.plus(p.remaining),
-                new Decimal(0),
-            );
+            const balance = new Decimal(newCapitalBank.balance);
 
-            if (totalNewCapital.lt(newCapitalAmount)) {
+            if (balance.lt(newCapitalAmount)) {
                 throw new BadRequestException(
                     `رصيد رأس المال الجديد غير كافٍ. المطلوب: ${newCapitalAmount.toFixed(2)}`
                 );
