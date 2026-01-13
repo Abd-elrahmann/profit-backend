@@ -7,6 +7,10 @@ npm-debug.log
 dist/
 tsconfig.build.tsconfig.json
 tsconfig.build.tsbuildinfo
+
+# Uploads
+uploads/
+
 # Editor
 .vscode
 .idea
