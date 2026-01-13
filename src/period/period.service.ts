@@ -62,7 +62,8 @@ export class PeriodService {
                 entry.partnerFinal += Number(a.partnerFinal || 0);
                 accrualsByPartner.set(partnerId, entry);
 
-                totalCompanyShare += Number(a.companyCut || 0);
+                const t = Number(a.companyCut + a.cents || 0)
+                totalCompanyShare += Number(t || 0);
             }
 
             const LOAN_INCOME = await tx.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
@@ -632,8 +633,10 @@ export class PeriodService {
                 );
                 profitByPartner.set(partnerId, current);
 
+                const companyPlusCents = Number(accrual.companyCut + accrual.cents)
+
                 companyProfit = Number(
-                    (companyProfit + Number(accrual.companyCut || 0)).toFixed(2)
+                    (companyProfit + Number(companyPlusCents || 0)).toFixed(2)
                 );
             }
 

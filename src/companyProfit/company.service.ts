@@ -198,6 +198,7 @@ export class CompanyService {
             await this.prisma.partnerShareAccrual.aggregate({
                 _sum: {
                     companyCut: true,
+                    cents: true
                 },
                 where: {
                     isClosed: false,
@@ -206,7 +207,20 @@ export class CompanyService {
             });
 
         const upcomingCompanyProfit =
-            Number(upcomingCompanyProfitAgg._sum.companyCut || 0).toFixed(2);
+            Number(
+                (upcomingCompanyProfitAgg._sum.companyCut || 0)
+            ).toFixed(2);
+
+        const upcomingCents =
+            Number(
+                (upcomingCompanyProfitAgg._sum.cents || 0)
+            ).toFixed(2);
+
+        const totalUpcomingCompanyProfit =
+            Number(
+                (upcomingCompanyProfitAgg._sum.companyCut || 0) +
+                (upcomingCompanyProfitAgg._sum.cents || 0)
+            ).toFixed(2);
 
         return {
             totalPages,
@@ -214,6 +228,8 @@ export class CompanyService {
             limit,
             availableAmount: companyProfitAccount.balance,
             upcomingProfit: upcomingCompanyProfit,
+            cents: upcomingCents,
+            totalUpcoming: totalUpcomingCompanyProfit,
             totalWithdrawals,
             data: formattedWithdrawals,
 

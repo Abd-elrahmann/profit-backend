@@ -483,7 +483,8 @@ model PartnerShareAccrual {
   repaymentId Int?
   rawShare       Float    
   companyCut     Float  
-  partnerFinal   Float   
+  partnerFinal   Float  
+  cents          Float     @default(0) 
   isClosed       Boolean   @default(false)
   isDistributed  Boolean   @default(false)
   periodId      Int?

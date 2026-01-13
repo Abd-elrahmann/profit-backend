@@ -162,6 +162,10 @@ export class LoansService {
         }
 
         for (let i = 0; i < rawShares.length; i++) {
+
+            const partnerFinalInt = Math.floor(partnerFinalRoundedArr[i]);
+            const cents = Number((partnerFinalRoundedArr[i] - partnerFinalInt).toFixed(2));
+
             await this.prisma.partnerShareAccrual.create({
                 data: {
                     periodId,
@@ -169,7 +173,8 @@ export class LoansService {
                     loanId: loan.id,
                     rawShare: rawShareRoundedArr[i],
                     companyCut: companyCutRoundedArr[i],
-                    partnerFinal: partnerFinalRoundedArr[i],
+                    partnerFinal: partnerFinalInt,
+                    cents: cents,
                 },
             });
         }
@@ -264,6 +269,10 @@ export class LoansService {
             }
 
             for (let i = 0; i < raw.length; i++) {
+
+                const partnerFinalInt = Math.floor(roundedFinals[i]);
+                const cents = Number((roundedFinals[i] - partnerFinalInt).toFixed(2));
+
                 await this.prisma.partnerShareAccrual.create({
                     data: {
                         periodId,
@@ -271,7 +280,8 @@ export class LoansService {
                         partnerId: raw[i].partnerId,
                         rawShare: roundedRawShares[i],
                         companyCut: roundedCompanyCuts[i],
-                        partnerFinal: roundedFinals[i],
+                        partnerFinal: partnerFinalInt,
+                        cents: cents,
                     },
                 });
             }
@@ -557,7 +567,7 @@ export class LoansService {
             const newCapitalBank = await this.prisma.account.findUnique({
                 where: { code: '11001' },
             });
-            
+
             if (!newCapitalBank) {
                 throw new NotFoundException('حساب رأس المال الجديد (11001) غير موجود');
             }

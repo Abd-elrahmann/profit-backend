@@ -7,6 +7,7 @@ type LoanRevenueEntry = {
     rawShare: number;
     companyCut: number;
     partnerShare: number;
+    cents: number;
     description: string;
 };
 
@@ -227,7 +228,7 @@ export class IncomeStatementService {
 
         for (const acc of accruals) {
             const raw = Number(acc.rawShare || 0);
-            const company = Number(acc.companyCut || 0);
+            const company = Number(acc.companyCut + acc.cents || 0);
             const partner = Number(acc.partnerFinal || 0);
 
             if (raw <= 0) continue;
@@ -295,7 +296,7 @@ export class IncomeStatementService {
             entries: Array.from(c.entries.values()).map((e: LoanRevenueEntry) => ({
                 loanId: e.loanId,
                 rawShare: Number(e.rawShare.toFixed(2)),
-                companyCut: Number(e.companyCut.toFixed(2)),
+                companyCut: Number((e.companyCut + e.cents).toFixed(2)),
                 partnerShare: Number(e.partnerShare.toFixed(2)),
                 description: e.description,
             })),
