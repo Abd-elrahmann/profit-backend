@@ -130,11 +130,11 @@ export class RepaymentService {
             );
         }
 
-        // Step 5: Create final results using orgProfitPercent for consistent company cut calculation
+        // Step 5: Create final results using pre-calculated and adjusted company cut
         const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
         const finalResults = rawShares.map((r, i) => {
-            // Use the stored orgCutPercent to recalculate company cut consistently
-            const companyCut = Number((rawShareRoundedArr[i] * (r.orgCutPercent / 100)).toFixed(2));
+            // Use the pre-calculated and adjusted companyCutRoundedArr value
+            const companyCut = companyCutRoundedArr[i];
             let partnerFinal = Number((rawShareRoundedArr[i] - companyCut).toFixed(2));
 
             const existingAccrual = partnerAccruals.find(acc => acc.partnerId === r.ps.partnerId);
@@ -203,6 +203,9 @@ export class RepaymentService {
     ) {
         if (realizedInterest <= 0) return;
 
+        // Fetch partner accruals first before using in map
+        const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
+
         // Step 1: Calculate raw shares using partner's orgProfitPercent (not derived from DB)
         const rawShares = partnerShares.map(ps => {
             const sharePercent =
@@ -224,8 +227,6 @@ export class RepaymentService {
         }).filter((r): r is any => r !== null);
 
         if (rawShares.length === 0) return;
-
-        const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
 
         // Step 2: Calculate total unrounded values
         const totalRawShare = rawShares.reduce((sum, r) => sum + r.rawShare, 0);
@@ -265,10 +266,10 @@ export class RepaymentService {
             );
         }
 
-        // Step 5: Create final results using orgProfitPercent for consistent company cut calculation
+        // Step 5: Create final results using pre-calculated and adjusted company cut
         const finalResults = rawShares.map((r, i) => {
-            // Use the stored orgCutPercent to recalculate company cut consistently
-            const companyCut = Number((rawShareRoundedArr[i] * (r.orgCutPercent / 100)).toFixed(2));
+            // Use the pre-calculated and adjusted companyCutRoundedArr value
+            const companyCut = companyCutRoundedArr[i];
             let partnerFinal = Number((rawShareRoundedArr[i] - companyCut).toFixed(2));
 
             const oldPartnerFinal = Number(r.existingAccrual.partnerFinal || 0);
