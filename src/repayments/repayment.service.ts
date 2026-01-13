@@ -16,6 +16,8 @@ type PartnerCalc = {
     companyCut: number;
     partnerFinal: number;
     ratio: number;
+    partnerFinalInt: number;
+    cents: number;
 };
 
 @Injectable()
@@ -303,7 +305,11 @@ export class RepaymentService {
                     const partnerFinal = rawShare - companyCut;
 
                     const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
-                    const ratio = Number((oldPartnerFinal - partnerFinal).toFixed(2));
+
+                    const partnerFinalInt = Math.floor(partnerFinal);
+                    const cents = Number((partnerFinal - partnerFinalInt).toFixed(2));
+
+                    const ratio = Number((oldPartnerFinal - partnerFinalInt).toFixed(2));
 
                     return {
                         partnerId: ps.partnerId,
@@ -311,7 +317,9 @@ export class RepaymentService {
                         companyCut,
                         partnerFinal,
                         oldPartnerFinal,
-                        ratio
+                        ratio,
+                        partnerFinalInt,
+                        cents
                     };
                 }).filter(r => r.rawShare !== 0 || r.companyCut !== 0);
 
@@ -352,7 +360,7 @@ export class RepaymentService {
                     const totalCompanyCut = finalResults.reduce((sum, r) => sum + r.companyCut, 0);
                     const expectedPartnerTotal = realizedInterest - totalCompanyCut;
                     const finalDiff = Number((expectedPartnerTotal - totalPartnerFinal).toFixed(2));
-                    
+
                     if (finalDiff !== 0 && finalResults.length > 0) {
                         finalResults[finalResults.length - 1].partnerFinal = Number(
                             (finalResults[finalResults.length - 1].partnerFinal + finalDiff).toFixed(2)
@@ -371,6 +379,7 @@ export class RepaymentService {
                                 rawShare: r.rawShare,
                                 companyCut: r.companyCut,
                                 partnerFinal: r.partnerFinal,
+                                cents: r.cents,
                             },
                         });
 
@@ -520,7 +529,11 @@ export class RepaymentService {
                         const partnerFinal = rawShare - companyCut;
 
                         const oldPartnerFinal = Number(existingAccrual.partnerFinal || 0);
-                        const ratio = Number((partnerFinal - oldPartnerFinal).toFixed(2));
+
+                        const partnerFinalInt = Math.floor(partnerFinal);
+                        const cents = Number((partnerFinal - partnerFinalInt).toFixed(2));
+
+                        const ratio = Number((partnerFinalInt - oldPartnerFinal).toFixed(2));
 
                         return {
                             partnerId: ps.partnerId,
@@ -528,6 +541,8 @@ export class RepaymentService {
                             companyCut,
                             partnerFinal,
                             ratio,
+                            partnerFinalInt,
+                            cents
                         } as PartnerCalc;;
                     }).filter((r): r is PartnerCalc => r !== null);
 
@@ -567,7 +582,7 @@ export class RepaymentService {
                     const totalCompanyCut = finalResults.reduce((sum, r) => sum + r.companyCut, 0);
                     const expectedPartnerTotal = realizedInterest - totalCompanyCut;
                     const finalDiff = Number((expectedPartnerTotal - totalPartnerFinal).toFixed(2));
-                    
+
                     if (finalDiff !== 0 && finalResults.length > 0) {
                         finalResults[finalResults.length - 1].partnerFinal = Number(
                             (finalResults[finalResults.length - 1].partnerFinal + finalDiff).toFixed(2)
@@ -586,6 +601,7 @@ export class RepaymentService {
                                 rawShare: r.rawShare,
                                 companyCut: r.companyCut,
                                 partnerFinal: r.partnerFinal,
+                                cents: r.cents,
                             },
                         });
 
@@ -1112,7 +1128,11 @@ export class RepaymentService {
                     const partnerFinal = Number((rawShare - companyCut).toFixed(2));
 
                     const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
-                    const ratio = Number((oldPartnerFinal - partnerFinal).toFixed(2));
+
+                    const partnerFinalInt = Math.floor(partnerFinal);
+                    const cents = Number((partnerFinal - partnerFinalInt).toFixed(2));
+
+                    const ratio = Number((oldPartnerFinal - partnerFinalInt).toFixed(2));
 
                     if (rawShare === 0 && companyCut === 0) continue;
 
@@ -1122,7 +1142,8 @@ export class RepaymentService {
                             data: {
                                 rawShare,
                                 companyCut,
-                                partnerFinal,
+                                partnerFinal: partnerFinalInt,
+                                cents: cents
                             },
                         });
 
