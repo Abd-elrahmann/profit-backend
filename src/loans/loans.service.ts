@@ -123,27 +123,17 @@ export class LoansService {
 
         if (rawShares.length === 0) return;
 
-        // Step 2: find the largest partnerFinal to absorb rounding difference
-        let maxIndex = 0;
-        let maxValue = -Infinity;
-        rawShares.forEach((r, idx) => {
-            if (r.partnerFinal > maxValue) {
-                maxValue = r.partnerFinal;
-                maxIndex = idx;
-            }
-        });
-
-        // Step 3: calculate total unrounded values
+        // Step 2: calculate total unrounded values
         const totalRawShare = rawShares.reduce((sum, r) => sum + r.rawShare, 0);
         const totalCompanyCut = rawShares.reduce((sum, r) => sum + r.companyCut, 0);
         const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
 
-        // Step 4: round individual values
+        // Step 3: round individual values
         const rawShareRoundedArr = rawShares.map(r => Number(r.rawShare.toFixed(2)));
         const companyCutRoundedArr = rawShares.map(r => Number(r.companyCut.toFixed(2)));
         const partnerFinalRoundedArr = rawShares.map(r => Number(r.partnerFinal.toFixed(2)));
 
-        // Step 5: calculate rounding differences and adjust the largest values
+        // Step 4: calculate rounding differences and adjust last partner
         const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
         const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
 
@@ -153,15 +143,22 @@ export class LoansService {
         const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
         const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
 
-        // Adjust the partner with largest partnerFinal to absorb all differences
-        if (rawShareDiff !== 0) {
-            rawShareRoundedArr[maxIndex] += rawShareDiff;
+        // Adjust the last partner to absorb all rounding differences
+        const lastIndex = rawShareRoundedArr.length - 1;
+        if (rawShareDiff !== 0 && lastIndex >= 0) {
+            rawShareRoundedArr[lastIndex] = Number(
+                (rawShareRoundedArr[lastIndex] + rawShareDiff).toFixed(2)
+            );
         }
-        if (companyCutDiff !== 0) {
-            companyCutRoundedArr[maxIndex] += companyCutDiff;
+        if (companyCutDiff !== 0 && lastIndex >= 0) {
+            companyCutRoundedArr[lastIndex] = Number(
+                (companyCutRoundedArr[lastIndex] + companyCutDiff).toFixed(2)
+            );
         }
-        if (partnerFinalDiff !== 0) {
-            partnerFinalRoundedArr[maxIndex] += partnerFinalDiff;
+        if (partnerFinalDiff !== 0 && lastIndex >= 0) {
+            partnerFinalRoundedArr[lastIndex] = Number(
+                (partnerFinalRoundedArr[lastIndex] + partnerFinalDiff).toFixed(2)
+            );
         }
 
         for (let i = 0; i < rawShares.length; i++) {
@@ -228,14 +225,6 @@ export class LoansService {
                 };
             });
 
-            // Find the partner with the largest partnerFinal
-            let maxIndex = 0;
-            raw.forEach((r, i) => {
-                if (r.partnerFinal > raw[maxIndex].partnerFinal) {
-                    maxIndex = i;
-                }
-            });
-
             // Calculate totals before rounding
             const totalRawShare = raw.reduce((s, r) => s + r.rawShare, 0);
             const totalCompanyCut = raw.reduce((s, r) => s + r.companyCut, 0);
@@ -256,15 +245,22 @@ export class LoansService {
             const finalRoundedSum = roundedFinals.reduce((a, b) => a + b, 0);
             const finalDiff = Number((totalPartnerFinal - finalRoundedSum).toFixed(2));
 
-            // Adjust the partner with the largest value to absorb all differences
-            if (rawShareDiff !== 0) {
-                roundedRawShares[maxIndex] += rawShareDiff;
+            // Adjust the last partner to absorb all rounding differences
+            const lastIndex = roundedRawShares.length - 1;
+            if (rawShareDiff !== 0 && lastIndex >= 0) {
+                roundedRawShares[lastIndex] = Number(
+                    (roundedRawShares[lastIndex] + rawShareDiff).toFixed(2)
+                );
             }
-            if (companyCutDiff !== 0) {
-                roundedCompanyCuts[maxIndex] += companyCutDiff;
+            if (companyCutDiff !== 0 && lastIndex >= 0) {
+                roundedCompanyCuts[lastIndex] = Number(
+                    (roundedCompanyCuts[lastIndex] + companyCutDiff).toFixed(2)
+                );
             }
-            if (finalDiff !== 0) {
-                roundedFinals[maxIndex] += finalDiff;
+            if (finalDiff !== 0 && lastIndex >= 0) {
+                roundedFinals[lastIndex] = Number(
+                    (roundedFinals[lastIndex] + finalDiff).toFixed(2)
+                );
             }
 
             for (let i = 0; i < raw.length; i++) {
