@@ -84,10 +84,10 @@ export class RepaymentService {
 
             const existingAccrual = partnerAccruals.find(acc => acc.partnerId === ps.partnerId);
 
-            let oldcut = 0;
-            if (existingAccrual && existingAccrual.rawShare > 0) {
-                oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
-            }
+            let oldcut = 20;
+            // if (existingAccrual && existingAccrual.rawShare > 0) {
+            //     oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
+            // }
 
             const rawShare = realizedInterest * (sharePercent / 100);
             const companyCut = (rawShare * oldcut) / 100;
@@ -217,10 +217,10 @@ export class RepaymentService {
             const existingAccrual = partnerAccruals.find(acc => acc.partnerId === ps.partnerId);
             if (!existingAccrual) return null;
 
-            let oldcut = 0;
-            if (existingAccrual.rawShare > 0) {
-                oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
-            }
+            let oldcut = 20;
+            // if (existingAccrual.rawShare > 0) {
+            //     oldcut = Number(((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2));
+            // }
 
             const rawShare = realizedInterest * (sharePercent / 100);
             const companyCut = (rawShare * oldcut) / 100;
