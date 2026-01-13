@@ -238,6 +238,7 @@ model LoanPartnerShare {
   loanId    Int
   partnerId Int
   sharePercent     Float
+  orgProfitPercent Float     @default(0)
   isActive         Boolean   @default(true)
 
   loan    Loan    @relation(fields: [loanId], references: [id])
@@ -419,6 +420,7 @@ model LoanNewCapitalShare {
   partnerId     Int
   amountUsed    Float
   percent       Float
+  orgProfitPercent Float  @default(0)
   partner Partner @relation(fields: [partnerId], references: [id])
   loan    Loan?   @relation(fields: [loanId], references: [id])
   @@unique([loanId, partnerId])

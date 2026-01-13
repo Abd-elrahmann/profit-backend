@@ -693,7 +693,7 @@ export class LoansService {
                     joinDistribute: true,
                     totalAmount: { gt: 0 }
                 },
-                select: { id: true, totalAmount: true },
+                select: { id: true, totalAmount: true, orgProfitPercent: true },
             });
 
             const totalCapital = partners.reduce(
@@ -712,6 +712,7 @@ export class LoansService {
                         loanId: loan.id,
                         partnerId: p.id,
                         sharePercent: percent,
+                        orgProfitPercent: p.orgProfitPercent,
                         isActive: true,
                     },
                 });
@@ -724,6 +725,7 @@ export class LoansService {
         ) {
             const partners = await this.prisma.partnerNewCapital.findMany({
                 where: { remaining: { gt: 0 } },
+                include: { Partner: true },
                 orderBy: { remaining: 'desc' },
             });
 
@@ -754,6 +756,7 @@ export class LoansService {
                         percent: Number(
                             usedAmount.div(newCapitalAmount).mul(100)
                         ),
+                        orgProfitPercent: p.Partner.orgProfitPercent,
                     },
                 });
 
@@ -1525,6 +1528,7 @@ export class LoansService {
 
             const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
                 where: { remaining: { gt: 0 } },
+                include: { Partner: true }
             });
 
             if (newCapitalPartners.length === 0) {
@@ -1551,6 +1555,7 @@ export class LoansService {
                         partnerId: p.partnerId,
                         amountUsed: Number(usedAmount),
                         percent: Number(ratio.mul(100).toFixed(2)),
+                        orgProfitPercent: p.Partner.orgProfitPercent,
                     },
                 });
 
@@ -1602,6 +1607,7 @@ export class LoansService {
                         loanId: loan.id,
                         partnerId: p.id,
                         sharePercent: Number(percent.toFixed(2)),
+                        orgProfitPercent: p.orgProfitPercent,
                         isActive: true,
                     },
                 });
@@ -1751,6 +1757,7 @@ export class LoansService {
 
             const newCapitalPartners = await this.prisma.partnerNewCapital.findMany({
                 where: { remaining: { gt: 0 } },
+                include: { Partner: true }
             });
 
             if (newCapitalPartners.length === 0) {
@@ -1782,6 +1789,7 @@ export class LoansService {
                         partnerId: p.partnerId,
                         amountUsed: Number(usedAmount),
                         percent: Number(ratio.mul(100).toFixed(2)),
+                        orgProfitPercent: p.Partner.orgProfitPercent,
                     },
                 });
 

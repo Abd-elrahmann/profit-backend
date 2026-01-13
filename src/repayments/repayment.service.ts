@@ -73,7 +73,7 @@ export class RepaymentService {
     ) {
         if (realizedInterest <= 0) return;
 
-        // Step 1: Calculate raw shares using partner's orgProfitPercent (not derived from DB)
+        // Step 1: Calculate raw shares using partner's orgProfitPercent
         const rawShares = partnerShares.map(ps => {
             const sharePercent =
                 loan.source === LoanFundSource.GENERAL
@@ -81,7 +81,7 @@ export class RepaymentService {
                     : Number(ps.percent || 0);
 
             // Use partner's orgProfitPercent directly for consistency
-            const orgCutPercent = Number(ps.partner?.orgProfitPercent || 0);
+            const orgCutPercent = Number(ps.orgProfitPercent || 0);
 
             const rawShare = realizedInterest * (sharePercent / 100);
             const companyCut = rawShare * (orgCutPercent / 100);
@@ -206,7 +206,7 @@ export class RepaymentService {
         // Fetch partner accruals first before using in map
         const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
 
-        // Step 1: Calculate raw shares using partner's orgProfitPercent (not derived from DB)
+        // Step 1: Calculate raw shares using partner's orgProfitPercent
         const rawShares = partnerShares.map(ps => {
             const sharePercent =
                 loan.source === LoanFundSource.GENERAL
@@ -216,8 +216,7 @@ export class RepaymentService {
             const existingAccrual = partnerAccruals.find(acc => acc.partnerId === ps.partnerId);
             if (!existingAccrual) return null;
 
-            // Use partner's orgProfitPercent directly for consistency
-            const orgCutPercent = Number(ps.partner?.orgProfitPercent || 0);
+            const orgCutPercent = Number(ps.orgProfitPercent || 0);
 
             const rawShare = realizedInterest * (sharePercent / 100);
             const companyCut = rawShare * (orgCutPercent / 100);
