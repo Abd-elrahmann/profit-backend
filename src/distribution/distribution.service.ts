@@ -339,6 +339,30 @@ export class DistributionService {
 
         if (periods.length === 0) return [];
 
+        const shareAccruals = await this.prisma.partnerShareAccrual.findMany({
+            where: {
+                periodId: periodId ? periodId : { in: periods.map(p => p.id) },
+                isClosed: true,
+            },
+        });
+
+        const shareMap = new Map<number, Map<number, any>>();
+
+        for (const a of shareAccruals) {
+            if (a.periodId === null) continue;
+
+            if (!shareMap.has(a.periodId)) {
+                shareMap.set(a.periodId, new Map());
+            }
+
+            shareMap.get(a.periodId)!.set(a.partnerId, {
+                rawShare: Number(a.rawShare),
+                companyCut: Number(a.companyCut),
+                finalProfit: Number(a.partnerFinal),
+                cents: Number(a.cents || 0),
+            });
+        }
+
         // Fetch savings for all periods in one query
         const savings = await this.prisma.partnerSavingAccrual.findMany({
             where: {
@@ -354,15 +378,19 @@ export class DistributionService {
         });
 
         return await Promise.all(periods.map(async p => {
-            // Load closing/distribution journal
+
             const distributionJournal = await this.prisma.journalHeader.findUnique({
                 where: { id: p.closingJournalId || 0 },
+                include: {
+                    lines: {
+                        include: { account: true }
+                    }
+                }
             }
             );
 
-            // Calculate company profit
-            const companyProfit = p.journals
-                .flatMap(j => j.lines)
+            // Calculate company profit from journal lines
+            const companyProfit = (distributionJournal?.lines || [])
                 .filter(l => l.account.accountBasicType === 'COMPANY_SHARES')
                 .reduce((sum, l) => sum + Number(l.credit), 0);
 
@@ -371,30 +399,39 @@ export class DistributionService {
 
             const round = (v: number) => Math.round(v * 100) / 100;
 
-            // Build partner list with saving
             const partners = p.PartnerPeriodProfit.map(pp => {
                 const savingAmount = round(periodSavingMap.get(pp.partnerId) ?? 0);
-                const finalProfit = round(Number(pp.totalProfit)); // already AFTER company cut
 
-                const orgCutPercent = Number(pp.partner.orgProfitPercent || 0);
+                const share = shareMap
+                    .get(p.id)
+                    ?.get(pp.partnerId);
 
-                // Compute raw before company cut
-                const rawProfit = orgCutPercent === 0
-                    ? finalProfit
-                    : round(finalProfit / (1 - orgCutPercent / 100));
+                if (!share) {
+                    throw new Error(`Missing share accrual for partner ${pp.partnerId} in period ${p.id}`);
+                }
 
-                // Company cut value
-                const companyCut = round(rawProfit - finalProfit);
+                // Get final profit from journal lines (credit amount on partner's accountPayableId)
+                let finalProfitFromJournal = 0;
+                if (distributionJournal?.lines) {
+                    const partnerLine = distributionJournal.lines.find(
+                        l => l.accountId === pp.partner.accountPayableId && l.credit > 0
+                    );
+                    if (partnerLine) {
+                        finalProfitFromJournal = Number(partnerLine.credit);
+                    }
+                }
+
+                // Use journal value if available, otherwise use accrual value
+                const finalProfit = finalProfitFromJournal > 0 ? finalProfitFromJournal : round(share.finalProfit);
 
                 return {
                     partnerId: pp.partnerId,
                     partnerName: pp.partner.name,
                     nationalId: pp.partner.nationalId,
                     phone: pp.partner.phone,
-                    orgProfitPercent: orgCutPercent,
 
-                    rawProfit,
-                    companyCut,
+                    rawShare: round(share.rawShare),
+                    companyCut: round(share.companyCut),
                     finalProfit,
 
                     savingAmount,

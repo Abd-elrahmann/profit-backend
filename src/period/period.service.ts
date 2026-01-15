@@ -27,187 +27,204 @@ export class PeriodService {
 
     async closePeriod(periodId: number, closingUserId: number) {
         return await this.prisma.$transaction(async (tx) => {
+
             const period = await tx.periodHeader.findUnique({ where: { id: periodId } });
             if (!period) throw new NotFoundException('Period not found');
-
-            if (period.closingJournalId) {
-                throw new BadRequestException('الفترة مغلقة بالفعل.');
-            }
-
-            const user = await this.prisma.user.findUnique({
-                where: { id: closingUserId },
-            });
+            if (period.isClosed) throw new BadRequestException('الفترة مغلقة بالفعل');
 
             const drafts = await tx.journalHeader.findMany({
                 where: { periodId, status: { not: 'POSTED' } },
             });
             if (drafts.length > 0) {
-                throw new BadRequestException(`لا يمكن إغلاق الفترة: هناك ${drafts.length} قيود غير معتمدة.`);
+                throw new BadRequestException(`هناك ${drafts.length} قيود غير معتمدة`);
             }
 
-            // Partner profit accrual closing
             const accruals = await tx.partnerShareAccrual.findMany({
-                where: { periodId: periodId, isClosed: false, isDistributed: false },
+                where: { periodId, isClosed: false, isDistributed: false },
                 include: { partner: true },
             });
 
-            const accrualsByPartner = new Map<number, { partnerFinal: number; partnerAccountId: number }>();
-            let totalCompanyShare = 0;
-
-            for (const a of accruals) {
-                const partnerId = a.partnerId;
-                const accountId = a.partner.accountPayableId;
-
-                const entry = accrualsByPartner.get(partnerId) ?? { partnerFinal: 0, partnerAccountId: accountId };
-                entry.partnerFinal += Number(a.partnerFinal || 0);
-                accrualsByPartner.set(partnerId, entry);
-
-                const t = Number(a.companyCut + a.cents || 0)
-                totalCompanyShare += Number(t || 0);
+            if (accruals.length === 0) {
+                throw new BadRequestException('لا توجد أرباح لإغلاق الفترة');
             }
 
-            const LOAN_INCOME = await tx.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
-            const COMPANY_SHARES = await tx.account.findFirst({ where: { accountBasicType: 'COMPANY_SHARES' } });
+            const expenses = await tx.journalLine.aggregate({
+                where: {
+                    journal: { periodId },
+                    account: { accountBasicType: 'EXPENSES' }
+                },
+                _sum: { debit: true }
+            });
 
-            if (!LOAN_INCOME) throw new BadRequestException('LOAN_INCOME account is missing');
-            if (!COMPANY_SHARES) throw new BadRequestException('COMPANY_SHARES account is missing');
+            const totalExpenses = Number(expenses._sum.debit ?? 0);
+
+            const partnerGrossMap = new Map<number, number>();
+            let totalGrossPartnerProfit = 0;
+            let totalGrossCompanyProfit = 0;
+            let totalOldCents = 0;
+
+            for (const a of accruals) {
+                const pf = Number(a.partnerFinal || 0);
+                const cc = Number(a.companyCut || 0);
+                const cents = Number(a.cents || 0);
+
+                partnerGrossMap.set(
+                    a.partnerId,
+                    (partnerGrossMap.get(a.partnerId) || 0) + pf
+                );
+
+                totalGrossPartnerProfit += pf;
+                totalGrossCompanyProfit += cc;
+                totalOldCents += cents;
+            }
+
+            const totalGrossProfit =
+                totalGrossPartnerProfit + totalGrossCompanyProfit + totalOldCents;
+
+            const partnersExpenseShare =
+                totalExpenses * (totalGrossPartnerProfit / totalGrossProfit);
+
+            const companyExpenseShare =
+                totalExpenses * (totalGrossCompanyProfit / totalGrossProfit);
+
+            let centsFromPartners = 0;
+            const partnerMap = new Map<number, {
+                partnerId: number;
+                accountPayableId: number;
+                netProfit: number;
+            }>();
+
+            for (const [partnerId, gross] of partnerGrossMap.entries()) {
+                const expense = totalExpenses * (gross / totalGrossProfit);
+                const netUnrounded = gross - expense;
+
+                const netRounded = Math.floor(netUnrounded);
+                const cents = netUnrounded - netRounded;
+
+                centsFromPartners += cents;
+
+                const partner = accruals.find(a => a.partnerId === partnerId)!.partner;
+                partnerMap.set(partnerId, {
+                    partnerId,
+                    accountPayableId: partner.accountPayableId,
+                    netProfit: netRounded,
+                });
+            }
+
+            centsFromPartners = Number(centsFromPartners.toFixed(2));
+
+            const companyNet =
+                totalGrossCompanyProfit - companyExpenseShare;
+
+            const adjustedOldCents =
+                totalOldCents * (companyNet / totalGrossCompanyProfit);
+
+            const companyRoundingCents = companyNet - Math.floor(companyNet * 100) / 100;
+            const totalCentsCollected = Number(
+                (centsFromPartners + adjustedOldCents + companyRoundingCents).toFixed(2)
+            );
+
+            const finalCompanyProfit = Number(
+                (Math.floor(companyNet * 100) / 100 + totalCentsCollected).toFixed(2)
+            );
+
+            const LOAN_INCOME = await tx.account.findFirstOrThrow({
+                where: { accountBasicType: 'LOAN_INCOME' },
+            });
+
+            const COMPANY_SHARES = await tx.account.findFirstOrThrow({
+                where: { accountBasicType: 'COMPANY_SHARES' },
+            });
 
             const lines: JournalLineDto[] = [];
 
-            for (const [, v] of accrualsByPartner) {
+            // الشركاء
+            for (const p of partnerMap.values()) {
+                const amount = Number(p.netProfit.toFixed(2));
+
                 lines.push({
                     accountId: LOAN_INCOME.id,
-                    debit: Number(v.partnerFinal.toFixed(2)),
+                    debit: amount,
                     credit: 0,
                     description: 'نصيب المساهمين للفترة',
                 });
+
                 lines.push({
-                    accountId: v.partnerAccountId,
+                    accountId: p.accountPayableId,
                     debit: 0,
-                    credit: Number(v.partnerFinal.toFixed(2)),
-                    description: 'نصيب المساهم من أرباح الشركة',
+                    credit: amount,
+                    description: 'نصيب المساهم من أرباح الفترة',
                 });
             }
 
-            if (totalCompanyShare > 0) {
+            // الشركة
+            if (finalCompanyProfit > 0) {
                 lines.push({
                     accountId: LOAN_INCOME.id,
-                    debit: Number(totalCompanyShare.toFixed(2)),
+                    debit: finalCompanyProfit,
                     credit: 0,
-                    description: 'نصيب الشركة من أرباح المساهمين',
+                    description: 'نصيب الشركة من أرباح الفترة',
                 });
+
                 lines.push({
                     accountId: COMPANY_SHARES.id,
                     debit: 0,
-                    credit: Number(totalCompanyShare.toFixed(2)),
-                    description: 'نصيب الشركة من أرباح المساهمين',
+                    credit: finalCompanyProfit,
+                    description: 'نصيب الشركة من أرباح الفترة',
                 });
             }
 
-            let closingJournalId: number | null = null;
-            if (lines.length > 0) {
-                const created = await this.journalService.createJournal(
-                    {
-                        periodId: period.id,
-                        reference: `CLOSE-PERIOD-${period.id}-${Date.now()}`,
-                        description: `إقفال فترة ${period.name}`,
-                        type: 'CLOSING',
-                        sourceType: JournalSourceType.PERIOD_CLOSING,
-                        sourceId: period.id,
-                        lines,
-                    },
-                    closingUserId,
-                );
-                closingJournalId = created?.journal?.id ?? null;
-            }
+            // 9️⃣ إنشاء قيد الإقفال
+            const closingJournal = await this.journalService.createJournal({
+                periodId: period.id,
+                reference: `CLOSE-${period.id}-${Date.now()}`,
+                description: `إقفال الفترة ${period.name}`,
+                type: 'CLOSING',
+                sourceType: JournalSourceType.PERIOD_CLOSING,
+                sourceId: period.id,
+                lines,
+            }, closingUserId);
 
-            // Mark accruals as closed
-            for (const a of accruals) {
-                await tx.partnerShareAccrual.update({
-                    where: { id: a.id },
-                    data: { isClosed: true },
-                });
-            }
+            // 🔟 تعليم accruals كمغلقة
+            await tx.partnerShareAccrual.updateMany({
+                where: { periodId },
+                data: { isClosed: true },
+            });
 
-            // Save partner period summary
-            for (const [partnerId, sums] of accrualsByPartner.entries()) {
+            // 1️⃣1️⃣ حفظ ملخص أرباح الشركاء
+            for (const p of partnerMap.values()) {
                 await tx.partnerPeriodProfit.create({
                     data: {
-                        partnerId,
+                        partnerId: p.partnerId,
                         periodId: period.id,
-                        totalProfit: Number(sums.partnerFinal.toFixed(2)),
+                        totalProfit: Number(p.netProfit.toFixed(2)),
                     },
                 });
             }
 
-            // Accounts closing
+            // 1️⃣2️⃣ إغلاق الحسابات والعملاء
             await this.closeAccountsWithParents(tx, periodId);
 
-            // Clients closing
-            const clients = await tx.client.findMany({});
-            for (const c of clients) {
-                const sums = await tx.journalLine.aggregate({
-                    where: { clientId: c.id, journal: { periodId } },
-                    _sum: { debit: true, credit: true },
-                });
+            // 1️⃣3️⃣ إغلاق الفترة
+            await tx.periodHeader.update({
+                where: { id: periodId },
+                data: {
+                    isClosed: true,
+                    closingJournalId: closingJournal.journal.id,
+                    endDate: new Date(),
+                },
+            });
 
-                const periodDebit = Number(sums._sum.debit ?? 0);
-                const periodCredit = Number(sums._sum.credit ?? 0);
-
-                const prevClientClose = await tx.clientsClosing.findFirst({
-                    where: { clientId: c.id },
-                    orderBy: { periodId: 'desc' },
-                });
-
-                const openingBalance = prevClientClose ? prevClientClose.closingBalance : c.balance ?? 0;
-
-                const closingBalance = parseFloat((openingBalance + periodDebit - periodCredit).toFixed(2));
-
-                await tx.clientsClosing.create({
-                    data: {
-                        clientId: c.id,
-                        periodId,
-                        openingDebit: prevClientClose?.closingDebit ?? 0,
-                        openingCredit: prevClientClose?.closingCredit ?? 0,
-                        openingBalance,
-                        closingDebit: (prevClientClose?.closingDebit ?? 0) + periodDebit,
-                        closingCredit: (prevClientClose?.closingCredit ?? 0) + periodCredit,
-                        closingBalance,
-                        lastUpdated: new Date(),
-                    },
-                });
-            }
-
-            // Create new period WITHOUT Opening Journal
+            // 1️⃣4️⃣ فتح فترة جديدة
             const newPeriod = await tx.periodHeader.create({
                 data: {
-                    // name: `Open period starting ${new Date().toISOString().slice(0, 10)}`,
                     name: `فترة مفتوحة تبدأ من ${new Date().toISOString().slice(0, 10)}`,
                     startDate: new Date(),
                 },
             });
 
-            await tx.periodHeader.update({
-                where: { id: period.id },
-                data: {
-                    closingJournalId,
-                    isClosed: true,
-                    endDate: new Date(),
-                },
-            });
-
-            // create audit log
-            await this.prisma.auditLog.create({
-                data: {
-                    userId: closingUserId,
-                    screen: 'Period',
-                    action: 'UPDATE',
-                    description: `قام المستخدم ${user?.name} بإغلاق الفترة ${period.name} (${period.id})`,
-                },
-            });
-
             return {
-                message: 'تم إغلاق الفترة بنجاح.',
+                message: 'تم إغلاق الفترة بنجاح',
                 periodId: period.id,
                 newPeriodId: newPeriod.id,
             };
@@ -495,6 +512,17 @@ export class PeriodService {
         let totalPartnerProfit = 0;
         let companyProfit = 0;
 
+        // Calculate total expenses for the period
+        const expenses = await this.prisma.journalLine.aggregate({
+            where: {
+                journal: { periodId },
+                account: { accountBasicType: 'EXPENSES' }
+            },
+            _sum: { debit: true }
+        });
+
+        const totalExpenses = Number(expenses._sum.debit ?? 0);
+
         if (period.isClosed) {
             partnerProfits = period.PartnerPeriodProfit.map(ppp => ({
                 partnerId: ppp.partnerId,
@@ -506,30 +534,96 @@ export class PeriodService {
                 accountPayableId: ppp.partner.accountPayableId
             }));
 
-            partnerProfits = partnerProfits.map(p => {
-                const savingAmount = savingMap.get(p.partnerId) ?? 0;
+            // Get accruals to show gross profit before expenses
+            const accruals = await this.prisma.partnerShareAccrual.findMany({
+                where: { periodId, isClosed: true }
+            });
+
+            const partnerGrossMap = new Map<number, number>();
+            let totalGrossPartnerProfit = 0;
+            let totalGrossCompanyProfit = 0;
+            let totalOldCents = 0;
+
+            for (const accrual of accruals) {
+                const pf = Number(accrual.partnerFinal || 0);
+                const cc = Number(accrual.companyCut || 0);
+                const cents = Number(accrual.cents || 0);
+
+                partnerGrossMap.set(
+                    accrual.partnerId,
+                    (partnerGrossMap.get(accrual.partnerId) || 0) + pf
+                );
+
+                totalGrossPartnerProfit += pf;
+                totalGrossCompanyProfit += cc;
+                totalOldCents += cents;
+            }
+
+            const totalGrossProfit =
+                totalGrossPartnerProfit + totalGrossCompanyProfit + totalOldCents;
+
+            const partnersExpenseShare =
+                totalExpenses * (totalGrossPartnerProfit / totalGrossProfit);
+
+            const companyExpenseShare =
+                totalExpenses * (totalGrossCompanyProfit / totalGrossProfit);
+
+            let centsFromPartners = 0;
+
+            const partnerMap = new Map<number, any>();
+
+            for (const [partnerId, gross] of partnerGrossMap.entries()) {
+                const expense = totalExpenses * (gross / totalGrossProfit);
+                const netUnrounded = gross - expense;
+
+                const netRounded = Math.floor(netUnrounded);
+                const cents = netUnrounded - netRounded;
+
+                centsFromPartners += cents;
+
+                partnerMap.set(partnerId, {
+                    grossProfit: Number(gross.toFixed(2)),
+                    expenseShare: Number(expense.toFixed(2)),
+                    netProfit: Number(netRounded.toFixed(2)),
+                });
+            }
+
+            centsFromPartners = Number(centsFromPartners.toFixed(2));
+
+            const companyNet =
+                totalGrossCompanyProfit - companyExpenseShare;
+
+            const adjustedOldCents =
+                totalOldCents * (companyNet / totalGrossCompanyProfit);
+
+            const totalCentsCollected = Number(
+                (centsFromPartners + adjustedOldCents).toFixed(2)
+            );
+
+            const finalCompanyProfit = Number(
+                (companyNet).toFixed(2)
+            );
+
+            partnerProfits = Array.from(partnerMap.entries()).map(([pid, data]) => {
+                const orig = partnerProfits.find(p => p.partnerId === pid);
                 return {
-                    ...p,
-                    savingAmount,
-                    totalAfterSaving: Math.round((p.totalProfit - savingAmount) * 100) / 100
+                    partnerId: pid,
+                    partnerName: orig!.partnerName,
+                    partnerNationalId: orig!.partnerNationalId,
+                    partnerPhone: orig!.partnerPhone,
+                    orgProfitPercent: orig!.orgProfitPercent,
+                    accountPayableId: orig!.accountPayableId,
+                    grossProfit: data.grossProfit,
+                    expenseShare: data.expenseShare,
+                    netProfit: data.netProfit,
                 };
             });
 
-            totalPartnerProfit = partnerProfits.reduce(
-                (sum, partner) => sum + (partner.totalAfterSaving ?? partner.totalProfit),
+            const finalPartnerProfit = partnerProfits.reduce(
+                (s, p) => s + p.netProfit,
                 0
             );
 
-            // Calculate company profit from closing journal
-            const closingJournal = period.journals.find(j => j.id === period.closingJournalId);
-            if (closingJournal) {
-                const companyShareLines = closingJournal.lines.filter(line =>
-                    line.account.accountBasicType === 'COMPANY_SHARES'
-                );
-                companyProfit = companyShareLines.reduce((sum, line) => sum + Number(line.credit), 0);
-            }
-
-            // Total period debit/credit/balance
             const totalPeriodDebit = journals.reduce((sum, j) => sum + j.totalDebit, 0);
             const totalPeriodCredit = journals.reduce((sum, j) => sum + j.totalCredit, 0);
             const totalPeriodBalance = totalPeriodDebit - totalPeriodCredit;
@@ -544,18 +638,139 @@ export class PeriodService {
                 totalDebit: totalPeriodDebit,
                 totalCredit: totalPeriodCredit,
                 totalBalance: totalPeriodBalance,
+                totalExpenses: Number(totalExpenses.toFixed(2)),
+                grossProfit: {
+                    partnerTotal: Number(totalGrossPartnerProfit.toFixed(2)),
+                    companyTotal: Number(totalGrossCompanyProfit.toFixed(2)),
+                    totalCents: Number(totalOldCents.toFixed(2)),
+                    total: Number(
+                        (totalGrossPartnerProfit + totalGrossCompanyProfit + totalOldCents).toFixed(2)
+                    ),
+                },
+                expenseDistribution: {
+                    totalExpenses: Number(totalExpenses.toFixed(2)),
+                    partnersShare: Number(partnersExpenseShare.toFixed(2)),
+                    companyShare: Number(companyExpenseShare.toFixed(2)),
+                },
+                centCollectionBreakdown: {
+                    centsFromPartnerRounding: Number(centsFromPartners.toFixed(2)),
+                    adjustedCentsFromAccrual: Number(adjustedOldCents.toFixed(2)),
+                    totalCentsCollected: Number(totalCentsCollected.toFixed(2)),
+                },
+                PartnerDetails: {
+                    partnersShare: Number(partnersExpenseShare.toFixed(2)),
+                    netProfit: Number(
+                        (totalGrossPartnerProfit - partnersExpenseShare).toFixed(2)
+                    ),
+                },
+                companyDetails: {
+                    Profit: Number(totalGrossCompanyProfit.toFixed(2)),
+                    expenseShare: Number(companyExpenseShare.toFixed(2)),
+                    netProfit: Number(
+                        (totalGrossCompanyProfit - companyExpenseShare).toFixed(2)
+                    ),
+                    centCollected: Number(totalCentsCollected.toFixed(2)),
+                },
                 journals,
                 partnerProfits,
-                companyProfit,
-                totalPartnerProfit,
+                centCollected: Number(totalCentsCollected.toFixed(2)),
+                companyProfit: finalCompanyProfit,
+                totalPartnerProfit: finalPartnerProfit,
+                totalProfit: Number(
+                    (finalPartnerProfit + finalCompanyProfit + totalCentsCollected).toFixed(2)
+                ),
                 isClosed: period.isClosed
             };
         } else {
-            // Open periods
-            const profitCalculation = await this.calculateOpenPeriodProfits(periodId);
-            partnerProfits = profitCalculation.partnerProfits;
-            totalPartnerProfit = profitCalculation.totalPartnerProfit;
-            companyProfit = profitCalculation.companyProfit;
+            const accruals = await this.prisma.partnerShareAccrual.findMany({
+                where: { periodId, isClosed: false, isDistributed: false },
+                include: { partner: true }
+            });
+
+            const partnerGrossMap = new Map<number, number>();
+            let totalGrossPartnerProfit = 0;
+            let totalGrossCompanyProfit = 0;
+            let totalOldCents = 0;
+
+            for (const a of accruals) {
+                const pf = Number(a.partnerFinal || 0);
+                const cc = Number(a.companyCut || 0);
+                const cents = Number(a.cents || 0);
+
+                partnerGrossMap.set(
+                    a.partnerId,
+                    (partnerGrossMap.get(a.partnerId) || 0) + pf
+                );
+
+                totalGrossPartnerProfit += pf;
+                totalGrossCompanyProfit += cc;
+                totalOldCents += cents;
+            }
+
+            const totalGrossProfit =
+                totalGrossPartnerProfit + totalGrossCompanyProfit + totalOldCents;
+
+            const partnersExpenseShare =
+                totalExpenses * (totalGrossPartnerProfit / totalGrossProfit);
+
+            const companyExpenseShare =
+                totalExpenses * (totalGrossCompanyProfit / totalGrossProfit);
+
+            let centsFromPartners = 0;
+
+            const partnerMap = new Map<number, any>();
+
+            for (const [partnerId, gross] of partnerGrossMap.entries()) {
+                const expense = totalExpenses * (gross / totalGrossProfit);
+                const netUnrounded = gross - expense;
+
+                const netRounded = Math.floor(netUnrounded);
+                const cents = netUnrounded - netRounded;
+
+                centsFromPartners += cents;
+
+                partnerMap.set(partnerId, {
+                    grossProfit: Number(gross.toFixed(2)),
+                    expenseShare: Number(expense.toFixed(2)),
+                    netProfit: Number(netRounded.toFixed(2)),
+                });
+            }
+
+            centsFromPartners = Number(centsFromPartners.toFixed(2));
+
+            const companyNet =
+                totalGrossCompanyProfit - companyExpenseShare;
+
+            const adjustedOldCents =
+                totalOldCents * (companyNet / totalGrossCompanyProfit);
+
+            const totalCentsCollected = Number(
+                (centsFromPartners + adjustedOldCents).toFixed(2)
+            );
+
+            const finalCompanyProfit = Number(
+                (companyNet).toFixed(2)
+            );
+
+            partnerProfits = Array.from(partnerMap.entries()).map(([partnerId, data]) => {
+                const partner = accruals.find(a => a.partnerId === partnerId)!.partner;
+                return {
+                    partnerId,
+                    partnerName: partner.name,
+                    accountPayableId: partner.accountPayableId,
+                    grossProfit: data.grossProfit,
+                    expenseShare: data.expenseShare,
+                    netProfit: data.netProfit,
+                };
+            });
+
+            const finalPartnerProfit = partnerProfits.reduce(
+                (s, p) => s + p.netProfit,
+                0
+            );
+
+            const totalPeriodDebit = journals.reduce((s, j) => s + j.totalDebit, 0);
+            const totalPeriodCredit = journals.reduce((s, j) => s + j.totalCredit, 0);
 
             return {
                 id: period.id,
@@ -564,11 +779,61 @@ export class PeriodService {
                 startDateHijri: this.toHijri(period.startDate),
                 endDate: period.endDate,
                 endDateHijri: this.toHijri(period.endDate),
+
+                totalDebit: totalPeriodDebit,
+                totalCredit: totalPeriodCredit,
+                totalBalance: totalPeriodDebit - totalPeriodCredit,
+
+                totalExpenses: Number(totalExpenses.toFixed(2)),
+
+                grossProfit: {
+                    partnerTotal: Number(totalGrossPartnerProfit.toFixed(2)),
+                    companyTotal: Number(totalGrossCompanyProfit.toFixed(2)),
+                    totalCents: Number(totalOldCents.toFixed(2)),
+                    total: Number(
+                        (totalGrossPartnerProfit + totalGrossCompanyProfit + totalOldCents).toFixed(2)
+                    ),
+                },
+
+                expenseDistribution: {
+                    totalExpenses: Number(totalExpenses.toFixed(2)),
+                    partnersShare: Number(partnersExpenseShare.toFixed(2)),
+                    companyShare: Number(companyExpenseShare.toFixed(2)),
+                },
+
+                centCollectionBreakdown: {
+                    centsFromPartnerRounding: Number(centsFromPartners.toFixed(2)),
+                    adjustedCentsFromAccrual: Number(adjustedOldCents.toFixed(2)),
+                    totalCentsCollected: Number(totalCentsCollected.toFixed(2)),
+                },
+
+                PartnerDetails: {
+                    partnersShare: Number(partnersExpenseShare.toFixed(2)),
+                    netProfit: Number(
+                        (totalGrossPartnerProfit - partnersExpenseShare).toFixed(2)
+                    ),
+                },
+
+                companyDetails: {
+                    Profit: Number(totalGrossCompanyProfit.toFixed(2)),
+                    expenseShare: Number(companyExpenseShare.toFixed(2)),
+                    netProfit: Number(
+                        (totalGrossCompanyProfit - companyExpenseShare).toFixed(2)
+                    ),
+                    centCollected: Number(totalCentsCollected.toFixed(2)),
+                },
+
                 journals,
                 partnerProfits,
-                companyProfit,
-                totalPartnerProfit,
-                isClosed: period.isClosed
+
+                centCollected: Number(totalCentsCollected.toFixed(2)),
+                companyProfit: finalCompanyProfit,
+                totalPartnerProfit: finalPartnerProfit,
+                totalProfit: Number(
+                    (finalPartnerProfit + finalCompanyProfit + totalCentsCollected).toFixed(2)
+                ),
+
+                isClosed: period.isClosed,
             };
         }
     }

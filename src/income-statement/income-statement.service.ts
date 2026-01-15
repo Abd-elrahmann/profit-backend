@@ -198,11 +198,10 @@ export class IncomeStatementService {
 
         const accruals = await this.prisma.partnerShareAccrual.findMany({
             where: {
-                loan: {
-                    createdAt: {
-                        gte: from,
-                        lte: to,
-                    },
+                ...(periodId ? { periodId } : {}),
+                createdAt: {
+                    gte: from,
+                    lte: to,
                 },
             },
             include: {
