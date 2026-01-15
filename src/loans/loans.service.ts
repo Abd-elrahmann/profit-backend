@@ -2367,6 +2367,10 @@ export class LoansService {
                     interestRate: loan.interestRate,
                     interestAmount: actualInterest,
                     totalAmount: totalTransferred,
+                    generalAmount: loan.generalAmount,
+                    newCapitalAmount: loan.newCapitalAmount,
+                    generalInterestAmount: loan.generalInterestAmount,
+                    newCapitalInterestAmount: loan.newCapitalInterestAmount,
                     paymentAmount: loan.paymentAmount,
                     durationMonths: loan.durationMonths,
                     type: loan.type,
@@ -2379,6 +2383,19 @@ export class LoansService {
                     partnerId: loan.partnerId,
                     bankAccountId: loan.bankAccountId,
                     fromClientId: fromClientId,
+                },
+            });
+
+            const lastLoanCount = await this.prisma.loanCount.findFirst({
+                orderBy: { count: 'desc' },
+            });
+
+            const newCount = lastLoanCount ? lastLoanCount.count + 1 : 1;
+
+            await this.prisma.loanCount.create({
+                data: {
+                    loanId: newLoan.id,
+                    count: newCount,
                 },
             });
 
