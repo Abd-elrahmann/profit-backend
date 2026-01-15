@@ -32,11 +32,10 @@ export class ExpenseService {
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
 
         const bank = await this.getBankAccount();
-        // Fix floating point precision by working with integers (multiply by 100, sum, then divide by 100)
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
 
-        if (new Decimal(totalAmount).gt(new Decimal(bank.balance)))
-            throw new BadRequestException('رصيد الصندوق غير كافي');
+        // if (new Decimal(totalAmount).gt(new Decimal(bank.balance)))
+        //     throw new BadRequestException('رصيد الصندوق غير كافي');
 
         const journalLines = await Promise.all(
             expenses.map(async (e) => {
