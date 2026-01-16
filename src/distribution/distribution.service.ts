@@ -72,7 +72,6 @@ export class DistributionService {
                 where: { id: partnerId },
                 data: {
                     totalProfit: { increment: amount },
-                    upcomingProfit: { decrement: amount },
                     totalAmount: { increment: amount },
                 },
             });
@@ -249,7 +248,6 @@ export class DistributionService {
                 where: { id: partnerId },
                 data: {
                     totalProfit: { decrement: amount },
-                    upcomingProfit: { increment: amount },
                     totalAmount: { decrement: amount },
                 },
             });

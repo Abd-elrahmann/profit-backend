@@ -10,16 +10,6 @@ import { DateTime } from 'luxon';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-type PartnerCalc = {
-    partnerId: number;
-    rawShare: number;
-    companyCut: number;
-    partnerFinal: number;
-    ratio: number;
-    partnerFinalInt: number;
-    cents: number;
-};
-
 @Injectable()
 export class RepaymentService {
     constructor(
@@ -184,13 +174,6 @@ export class RepaymentService {
                         cents: cents,
                     },
                 });
-
-                await tx.partner.update({
-                    where: { id: r.partnerId },
-                    data: {
-                        upcomingProfit: { decrement: ratio },
-                    },
-                });
             }
         }
     }
@@ -315,13 +298,6 @@ export class RepaymentService {
                         companyCut: r.companyCut,
                         partnerFinal: partnerFinalInt,
                         cents: cents,
-                    },
-                });
-
-                await tx.partner.update({
-                    where: { id: r.partnerId },
-                    data: {
-                        upcomingProfit: { increment: ratio },
                     },
                 });
             }
@@ -1148,66 +1124,9 @@ export class RepaymentService {
                 });
             }
 
-            const partnerAccruals = await this.prisma.partnerShareAccrual.findMany({
-                where: { loanId: loanId },
-            })
+            const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;
 
-            const realizedInterest = Number(loan.interestAmount) - earlyPaymentDiscount;
-
-            if (realizedInterest > 0) {
-                for (const ps of partnerShares) {
-
-                    const sharePercent =
-                        loan.source === LoanFundSource.GENERAL
-                            ? Number(ps.sharePercent || 0)
-                            : Number(ps.percent || 0);
-
-                    const existingAccrual = partnerAccruals.find(
-                        (acc) => acc.partnerId === ps.partnerId
-                    );
-
-                    let oldcut = 0;
-                    if (existingAccrual && existingAccrual.rawShare > 0) {
-                        oldcut = Number(
-                            ((existingAccrual.companyCut / existingAccrual.rawShare) * 100).toFixed(2)
-                        );
-                    }
-
-                    const rawShare = Number(((realizedInterest * sharePercent) / 100).toFixed(2));
-                    const companyCut = Number(((rawShare * oldcut) / 100).toFixed(2));
-                    const partnerFinal = Number((rawShare - companyCut).toFixed(2));
-
-                    const oldPartnerFinal = Number(existingAccrual?.partnerFinal || 0);
-
-                    const partnerFinalInt = Math.floor(partnerFinal);
-                    const cents = Number((partnerFinal - partnerFinalInt).toFixed(2));
-
-                    const ratio = Number((oldPartnerFinal - partnerFinalInt).toFixed(2));
-
-                    if (rawShare === 0 && companyCut === 0) continue;
-
-                    if (existingAccrual) {
-                        await tx.partnerShareAccrual.update({
-                            where: { id: existingAccrual.id },
-                            data: {
-                                rawShare,
-                                companyCut,
-                                partnerFinal: partnerFinalInt,
-                                cents: cents
-                            },
-                        });
-
-                        await tx.partner.update({
-                            where: { id: existingAccrual.partnerId },
-                            data: {
-                                upcomingProfit: {
-                                    decrement: ratio,
-                                },
-                            }
-                        })
-                    }
-                }
-            }
+            await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
 
             // Step 8: Update loan
             await tx.loan.update({
