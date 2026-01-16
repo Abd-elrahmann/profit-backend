@@ -503,6 +503,7 @@ export class CompanyService {
                 companyPercentage: totalPeriodProfit > 0
                     ? Number(((companyProfit / totalPeriodProfit) * 100).toFixed(2))
                     : 0,
+                totalCompany: Number((companyProfit + totalCents).toFixed(2)),
             });
         }
 
