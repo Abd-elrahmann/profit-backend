@@ -95,8 +95,8 @@ export class PartnerWithdrawService {
         });
 
         if (!partner) throw new NotFoundException('المستثمر غير موجود');
-        if (partner.WithdrawingStatus !== 'ACTIVE')
-            throw new BadRequestException('لا يمكن تنفيذ الانسحاب لهذا المستثمر الآن');
+        if (!partner.isActive)
+            throw new BadRequestException('لا يمكن تنفيذ الانسحاب لهذا المستثمر الآن - المستثمر غير نشط');
 
         if (partner.joinDistribute === true)
             throw new BadRequestException('لا يمكن تنفيذ الانسحاب لهذا المستثمر الآن');

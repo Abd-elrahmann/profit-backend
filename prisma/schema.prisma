@@ -90,6 +90,17 @@ model ResetPasswordToken {
   user      User     @relation(fields: [userId], references: [id])
 }
 
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
 // CLIENTS, PARTNERS, LOANS, REPAYMENTS
 model Client {
   id             Int              @id @default(autoincrement())

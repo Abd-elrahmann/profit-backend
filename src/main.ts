@@ -10,8 +10,9 @@ import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import cookieParser = require('cookie-parser');
 import * as path from 'path';
-import { join } from 'path';
 import { resolve } from 'path';
 import * as fs from 'fs';
 
@@ -37,7 +38,33 @@ async function bootstrap() {
   ensureDirExists(path.join(uploadsPath, 'zakat'));
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
 
-  app.enableCors();
+  // Enable CORS with credentials
+  app.enableCors({
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3001',
+        'http://72.61.101.53:3003',
+        process.env.FRONT,
+      ].filter(Boolean);
+
+      // Remove trailing slashes
+      const cleanOrigins = allowedOrigins.map((url) => 
+        url && url.endsWith('/') ? url.slice(0, -1) : url
+      );
+
+      if (!origin || cleanOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language', 'page'],
+  });
+
+  // Enable cookie parser
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -15,6 +15,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 dotenv.config();
 
+// Refresh token expiry: 7 days
+const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -113,12 +116,36 @@ export class AuthService {
     return user;
   }
 
-  // Helper: Generate JWT
-  private generateToken(user: any) {
+  // Helper: Generate JWT with refresh token
+  private async generateToken(user: any) {
     const payload = { sub: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
+    
+    // Generate access token (short-lived: 15 minutes)
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+    
+    // Generate refresh token (long-lived: 7 days)
+    const refreshToken = crypto.randomBytes(64).toString('hex');
+    const hashedRefreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    
+    // Store refresh token in database
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY);
+    
+    // Delete old refresh tokens for this user (optional: keep only latest)
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId: user.id }
+    });
+    
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        token: hashedRefreshToken,
+        expiresAt
+      }
+    });
+    
     return {
       accessToken,
+      refreshToken, // Send unhashed token to client
       user: {
         id: user.id,
         name: user.name,
@@ -368,5 +395,102 @@ export class AuthService {
     const modules = [...new Set(user.role.permissions.map((perm) => perm.module))];
 
     return modules;
+  }
+
+  // Refresh access token using refresh token
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      // Hash the incoming refresh token
+      const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
+      // Find the refresh token in database
+      const tokenRecord = await this.prisma.refreshToken.findUnique({
+        where: { token: hashedToken },
+      });
+
+      if (!tokenRecord) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Check if token is expired
+      if (tokenRecord.expiresAt < new Date()) {
+        // Delete expired token
+        await this.prisma.refreshToken.delete({
+          where: { id: tokenRecord.id }
+        });
+        throw new UnauthorizedException('Refresh token expired');
+      }
+
+      // Get user data
+      const user = await this.prisma.user.findUnique({
+        where: { id: tokenRecord.userId },
+        include: { role: true }
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        throw new UnauthorizedException('User is not active');
+      }
+
+      // Generate new access token
+      const payload = { sub: user.id, email: user.email };
+      const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+
+      return {
+        accessToken,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          profileImage: user.profileImage
+        }
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+
+  // Logout and invalidate refresh token
+  async logoutAndInvalidateToken(userId: number, refreshToken?: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Set isActive = false
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: false },
+    });
+
+    // Delete refresh token if provided
+    if (refreshToken) {
+      const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      await this.prisma.refreshToken.deleteMany({
+        where: { 
+          userId: userId,
+          token: hashedToken 
+        }
+      });
+    } else {
+      // Delete all refresh tokens for this user
+      await this.prisma.refreshToken.deleteMany({
+        where: { userId: userId }
+      });
+    }
+
+    // Create audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        screen: 'Auth',
+        action: 'logout',
+        description: `المستخدم ${user.name} قام بتسجيل الخروج`,
+      },
+    });
+
+    return { message: 'تم تسجيل الخروج بنجاح' };
   }
 }

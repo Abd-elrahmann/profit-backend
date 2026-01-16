@@ -5,12 +5,14 @@ import {
   Get,
   UseGuards,
   Req,
+  Res,
   Patch,
   Param,
-  ParseIntPipe,
   UseInterceptors,
-  UploadedFile
+  UploadedFile,
+  UnauthorizedException,
 } from '@nestjs/common';
+import type { Response, Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './strategy/jwt.guard';
@@ -25,14 +27,49 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() body: { email: string; password: string }) {
-    return this.authService.login(body);
+  async login(
+    @Body() body: { email: string; password: string },
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const result = await this.authService.login(body);
+    
+    // Set refresh token as HttpOnly cookie
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Only HTTPS in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/'
+    });
+
+    // Return access token and user data (don't return refresh token in body)
+    return {
+      accessToken: result.accessToken,
+      user: result.user
+    };
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(@Req() req) {
-    return this.authService.logout(req.user.id);
+  async logout(
+    @Req() req,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    // Get refresh token from cookie
+    const refreshToken = req.cookies?.refreshToken;
+    
+    // Invalidate refresh token
+    await this.authService.logoutAndInvalidateToken(req.user.id, refreshToken);
+    
+    // Clear refresh token cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/'
+    });
+
+    return { message: 'تم تسجيل الخروج بنجاح' };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -85,5 +122,17 @@ export class AuthController {
     @Req() req,
   ) {
     return this.authService.getUserModules(req.user.id);
+  }
+
+  @Post('refresh')
+  async refreshToken(@Req() req: Request) {
+    // Get refresh token from cookie
+    const refreshToken = req.cookies?.refreshToken;
+    
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    return this.authService.refreshAccessToken(refreshToken);
   }
 }
