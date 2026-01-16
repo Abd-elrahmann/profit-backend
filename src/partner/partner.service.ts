@@ -577,7 +577,7 @@ export class PartnerService {
         });
         const totalGeneralCapital = totalActiveCapital._sum.totalAmount || 0;
 
-        const enrichedPartners = partners.map(p => {
+        const enrichedPartners = await Promise.all(partners.map(async (p) => {
             const newCapital = p.PartnerNewCapital?.reduce(
                 (sum, nc) => sum + nc.remaining,
                 0
@@ -597,6 +597,9 @@ export class PartnerService {
                         : 0)
                     : 0;
 
+            // Calculate upcoming profit
+            const upcomingProfitData = await this.calculatePartnerUpcomingProfit(p.id);
+
             return {
                 ...p,
                 generalCapital: p.totalAmount,
@@ -610,8 +613,10 @@ export class PartnerService {
                 totalSaving: p.AccountSaving.credit,
                 totalAvilableSaving: p.AccountSaving.balance,
                 totalWithdrawal: p.AccountSaving.debit,
+
+                upcomingProfit: upcomingProfitData.upcomingProfit,
             };
-        });
+        }));
 
         return {
             totalPartners,
@@ -700,6 +705,9 @@ export class PartnerService {
 
         const duration = calculateDuration(partner.createdAt);
 
+        // Calculate upcoming profit
+        const upcomingProfitData = await this.calculatePartnerUpcomingProfit(partner.id);
+
         return {
             ...partner,
             createdAt: toSaudi(partner.createdAt),
@@ -715,6 +723,7 @@ export class PartnerService {
             withdrawalReceipt: partner.PartnerWithdrawal?.[0]?.WITHDRAWAL_RECEIPT || null,
             HIjriCreatedAt: toHijri(partner.createdAt),
             HIjriContractSignedAt: toHijri(partner.contractSignedAt),
+            upcomingProfit: upcomingProfitData.upcomingProfit,
         };
     }
 
@@ -781,6 +790,102 @@ export class PartnerService {
 
         const nextCode = latest ? (parseInt(latest.code) + 10).toString() : `${prefix}0000`;
         return nextCode;
+    }
+
+    private async calculatePartnerUpcomingProfit(partnerId: number): Promise<{
+        upcomingProfit: number;
+        upcomingCents: number;
+        totalUpcoming: number;
+    }> {
+        // Get all pending accruals for this specific partner
+        const pendingAccruals = await this.prisma.partnerShareAccrual.findMany({
+            where: {
+                partnerId,
+                isDistributed: false,
+            },
+            include: { period: true },
+            orderBy: { periodId: 'asc' },
+        });
+
+        if (!pendingAccruals.length) return { upcomingProfit: 0, upcomingCents: 0, totalUpcoming: 0 };
+
+        let upcomingProfit = 0;
+        let upcomingCents = 0;
+
+        // Group this partner's accruals by period
+        const accrualsByPeriod: Record<number, typeof pendingAccruals> = {};
+        for (const a of pendingAccruals) {
+            if (!a.periodId) continue;
+            if (!accrualsByPeriod[a.periodId]) accrualsByPeriod[a.periodId] = [];
+            accrualsByPeriod[a.periodId].push(a);
+        }
+
+        // For each period, calculate the partner's profit
+        for (const periodIdStr in accrualsByPeriod) {
+            const periodId = Number(periodIdStr);
+            const periodAccruals = accrualsByPeriod[periodId];
+
+            // Get ALL accruals for this period (all partners)
+            const allPeriodAccruals = await this.prisma.partnerShareAccrual.findMany({
+                where: {
+                    periodId,
+                    isDistributed: false
+                },
+            });
+
+            // Calculate totals for the entire period
+            let totalGrossPartner = 0;
+            let totalGrossCompany = 0;
+            let totalOldCents = 0;
+
+            for (const a of allPeriodAccruals) {
+                totalGrossPartner += Number(a.partnerFinal || 0);
+                totalGrossCompany += Number(a.companyCut || 0);
+                totalOldCents += Number(a.cents || 0);
+            }
+
+            const totalGross = totalGrossPartner + totalGrossCompany + totalOldCents;
+
+            // Get expenses for the period
+            const expensesAgg = await this.prisma.journalLine.aggregate({
+                where: {
+                    journal: { periodId },
+                    account: { accountBasicType: 'EXPENSES' }
+                },
+                _sum: { debit: true }
+            });
+            const totalExpenses = Number(expensesAgg._sum.debit || 0);
+
+            // Calculate partners' total share of expenses
+            const partnersExpenseShare = totalGross > 0
+                ? totalExpenses * (totalGrossPartner / totalGross)
+                : 0;
+
+            // Calculate this partner's share of the partners' expenses
+            const partnerGross = periodAccruals.reduce((sum, a) => sum + Number(a.partnerFinal || 0), 0);
+
+            const partnerExpenseShare = totalGrossPartner > 0
+                ? partnersExpenseShare * (partnerGross / totalGrossPartner)
+                : 0;
+
+            // Calculate partner's net profit
+            const partnerNet = partnerGross - partnerExpenseShare;
+
+            // Separate whole number from cents
+            const profitWhole = Math.floor(partnerNet);
+            const profitCents = Number((partnerNet - profitWhole).toFixed(2));
+
+            upcomingProfit += profitWhole;
+            upcomingCents += profitCents;
+        }
+
+        const totalUpcoming = Number((upcomingProfit + upcomingCents).toFixed(2));
+
+        return {
+            upcomingProfit: Number(upcomingProfit.toFixed(2)),
+            upcomingCents: Number(upcomingCents.toFixed(2)),
+            totalUpcoming
+        };
     }
 
     // PARTNER TRANSACTIONS
