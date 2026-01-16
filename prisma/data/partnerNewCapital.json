@@ -1,0 +1,16 @@
+[
+  {
+    "id": 7,
+    "partnerId": 8,
+    "amount": 500,
+    "remaining": 0,
+    "createdAt": "2025-12-31T16:34:30.689Z"
+  },
+  {
+    "id": 8,
+    "partnerId": 9,
+    "amount": 500,
+    "remaining": 0,
+    "createdAt": "2025-12-31T16:36:29.923Z"
+  }
+]
