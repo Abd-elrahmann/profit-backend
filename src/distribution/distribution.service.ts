@@ -430,8 +430,9 @@ export class DistributionService {
                     nationalId: pp.partner.nationalId,
                     phone: pp.partner.phone,
 
-                    rawShare: round(share.rawShare),
-                    companyCut: round(share.companyCut),
+                    // orgProfitPercent: pp.partner.orgProfitPercent,
+                    // rawShare: round(share.rawShare),
+                    // companyCut: round(share.companyCut),
                     finalProfit,
 
                     savingAmount,
