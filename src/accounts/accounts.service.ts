@@ -326,6 +326,7 @@ export class AccountsService {
             _sum: {
                 companyCut: true,
                 partnerFinal: true,
+                cents: true,
             },
             where: monthStart && monthEnd ? {
                 createdAt: {
@@ -336,9 +337,9 @@ export class AccountsService {
         });
 
         const totalInterest =
+            Number(interestAgg._sum.partnerFinal || 0) +
             Number(interestAgg._sum.companyCut || 0) +
-            Number(interestAgg._sum.partnerFinal || 0);
-
+            Number(interestAgg._sum.cents || 0);
 
         const groupedByMonth = bankAccount.entries.reduce(
             (acc, line) => {
@@ -451,8 +452,7 @@ export class AccountsService {
             },
             loansBalance: loansAccount.balance,
             loansInterest: totalInterest,
-            loansWithInterest,
-            total: bankAccount.balance + loansWithInterest,
+            total: bankAccount.balance + loansAccount.balance,
 
             totalJournalEntries: totalJournals,
             journalsByMonth: groupedByMonth,
@@ -660,5 +660,4 @@ export class AccountsService {
             },
         };
     }
-
 }
