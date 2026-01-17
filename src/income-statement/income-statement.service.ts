@@ -42,14 +42,12 @@ export class IncomeStatementService {
             from = DateTime
                 .fromJSDate(period.startDate)
                 .setZone('Asia/Riyadh')
-                .startOf('day')
                 .toUTC()
                 .toJSDate();
 
             to = period.endDate
                 ? DateTime.fromJSDate(period.endDate)
                     .setZone('Asia/Riyadh')
-                    .endOf('day')
                     .toUTC()
                     .toJSDate()
                 : now.endOf('day').toUTC().toJSDate();
