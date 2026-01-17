@@ -5,7 +5,7 @@ export class BulkPaymentProofDto {
   @IsString()
   @Transform(({ value }) => {
     try {
-      // Parse JSON string to array
+
       const parsed = JSON.parse(value);
       if (!Array.isArray(parsed)) {
         throw new Error('installmentIds must be an array');

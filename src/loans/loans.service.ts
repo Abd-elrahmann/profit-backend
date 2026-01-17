@@ -105,7 +105,7 @@ export class LoansService {
         }
         const periodId = currentPeriod.id;
 
-        // Step 1: calculate raw values
+
         const rawShares = partnerShares.map(share => {
             const sharePercent =
                 loan.source === LoanFundSource.GENERAL
@@ -123,17 +123,17 @@ export class LoansService {
 
         if (rawShares.length === 0) return;
 
-        // Step 2: calculate total unrounded values
+
         const totalRawShare = rawShares.reduce((sum, r) => sum + r.rawShare, 0);
         const totalCompanyCut = rawShares.reduce((sum, r) => sum + r.companyCut, 0);
         const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
 
-        // Step 3: round individual values
+
         const rawShareRoundedArr = rawShares.map(r => Number(r.rawShare.toFixed(2)));
         const companyCutRoundedArr = rawShares.map(r => Number(r.companyCut.toFixed(2)));
         const partnerFinalRoundedArr = rawShares.map(r => Number(r.partnerFinal.toFixed(2)));
 
-        // Step 4: calculate rounding differences and adjust last partner
+
         const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
         const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
 
@@ -143,7 +143,7 @@ export class LoansService {
         const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
         const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
 
-        // Adjust the last partner to absorb all rounding differences
+
         const lastIndex = rawShareRoundedArr.length - 1;
         if (rawShareDiff !== 0 && lastIndex >= 0) {
             rawShareRoundedArr[lastIndex] = Number(
@@ -163,8 +163,7 @@ export class LoansService {
 
         for (let i = 0; i < rawShares.length; i++) {
 
-            const partnerFinalInt = Math.floor(partnerFinalRoundedArr[i]);
-            const cents = Number((partnerFinalRoundedArr[i] - partnerFinalInt).toFixed(2));
+            const partnerFinalInt = partnerFinalRoundedArr[i];
 
             await this.prisma.partnerShareAccrual.create({
                 data: {
@@ -174,7 +173,6 @@ export class LoansService {
                     rawShare: rawShareRoundedArr[i],
                     companyCut: companyCutRoundedArr[i],
                     partnerFinal: partnerFinalInt,
-                    cents: cents,
                 },
             });
         }
@@ -230,17 +228,17 @@ export class LoansService {
                 };
             });
 
-            // Calculate totals before rounding
+
             const totalRawShare = raw.reduce((s, r) => s + r.rawShare, 0);
             const totalCompanyCut = raw.reduce((s, r) => s + r.companyCut, 0);
             const totalPartnerFinal = raw.reduce((s, r) => s + r.partnerFinal, 0);
 
-            // Round individual values
+
             const roundedRawShares = raw.map(r => Number(r.rawShare.toFixed(2)));
             const roundedCompanyCuts = raw.map(r => Number(r.companyCut.toFixed(2)));
             const roundedFinals = raw.map(r => Number(r.partnerFinal.toFixed(2)));
 
-            // Calculate rounding differences
+
             const rawShareRoundedSum = roundedRawShares.reduce((a, b) => a + b, 0);
             const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
 
@@ -250,7 +248,7 @@ export class LoansService {
             const finalRoundedSum = roundedFinals.reduce((a, b) => a + b, 0);
             const finalDiff = Number((totalPartnerFinal - finalRoundedSum).toFixed(2));
 
-            // Adjust the last partner to absorb all rounding differences
+
             const lastIndex = roundedRawShares.length - 1;
             if (rawShareDiff !== 0 && lastIndex >= 0) {
                 roundedRawShares[lastIndex] = Number(
@@ -270,8 +268,7 @@ export class LoansService {
 
             for (let i = 0; i < raw.length; i++) {
 
-                const partnerFinalInt = Math.floor(roundedFinals[i]);
-                const cents = Number((roundedFinals[i] - partnerFinalInt).toFixed(2));
+                const partnerFinalInt = roundedFinals[i];
 
                 await this.prisma.partnerShareAccrual.create({
                     data: {
@@ -281,7 +278,6 @@ export class LoansService {
                         rawShare: roundedRawShares[i],
                         companyCut: roundedCompanyCuts[i],
                         partnerFinal: partnerFinalInt,
-                        cents: cents,
                     },
                 });
             }
@@ -482,7 +478,7 @@ export class LoansService {
         return loanCount;
     }
 
-    // Create Loan
+
     async createLoan(currentUser, dto: CreateLoanDto) {
         const client = await this.prisma.client.findUnique({ where: { id: dto.clientId } });
         if (!client) throw new NotFoundException('Client not found');
@@ -563,7 +559,7 @@ export class LoansService {
         }
 
         if (newCapitalAmount.gt(0)) {
-            // Check account balance (code 11001) instead of partnerNewCapital remaining
+
             const newCapitalBank = await this.prisma.account.findUnique({
                 where: { code: '11001' },
             });
@@ -616,13 +612,13 @@ export class LoansService {
         if (!bankAccount) throw new NotFoundException('Bank account not found');
         if (bankAccount.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
 
-        // Calculate full installments and remainder
+
         const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
         const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
         let months = fullMonths;
         const hasRemainder = lastPayment.gt(0);
 
-        // Validate Kafeel
+
         if (dto.kafeelId) {
             const kafeel = await this.prisma.kafeel.findUnique({
                 where: { id: dto.kafeelId },
@@ -634,13 +630,13 @@ export class LoansService {
                 throw new BadRequestException('This Kafeel is not associated with the selected client.');
             }
         }
-        // Loan code
+
         const now = new Date();
         const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
         const clientIdStr = String(client.id).padStart(3, '0');
         const code = `LN - ${datePart} - ${clientIdStr}`;
 
-        // Create loan
+
         const loan = await this.prisma.loan.create({
             data: {
                 code,
@@ -846,7 +842,7 @@ export class LoansService {
 
         await this.prisma.repayment.createMany({ data: repayments });
 
-        // Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -856,7 +852,7 @@ export class LoansService {
             },
         });
 
-        // Get loan with includes
+
         const loanWithIncludes = await this.prisma.loan.findUnique({
             where: { id: loan.id },
             include: {
@@ -888,14 +884,14 @@ export class LoansService {
 
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
-        // --- Recreate repayments if missing ---
+
         if (!loan.repayments || loan.repayments.length === 0) {
             const principal = new Decimal(loan.amount);
             const totalInterest = new Decimal(loan.interestAmount);
             const totalAmount = new Decimal(loan.totalAmount);
             const paymentAmount = new Decimal(loan.paymentAmount);
 
-            // Calculate installments
+
             const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
             const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
             let months = fullMonths;
@@ -1070,7 +1066,7 @@ export class LoansService {
         };
     }
 
-    // Deactivate Loan and remove all related journals
+
     async deactivateLoan(currentUser, id: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
@@ -1088,10 +1084,10 @@ export class LoansService {
             throw new BadRequestException('فقط السلف النشطة يمكن إلغاء تفعيلها');
 
         return await this.prisma.$transaction(async (tx) => {
-            // Collect all repayment IDs
+
             const repaymentIds = loan.repayments.map(r => r.id);
 
-            // Find all repayment journals
+
             const repaymentJournalIds = (
                 await tx.journalHeader.findMany({
                     where: {
@@ -1121,7 +1117,7 @@ export class LoansService {
                 select: { id: true },
             });
 
-            // Combine all journal IDs to handle
+
             const allJournalIds = [
                 ...loanJournalIds,
                 ...repaymentJournalIds,
@@ -1130,7 +1126,7 @@ export class LoansService {
             ];
 
             if (allJournalIds.length > 0) {
-                // Unpost all before deletion
+
                 for (const journalId of allJournalIds) {
                     try {
                         await this.journalService.unpostJournal(currentUser, journalId);
@@ -1146,7 +1142,7 @@ export class LoansService {
                     where: { id: { in: allJournalIds } },
                 });
             }
-            // Delete RepaymentCount records before deleting Repayments
+
             if (repaymentIds.length > 0) {
                 await tx.repaymentCount.deleteMany({
                     where: { repaymentId: { in: repaymentIds } },
@@ -1169,7 +1165,7 @@ export class LoansService {
 
             await tx.partnerShareAccrual.deleteMany({ where: { loanId: id } });
 
-            // create audit log
+
             await this.prisma.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -1187,7 +1183,7 @@ export class LoansService {
         });
     }
 
-    // Get all loans
+
     async getAllLoans(page: number = 1, limit = 10, filters?: any) {
         const where: any = {};
 
@@ -1222,7 +1218,7 @@ export class LoansService {
             const endDate = loan.endDate ? new Date(loan.endDate) : null;
             const repaymentDay = loan.repaymentDay ? new Date(loan.repaymentDay) : null;
 
-            // Calculate remaining balance for the loan
+
             const allRepaymentsAggregation = await this.prisma.repayment.aggregate({
                 where: { loanId: loan.id },
                 _sum: {
@@ -1235,14 +1231,14 @@ export class LoansService {
             const totalRemainingAmount = Number(allRepaymentsAggregation._sum.remaining || 0);
             const remainingBalance = Math.max(0, totalRemainingAmount);
 
-            // Collect all PaymentProof from repayments
+
             const paymentProofs = await this.prisma.repayment.findMany({
                 where: { loanId: loan.id, PaymentProof: { not: null } },
                 select: { PaymentProof: true },
                 orderBy: { createdAt: 'desc' },
             });
 
-            // Return all PaymentProof as array
+
             const PAYMENT_PROOF = [
                 ...new Set(paymentProofs.map(p => p.PaymentProof).filter(Boolean))
             ];
@@ -1262,18 +1258,18 @@ export class LoansService {
                     ? DateTime.fromJSDate(repaymentDay).setZone('Asia/Riyadh').toFormat('yyyy-LL-dd')
                     : null,
 
-                // Hijri Dates
+
                 createdAtHijri: createdAt ? this.toHijri(createdAt) : null,
                 startDateHijri: startDate ? this.toHijri(startDate) : null,
                 endDateHijri: endDate ? this.toHijri(endDate) : null,
                 repaymentDayHijri: repaymentDay ? this.toHijri(repaymentDay) : null,
 
-                // Financial data
+
                 remainingBalance: remainingBalance,
                 totalPaidAmount: totalPaidAmount,
                 totalRemainingAmount: totalRemainingAmount,
 
-                // Payment proofs
+
                 PAYMENT_PROOF,
             };
         }));
@@ -1297,12 +1293,12 @@ export class LoansService {
         });
         if (!loan) throw new NotFoundException('Loan not found');
 
-        // Count total repayments
+
         const totalRepayments = await this.prisma.repayment.count({
             where: { loanId: id },
         });
 
-        // Count paid repayments (PAID or EARLY_PAID)
+
         const paidRepayments = await this.prisma.repayment.count({
             where: {
                 loanId: id,
@@ -1310,7 +1306,7 @@ export class LoansService {
             },
         });
 
-        // Calculate total paid amount and remaining amount across ALL repayments
+
         const allRepaymentsAggregation = await this.prisma.repayment.aggregate({
             where: { loanId: id },
             _sum: {
@@ -1322,7 +1318,7 @@ export class LoansService {
         const totalPaidAmount = Number(allRepaymentsAggregation._sum.paidAmount || 0);
         const totalRemainingAmount = Number(allRepaymentsAggregation._sum.remaining || 0);
 
-        // Fetch paginated repayments
+
         const Repayments = await this.prisma.repayment.findMany({
             where: { loanId: id },
             orderBy: { dueDate: 'asc' },
@@ -1473,7 +1469,7 @@ export class LoansService {
         };
     }
 
-    // Update Loan
+
     async updateLoan(currentUser, id: number, dto: UpdateLoanDto) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
@@ -1489,7 +1485,7 @@ export class LoansService {
 
         const loanUpdateData: any = {};
 
-        // Map fields that exist in the Prisma model
+
         if (dto.amount !== undefined) loanUpdateData.amount = dto.amount;
         if (dto.paymentAmount !== undefined) loanUpdateData.paymentAmount = dto.paymentAmount;
         if (dto.type !== undefined) loanUpdateData.type = dto.type;
@@ -1614,12 +1610,12 @@ export class LoansService {
             }
         }
 
-        // If financial fields changed, regenerate repayments
+
         if (dto.amount || dto.InterestPercentage || dto.TotalInterest || dto.type || dto.repaymentDay || dto.startDate) {
-            // Delete existing repayments
+
             await this.prisma.repayment.deleteMany({ where: { loanId: id } });
 
-            // Use Decimal for accurate calculations
+
             const principal = new Decimal(dto.amount || updated.amount);
             let totalInterest: Decimal;
             let totalAmount: Decimal;
@@ -1641,7 +1637,7 @@ export class LoansService {
                 throw new BadRequestException('يجب ادخال مبلغ او نسبة الفائدة');
             }
 
-            // Update loan financials
+
             const financialUpdateData: any = {
                 amount: Number(principal.toFixed(2)),
                 interestRate: Number(interestRate.toFixed(2)),
@@ -1650,7 +1646,7 @@ export class LoansService {
                 startDate: dto.startDate ? new Date(dto.startDate) : loan.startDate,
             };
 
-            // Only update kafeelId if it's explicitly provided in dto
+
             if (dto.kafeelId !== undefined) {
                 financialUpdateData.kafeelId = dto.kafeelId;
             }
@@ -1660,10 +1656,10 @@ export class LoansService {
                 data: financialUpdateData,
             });
 
-            // Payment amount
+
             const paymentAmount = new Decimal(dto.paymentAmount || updated.paymentAmount);
 
-            // Calculate installments
+
             const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
             const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
             const months = fullMonths;
@@ -1816,7 +1812,7 @@ export class LoansService {
             }
         }
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -1829,7 +1825,7 @@ export class LoansService {
         return { message: 'تم تعديل السلفة بنجاح', updated };
     }
 
-    // Delete Loan
+
     async deleteLoan(currentUser, id: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
@@ -1878,7 +1874,7 @@ export class LoansService {
                 await tx.journalHeader.deleteMany({ where: { id: { in: headerIds } } });
             }
 
-            // Delete RepaymentCount records before deleting Repayments
+
             if (repaymentIds.length > 0) {
                 await tx.repaymentCount.deleteMany({
                     where: { repaymentId: { in: repaymentIds } },
@@ -1903,7 +1899,7 @@ export class LoansService {
 
             await tx.loanNewCapitalShare.deleteMany({ where: { loanId: id } });
 
-            // Correct upcomingProfit before deleting partnerShareAccrual
+
             const accrualsToDelete = await tx.partnerShareAccrual.findMany({
                 where: { loanId: id },
             });
@@ -1934,7 +1930,7 @@ export class LoansService {
 
             await tx.loan.delete({ where: { id } });
 
-            // create audit log
+
             await this.prisma.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -1949,7 +1945,6 @@ export class LoansService {
     }
 
     async uploadDebtAcknowledgmentFile(currentUser: number, loanId: number, file: Express.Multer.File, contractNumbers?: { debtAcknowledgmentNumber?: string }) {
-        console.log('uploadDebtAcknowledgmentFile - contractNumbers:', contractNumbers);
         if (!file) throw new BadRequestException('No file uploaded');
 
         const loan = await this.prisma.loan.findUnique({
@@ -1972,7 +1967,7 @@ export class LoansService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // 6. Update loan with file URL and contract number
+
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
@@ -1981,7 +1976,7 @@ export class LoansService {
             },
         });
 
-        // 7. Create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -1991,15 +1986,14 @@ export class LoansService {
             },
         });
 
-        // 8. Return response
+
         return { message: 'تم تحميل إقرار الدين بنجاح', path: publicUrl };
     }
 
     async uploadPromissoryNoteFile(currentUser: number, loanId: number, file: Express.Multer.File, contractNumbers?: { promissoryNoteNumber?: string }) {
-        console.log('uploadPromissoryNoteFile - contractNumbers:', contractNumbers);
         if (!file) throw new BadRequestException('No file uploaded');
 
-        // Find the loan and related client
+
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
             include: { client: true },
@@ -2009,23 +2003,23 @@ export class LoansService {
         const client = loan.client;
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // Create upload directory
+
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-        // Build filename with loan code
+
         const ext = path.extname(file.originalname);
         const fileName = `سند لأمر - ${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
 
-        // Save file
+
         fs.writeFileSync(filePath, file.buffer);
 
-        // Generate public URL
+
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Update loan with file URL and contract number
+
         await this.prisma.loan.update({
             where: { id: loanId },
             data: {
@@ -2034,7 +2028,7 @@ export class LoansService {
             },
         });
 
-        // Create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -2106,8 +2100,6 @@ export class LoansService {
     }
 
     async saveContractNumbers(currentUser: number, loanId: number, contractNumbers: { debtAcknowledgmentNumber?: string; promissoryNoteNumber?: string }) {
-        console.log('saveContractNumbers - contractNumbers:', contractNumbers);
-
         const updateData: any = {};
 
         if (contractNumbers.debtAcknowledgmentNumber) {
@@ -2133,7 +2125,7 @@ export class LoansService {
             data: updateData,
         });
 
-        // Audit log
+
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
         await this.prisma.auditLog.create({
             data: {
@@ -2202,7 +2194,7 @@ export class LoansService {
                 });
             }
 
-            // Create journal for conversion
+
             const receivableAccount = await tx.account.findFirst({
                 where: { accountBasicType: 'LOANS_RECEIVABLE' },
             });
@@ -2222,7 +2214,7 @@ export class LoansService {
 
             await this.journalService.postJournal(journal.id, userId);
 
-            // Audit log
+
             await tx.auditLog.create({
                 data: {
                     userId,
@@ -2233,7 +2225,7 @@ export class LoansService {
             });
         },);
 
-        // Update client statuses
+
         await this.updateClientStatus(clientAId);
         await this.updateClientStatus(clientBId);
 

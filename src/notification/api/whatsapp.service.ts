@@ -10,7 +10,6 @@ export class WhatsappService {
 
     async sendMessage(to: string, message: string) {
         if (!to || !message) {
-            this.logger.warn('Missing recipient or message content.');
             return;
         }
 
@@ -31,10 +30,8 @@ export class WhatsappService {
                 }
             );
 
-            this.logger.log(`✅ WhatsApp message sent to ${to}`);
             return response.data;
         } catch (error: any) {
-            this.logger.error(`❌ Failed to send WhatsApp message: ${error.message}`);
             throw new Error('Failed to send WhatsApp message');
         }
     }

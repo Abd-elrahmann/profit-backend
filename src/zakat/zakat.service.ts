@@ -34,7 +34,7 @@ export class ZakatService {
             .format('iDD iMMMM iYYYY')
     }
 
-    // Get yearly zakat summary for a partner
+
     async getPartnerZakatSummary(partnerId: number, year?: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
@@ -43,10 +43,10 @@ export class ZakatService {
 
         if (!partner) throw new NotFoundException('Partner not found');
 
-        // Helper: build summary for a specific year
+
         const buildYearSummary = async (yr: number): Promise<ZakatYearSummary> => {
 
-            // Determine start month for this year
+
             const partnerStartYear = partner.createdAt ? new Date(partner.createdAt).getFullYear() : yr;
             const startMonth = yr === partnerStartYear
                 ? new Date(partner.createdAt).getMonth() + 1
@@ -66,21 +66,21 @@ export class ZakatService {
             const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
             const currentMonthlyZakat = currentAnnualZakat / remainingMonths;
 
-            // Get accruals (one entry per month)
+
             const accruals = await this.prisma.zakatAccrual.findMany({
                 where: { partnerId, year: yr },
                 orderBy: { month: 'asc' },
             });
 
-            // Get all payments in that year
+
             const payments = await this.prisma.zakatPayment.findMany({
                 where: { partnerId, year: yr },
             });
 
-            // Add status to each month based on payments
+
             const monthlyWithStatus = await Promise.all(
                 accruals.map(async (acc) => {
-                    // Find payment for this month (may not exist)
+
                     const payment = payments.find((p) => p.month === acc.month);
 
                     let status = 'NOT_PAID';
@@ -105,7 +105,7 @@ export class ZakatService {
                 })
             );
 
-            // Calculate total paid (posted only)
+
             const postedPayments = await Promise.all(
                 payments.map(async (p) => {
                     const journal = await this.prisma.journalHeader.findFirst({
@@ -138,12 +138,12 @@ export class ZakatService {
             };
         };
 
-        // If year is provided → return that specific year
+
         if (year) {
             return await buildYearSummary(year);
         }
 
-        // No year → return all years
+
         const allAccruals = await this.prisma.zakatAccrual.findMany({
             where: { partnerId },
             orderBy: [{ year: 'asc' }, { month: 'asc' }],
@@ -190,7 +190,7 @@ export class ZakatService {
             };
         }
 
-        // Fetch partners with their zakat accruals
+
         const partners = await this.prisma.partner.findMany({
             where: {
                 OR: [
@@ -230,7 +230,7 @@ export class ZakatService {
             const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
             const currentMonthlyZakat = currentAnnualZakat / remainingMonths;
 
-            // Sum payments for this partner/year
+
             const payments = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId: p.id, year },
                 _sum: { amount: true },
@@ -238,7 +238,7 @@ export class ZakatService {
             const totalPaid = payments._sum.amount || 0;
             const remaining = annualZakat ? annualZakat - totalPaid : currentAnnualZakat - totalPaid;
 
-            // Build monthly breakdown including payment status
+
             const monthlyBreakdown = await Promise.all(
                 p.ZakatAccrual.map(async (acc) => {
                     const payment = await this.prisma.zakatPayment.findFirst({
@@ -392,9 +392,9 @@ export class ZakatService {
                 .toJSDate();
         }
 
-        // Fetch zakat account with posted journal entries
+
         const zakatAccount = await this.prisma.account.findUnique({
-            where: { code: '20001' }, // zakat account code
+            where: { code: '20001' }, 
             include: {
                 entries: {
                     where: {
@@ -418,7 +418,7 @@ export class ZakatService {
 
         if (!zakatAccount) throw new NotFoundException('Zakat account not found');
 
-        // Group journal entries by month (Saudi timezone)
+
         const groupedByMonth = zakatAccount.entries.reduce((acc, entry) => {
             const date = DateTime.fromJSDate(entry.journal.date).setZone('Asia/Riyadh');
             const monthKey = date.toFormat('yyyy-LL');
@@ -460,9 +460,9 @@ export class ZakatService {
             },
         });
 
-        // If no journal entries, create the month entry manually
+
         if (Object.keys(groupedByMonth).length === 0) {
-            // Determine which month to use
+
             let monthKey: string;
             let yearNum: number;
             let monthNum: number;
@@ -490,7 +490,7 @@ export class ZakatService {
             };
         }
 
-        // Merge required zakat per month
+
         Object.keys(groupedByMonth).forEach((monthKey) => {
             const [year, monthNum] = monthKey.split('-').map(Number);
 
@@ -501,7 +501,7 @@ export class ZakatService {
             groupedByMonth[monthKey].requiredZakat = monthTotal;
         });
 
-        // return final
+
         return {
             account: {
                 id: zakatAccount.id,

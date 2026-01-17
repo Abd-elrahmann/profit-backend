@@ -34,8 +34,8 @@ export class ExpenseService {
         const bank = await this.getBankAccount();
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
 
-        // if (new Decimal(totalAmount).gt(new Decimal(bank.balance)))
-        //     throw new BadRequestException('رصيد الصندوق غير كافي');
+
+
 
         const journalLines = await Promise.all(
             expenses.map(async (e) => {
@@ -116,7 +116,7 @@ export class ExpenseService {
     }
 
     async getExpensesAccountData(page = 1, limit = 10) {
-        // جلب كل journalLines التي مصدرها EXPENSES
+
         const entries = await this.prisma.journalLine.findMany({
             where: {
                 journal: {
@@ -125,14 +125,14 @@ export class ExpenseService {
             },
             include: {
                 journal: true,
-                account: true, // للحصول على اسم الحساب
+                account: true, 
             },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
         });
 
-        // دمج lines حسب journalId
+
         const journalsMap: Record<number, any> = {};
         entries.forEach((line) => {
             const jId = line.journalId;
@@ -153,7 +153,7 @@ export class ExpenseService {
                 amount: line.debit || line.credit,
                 debit: line.debit,
                 credit: line.credit,
-                accountName: line.account?.name, // اسم الحساب لكل line
+                accountName: line.account?.name, 
                 accountCode: line.account?.code,
             });
 
@@ -163,7 +163,7 @@ export class ExpenseService {
 
         const journals = Object.values(journalsMap);
 
-        // حساب إجمالي المصروفات من جميع lines
+
         const totalDebit = journals.reduce((sum, j) => sum + Math.round(j.totalDebit * 100), 0) / 100;
         const totalCredit = journals.reduce((sum, j) => sum + Math.round(j.totalCredit * 100), 0) / 100;
 
@@ -205,7 +205,7 @@ export class ExpenseService {
             take: limit,
         });
 
-        // إجمالي عدد السجلات
+
         const total = await this.prisma.expenseRecord.count();
 
         return {
@@ -244,7 +244,7 @@ export class ExpenseService {
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
         const bank = await this.getBankAccount();
-        // Fix floating point precision by working with integers (multiply by 100, sum, then divide by 100)
+
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
 
         const currentCreditInBank = journal.lines
@@ -347,13 +347,13 @@ export class ExpenseService {
             await this.journalService.unpostJournal(userId, journalId);
         }
 
-        // Delete associated expense records first
+
         await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
 
         await this.prisma.journalLine.deleteMany({ where: { journalId } });
         await this.prisma.journalHeader.delete({ where: { id: journalId } });
 
-        // Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId,

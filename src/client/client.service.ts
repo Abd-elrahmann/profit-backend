@@ -17,13 +17,13 @@ import { not } from 'rxjs/internal/util/not';
 export class ClientService {
     constructor(private prisma: PrismaService) { }
 
-    // CREATE CLIENT 
+
     async createClient(
         currentUser: number,
         dto: CreateClientDto,
         files?: Record<string, Array<Express.Multer.File>>,
     ) {
-        // 1️⃣ Check if client exists
+
         const exists = await this.prisma.client.findFirst({
             where: { OR: [{ phone: dto.phone }, { nationalId: dto.nationalId }] },
         });
@@ -31,11 +31,11 @@ export class ClientService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // 2️⃣ Start transaction
+
         const client = await this.prisma.$transaction(async (tx) => {
             const { kafeel: kafeelList, documents: docDto, ...clientData } = dto;
 
-            // 2a️⃣ Create Client
+
             const newClient = await tx.client.create({
                 data: {
                     ...clientData,
@@ -45,19 +45,19 @@ export class ClientService {
                 select: { id: true, name: true, nationalId: true },
             });
 
-            // 2b️⃣ Map uploaded files with custom prefixes
+
             const prefixMap: Record<string, string> = {
                 clientIdImage: 'client_id',
                 clientWorkCard: 'client_workcard',
                 salaryReport: 'salary_report',
                 simaReport: 'sima_report',
-                kafeelIdImage: 'kafeel', // will append 1,2,3
+                kafeelIdImage: 'kafeel', 
                 kafeelWorkCard: 'kafeel_workcard',
             };
 
             const uploadedFiles = await this.mapUploadedFiles(files, newClient.nationalId, prefixMap);
 
-            // 2c️⃣ Save client documents
+
             if (uploadedFiles.clientIdImage?.length) {
                 await tx.clientDocument.create({
                     data: {
@@ -70,7 +70,7 @@ export class ClientService {
                 });
             }
 
-            // 2d️⃣ Create Kafeels
+
             if (Array.isArray(kafeelList) && kafeelList.length > 0) {
                 for (let i = 0; i < kafeelList.length; i++) {
                     const k = kafeelList[i];
@@ -101,7 +101,7 @@ export class ClientService {
             return newClient;
         });
 
-        // 3️⃣ Audit Log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -114,7 +114,7 @@ export class ClientService {
         return { message: 'تم اضافة عميل جديد', client };
     }
 
-    // Map uploaded files and rename with prefixes
+
     private async mapUploadedFiles(
         files: Record<string, Express.Multer.File[]> | undefined,
         clientId: string,
@@ -131,12 +131,12 @@ export class ClientService {
             const prefix = prefixMap[key] ?? key;
             fileMap[key] = [];
 
-            // Get existing files to determine the next available index
+
             const existingFiles = fs.existsSync(uploadDir)
                 ? fs.readdirSync(uploadDir).filter(f => f.startsWith(prefix))
                 : [];
 
-            // Extract existing indices
+
             const existingIndices = existingFiles.map(f => {
                 const match = f.match(new RegExp(`${prefix}_(\\d+)`));
                 return match ? parseInt(match[1], 10) : 0;
@@ -145,11 +145,11 @@ export class ClientService {
             let nextIndex = 1;
             const getNextIndex = () => {
                 while (existingIndices.includes(nextIndex)) nextIndex++;
-                existingIndices.push(nextIndex); // Reserve it
+                existingIndices.push(nextIndex); 
                 return nextIndex++;
             };
 
-            // Save each uploaded file
+
             for (const file of fileArray) {
                 const ext = path.extname(file.originalname);
                 const filename = `${prefix}_${getNextIndex()}${ext}`;
@@ -165,7 +165,7 @@ export class ClientService {
         return fileMap;
     }
 
-    // Clean document data
+
     private cleanDocumentData(data: Record<string, any>) {
         if (!data) return null;
         const cleaned: Record<string, any> = {};
@@ -177,7 +177,7 @@ export class ClientService {
         return cleaned;
     }
 
-    // UPDATE CLIENT DATA 
+
     async updateClientData(currentUser: number, id: number, dto: UpdateClientDto) {
         const client = await this.prisma.client.findUnique({ where: { id } });
         if (!client) throw new NotFoundException('Client not found');
@@ -186,22 +186,22 @@ export class ClientService {
 
         const updateData: any = { ...dto };
 
-        // Properly cast/update fields
+
         if (dto.birthDate) updateData.birthDate = new Date(dto.birthDate);
         if (dto.salary) updateData.salary = Number(dto.salary);
         if (dto.obligations) updateData.obligations = Number(dto.obligations);
 
-        // Exclude kafeel and documents for now
+
         delete updateData.kafeel;
         delete updateData.documents;
 
-        // Update client
+
         const updatedClient = await this.prisma.client.update({
             where: { id },
             data: updateData,
         });
 
-        // Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -214,24 +214,24 @@ export class ClientService {
         return { message: 'تم تحديث بيانات العميل بنجاح', client: updatedClient };
     }
 
-    // UPDATE KAFEEL DATA 
+
     async updateKafeelData(
         currentUser: number,
         kafeelId: number,
         dto: Partial<KafeelDto> | UpdateKafeelDto,
         files?: Record<string, Express.Multer.File[]>,
     ) {
-        // 1️⃣ Fetch the kafeel including the client to get nationalId
+
         const kafeel = await this.prisma.kafeel.findUnique({
             where: { id: kafeelId },
             include: { client: true },
         });
         if (!kafeel) throw new NotFoundException('Kafeel not found');
 
-        // 2️⃣ Fetch user for audit log
+
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // 3️⃣ Map uploaded files if any
+
         let uploadedFiles: Record<string, string[]> = {};
         if (files && Object.keys(files).length > 0) {
             const prefixMap: Record<string, string> = {
@@ -241,12 +241,12 @@ export class ClientService {
 
             uploadedFiles = await this.mapUploadedFiles(
                 files,
-                kafeel.client.nationalId, // use national ID for folder
+                kafeel.client.nationalId, 
                 prefixMap
             );
         }
 
-        // 4️⃣ Prepare update data
+
         const updateData: any = {
             ...dto,
             salary: dto.salary !== undefined ? Number(dto.salary) : undefined,
@@ -256,16 +256,16 @@ export class ClientService {
             kafeelWorkCard: uploadedFiles.kafeelWorkCard?.[0] ?? dto.kafeelWorkCard ?? kafeel.kafeelWorkCard,
         };
 
-        // 5️⃣ Remove undefined fields to prevent Prisma errors
+
         Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
 
-        // 6️⃣ Update kafeel
+
         const updatedKafeel = await this.prisma.kafeel.update({
             where: { id: kafeelId },
             data: updateData,
         });
 
-        // 7️⃣ Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -278,20 +278,20 @@ export class ClientService {
         return { message: 'تم تحديث بيانات الكفيل بنجاح', kafeel: updatedKafeel };
     }
 
-    // UPDATE CLIENT DOCUMENTS
+
     async updateClientDocuments(
         currentUser: number,
         clientId: number,
         files?: Record<string, Express.Multer.File[]>,
         deleteFields?: string[],
     ) {
-        // 1️⃣ Fetch client
+
         const client = await this.prisma.client.findUnique({ where: { id: clientId } });
         if (!client) throw new NotFoundException('Client not found');
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // 2️⃣ Map uploaded files with prefixes
+
         let uploadedFiles: Record<string, string[]> = {};
         if (files && Object.keys(files).length > 0) {
             const prefixMap: Record<string, string> = {
@@ -303,17 +303,17 @@ export class ClientService {
             uploadedFiles = await this.mapUploadedFiles(files, client.nationalId, prefixMap);
         }
 
-        // 3️⃣ Clean mapped files
+
         const docData = this.cleanDocumentData(
             Object.fromEntries(
-                Object.entries(uploadedFiles).map(([k, v]) => [k, v[0]]) // take first file only
+                Object.entries(uploadedFiles).map(([k, v]) => [k, v[0]]) 
             )
         );
 
-        // 4️⃣ Fetch existing documents
+
         const existingDocs = await this.prisma.clientDocument.findFirst({ where: { clientId } });
 
-        // Helper: delete old file if exists
+
         const deleteFile = (fileUrl?: string) => {
             if (!fileUrl) return;
             try {
@@ -328,7 +328,7 @@ export class ClientService {
         const updateData: Record<string, string | null> = {};
 
         if (existingDocs) {
-            // 5️⃣ Handle deletions
+
             if (deleteFields?.length) {
                 for (const field of deleteFields) {
                     const oldUrl = (existingDocs as any)[field];
@@ -337,7 +337,7 @@ export class ClientService {
                 }
             }
 
-            // 6️⃣ Handle new uploads
+
             for (const key of Object.keys(docData || {})) {
                 const newUrl = (docData as any)[key];
                 const oldUrl = (existingDocs as any)[key];
@@ -347,13 +347,13 @@ export class ClientService {
                 updateData[key] = newUrl ?? null;
             }
 
-            // 7️⃣ Update Prisma
+
             await this.prisma.clientDocument.update({
                 where: { id: existingDocs.id },
                 data: updateData,
             });
         } else {
-            // 8️⃣ Create new documents if not exist
+
             if (!docData?.clientIdImage) {
                 throw new BadRequestException('clientIdImage is required');
             }
@@ -369,7 +369,7 @@ export class ClientService {
             });
         }
 
-        // 9️⃣ Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -382,7 +382,7 @@ export class ClientService {
         return { message: 'تم تحديث مستندات العميل بنجاح' };
     }
 
-    // DELETE CLIENT
+
     async deleteClient(currentUser: number, clientId: number) {
         const client = await this.prisma.client.findUnique({
             where: { id: clientId },
@@ -417,7 +417,6 @@ export class ClientService {
             const clientDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId || 'unknown');
             if (fs.existsSync(clientDir)) {
                 fs.rmSync(clientDir, { recursive: true, force: true });
-                console.log(`🗑️ Deleted folder: ${clientDir}`);
             } else {
                 console.warn(`⚠️ Folder not found for client: ${clientDir}`);
             }
@@ -437,7 +436,7 @@ export class ClientService {
         return { message: `تم حذف العميل ${client.name} بنجاح` }
     }
 
-    // GET CLIENTS
+
     async getClients(
         page: number = 1,
         filters?: {
@@ -471,8 +470,8 @@ export class ClientService {
             take: limit,
             orderBy: { id: 'desc' },
             include: {
-                kafeelS: true,       // fetch all kafeels
-                documents: true,     // fetch documents
+                kafeelS: true,       
+                documents: true,     
             },
         });
 
@@ -504,7 +503,7 @@ export class ClientService {
         };
     }
 
-    // GET CLIENT BY ID
+
     async getClientById(id: number) {
         const client = await this.prisma.client.findUnique({
             where: { id },
@@ -584,7 +583,7 @@ export class ClientService {
         if (from) dateFilter.gte = new Date(from);
         if (to) dateFilter.lte = new Date(to);
 
-        // Fetch journals that affect this client
+
         const journals = await this.prisma.journalHeader.findMany({
             where: {
                 OR: [
@@ -599,7 +598,7 @@ export class ClientService {
             orderBy: { createdAt: 'asc' },
         });
 
-        // Build transactions
+
         let runningBalance = 0;
         const transactions = journals.map((j) => {
             const totalDebit = j.lines.reduce((sum, l) => sum + l.debit, 0);
@@ -620,7 +619,7 @@ export class ClientService {
             };
         });
 
-        // Pagination
+
         const startIndex = (page - 1) * limit;
         const paginatedTransactions = transactions.slice(startIndex, startIndex + limit);
 
@@ -638,13 +637,13 @@ export class ClientService {
         dto: KafeelDto,
         files?: Record<string, Express.Multer.File[]>,
     ) {
-        // 1️⃣ Fetch client
+
         const client = await this.prisma.client.findUnique({ where: { id: clientId } });
         if (!client) throw new NotFoundException('Client not found');
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // 2️⃣ Map uploaded files with proper prefixes
+
         let uploadedFiles: Record<string, string[]> = {};
         if (files && Object.keys(files).length > 0) {
             const prefixMap: Record<string, string> = {
@@ -654,7 +653,7 @@ export class ClientService {
             uploadedFiles = await this.mapUploadedFiles(files, client.nationalId, prefixMap);
         }
 
-        // 3️⃣ Prepare data
+
         const kafeelData: any = {
             clientId: client.id,
             name: dto.name,
@@ -671,13 +670,13 @@ export class ClientService {
             kafeelWorkCard: uploadedFiles.kafeelWorkCard?.[0] ?? dto.kafeelWorkCard,
         };
 
-        // Remove undefined fields
+
         Object.keys(kafeelData).forEach((key) => kafeelData[key] === undefined && delete kafeelData[key]);
 
-        // 4️⃣ Create Kafeel
+
         const newKafeel = await this.prisma.kafeel.create({ data: kafeelData });
 
-        // 5️⃣ Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -690,19 +689,19 @@ export class ClientService {
         return { message: 'تم اضافة كفيل جديد', kafeel: newKafeel };
     }
 
-    // DELETE KAFEEL BY ID
+
     async deleteKafeel(currentUser: number, kafeelId: number) {
-        // Fetch kafeel with client info
+
         const kafeel = await this.prisma.kafeel.findUnique({
             where: { id: kafeelId },
             include: {
                 client: true,
-                loans: true, // Include loans to check statuses
+                loans: true, 
             },
         });
         if (!kafeel) throw new NotFoundException('Kafeel not found');
 
-        // Validation: Prevent deletion if kafeel has active or pending loans
+
         const hasActiveOrPendingLoans = kafeel.loans.some(
             (loan) => loan.status === 'ACTIVE' || loan.status === 'PENDING',
         );
@@ -713,10 +712,10 @@ export class ClientService {
             );
         }
 
-        // Fetch user for audit log
+
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // Helper function to delete file
+
         const deleteFile = (fileUrl?: string | null) => {
             if (!fileUrl) return;
             try {
@@ -724,21 +723,20 @@ export class ClientService {
                 const fullPath = path.join(process.cwd(), relativePath);
                 if (fs.existsSync(fullPath)) {
                     fs.unlinkSync(fullPath);
-                    console.log(`🗑️ Deleted file: ${fullPath}`);
                 }
             } catch (err) {
                 console.warn('⚠️ Could not delete kafeel file:', (err as Error).message);
             }
         };
 
-        // Delete physical files if they exist
+
         deleteFile(kafeel.kafeelIdImage);
         deleteFile(kafeel.kafeelWorkCard);
 
-        // Delete kafeel
+
         await this.prisma.kafeel.delete({ where: { id: kafeelId } });
 
-        // Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,

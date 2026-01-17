@@ -20,11 +20,9 @@ export class TelegramController {
         const text = message.text?.toLowerCase() || '';
         const userPhone = message.contact?.phone_number || null;
 
-        // Handle /start
-        if (text === '/start') {
-            this.logger.log(`📩 New Telegram Start from chat ${chatId}`);
 
-            // Ask user to share their phone
+        if (text === '/start') {
+
             await this.telegramService.sendMessage(chatId,
                 '👋 أهلاً بك! لمزامنة رقم هاتفك، اضغط على الزر لمشاركة رقمك.',
                 {
@@ -39,7 +37,7 @@ export class TelegramController {
             );
         }
 
-        // Handle phone number shared by user
+
         if (userPhone) {
             const client = await this.prisma.client.findFirst({ where: { phone: userPhone } });
             if (client) {
@@ -47,12 +45,10 @@ export class TelegramController {
                     where: { id: client.id },
                     data: { telegramChatId: chatId },
                 });
-                this.logger.log(`✅ Telegram chat linked for client: ${client.name}`);
 
-                // Optional: send confirmation
                 await this.telegramService.sendMessage(chatId, '✅ تم ربط حسابك بنجاح!');
             } else {
-                // Optional: handle unknown phone
+
                 await this.telegramService.sendMessage(chatId, '⚠️ رقم الهاتف غير مسجل في النظام.');
             }
         }

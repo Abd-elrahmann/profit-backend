@@ -114,21 +114,21 @@ export class ZakatController {
     return this.zakatService.uploadDocument(req.user.id, file);
   }
 
-  // MANUAL TEST: Trigger monthly zakat job
+
   @Get('test/monthly')
   async testMonthly() {
     await this.zakatScheduler.runMonthlyZakat();
     return { message: 'Monthly zakat job executed successfully' };
   }
 
-  // MANUAL TEST: Trigger year-end zakat reconciliation
+
   @Get('test/year-end')
   async testYearEnd() {
     await this.zakatScheduler.runYearEndZakatSettlement();
     return { message: 'Year-end zakat job executed successfully' };
   }
 
-  // MANUAL TEST: Trigger year-end zakat reconciliation
+
   @Get('test/next-year-accruals')
   async runNextYearZakatAccruals() {
     await this.zakatScheduler.runNextYearZakatAccruals();

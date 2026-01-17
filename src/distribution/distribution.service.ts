@@ -16,7 +16,7 @@ export class DistributionService {
             .format('iDD iMMMM iYYYY')
     }
 
-    // Post closing journal for a period 
+
     async postClosing(periodId: number, userId: number, savingAmountInput?: number) {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
@@ -30,7 +30,7 @@ export class DistributionService {
         const closingJournalId = period.closingJournalId || 0;
         await this.journalService.postJournal(closingJournalId, userId);
 
-        // Get partner accruals for this period
+
         const accruals = await this.prisma.partnerPeriodProfit.findMany({
             where: { periodId: periodId },
             include: { partner: true },
@@ -38,7 +38,7 @@ export class DistributionService {
 
         if (!accruals.length) throw new BadRequestException('لا توجد أرباح لتوزيعها لهذه الفترة');
 
-        // Fetch posted journal lines to add amounts to partner totals
+
         const closingJournal = await this.prisma.journalHeader.findUnique({
             where: { id: closingJournalId },
             include: {
@@ -48,11 +48,11 @@ export class DistributionService {
             },
         });
 
-        // Build a map of partner ID to total debit amounts from journal lines
+
         const partnerAmountMap = new Map<number, number>();
         if (closingJournal && closingJournal.lines.length > 0) {
             for (const line of closingJournal.lines) {
-                // Find which partner this line belongs to (by matching accountPayableId or accountEquityId)
+
                 for (const accrual of accruals) {
                     const partner = accrual.partner;
                     if (
@@ -66,7 +66,7 @@ export class DistributionService {
             }
         }
 
-        // Update partner totalProfit and totalAmount with amounts from journal lines
+
         for (const [partnerId, amount] of partnerAmountMap) {
             await this.prisma.partner.update({
                 where: { id: partnerId },
@@ -161,7 +161,7 @@ export class DistributionService {
                     );
                     await this.journalService.postJournal(savingJournal.journal.id, userId);
 
-                    // Decrease partner totalProfit and totalAmount by the saving amount
+
                     await this.prisma.partner.update({
                         where: { id: partner.id },
                         data: {
@@ -173,14 +173,14 @@ export class DistributionService {
             }
         }
 
-        // Mark all accruals for this period as distributed
+
         await this.prisma.partnerShareAccrual.updateMany({
             where: { periodId: periodId },
             data: { isDistributed: true },
         });
 
 
-        // Audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,
@@ -193,7 +193,7 @@ export class DistributionService {
         return { message: 'تم توزيع الارباح بنجاح', closingJournalId };
     }
 
-    // Reverse the posted closing journal
+
     async reverseClosing(periodId: number, userId: number) {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
@@ -206,13 +206,13 @@ export class DistributionService {
 
         const closingJournalId = period.closingJournalId || 0;
 
-        // Get partner accruals to reverse amounts from closing journal
+
         const accruals = await this.prisma.partnerPeriodProfit.findMany({
             where: { periodId: periodId },
             include: { partner: true },
         });
 
-        // Fetch closing journal with lines to reverse partner totals
+
         const closingJournal = await this.prisma.journalHeader.findUnique({
             where: { id: closingJournalId },
             include: {
@@ -222,7 +222,7 @@ export class DistributionService {
             },
         });
 
-        // Build a map of partner ID to total credit amounts from closing journal lines
+
         const partnerAmountMap = new Map<number, number>();
         if (closingJournal && closingJournal.lines.length > 0) {
             for (const line of closingJournal.lines) {
@@ -239,10 +239,10 @@ export class DistributionService {
             }
         }
 
-        // Unpost closing journal
+
         await this.journalService.unpostJournal(userId, closingJournalId);
 
-        // decrement partner totalProfit and totalAmount based on closing journal amounts
+
         for (const [partnerId, amount] of partnerAmountMap) {
             await this.prisma.partner.update({
                 where: { id: partnerId },
@@ -253,7 +253,7 @@ export class DistributionService {
             });
         }
 
-        // Get saving accruals with their amounts
+
         const savingAccruals = await this.prisma.partnerSavingAccrual.findMany({
             where: { periodId },
         });
@@ -282,7 +282,7 @@ export class DistributionService {
                 },
                 );
 
-                // Increment partner totalProfit and totalAmount by the saving amount
+
                 await this.prisma.partner.update({
                     where: { id: s.partnerId },
                     data: {
@@ -315,11 +315,11 @@ export class DistributionService {
     }
 
     async getClosedPeriods(periodId?: number) {
-        // Build where condition
+
         const whereCondition: any = { isClosed: true };
         if (periodId) whereCondition.id = periodId;
 
-        // Fetch closed periods
+
         const periods = await this.prisma.periodHeader.findMany({
             where: whereCondition,
             include: {
@@ -361,14 +361,14 @@ export class DistributionService {
             });
         }
 
-        // Fetch savings for all periods in one query
+
         const savings = await this.prisma.partnerSavingAccrual.findMany({
             where: {
                 periodId: periodId ? periodId : { in: periods.map(p => p.id) }
             }
         });
 
-        // Convert savings list to map: periodId -> partnerId -> savingAmount
+
         const savingMap = new Map<number, Map<number, number>>();
         savings.forEach(s => {
             if (!savingMap.has(s.periodId)) savingMap.set(s.periodId, new Map());
@@ -387,12 +387,12 @@ export class DistributionService {
             }
             );
 
-            // Calculate company profit from journal lines
+
             const companyProfit = (distributionJournal?.lines || [])
                 .filter(l => l.account.accountBasicType === 'COMPANY_SHARES')
                 .reduce((sum, l) => sum + Number(l.credit), 0);
 
-            // Get saving map for this period
+
             const periodSavingMap = savingMap.get(p.id) || new Map<number, number>();
 
             const round = (v: number) => Math.round(v * 100) / 100;
@@ -408,7 +408,7 @@ export class DistributionService {
                     throw new Error(`Missing share accrual for partner ${pp.partnerId} in period ${p.id}`);
                 }
 
-                // Get final profit from journal lines (credit amount on partner's accountPayableId)
+
                 let finalProfitFromJournal = 0;
                 if (distributionJournal?.lines) {
                     const partnerLine = distributionJournal.lines.find(
@@ -419,7 +419,7 @@ export class DistributionService {
                     }
                 }
 
-                // Use journal value if available, otherwise use accrual value
+
                 const finalProfit = finalProfitFromJournal > 0 ? finalProfitFromJournal : round(share.finalProfit);
 
                 return {
@@ -428,9 +428,9 @@ export class DistributionService {
                     nationalId: pp.partner.nationalId,
                     phone: pp.partner.phone,
 
-                    // orgProfitPercent: pp.partner.orgProfitPercent,
-                    // rawShare: round(share.rawShare),
-                    // companyCut: round(share.companyCut),
+
+
+
                     finalProfit,
 
                     savingAmount,
@@ -454,7 +454,7 @@ export class DistributionService {
                 totalAfterSaving: partners.reduce((sum, pr) => sum + pr.totalAfterSaving, 0),
                 partners,
 
-                // Full distribution journal details (if exist)
+
                 distributionJournal: distributionJournal || null
             };
         }));

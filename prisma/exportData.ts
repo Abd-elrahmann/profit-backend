@@ -14,7 +14,6 @@ async function main() {
       const data = await (prisma as any)[model].findMany()
       if (!data.length) continue
       fs.writeFileSync(path.join(exportDir, `${model}.json`), JSON.stringify(data, null, 2))
-      console.log(`✅ Exported ${model} (${data.length} rows)`)
     } catch (e) {
       console.log(`⚠️ Failed to export ${model}: ${e.message}`)
     }

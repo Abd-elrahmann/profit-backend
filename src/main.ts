@@ -10,7 +10,6 @@ import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 import cookieParser = require('cookie-parser');
 import * as path from 'path';
 import { resolve } from 'path';
@@ -19,7 +18,6 @@ import * as fs from 'fs';
 function ensureDirExists(dirPath: string) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
-    console.log(`Created directory: ${dirPath}`);
   }
 }
 
@@ -38,7 +36,7 @@ async function bootstrap() {
   ensureDirExists(path.join(uploadsPath, 'zakat'));
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
 
-  // Enable CORS with credentials
+
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [
@@ -47,7 +45,6 @@ async function bootstrap() {
         process.env.FRONT,
       ].filter(Boolean);
 
-      // Remove trailing slashes
       const cleanOrigins = allowedOrigins.map((url) => 
         url && url.endsWith('/') ? url.slice(0, -1) : url
       );
@@ -63,7 +60,6 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language', 'page'],
   });
 
-  // Enable cookie parser
   app.use(cookieParser());
 
   app.useGlobalPipes(

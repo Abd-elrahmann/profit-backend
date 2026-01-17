@@ -10,7 +10,7 @@ export class DashboardService {
         let startDate: Date | undefined;
         let endDate: Date | undefined;
 
-        // Always use Saudi Time Zone
+
         const now = moment().tz("Asia/Riyadh");
 
         if (filter) {
@@ -30,22 +30,22 @@ export class DashboardService {
 
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
-        // Client count
+
         const count = await this.prisma.client.count({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
-        // Active clients
+
         const activeCount = await this.prisma.client.count({
             where: { status: 'نشط', ...(dateFilter && { createdAt: dateFilter }) },
         });
 
-        // Overdue clients
+
         const overdueCount = await this.prisma.client.count({
             where: { status: 'متعثر', ...(dateFilter && { createdAt: dateFilter }) },
         });
 
-        // New clients today (also using Saudi timezone)
+
         const todayStart = now.clone().startOf('day').toDate();
         const todayEnd = now.clone().endOf('day').toDate();
 
@@ -53,7 +53,7 @@ export class DashboardService {
             where: { createdAt: { gte: todayStart, lte: todayEnd } },
         });
 
-        // Aggregations
+
         const totalDebit = await this.prisma.repayment.aggregate({
             _sum: { principalAmount: true, interestAmount: true },
             where: dateFilter
@@ -92,7 +92,7 @@ export class DashboardService {
         let startDate: Date | undefined;
         let endDate: Date | undefined;
 
-        // Always use Saudi timezone
+
         const now = moment().tz("Asia/Riyadh");
 
         if (filter) {
@@ -112,12 +112,12 @@ export class DashboardService {
 
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
-        // Count partners
+
         const partnersCount = await this.prisma.partner.count({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
-        // Active and inactive partners
+
         const activePartners = await this.prisma.partner.count({
             where: { isActive: true, ...(dateFilter && { createdAt: dateFilter }) },
         });
@@ -126,7 +126,7 @@ export class DashboardService {
             where: { isActive: false, ...(dateFilter && { createdAt: dateFilter }) },
         });
 
-        // Sum capital & profit
+
         const aggregated = await this.prisma.partner.aggregate({
             _sum: {
                 capitalAmount: true,
@@ -150,7 +150,7 @@ export class DashboardService {
         let startDate: Date | undefined;
         let endDate: Date | undefined;
 
-        // Saudi Time
+
         const now = moment().tz("Asia/Riyadh");
 
         if (filter) {
@@ -170,7 +170,7 @@ export class DashboardService {
 
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
-        // Load loans with repayment status
+
         const loans = await this.prisma.loan.findMany({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
             include: {
@@ -180,41 +180,41 @@ export class DashboardService {
             }
         });
 
-        // Compute final status
+
         function computeLoanStatus(loan) {
-            // If loan is completed → return completed as-is
+
             if (loan.status === "COMPLETED") {
                 return "COMPLETED";
             }
 
-            // Only check overdue if status is ACTIVE
+
             if (loan.status === "ACTIVE") {
                 const overdue = loan.repayments.some(r => r.status === "OVERDUE");
 
                 if (overdue) return "OVERDUE";
             }
 
-            // Otherwise return original status
+
             return loan.status;
         }
 
-        // Count loans by final status
+
         const loansByStatus: Record<string, number> = {};
         loans.forEach(loan => {
             const finalStatus = computeLoanStatus(loan);
             loansByStatus[finalStatus] = (loansByStatus[finalStatus] || 0) + 1;
         });
 
-        // Count total loans
+
         const loansCount = loans.length;
 
-        // Total loan amount
+
         const loanAmounts = await this.prisma.loan.aggregate({
             _sum: { totalAmount: true, newAmount: true },
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
-        // Bank balance
+
         const bankAccounts = await this.prisma.account.findUnique({
             where: { code: "11000" },
         });
@@ -335,7 +335,7 @@ export class DashboardService {
         return {
             range: { startDate, endDate },
 
-            // Original monthly collection data
+
             totalRepayment,
             totalPaid,
             totalRemaining,

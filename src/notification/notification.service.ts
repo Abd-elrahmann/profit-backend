@@ -25,7 +25,7 @@ export class NotificationService {
 
         const json = JSON.stringify(data);
 
-        // AES encrypt and Base64URL encode
+
         const encrypted = CryptoJS.AES.encrypt(json, secret).toString();
         return encrypted.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
@@ -37,10 +37,10 @@ export class NotificationService {
             throw new Error('NOTIFICATION_SECRET is not defined');
         }
 
-        // Convert Base64URL → Base64
+
         let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
 
-        // Add padding back
+
         while (base64.length % 4 !== 0) {
             base64 += '=';
         }
@@ -57,7 +57,7 @@ export class NotificationService {
         }
     }
 
-    // Replace placeholders in template
+
     private fillTemplate(template: string, context: Record<string, any>): string {
         return template.replace(/\{\{(.*?)\}\}/g, (_, key) => {
             const value = context[key.trim()];
@@ -65,7 +65,7 @@ export class NotificationService {
         });
     }
 
-    // Create and send a notification
+
     async sendNotification(dto: SendNotificationDto) {
         const { templateType, clientId, loanId, repaymentId, channel } = dto;
 
@@ -122,29 +122,27 @@ export class NotificationService {
             await this.telegramService.sendMessage(chatId, message);
         }
 
-        console.log(`✅ Notification ready to send:`, message);
-
         return {
             message: 'تم ارسال الإشعار بنجاح',
             data: notification,
         };
     }
 
-    // Get all notifications
+
     async getAllNotifications(page: number = 1, limit: number = 10, filters?: any) {
         const where: any = {};
 
-        // Filter by notification type
+
         if (filters?.type) where.type = filters.type;
 
-        // Filter by related client name
+
         if (filters?.clientName) {
             where.client = {
                 name: { contains: filters.clientName, mode: 'insensitive' },
             };
         }
 
-        // Filter by related loan code
+
         if (filters?.loanCode) {
             where.loan = {
                 code: { contains: filters.loanCode, mode: 'insensitive' },
@@ -173,7 +171,7 @@ export class NotificationService {
         };
     }
 
-    // Get by client
+
     async getByClient(clientId: number) {
         return this.prisma.notification.findMany({
             where: { clientId },

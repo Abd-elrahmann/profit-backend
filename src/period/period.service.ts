@@ -138,7 +138,7 @@ export class PeriodService {
 
             const lines: JournalLineDto[] = [];
 
-            // الشركاء
+
             for (const p of partnerMap.values()) {
                 const amount = Number(p.netProfit.toFixed(2));
 
@@ -157,7 +157,7 @@ export class PeriodService {
                 });
             }
 
-            // الشركة
+
             if (finalCompanyProfit > 0) {
                 lines.push({
                     accountId: LOAN_INCOME.id,
@@ -174,7 +174,7 @@ export class PeriodService {
                 });
             }
 
-            // 9️⃣ إنشاء قيد الإقفال
+
             const closingJournal = await this.journalService.createJournal({
                 periodId: period.id,
                 reference: `CLOSE-${period.id}-${Date.now()}`,
@@ -185,13 +185,13 @@ export class PeriodService {
                 lines,
             }, closingUserId);
 
-            // 🔟 تعليم accruals كمغلقة
+
             await tx.partnerShareAccrual.updateMany({
                 where: { periodId },
                 data: { isClosed: true },
             });
 
-            // 1️⃣1️⃣ حفظ ملخص أرباح الشركاء
+
             for (const p of partnerMap.values()) {
                 await tx.partnerPeriodProfit.create({
                     data: {
@@ -202,10 +202,10 @@ export class PeriodService {
                 });
             }
 
-            // 1️⃣2️⃣ إغلاق الحسابات والعملاء
+
             await this.closeAccountsWithParents(tx, periodId);
 
-            // 1️⃣3️⃣ إغلاق الفترة
+
             await tx.periodHeader.update({
                 where: { id: periodId },
                 data: {
@@ -215,7 +215,7 @@ export class PeriodService {
                 },
             });
 
-            // 1️⃣4️⃣ فتح فترة جديدة
+
             const newPeriod = await tx.periodHeader.create({
                 data: {
                     name: `فترة مفتوحة تبدأ من ${new Date().toISOString().slice(0, 10)}`,
@@ -232,12 +232,12 @@ export class PeriodService {
     }
 
     private async closeAccountsWithParents(tx: any, periodId: number) {
-        // جلب كل الحسابات
+
         const accounts = await tx.account.findMany({
             select: { id: true, parentId: true, nature: true },
         });
 
-        // جلب مجموعات الحركات لكل حساب
+
         const periodLines = new Map<number, { debit: number; credit: number }>();
         for (const acc of accounts) {
             const sums = await tx.journalLine.aggregate({
@@ -250,7 +250,7 @@ export class PeriodService {
             });
         }
 
-        // جلب اخر اغلاق لكل حساب
+
         const prevClosings = new Map<number, { closingDebit: number; closingCredit: number; closingBalance: number }>();
         for (const acc of accounts) {
             const prev = await tx.accountsClosing.findFirst({
@@ -264,7 +264,7 @@ export class PeriodService {
             });
         }
 
-        // بناء خريطة الأبناء
+
         const childrenMap = new Map<number, number[]>();
         for (const acc of accounts) {
             if (acc.parentId) {
@@ -273,7 +273,7 @@ export class PeriodService {
             }
         }
 
-        // recursive حساب كل حساب ودمج الأبناء
+
         const computed = new Map<number, { debit: number; credit: number; openingBalance: number; closingBalance: number }>();
         const compute = async (accountId: number): Promise<{ debit: number; credit: number; openingBalance: number; closingBalance: number }> => {
             if (computed.has(accountId)) return computed.get(accountId)!;
@@ -283,7 +283,7 @@ export class PeriodService {
             let totalDebit = own.debit;
             let totalCredit = own.credit;
 
-            // دمج الأبناء
+
             const children = childrenMap.get(accountId) ?? [];
             for (const childId of children) {
                 const childTotals = await compute(childId);
@@ -291,11 +291,11 @@ export class PeriodService {
                 totalCredit += childTotals.credit;
             }
 
-            // فتح الرصيد
+
             const prev = prevClosings.get(accountId);
             const openingBalance = prev?.closingBalance ?? 0;
 
-            // حساب الرصيد الختامي
+
             let closingBalance: number;
             if (acc.nature === 'DEBIT') {
                 closingBalance = openingBalance + totalDebit - totalCredit;
@@ -304,10 +304,10 @@ export class PeriodService {
             }
             closingBalance = parseFloat(closingBalance.toFixed(2));
 
-            // حفظ الناتج
+
             computed.set(accountId, { debit: totalDebit, credit: totalCredit, openingBalance, closingBalance });
 
-            // تخزين في accountsClosing
+
             await tx.accountsClosing.create({
                 data: {
                     accountId: acc.id,
@@ -325,7 +325,7 @@ export class PeriodService {
             return computed.get(accountId)!;
         };
 
-        // تنفيذ الحساب لكل حساب (يغطي الأبناء أيضاً)
+
         for (const acc of accounts) {
             await compute(acc.id);
         }
@@ -345,7 +345,7 @@ export class PeriodService {
                 where: { id: userId },
             });
 
-            // reverse last closed period first
+
             if (periodId !== (await tx.periodHeader.findFirst({
                 where: { isClosed: true },
                 orderBy: { startDate: 'desc' },
@@ -407,7 +407,7 @@ export class PeriodService {
                 data: { closingJournalId: null, isClosed: false, endDate: null },
             });
 
-            // create audit log
+
             await this.prisma.auditLog.create({
                 data: {
                     userId: userId,
@@ -425,7 +425,6 @@ export class PeriodService {
         });
     }
 
-    // Get details of a single period
     async getPeriodDetails(periodId: number) {
         const period = await this.prisma.periodHeader.findUnique({
             where: { id: periodId },
@@ -470,7 +469,7 @@ export class PeriodService {
 
         if (!period) throw new NotFoundException('Period not found');
 
-        // --- Get savings for this period ---
+
         const savings = await this.prisma.partnerSavingAccrual.findMany({
             where: { periodId },
             select: { partnerId: true, savingAmount: true }
@@ -479,7 +478,7 @@ export class PeriodService {
         const savingMap = new Map<number, number>();
         savings.forEach(s => savingMap.set(s.partnerId, Number(s.savingAmount)));
 
-        // Calculate journal totals and transform data
+
         const journals = period.journals.map(journal => {
             const totalDebit = journal.lines.reduce((sum, line) => sum + Number(line.debit), 0);
             const totalCredit = journal.lines.reduce((sum, line) => sum + Number(line.credit), 0);
@@ -512,7 +511,7 @@ export class PeriodService {
         let totalPartnerProfit = 0;
         let companyProfit = 0;
 
-        // Calculate total expenses for the period
+
         const expenses = await this.prisma.journalLine.aggregate({
             where: {
                 journal: { periodId },
@@ -534,7 +533,7 @@ export class PeriodService {
                 accountPayableId: ppp.partner.accountPayableId
             }));
 
-            // Get accruals to show gross profit before expenses
+
             const accruals = await this.prisma.partnerShareAccrual.findMany({
                 where: { periodId, isClosed: true }
             });

@@ -27,7 +27,7 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class ClientController {
     constructor(private readonly clientService: ClientService) { }
 
-    // CREATE CLIENT
+
     @Post()
     @Permissions('clients', 'canAdd')
     @UseInterceptors(
@@ -51,11 +51,11 @@ export class ClientController {
         @Body() dto: CreateClientDto,
         @UploadedFiles() files: Record<string, Express.Multer.File[]>,
     ) {
-        // Normalize files: convert kafeelIdImage[0] -> kafeelIdImage
+
         const normalizedFiles: Record<string, Express.Multer.File[]> = {};
 
         Object.entries(files).forEach(([key, value]) => {
-            const cleanKey = key.replace(/\[\d+\]$/, ''); // remove [0], [1], etc.
+            const cleanKey = key.replace(/\[\d+\]$/, ''); 
             if (!normalizedFiles[cleanKey]) normalizedFiles[cleanKey] = [];
             normalizedFiles[cleanKey].push(...value);
         });
@@ -64,7 +64,7 @@ export class ClientController {
     }
 
 
-    // UPDATE CLIENT DATA
+
     @Patch(':id/client-data')
     @Permissions('clients', 'canUpdate')
     updateClientData(
@@ -75,7 +75,7 @@ export class ClientController {
         return this.clientService.updateClientData(req.user.id, id, dto);
     }
 
-    // UPDATE KAFEEL DATA
+
     @Patch('kafeel/:id')
     @Permissions('clients', 'canUpdate')
     @UseInterceptors(
@@ -101,7 +101,7 @@ export class ClientController {
         return this.clientService.updateKafeelData(req.user.id, kafeelId, dto, files);
     }
 
-    // UPDATE DOCUMENTS
+
     @Patch(':id/documents')
     @Permissions('clients', 'canUpdate')
     @UseInterceptors(
@@ -113,7 +113,7 @@ export class ClientController {
                 { name: 'simaReport', maxCount: 1 },
             ],
             {
-                storage: memoryStorage(), // store in memory
+                storage: memoryStorage(), 
             },
         ),
     )
@@ -143,14 +143,14 @@ export class ClientController {
         );
     }
 
-    // DELETE CLIENT
+
     @Delete(':id')
     @Permissions('clients', 'canDelete')
     deleteClient(@Req() req, @Param('id', ParseIntPipe) id: number) {
         return this.clientService.deleteClient(req.user.id, id);
     }
 
-    // GET CLIENTS
+
     @Get('all/:page')
     @Permissions('clients', 'canView')
     getClients(
@@ -172,14 +172,14 @@ export class ClientController {
         });
     }
 
-    // GET CLIENT BY ID
+
     @Get(':id')
     @Permissions('clients', 'canView')
     getClientById(@Param('id', ParseIntPipe) id: number) {
         return this.clientService.getClientById(id);
     }
 
-    // GET CLIENT STATEMENT
+
     @Get(':id/statement/:page')
     @Permissions('clients', 'canView')
     getClientStatement(
@@ -196,7 +196,7 @@ export class ClientController {
         });
     }
 
-    // CREATE NEW KAFEEL FOR CLIENT
+
     @Post(':id/kafeels')
     @Permissions('clients', 'canAdd')
     @UseInterceptors(
@@ -219,7 +219,7 @@ export class ClientController {
         return this.clientService.createKafeel(req.user.id, clientId, dto, files);
     }
 
-    // DELETE KAFEEL BY ID
+
     @Delete('kafeel/:id')
     @Permissions('clients', 'canDelete')
     async deleteKafeel(
