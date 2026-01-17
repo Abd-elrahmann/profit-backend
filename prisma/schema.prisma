@@ -15,7 +15,7 @@ model User {
   email          String               @unique
   password       String
   phone          String               @unique
-  profileImage   String?              // Add this line
+  profileImage   String?              
   isActive       Boolean              @default(false)
   roleId         Int?
   role           Role?                @relation(fields: [roleId], references: [id])
@@ -33,8 +33,8 @@ model User {
 
 model ExpenseRecord {
   id          Int       @id @default(autoincrement())
-  userId      Int       // الشخص الذي أضاف المصروف
-  type        String    // نوع المصروف، مثال: "مصروف رواتب" أو "مصروف عام"
+  userId      Int       
+  type        String    
   amount      Float
   description String?
   employeeId  Int?     
