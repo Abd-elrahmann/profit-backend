@@ -493,4 +493,48 @@ export class AuthService {
 
     return { message: 'تم تسجيل الخروج بنجاح' };
   }
+
+  async logoutByRefreshToken(refreshToken: string) {
+    try {
+      const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      
+      // Find the token record
+      const tokenRecord = await this.prisma.refreshToken.findUnique({
+        where: { token: hashedToken },
+        include: { user: true }
+      });
+
+      if (!tokenRecord) {
+        // Token doesn't exist, nothing to do
+        return { message: 'تم تسجيل الخروج بنجاح' };
+      }
+
+      // Set user as inactive
+      await this.prisma.user.update({
+        where: { id: tokenRecord.userId },
+        data: { isActive: false },
+      });
+
+      // Delete the refresh token
+      await this.prisma.refreshToken.delete({
+        where: { id: tokenRecord.id }
+      });
+
+      // Log the logout
+      await this.prisma.auditLog.create({
+        data: {
+          userId: tokenRecord.userId,
+          screen: 'Auth',
+          action: 'logout',
+          description: `المستخدم ${tokenRecord.user.name} قام بتسجيل الخروج`,
+        },
+      });
+
+      return { message: 'تم تسجيل الخروج بنجاح' };
+    } catch (error) {
+      // If anything fails, just return success
+      // The cookie will be cleared anyway
+      return { message: 'تم تسجيل الخروج بنجاح' };
+    }
+  }
 }

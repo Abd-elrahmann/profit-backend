@@ -50,18 +50,23 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
   async logout(
-    @Req() req,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response
   ) {
-
     const refreshToken = req.cookies?.refreshToken;
     
-
-    await this.authService.logoutAndInvalidateToken(req.user.id, refreshToken);
+    if (refreshToken) {
+      try {
+        // Get user ID from refresh token to invalidate it
+        await this.authService.logoutByRefreshToken(refreshToken);
+      } catch (error) {
+        // Even if token is invalid, clear the cookie
+        console.log('Logout token validation failed, clearing cookie anyway');
+      }
+    }
     
-
+    // Always clear the cookie
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
