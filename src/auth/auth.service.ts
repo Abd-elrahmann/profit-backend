@@ -499,9 +499,8 @@ export class AuthService {
       const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
       
       // Find the token record
-      const tokenRecord = await this.prisma.refreshToken.findUnique({
-        where: { token: hashedToken },
-        include: { user: true }
+      const tokenRecord = await this.prisma.refreshToken.findFirst({
+        where: { token: hashedToken }
       });
 
       if (!tokenRecord) {
@@ -509,25 +508,32 @@ export class AuthService {
         return { message: 'تم تسجيل الخروج بنجاح' };
       }
 
-      // Set user as inactive
-      await this.prisma.user.update({
-        where: { id: tokenRecord.userId },
-        data: { isActive: false },
+      // Get user info
+      const user = await this.prisma.user.findUnique({
+        where: { id: tokenRecord.userId }
       });
+
+      if (user) {
+        // Set user as inactive
+        await this.prisma.user.update({
+          where: { id: tokenRecord.userId },
+          data: { isActive: false },
+        });
+
+        // Log the logout
+        await this.prisma.auditLog.create({
+          data: {
+            userId: tokenRecord.userId,
+            screen: 'Auth',
+            action: 'logout',
+            description: `المستخدم ${user.name} قام بتسجيل الخروج`,
+          },
+        });
+      }
 
       // Delete the refresh token
       await this.prisma.refreshToken.delete({
         where: { id: tokenRecord.id }
-      });
-
-      // Log the logout
-      await this.prisma.auditLog.create({
-        data: {
-          userId: tokenRecord.userId,
-          screen: 'Auth',
-          action: 'logout',
-          description: `المستخدم ${tokenRecord.user.name} قام بتسجيل الخروج`,
-        },
       });
 
       return { message: 'تم تسجيل الخروج بنجاح' };
