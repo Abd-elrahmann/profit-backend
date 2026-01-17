@@ -24,7 +24,7 @@ export class UsersService {
     return nextCode;
   }
 
-  // Add new user
+
   async addUser(currentUser, data: { name: string; email: string; password: string; phone: string; roleId?: number }) {
     const existingEmail = await this.prisma.user.findUnique({ where: { email: data.email } });
     if (existingEmail) throw new BadRequestException('الايميل موجود بالفعل');
@@ -80,7 +80,7 @@ export class UsersService {
       },
     });
 
-    // create audit log
+
     await this.prisma.auditLog.create({
       data: {
         userId: currentUser,
@@ -93,7 +93,7 @@ export class UsersService {
     return { message: 'تم اضافة مستخدم جديد بنجاح', user };
   }
 
-  // Update user
+
   async updateUser(id: number, currentUser, data: { name?: string; phone?: string; isActive?: boolean }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
@@ -129,7 +129,7 @@ export class UsersService {
       },
     });
 
-    // create audit log
+
     await this.prisma.auditLog.create({
       data: {
         userId: currentUser,
@@ -142,7 +142,7 @@ export class UsersService {
     return { message: 'تم تحديث بيانات المستخدم بنجاح', user: updated };
   }
 
-  // Delete user and cascade related records
+
   async deleteUser(currentUser, id: number) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
@@ -152,7 +152,7 @@ export class UsersService {
     const current = await this.prisma.user.findUnique({
       where: { id: currentUser },
     });
-    // Delete related records
+
     await this.prisma.auditLog.deleteMany({ where: { userId: id } });
     await this.prisma.resetPasswordToken.deleteMany({ where: { userId: id } });
     await this.prisma.journalHeader.updateMany({
@@ -162,7 +162,7 @@ export class UsersService {
 
     await this.prisma.user.delete({ where: { id } });
 
-    // create audit log
+
     await this.prisma.auditLog.create({
       data: {
         userId: currentUser,
@@ -175,7 +175,7 @@ export class UsersService {
     return { message: 'تم حذف المستخدم بنجاح' };
   }
 
-  // Get all users with pagination and filters
+
   async getUsers(
     page: number = 1,
     filters?: { limit?: number; name?: string; email?: string; phone?: string; roleId?: number },
@@ -231,7 +231,7 @@ export class UsersService {
     };
   }
 
-  // Assign role to user
+
   async assignRole(userId: number, currentUser, roleId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
@@ -242,7 +242,7 @@ export class UsersService {
 
     await this.prisma.user.update({ where: { id: userId }, data: { roleId } });
 
-    // create audit log
+
     await this.prisma.auditLog.create({
       data: {
         userId: currentUser,

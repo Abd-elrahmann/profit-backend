@@ -17,7 +17,7 @@ export class PartnerService {
         private readonly journalService: JournalService,
     ) { }
 
-    // CREATE PARTNER
+
     async createPartner(currentUser, dto: CreatePartnerDto) {
         const existing = await this.prisma.partner.findFirst({
             where: { nationalId: dto.nationalId },
@@ -221,7 +221,7 @@ export class PartnerService {
             });
         }
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -233,7 +233,7 @@ export class PartnerService {
         return { message: 'تم اضافة مساهم جديد بنجاح', partner };
     }
 
-    // UPDATE PARTNER
+
     async updatePartner(currentUser: number, id: number, dto: UpdatePartnerDto) {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
@@ -401,7 +401,7 @@ export class PartnerService {
         };
     }
 
-    // DELETE PARTNER
+
     async deletePartner(currentUser, id: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
@@ -441,7 +441,6 @@ export class PartnerService {
             const partnerDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId || 'unknown');
             if (fs.existsSync(partnerDir)) {
                 fs.rmSync(partnerDir, { recursive: true, force: true });
-                console.log(`🗑️ Deleted folder: ${partnerDir}`);
             } else {
                 console.warn(`⚠️ Folder not found for partners: ${partnerDir}`);
             }
@@ -494,7 +493,7 @@ export class PartnerService {
             await tx.account.delete({ where: { id: partner.accountNewCapitalId } });
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -507,7 +506,7 @@ export class PartnerService {
         return { message: 'تم حذف المساهم بنجاح' };
     }
 
-    // GET ALL PARTNERS (with pagination + filters)
+
     async getAllPartners(page = 1, filters?: { limit?: number; name?: string; nationalId?: string; status?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; withdrawingStatus?: string; isNewPartner?: string; }) {
         const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
@@ -516,12 +515,12 @@ export class PartnerService {
         if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId) where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
 
-        // Handle isNewPartner filter
+
         if (filters?.isNewPartner !== undefined) {
             where.isNewPartner = filters.isNewPartner === 'true';
         }
 
-        // Legacy status filter (for backward compatibility)
+
         if (filters?.status && !filters?.isNewPartner) {
             switch (filters.status) {
                 case 'ACTIVE':
@@ -541,7 +540,7 @@ export class PartnerService {
             }
         }
 
-        // Filter by withdrawing status if provided
+
         if (filters?.withdrawingStatus) {
             const withdrawingStatuses = filters.withdrawingStatus.split(',');
             where.WithdrawingStatus = { in: withdrawingStatuses };
@@ -551,7 +550,7 @@ export class PartnerService {
 
         if (page > totalPages && totalPartners > 0) throw new NotFoundException('Page not found');
 
-        // Total active capital for percent calculation
+
         const totalActiveCapital = await this.prisma.partner.aggregate({
             _sum: { totalAmount: true },
             where: { isNewPartner: false, joinDistribute: true },
@@ -597,7 +596,7 @@ export class PartnerService {
                         : 0)
                     : 0;
 
-            // Calculate upcoming profit
+
             const upcomingProfitData = await this.calculatePartnerUpcomingProfit(p.id);
 
             return {
@@ -626,7 +625,7 @@ export class PartnerService {
         };
     }
 
-    // GET SPECIFIC PARTNER
+
     async getPartnerById(id: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
@@ -655,7 +654,7 @@ export class PartnerService {
             return moment(date).locale('ar-SA').format('iDD iMMMM iYYYY');
         };
 
-        // Convert to Saudi Time (local helper)
+
         const toSaudi = (date: Date | null) => {
             if (!date) return null;
             return DateTime.fromJSDate(date)
@@ -705,7 +704,7 @@ export class PartnerService {
 
         const duration = calculateDuration(partner.createdAt);
 
-        // Calculate upcoming profit
+
         const upcomingProfitData = await this.calculatePartnerUpcomingProfit(partner.id);
 
         return {
@@ -727,7 +726,7 @@ export class PartnerService {
         };
     }
 
-    // UPLOAD MUDARABAH FILE
+
     async uploadMudarabahFile(currentUser, id: number, file: Express.Multer.File) {
         const partner = await this.prisma.partner.findUnique({ where: { id } });
         if (!partner) throw new NotFoundException('Partner not found');
@@ -754,21 +753,21 @@ export class PartnerService {
             }
         }
 
-        // Build file path on disk and write buffer
+
         const filePath = path.join(uploadDir, file.originalname);
         fs.writeFileSync(filePath, file.buffer);
 
-        // Build public URL to store in DB
+
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Update database with public URL
+
         await this.prisma.partner.update({
             where: { id },
             data: { mudarabahFileUrl: publicUrl },
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -781,7 +780,7 @@ export class PartnerService {
         return { message: 'تم رفع المستند بنجاح', path: publicUrl };
     }
 
-    // Helper: generate incremental account codes
+
     private async generateNextCode(prefix: string): Promise<string> {
         const latest = await this.prisma.account.findFirst({
             where: { code: { startsWith: prefix } },
@@ -797,7 +796,7 @@ export class PartnerService {
         upcomingCents: number;
         totalUpcoming: number;
     }> {
-        // Get all pending accruals for this specific partner
+
         const pendingAccruals = await this.prisma.partnerShareAccrual.findMany({
             where: {
                 partnerId,
@@ -812,7 +811,7 @@ export class PartnerService {
         let upcomingProfit = 0;
         let upcomingCents = 0;
 
-        // Group this partner's accruals by period
+
         const accrualsByPeriod: Record<number, typeof pendingAccruals> = {};
         for (const a of pendingAccruals) {
             if (!a.periodId) continue;
@@ -820,12 +819,12 @@ export class PartnerService {
             accrualsByPeriod[a.periodId].push(a);
         }
 
-        // For each period, calculate the partner's profit
+
         for (const periodIdStr in accrualsByPeriod) {
             const periodId = Number(periodIdStr);
             const periodAccruals = accrualsByPeriod[periodId];
 
-            // Get ALL accruals for this period (all partners)
+
             const allPeriodAccruals = await this.prisma.partnerShareAccrual.findMany({
                 where: {
                     periodId,
@@ -833,7 +832,7 @@ export class PartnerService {
                 },
             });
 
-            // Calculate totals for the entire period
+
             let totalGrossPartner = 0;
             let totalGrossCompany = 0;
             let totalOldCents = 0;
@@ -846,7 +845,7 @@ export class PartnerService {
 
             const totalGross = totalGrossPartner + totalGrossCompany + totalOldCents;
 
-            // Get expenses for the period
+
             const expensesAgg = await this.prisma.journalLine.aggregate({
                 where: {
                     journal: { periodId },
@@ -856,22 +855,22 @@ export class PartnerService {
             });
             const totalExpenses = Number(expensesAgg._sum.debit || 0);
 
-            // Calculate partners' total share of expenses
+
             const partnersExpenseShare = totalGross > 0
                 ? totalExpenses * (totalGrossPartner / totalGross)
                 : 0;
 
-            // Calculate this partner's share of the partners' expenses
+
             const partnerGross = periodAccruals.reduce((sum, a) => sum + Number(a.partnerFinal || 0), 0);
 
             const partnerExpenseShare = totalGrossPartner > 0
                 ? partnersExpenseShare * (partnerGross / totalGrossPartner)
                 : 0;
 
-            // Calculate partner's net profit
+
             const partnerNet = partnerGross - partnerExpenseShare;
 
-            // Separate whole number from cents
+
             const profitWhole = Math.floor(partnerNet);
             const profitCents = Number((partnerNet - profitWhole).toFixed(2));
 
@@ -888,7 +887,7 @@ export class PartnerService {
         };
     }
 
-    // PARTNER TRANSACTIONS
+
     async createPartnerTransaction(
         currentUser: number,
         partnerId: number,
@@ -1050,10 +1049,10 @@ export class PartnerService {
             lines: journalLines,
         };
 
-        // Create Journal
+
         const journal = await this.journalService.createJournal(journalDto, currentUser);
 
-        // Post the Journal
+
         await this.journalService.postJournal(journal.journal.id, currentUser);
 
         let newCapitalAmount = partner.capitalAmount;
@@ -1107,7 +1106,7 @@ export class PartnerService {
             data: { journalId: journal.journal.id },
         });
 
-        // Audit Log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -1128,7 +1127,7 @@ export class PartnerService {
         };
     }
 
-    // DELETE PARTNER TRANSACTION
+
     async deletePartnerTransaction(currentUser: number, id: number) {
         const transaction = await this.prisma.partnerTransaction.findUnique({
             where: { id },
@@ -1138,7 +1137,7 @@ export class PartnerService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
-        // Find related journal by reference
+
         const journal = await this.prisma.journalHeader.findUnique({
             where: { reference: transaction.reference || '' },
             include: { lines: true },
@@ -1157,7 +1156,7 @@ export class PartnerService {
             });
         }
 
-        // update partner capitalAmount
+
         const partner = await this.prisma.partner.findUnique({ where: { id: transaction.partnerId } });
         if (partner) {
             let newCapitalAmount = partner.capitalAmount;
@@ -1201,10 +1200,10 @@ export class PartnerService {
                 },
             });
 
-            // Delete the partner transaction
+
             await this.prisma.partnerTransaction.delete({ where: { id } });
 
-            // Audit Log
+
             await this.prisma.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -1218,7 +1217,7 @@ export class PartnerService {
         }
     }
 
-    // GET PARTNER TRANSACTIONS
+
     async getPartnerTransactions(
         partnerId: number,
         page: number,
@@ -1235,17 +1234,17 @@ export class PartnerService {
 
         const where: any = { partnerId };
 
-        // Filter by type
+
         if (filters?.type) where.type = filters.type;
 
-        // Search in description or reference
+
         if (filters?.search)
             where.OR = [
                 { description: { contains: filters.search, mode: 'insensitive' } },
                 { reference: { contains: filters.search, mode: 'insensitive' } },
             ];
 
-        // Timezone-based date filtering (Asia/Riyadh)
+
         if (filters?.startDate || filters?.endDate) {
             where.date = {};
             if (filters.startDate) {
@@ -1264,11 +1263,11 @@ export class PartnerService {
             }
         }
 
-        // Count total
+
         const totalTransactions = await this.prisma.partnerTransaction.count({ where });
         const totalPages = Math.ceil(totalTransactions / limit);
 
-        // Fetch transactions
+
         const transactions = await this.prisma.partnerTransaction.findMany({
             where,
             skip,
@@ -1282,7 +1281,7 @@ export class PartnerService {
             return moment(date).locale('ar-SA').format('iDD iMMMM iYYYY');
         };
 
-        // Convert UTC → Riyadh time
+
         const convertedTransactions = transactions.map((t) => ({
             ...t,
             date: DateTime.fromJSDate(t.date, { zone: 'utc' })

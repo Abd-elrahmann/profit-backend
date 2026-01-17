@@ -70,7 +70,7 @@ export class PartnerController {
         return this.partnerService.getPartnerById(id);
     }
 
-    // Upload mudarabah file
+
     @Post('upload/:id')
     @Permissions('partners', 'canUpdate')
     @UseInterceptors(FileInterceptor('file'))
@@ -82,7 +82,7 @@ export class PartnerController {
         return this.partnerService.uploadMudarabahFile(req.user.id, id, file);
     }
 
-    // CREATE TRANSACTION
+
     @Post('transaction/:id')
     @Permissions('partners', 'canAdd')
     async createTransaction(
@@ -103,7 +103,7 @@ export class PartnerController {
         );
     }
 
-    // DELETE TRANSACTION
+
     @Delete('transaction/:id')
     @Permissions('partners', 'canDelete')
     async deleteTransaction(
@@ -114,7 +114,7 @@ export class PartnerController {
         return await this.partnerService.deletePartnerTransaction(currentUser, id);
     }
 
-    // GET TRANSACTIONS
+
     @Get('transaction/:id/:page')
     @Permissions('partners', 'canView')
     async getTransactions(

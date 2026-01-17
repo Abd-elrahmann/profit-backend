@@ -45,10 +45,6 @@ export class NotificationScheduler {
                 scheduledAt: sendDate,
             },
         });
-
-        this.logger.log(
-            `🕓 Telegram notification scheduled for repayment ${repaymentId} at ${sendDate.toISOString()}`,
-        );
     }
 
     private async updateClientStatus(clientId: number) {
@@ -75,7 +71,7 @@ export class NotificationScheduler {
 
         const hasSixOverdueRepayments = overdueRepayments.length >= 6;
 
-        // Paid repayments
+
         const paidRepayments = allRepayments.filter(
             r => fullyPaidStatuses.includes(r.status) && r.paymentDate
         );
@@ -116,15 +112,11 @@ export class NotificationScheduler {
             data: { status: newStatus },
         });
 
-        this.logger.log(`👤 Client ${clientId} status updated to: ${newStatus}`);
     }
 
-    // Runs every day at 9 AM local time
+
     @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: 'Asia/Riyadh' })
     async handleDailyNotifications() {
-        this.logger.log('📅 Starting daily notification scheduler...');
-
-        // --- Normalize all comparisons to UTC ---
         const now = new Date();
 
         const todayUtc = new Date(Date.UTC(
@@ -134,18 +126,13 @@ export class NotificationScheduler {
             0, 0, 0, 0
         ));
 
-        // Calculate target date for "3 days before due
+
         const threeDaysAheadUtc = new Date(todayUtc);
         threeDaysAheadUtc.setUTCDate(todayUtc.getUTCDate() + 3);
 
         const nextDayAfterTargetUtc = new Date(threeDaysAheadUtc);
         nextDayAfterTargetUtc.setUTCDate(threeDaysAheadUtc.getUTCDate() + 1);
 
-        this.logger.log(
-            `UTC window today: ${todayUtc.toISOString()} | 3-days target: ${threeDaysAheadUtc.toISOString()}`,
-        );
-
-        // Repayments due exactly 3 days from now
         const upcomingRepayments = await this.prisma.repayment.findMany({
             where: {
                 dueDate: { gte: threeDaysAheadUtc, lt: nextDayAfterTargetUtc },
@@ -181,7 +168,7 @@ export class NotificationScheduler {
             );
         }
 
-        // Repayments due today (UTC)
+
         const startOfDayUtc = new Date(todayUtc);
         const endOfDayUtc = new Date(todayUtc);
         endOfDayUtc.setUTCHours(23, 59, 59, 999);
@@ -220,7 +207,7 @@ export class NotificationScheduler {
             );
         }
 
-        // Overdue repayments
+
         const overdueRepayments = await this.prisma.repayment.findMany({
             where: {
                 dueDate: { lt: todayUtc },
@@ -261,16 +248,12 @@ export class NotificationScheduler {
                 telegramDate,
             );
         }
-
-        this.logger.log('✅ Daily notification scheduler finished.');
     }
 
-    // Checks every 5 minutes for scheduled Telegram messages
+
     @Cron(CronExpression.EVERY_5_MINUTES, { timeZone: 'Asia/Riyadh' })
     async sendScheduledTelegramMessages() {
         const nowUtc = new Date();
-        this.logger.log(`⏰ Checking for due Telegram notifications at ${nowUtc.toISOString()} ...`);
-
         const dueNotifications = await this.prisma.notification.findMany({
             where: {
                 channel: 'TELEGRAM',
@@ -294,9 +277,6 @@ export class NotificationScheduler {
                 throw new BadRequestException('loan is pending');
 
             if (notif.repayment.status === 'PAID') {
-                this.logger.log(
-                    `⚠️ Skipping notification for repayment ${notif.repaymentId} (already PAID)`,
-                );
                 await this.prisma.notification.delete({ where: { id: notif.id } });
                 continue;
             }
@@ -315,13 +295,7 @@ export class NotificationScheduler {
 
                 await this.prisma.notification.delete({ where: { id: notif.id } });
 
-                this.logger.log(
-                    `✅ Telegram notification sent & record deleted for client ${notif.clientId}`,
-                );
             } else {
-                this.logger.log(
-                    `⚠️ Skipping notification for repayment ${notif.repaymentId} (status: ${notif.repayment.status})`,
-                );
                 await this.prisma.notification.delete({ where: { id: notif.id } });
             }
         }

@@ -64,14 +64,14 @@ export class SmallLoanService {
                     sourceId: loan.id,
                     lines: [
                         {
-                            // سلف صغيرة (مدين)
+
                             accountId: smallLoanAccount.id,
                             debit: amount,
                             credit: 0,
                             description: 'إثبات سلفة صغيرة',
                         },
                         {
-                            // بنك (دائن)
+
                             accountId: bank.id,
                             debit: 0,
                             credit: amount,
@@ -174,14 +174,14 @@ export class SmallLoanService {
                     sourceId: loan.id,
                     lines: [
                         {
-                            // بنك (مدين)
+
                             accountId: bank.id,
                             debit: payAmount,
                             credit: 0,
                             description: 'تحصيل سداد سلفة صغيرة',
                         },
                         {
-                            // سلف صغيرة (دائن)
+
                             accountId: smallLoanAccount.id,
                             debit: 0,
                             credit: payAmount,
@@ -308,7 +308,7 @@ export class SmallLoanService {
             throw new BadRequestException('المبلغ غير صحيح');
 
         return this.prisma.$transaction(async (tx) => {
-            // تعديل بيانات السلفة
+
             const updatedLoan = await tx.smallLoan.update({
                 where: { id },
                 data: {
@@ -319,7 +319,7 @@ export class SmallLoanService {
                 },
             });
 
-            // البحث عن قيد الصرف الأساسي
+
             const journal = await tx.journalHeader.findFirst({
                 where: {
                     sourceType: JournalSourceType.SMALL_LOAN,
@@ -332,7 +332,7 @@ export class SmallLoanService {
             if (!journal)
                 throw new BadRequestException('قيد السلفة غير موجود');
 
-            // فك الترحيل إن كان مرحّل
+
             if (journal.status === 'POSTED') {
                 await this.journalService.unpostJournal(
                     currentUser,
@@ -340,7 +340,7 @@ export class SmallLoanService {
                 );
             }
 
-            // تحديث خطوط القيد
+
             await tx.journalLine.deleteMany({
                 where: { journalId: journal.id },
             });

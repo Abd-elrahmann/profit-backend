@@ -63,14 +63,14 @@ export class RepaymentService {
     ) {
         if (realizedInterest <= 0) return;
 
-        // Step 1: Calculate raw shares using partner's orgProfitPercent
+
         const rawShares = partnerShares.map(ps => {
             const sharePercent =
                 loan.source === LoanFundSource.GENERAL
                     ? Number(ps.sharePercent || 0)
                     : Number(ps.percent || 0);
 
-            // Use partner's orgProfitPercent directly for consistency
+
             const orgCutPercent = Number(ps.orgProfitPercent || 0);
 
             const rawShare = realizedInterest * (sharePercent / 100);
@@ -82,17 +82,17 @@ export class RepaymentService {
 
         if (rawShares.length === 0) return;
 
-        // Step 2: Calculate total unrounded values
+
         const totalRawShare = rawShares.reduce((sum, r) => sum + r.rawShare, 0);
         const totalCompanyCut = rawShares.reduce((sum, r) => sum + r.companyCut, 0);
         const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
 
-        // Step 3: Round individual values
+
         const rawShareRoundedArr = rawShares.map(r => Number(r.rawShare.toFixed(2)));
         const companyCutRoundedArr = rawShares.map(r => Number(r.companyCut.toFixed(2)));
         const partnerFinalRoundedArr = rawShares.map(r => Number(r.partnerFinal.toFixed(2)));
 
-        // Step 4: Calculate rounding differences and adjust last partner
+
         const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
         const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
 
@@ -102,7 +102,7 @@ export class RepaymentService {
         const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
         const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
 
-        // Adjust the last partner to absorb all rounding differences
+
         const lastIndex = rawShareRoundedArr.length - 1;
         if (rawShareDiff !== 0 && lastIndex >= 0) {
             rawShareRoundedArr[lastIndex] = Number(
@@ -120,10 +120,10 @@ export class RepaymentService {
             );
         }
 
-        // Step 5: Create final results using pre-calculated and adjusted company cut
+
         const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
         const finalResults = rawShares.map((r, i) => {
-            // Use the pre-calculated and adjusted companyCutRoundedArr value
+
             const companyCut = companyCutRoundedArr[i];
             let partnerFinal = Number((rawShareRoundedArr[i] - companyCut).toFixed(2));
 
@@ -139,7 +139,7 @@ export class RepaymentService {
             };
         });
 
-        // Step 6: Final adjustment to ensure totals match exactly
+
         const totalPartnerFinalResult = finalResults.reduce((sum, r) => sum + r.partnerFinal, 0);
         const totalCompanyCutResult = finalResults.reduce((sum, r) => sum + r.companyCut, 0);
         const expectedPartnerTotal = realizedInterest - totalCompanyCutResult;
@@ -151,11 +151,9 @@ export class RepaymentService {
             );
         }
 
-        // Step 7: Update partner accruals and partners
+
         for (const r of finalResults) {
-            const partnerFinalInt = Math.floor(r.partnerFinal);
-            const cents = Number((r.partnerFinal - partnerFinalInt).toFixed(2));
-            const ratio = Number((r.oldPartnerFinal - partnerFinalInt).toFixed(2));
+            const partnerFinalInt = r.partnerFinal;
 
             const existingAccrual = partnerAccruals.find(acc => acc.partnerId === r.partnerId);
 
@@ -171,7 +169,7 @@ export class RepaymentService {
                         rawShare: r.rawShare,
                         companyCut: r.companyCut,
                         partnerFinal: partnerFinalInt,
-                        cents: cents,
+
                     },
                 });
             }
@@ -186,10 +184,10 @@ export class RepaymentService {
     ) {
         if (realizedInterest <= 0) return;
 
-        // Fetch partner accruals first before using in map
+
         const partnerAccruals = await tx.partnerShareAccrual.findMany({ where: { loanId: loan.id } });
 
-        // Step 1: Calculate raw shares using partner's orgProfitPercent
+
         const rawShares = partnerShares.map(ps => {
             const sharePercent =
                 loan.source === LoanFundSource.GENERAL
@@ -210,17 +208,17 @@ export class RepaymentService {
 
         if (rawShares.length === 0) return;
 
-        // Step 2: Calculate total unrounded values
+
         const totalRawShare = rawShares.reduce((sum, r) => sum + r.rawShare, 0);
         const totalCompanyCut = rawShares.reduce((sum, r) => sum + r.companyCut, 0);
         const totalPartnerFinal = rawShares.reduce((sum, r) => sum + r.partnerFinal, 0);
 
-        // Step 3: Round individual values
+
         const rawShareRoundedArr = rawShares.map(r => Number(r.rawShare.toFixed(2)));
         const companyCutRoundedArr = rawShares.map(r => Number(r.companyCut.toFixed(2)));
         const partnerFinalRoundedArr = rawShares.map(r => Number(r.partnerFinal.toFixed(2)));
 
-        // Step 4: Calculate rounding differences and adjust last partner
+
         const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
         const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
 
@@ -230,7 +228,7 @@ export class RepaymentService {
         const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
         const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
 
-        // Adjust the last partner to absorb all rounding differences
+
         const lastIndex = rawShareRoundedArr.length - 1;
         if (rawShareDiff !== 0 && lastIndex >= 0) {
             rawShareRoundedArr[lastIndex] = Number(
@@ -248,9 +246,9 @@ export class RepaymentService {
             );
         }
 
-        // Step 5: Create final results using pre-calculated and adjusted company cut
+
         const finalResults = rawShares.map((r, i) => {
-            // Use the pre-calculated and adjusted companyCutRoundedArr value
+
             const companyCut = companyCutRoundedArr[i];
             let partnerFinal = Number((rawShareRoundedArr[i] - companyCut).toFixed(2));
 
@@ -265,7 +263,7 @@ export class RepaymentService {
             };
         });
 
-        // Step 6: Final adjustment to ensure totals match exactly
+
         const totalPartnerFinalResult = finalResults.reduce((sum, r) => sum + r.partnerFinal, 0);
         const totalCompanyCutResult = finalResults.reduce((sum, r) => sum + r.companyCut, 0);
         const expectedPartnerTotal = realizedInterest - totalCompanyCutResult;
@@ -277,11 +275,9 @@ export class RepaymentService {
             );
         }
 
-        // Step 7: Update partner accruals and partners (with INCREMENT for rejection reversal)
+
         for (const r of finalResults) {
-            const partnerFinalInt = Math.floor(r.partnerFinal);
-            const cents = Number((r.partnerFinal - partnerFinalInt).toFixed(2));
-            const ratio = Number((partnerFinalInt - r.oldPartnerFinal).toFixed(2));
+            const partnerFinalInt = r.partnerFinal;
 
             const existingAccrual = rawShares.find(rs => rs.ps.partnerId === r.partnerId)?.existingAccrual;
 
@@ -297,14 +293,13 @@ export class RepaymentService {
                         rawShare: r.rawShare,
                         companyCut: r.companyCut,
                         partnerFinal: partnerFinalInt,
-                        cents: cents,
                     },
                 });
             }
         }
     }
 
-    // Get specific repayment by ID
+
     async getRepaymentById(id: number) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -331,7 +326,7 @@ export class RepaymentService {
         return repayment;
     }
 
-    // Upload multiple receipts for a repayment
+
     async uploadReceipts(currentUser, id: number, files: Express.Multer.File[]) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -347,7 +342,7 @@ export class RepaymentService {
         const uploadsDir = path.join(process.cwd(), 'uploads', 'clients', repayment.client?.nationalId || 'unknown', 'repayments');
         if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-        // Delete old files if exist (optional)
+
         if (Array.isArray(repayment.attachments)) {
             for (const fileUrl of repayment.attachments) {
                 try {
@@ -364,7 +359,7 @@ export class RepaymentService {
             } catch { }
         }
 
-        // Save all new files
+
         const fileUrls: string[] = [];
 
         for (const file of files) {
@@ -377,7 +372,7 @@ export class RepaymentService {
             fileUrls.push(publicUrl);
         }
 
-        // Update repayment record
+
         await this.prisma.repayment.update({
             where: { id },
             data: {
@@ -387,7 +382,7 @@ export class RepaymentService {
             },
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -400,7 +395,7 @@ export class RepaymentService {
         return { message: 'تم رفع الايصال بنجاح', fileUrls };
     }
 
-    // Approve repayment
+
     async approveRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -453,7 +448,7 @@ export class RepaymentService {
         });
 
         await this.prisma.$transaction(async (tx) => {
-            // Create Journal Entry using journalService
+
             const journal = await this.journalService.createJournal(
                 {
                     reference: `REP-${repayment.id}`,
@@ -533,7 +528,7 @@ export class RepaymentService {
                 },
             });
 
-            // Send notification via WhatsApp
+
             try {
                 await this.notificationService.sendNotification({
                     templateType: TemplateType.PAYMENT_APPROVED,
@@ -546,7 +541,7 @@ export class RepaymentService {
                 console.error('❌ Failed to send WhatsApp notification:', error.message);
             }
 
-            // Send notification via Telegram
+
             try {
                 await this.notificationService.sendNotification({
                     templateType: TemplateType.PAYMENT_APPROVED,
@@ -559,7 +554,7 @@ export class RepaymentService {
                 console.error('❌ Failed to send Telegram notification:', error.message);
             }
 
-            // create audit log
+
             await this.prisma.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -579,7 +574,7 @@ export class RepaymentService {
         };
     }
 
-    // Reject repayment
+
     async rejectRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -597,7 +592,7 @@ export class RepaymentService {
             where: { id: currentUser },
         });
 
-        // Check if repayment was already approved
+
         const wasApproved = repayment.status === PaymentStatus.PAID;
 
         return await this.prisma.$transaction(async (tx) => {
@@ -637,7 +632,7 @@ export class RepaymentService {
                 const discount = repayment.discount ? repayment.discount : 0;
                 const realizedInterest = totalInterest + discount;
 
-                // Use the rejection reversal helper method for proper rounding
+
                 await this.updatePartnerShareAccrualsForRejection(tx, loan, realizedInterest, partnerShares);
             }
 
@@ -725,7 +720,7 @@ export class RepaymentService {
         }, { timeout: 20000 });
     }
 
-    // Postpone repayment
+
     async postponeRepayment(currentUser, id: number, dto: RepaymentDto) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -760,7 +755,7 @@ export class RepaymentService {
 
         await this.updateClientStatus(loan.clientId);
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -773,7 +768,7 @@ export class RepaymentService {
         return { message: 'تم تأجيل سداد الدفعة بنجاح', repaymentId: id };
     }
 
-    // Upload payment proof
+
     async uploadPaymentProof(currentUser, id: number, file: Express.Multer.File) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -810,7 +805,7 @@ export class RepaymentService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Update repayment record with PaymentProof URL
+
         await this.prisma.repayment.update({
             where: { id },
             data: { PaymentProof: publicUrl }
@@ -829,7 +824,7 @@ export class RepaymentService {
             },
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -842,7 +837,7 @@ export class RepaymentService {
         return { message: 'تم رفع مستند اثبات السداد بنجاح', fileUrl: publicUrl };
     }
 
-    // Mark repayment as partial paid
+
     async markAsPartialPaid(currentUser: number, id: number, paidAmount: number) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
@@ -870,7 +865,7 @@ export class RepaymentService {
 
         const remaining = parseFloat((repayment.amount - newPaidAmount).toFixed(2));
 
-        // Accounting accounts
+
         const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
         const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
 
@@ -883,7 +878,7 @@ export class RepaymentService {
 
         return await this.prisma.$transaction(async tx => {
 
-            // Determine how much of this payment is Principal vs Interest
+
             const totalPrincipal = repayment.principalAmount;
             const totalInterest = repayment.amount - repayment.principalAmount;
 
@@ -893,7 +888,7 @@ export class RepaymentService {
             let principalPart = 0;
             let interestPart = 0;
 
-            // 1st: always cover remaining principal first
+
             if (currentPaid < totalPrincipal) {
                 const remainingPrincipal = totalPrincipal - currentPaid;
 
@@ -913,7 +908,7 @@ export class RepaymentService {
             principalPart = roundToTwo(principalPart);
             interestPart = roundToTwo(interestPart);
 
-            // Create Journal Entry for this partial payment
+
             const journal = await this.journalService.createJournal(
                 {
                     reference: `PARTIAL-${repayment.id}-${Date.now()}`,
@@ -948,7 +943,7 @@ export class RepaymentService {
             );
             await this.journalService.postJournal(journal.journal.id, currentUser)
 
-            // Update repayment record
+
             const updated = await tx.repayment.update({
                 where: { id },
                 data: {
@@ -962,7 +957,7 @@ export class RepaymentService {
 
             await this.updateClientStatus(loan.clientId);
 
-            // Audit Log
+
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -983,7 +978,7 @@ export class RepaymentService {
         });
     }
 
-    // Mark loan as early paid
+
     async markLoanAsEarlyPaid(
         loanId: number,
         earlyPaymentDiscount: number,
@@ -1001,7 +996,7 @@ export class RepaymentService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUserId } });
 
-        // Step 1: Filter unpaid or partially paid repayments
+
         const unpaidRepayments = loan.repayments.filter(
             r => r.status !== 'PAID' && r.status !== 'EARLY_PAID'
         );
@@ -1009,7 +1004,7 @@ export class RepaymentService {
         if (unpaidRepayments.length === 0)
             throw new BadRequestException('لا توجد دفعات للسداد');
 
-        // Step 2: Calculate totals for unpaid repayments
+
         let totalRemainingPrincipal = 0;
         let totalRemainingInterest = 0;
 
@@ -1022,7 +1017,7 @@ export class RepaymentService {
             totalRemainingInterest += Math.max(remainingInterest, 0);
         });
 
-        // Step 3: Validate discount
+
         if (earlyPaymentDiscount > totalRemainingInterest) {
             throw new BadRequestException(
                 `الخصم لا يمكن ان يتعدي باقي الفائدة (${totalRemainingInterest.toFixed(2)})`,
@@ -1031,7 +1026,7 @@ export class RepaymentService {
 
         let finalPayment = totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount);
 
-        // Step 4: Get accounts
+
         const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
         const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
 
@@ -1049,7 +1044,7 @@ export class RepaymentService {
         totalRemainingInterest = roundToTwo(totalRemainingInterest);
 
         return await this.prisma.$transaction(async (tx) => {
-            // Step 5: Create journal entry
+
             const journal = await this.journalService.createJournal(
                 {
                     reference: `EARLY-${loan.id}`,
@@ -1069,7 +1064,7 @@ export class RepaymentService {
             );
             await this.journalService.postJournal(journal.journal.id, currentUserId)
 
-            // Step 6: Update repayments
+
             const discountRatio = earlyPaymentDiscount / totalRemainingInterest;
             let interestDistributed = 0;
 
@@ -1079,11 +1074,11 @@ export class RepaymentService {
                 const paidInterest = Math.max(alreadyPaid - rep.principalAmount, 0);
                 const remainingInterest = rep.amount - rep.principalAmount - paidInterest;
 
-                // Calculate interest discount for this installment
+
                 let interestDiscount = parseFloat((remainingInterest * discountRatio).toFixed(2));
                 let interestPortion = parseFloat((remainingInterest - interestDiscount).toFixed(2));
 
-                // For the last repayment, adjust to ensure total sums exactly
+
                 if (index === unpaidRepayments.length - 1) {
                     interestPortion = parseFloat((totalRemainingInterest - earlyPaymentDiscount - interestDistributed).toFixed(2));
                     interestDiscount = remainingInterest - interestPortion;
@@ -1109,7 +1104,7 @@ export class RepaymentService {
 
             await this.updateClientStatus(loan.clientId);
 
-            // Step 7: Partner Share Accrual
+
             let partnerShares: any[] = [];
 
             if (loan.source === LoanFundSource.GENERAL) {
@@ -1128,7 +1123,7 @@ export class RepaymentService {
 
             await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
 
-            // Step 8: Update loan
+
             await tx.loan.update({
                 where: { id: loan.id },
                 data: {
@@ -1138,7 +1133,7 @@ export class RepaymentService {
                 },
             });
 
-            // Step 9: Audit log
+
             await tx.auditLog.create({
                 data: {
                     userId: currentUserId,
@@ -1156,7 +1151,7 @@ export class RepaymentService {
         });
     }
 
-    // Approve multiple repayments
+
     async approveMany(currentUser: number, ids: number[], dto: RepaymentDto) {
         if (!ids || ids.length === 0) throw new BadRequestException('No repayment IDs provided');
 
@@ -1174,7 +1169,7 @@ export class RepaymentService {
         return results;
     }
 
-    // Reject multiple repayments
+
     async rejectMany(currentUser: number, ids: number[], dto: RepaymentDto) {
         if (!ids || ids.length === 0) throw new BadRequestException('No repayment IDs provided');
 
@@ -1192,7 +1187,7 @@ export class RepaymentService {
         return results;
     }
 
-    // Upload payment proof for multiple repayments
+
     async uploadPaymentProofBulk(
         currentUser: number,
         repaymentIds: number[],

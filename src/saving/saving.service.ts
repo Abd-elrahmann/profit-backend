@@ -18,7 +18,7 @@ export class SavingService {
             .format('iDD iMMMM iYYYY')
     }
 
-    // Partner saving summary (per period)
+
     async getPartnerSavingSummary(partnerId: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
@@ -66,7 +66,7 @@ export class SavingService {
         return Object.values(summaryByPeriod);
     }
 
-    // Get all partners savings summaries
+
     async getAllPartnerSavings(
         page: number = 1,
         filters?: { limit?: number; name?: string; nationalId?: string; phone?: string }
@@ -74,7 +74,7 @@ export class SavingService {
         const limit = filters?.limit && Number(filters.limit) > 0 ? Number(filters.limit) : 10;
         const skip = (page - 1) * limit;
 
-        // Build filter object
+
         const where: any = {};
         if (filters?.name) where.name = { contains: filters.name, mode: 'insensitive' };
         if (filters?.nationalId) where.nationalId = { contains: filters.nationalId, mode: 'insensitive' };
@@ -111,19 +111,19 @@ export class SavingService {
             let totalSavings = 0;
             let totalWithdrawals = 0;
 
-            // 1️⃣ sum all savings
+
             p.PartnerSavingAccrual.forEach((s) => {
                 totalSavings += Number(s.savingAmount);
             });
 
-            // 2️⃣ sum all withdrawals
+
             p.transactions.forEach((t) => {
                 totalWithdrawals += Number(t.amount);
             });
 
             const currentBalance = totalSavings - totalWithdrawals;
 
-            // 3️⃣ get last period from savings accruals
+
             const periods = p.PartnerSavingAccrual
                 .map((s) => s.accrual?.period)
                 .filter(Boolean);
@@ -139,7 +139,7 @@ export class SavingService {
             return {
                 partnerId: p.id,
                 partnerName: p.name,
-                totalPeriods: uniquePeriods.length, // 👈 عدد الفترات
+                totalPeriods: uniquePeriods.length, 
                 periods: [
                     {
                         period: lastPeriod
@@ -173,7 +173,7 @@ export class SavingService {
         };
     }
 
-    // Saving account report by month
+
     async getSavingAccountReport(month?: string) {
         let monthStart: Date | undefined;
         let monthEnd: Date | undefined;
@@ -273,7 +273,7 @@ export class SavingService {
             remainingPartners = stillEligible;
         }
 
-        // rounding بدون فرق فلس
+
         let distributed = 0;
         for (const p of result) {
             p.withdraw = Math.floor(p.withdraw * 100) / 100;

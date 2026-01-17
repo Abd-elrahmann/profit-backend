@@ -9,7 +9,7 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class CompanyController {
     constructor(private readonly companyService: CompanyService) { }
 
-    // Withdraw profit
+
     @Post('withdraw-profit')
     @Permissions('company', 'canPost')
     async withdrawProfit(
@@ -18,7 +18,7 @@ export class CompanyController {
         return this.companyService.withdrawProfit(+amount, req.user.id);
     }
 
-    // Profit report
+
     @Get('profit-report/:page')
     @Permissions('company', 'canView')
     async getProfitReport(

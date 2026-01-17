@@ -33,16 +33,16 @@ export class AuthController {
   ) {
     const result = await this.authService.login(body);
     
-    // Set refresh token as HttpOnly cookie
+
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Only HTTPS in production
+      secure: process.env.NODE_ENV === 'production', 
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
       path: '/'
     });
 
-    // Return access token and user data (don't return refresh token in body)
+
     return {
       accessToken: result.accessToken,
       user: result.user
@@ -55,13 +55,13 @@ export class AuthController {
     @Req() req,
     @Res({ passthrough: true }) res: Response
   ) {
-    // Get refresh token from cookie
+
     const refreshToken = req.cookies?.refreshToken;
     
-    // Invalidate refresh token
+
     await this.authService.logoutAndInvalidateToken(req.user.id, refreshToken);
     
-    // Clear refresh token cookie
+
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -126,7 +126,7 @@ export class AuthController {
 
   @Post('refresh')
   async refreshToken(@Req() req: Request) {
-    // Get refresh token from cookie
+
     const refreshToken = req.cookies?.refreshToken;
     
     if (!refreshToken) {

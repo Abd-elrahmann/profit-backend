@@ -18,13 +18,13 @@ export class BankService {
             where: { id: currentUser },
         });
 
-        // Prepare data with status based on limit
+
         const createData: any = {
             ...data,
             status: data.limit > 0 ? 'Active' : 'Expired'
         };
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -103,15 +103,15 @@ export class BankService {
             where: { id: currentUser },
         });
 
-        // Prepare update data
+
         const updateData: any = { ...data };
 
-        // Update status based on limit
+
         if (data.limit !== undefined) {
             updateData.status = data.limit > 0 ? 'Active' : 'Expired';
         }
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -144,7 +144,7 @@ export class BankService {
             where: { id: currentUser },
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,

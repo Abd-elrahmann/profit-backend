@@ -16,14 +16,14 @@ export class JournalService {
             .format('iDD iMMMM iYYYY')
     }
 
-    // Create journal
+
     async createJournal(dto: CreateJournalDto, userId?: number) {
 
         const user = userId ? await this.prisma.user.findUnique({
             where: { id: userId },
         }) : null;
 
-        // Determine the period
+
         let periodId = dto.periodId;
         if (!periodId) {
             const currentPeriod = await this.prisma.periodHeader.findFirst({
@@ -81,7 +81,7 @@ export class JournalService {
             include: { lines: true },
         });
 
-        // create audit log (only if userId is provided)
+
         if (userId) {
             await this.prisma.auditLog.create({
                 data: {
@@ -96,7 +96,7 @@ export class JournalService {
         return { message: 'تم انشاء القيد بنجاح', journal };
     }
 
-    // Update journal
+
     async updateJournal(currentUser, id: number, dto: UpdateJournalDto) {
         const journal = await this.prisma.journalHeader.findUnique({ where: { id }, include: { lines: true } });
         if (!journal) throw new NotFoundException('Journal not found');
@@ -134,7 +134,7 @@ export class JournalService {
             include: { lines: true },
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -147,7 +147,7 @@ export class JournalService {
         return { message: 'تم تعديل القيد بنجاح', updated };
     }
 
-    // Delete journal
+
     async deleteJournal(currentUser, id: number) {
         const journal = await this.prisma.journalHeader.findUnique({ where: { id } });
         if (!journal) throw new NotFoundException('Journal not found');
@@ -162,7 +162,7 @@ export class JournalService {
         await this.prisma.journalLine.deleteMany({ where: { journalId: id } });
         await this.prisma.journalHeader.delete({ where: { id } });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -175,7 +175,7 @@ export class JournalService {
         return { message: 'تم حذف القيد بنجاح' };
     }
 
-    // Get all journal headers
+
     async getAllJournals(
         page: number = 1,
         params: {
@@ -204,13 +204,13 @@ export class JournalService {
             }
         ];
 
-        // Handle search parameters
+
         const orConditions: any[] = [];
 
-        // Handle general search parameter
+
         if (search) {
             const searchUpper = search.toUpperCase();
-            // Try to match enum values for sourceType
+
             const sourceTypeMatches: JournalSourceType[] = [];
             if (searchUpper.includes('LOAN') || searchUpper === 'LN') {
                 sourceTypeMatches.push(JournalSourceType.LOAN);
@@ -238,7 +238,7 @@ export class JournalService {
                 { postedBy: { name: { contains: search, mode: 'insensitive' } } },
             );
 
-            // Add sourceType search if there are matches
+
             if (sourceTypeMatches.length > 0) {
                 const sourceTypeConditions = sourceTypeMatches.map((type) => {
                     if (type === JournalSourceType.PERIOD_CLOSING) {
@@ -256,7 +256,7 @@ export class JournalService {
             }
         }
 
-        // Handle individual search parameters
+
         if (reference) {
             orConditions.push({ reference: { contains: reference, mode: 'insensitive' } });
         }
@@ -287,7 +287,7 @@ export class JournalService {
         if (status) where.status = status as any;
         if (type) where.type = type as any;
 
-        // Handle date range filtering
+
         if (dateFrom || dateTo) {
             where.date = {};
             if (dateFrom) {
@@ -341,7 +341,7 @@ export class JournalService {
         };
     }
 
-    // Get specific journal with lines
+
     async getJournalById(id: number) {
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id },
@@ -353,12 +353,12 @@ export class JournalService {
 
         if (!journal) throw new NotFoundException('Journal not found');
 
-        // Calculate totals
+
         const totalDebit = journal.lines.reduce((sum, line) => sum + (line.debit || 0), 0);
         const totalCredit = journal.lines.reduce((sum, line) => sum + (line.credit || 0), 0);
         const totalBalance = totalDebit - totalCredit;
 
-        // Round values to 2 decimal places and fix floating point issues
+
         const normalize = (num: number) =>
             Math.abs(num) < 0.000001 ? 0 : Number(num.toFixed(2));
 
@@ -372,7 +372,7 @@ export class JournalService {
         };
     }
 
-    // POST JOURNAL
+
     async postJournal(id: number, userId: number) {
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id },
@@ -388,18 +388,18 @@ export class JournalService {
 
         await this.prisma.$transaction(async (tx) => {
             for (const line of journal.lines) {
-                // Apply posting effect recursively (account + parents)
+
                 await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'POST', line.clientId || undefined);
             }
 
-            // Update journal status
+
             await tx.journalHeader.update({
                 where: { id },
                 data: { status: 'POSTED', postedById: userId || journal.postedById },
             });
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: userId || 0,
@@ -412,7 +412,7 @@ export class JournalService {
         return { message: 'تم اعتماد القيد بنجاح', journalId: id };
     }
 
-    // UNPOST JOURNAL
+
     async unpostJournal(currentUser, id: number) {
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id },
@@ -431,18 +431,18 @@ export class JournalService {
 
         await this.prisma.$transaction(async (tx) => {
             for (const line of journal.lines) {
-                // Apply reverse effect recursively (account + parents)
+
                 await this.updateAccountHierarchy(tx, line.accountId, line.debit, line.credit, 'UNPOST', line.clientId || undefined);
             }
 
-            // Revert journal status
+
             await tx.journalHeader.update({
                 where: { id },
                 data: { status: 'DRAFT' },
             });
         });
 
-        // create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -455,7 +455,7 @@ export class JournalService {
         return { message: 'تم الغاء اعتماد القيد بنجاح', journalId: id };
     }
 
-    // Recursive account update helper
+
     private async updateAccountHierarchy(
         tx: any,
         accountId: number,
@@ -470,7 +470,7 @@ export class JournalService {
         });
         if (!account) throw new NotFoundException(`Account ${accountId} not found`);
 
-        // Account calculations
+
         const newDebit = action === 'POST'
             ? account.debit + debitChange
             : account.debit - debitChange;
@@ -515,13 +515,13 @@ export class JournalService {
             }
         }
 
-        // Recursive parent update
+
         if (account.parentId) {
             await this.updateAccountHierarchy(tx, account.parentId, debitChange, creditChange, action);
         }
     }
 
-    // POST MULTIPLE JOURNALS
+
     async postMultipleJournals(ids: number[], userId: number) {
         const journals = await this.prisma.journalHeader.findMany({
             where: { id: { in: ids } },
@@ -564,7 +564,7 @@ export class JournalService {
         });
     }
 
-    // UNPOST MULTIPLE JOURNALS
+
     async unpostMultipleJournals(ids: number[], userId: number) {
         const journals = await this.prisma.journalHeader.findMany({
             where: { id: { in: ids } },
@@ -612,7 +612,7 @@ export class JournalService {
         });
     }
 
-    // Check for unposted opening journals
+
     async checkUnpostedOpeningJournals() {
         const unpostedOpeningJournals = await this.prisma.journalHeader.findMany({
             where: {

@@ -63,7 +63,7 @@ export class ZakatSchedulerService {
         await page.pdf({ path: filePath, format: 'A4', printBackground: true });
         await browser.close();
 
-        return filePath; // path to save in DB
+        return filePath;
     }
 
     constructor(
@@ -71,7 +71,7 @@ export class ZakatSchedulerService {
         private readonly journalService: JournalService,
     ) { }
 
-    // MONTHLY PAYMENT JOB — Runs at 00:05 on days 28,29,30,31
+
     @Cron('5 0 28-31 * *', {
         timeZone: 'Asia/Riyadh',
     })
@@ -82,16 +82,12 @@ export class ZakatSchedulerService {
         const lastDay = now.endOf('month').date();
 
         if (today !== lastDay) {
-            this.logger.log(`Skipping... today is ${today}, last day is ${lastDay}`);
             return;
         }
 
         const year = now.year();
         const month = now.month() + 1;
 
-        this.logger.log(`Running monthly zakat job for ${year}-${month}`);
-
-        // Get all accruals for this month
         const accruals = await this.prisma.zakatAccrual.findMany({
             where: { year, month },
             include: { partner: true },
@@ -104,7 +100,7 @@ export class ZakatSchedulerService {
             const partner = acc.partner;
             const amount = this.round2(acc.amount);
 
-            // 1) Create ZakatPayment
+
             const zakatPayment = await this.prisma.zakatPayment.create({
                 data: {
                     partnerId: partner.id,
@@ -114,7 +110,7 @@ export class ZakatSchedulerService {
                 },
             });
 
-            // 2) Create Journal Entry
+
             const journal = await this.journalService.createJournal(
                 {
                     reference: `ZAKAT-${partner.id}-${year}-${month}`,
@@ -124,14 +120,14 @@ export class ZakatSchedulerService {
                     sourceId: zakatPayment.id,
                     lines: [
                         {
-                            // Zakat Expense (credit)
+
                             accountId: zakat.id,
                             debit: 0,
                             credit: amount,
                             description: 'مصروف زكاة',
                         },
                         {
-                            // Partner Equity (debit)
+
                             accountId: partner.accountEquityId,
                             debit: amount,
                             credit: 0,
@@ -149,7 +145,6 @@ export class ZakatSchedulerService {
             });
 
             if (!template) {
-                this.logger.error('PAYMENT_VOUCHER template missing!');
                 continue;
             }
 
@@ -177,7 +172,7 @@ export class ZakatSchedulerService {
 
             const fileUrl = `${process.env.URL}uploads/zakat/${pdfFilename}`;
 
-            // تحديث zakatPayment لحفظ مسار الـ PDF
+
             await this.prisma.zakatPayment.update({
                 where: { id: zakatPayment.id },
                 data: {
@@ -185,7 +180,7 @@ export class ZakatSchedulerService {
                 },
             });
 
-            // Update partner yearly totals
+
             await this.prisma.partner.update({
                 where: { id: partner.id },
                 data: {
@@ -197,17 +192,14 @@ export class ZakatSchedulerService {
                 },
             });
         }
-
-        this.logger.log(`Monthly zakat job completed.`);
     }
 
-    // YEAR-END RECONCILIATION JOB — runs Dec 31st 23:55
+
     @Cron('55 23 31 12 *', {
         timeZone: 'Asia/Riyadh',
     })
     async runYearEndZakatSettlement() {
         const year = moment().tz('Asia/Riyadh').year();
-        this.logger.log(`Running year-end zakat reconciliation for ${year}`);
 
         const partners = await this.prisma.partner.findMany();
 
@@ -235,7 +227,7 @@ export class ZakatSchedulerService {
                     },
                 });
 
-                // Create journal entry for difference
+
                 await this.journalService.createJournal(
                     {
                         reference: `ZAKAT-YEAR-END-${p.id}-${year}`,
@@ -277,7 +269,7 @@ export class ZakatSchedulerService {
                 );
             }
 
-            // Update partner zakat fields
+
             await this.prisma.partner.update({
                 where: { id: p.id },
                 data: {
@@ -289,19 +281,15 @@ export class ZakatSchedulerService {
                 },
             });
         }
-
-        this.logger.log(`Year-end zakat reconciliation completed.`);
     }
 
-    // NEXT YEAR ZAKAT ACCRUAL JOB - runs every January 1st at 00:00 Riyadh time
+
     @Cron('0 0 1 1 *', {
         timeZone: 'Asia/Riyadh',
     })
     async runNextYearZakatAccruals() {
         const now = moment().tz('Asia/Riyadh');
         const nextYear = now.year() + 1;
-
-        this.logger.log(`Running next year zakat accruals for ${nextYear}`);
 
         const partners = await this.prisma.partner.findMany();
 
@@ -322,8 +310,6 @@ export class ZakatSchedulerService {
                     },
                 });
             }
-            this.logger.log(`Created 12 monthly zakat accruals for partner ${partner.name} (${partner.id})`);
         }
-        this.logger.log(`Next year zakat accruals job completed for ${nextYear}`);
     }
 }

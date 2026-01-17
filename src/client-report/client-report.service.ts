@@ -22,7 +22,7 @@ export class ClientReportService {
             },
         });
 
-        // Filter out clients with no loans
+
         const clientsWithLoans = allClients.filter((c) => c.loans.length > 0);
 
         const processedClients = clientsWithLoans.map((c) => {
@@ -35,7 +35,7 @@ export class ClientReportService {
                     ? activeLoans
                     : allLoans;
 
-            // SAFE total debit calculation
+
             const totalDebit = loansForFinancials.reduce((sum, loan) => {
                 const debit =
                     loan.newAmount && loan.newAmount > 0
@@ -44,7 +44,7 @@ export class ClientReportService {
                 return Math.round((sum + debit) * 100) / 100;
             }, 0);
 
-            // Total paid calculation
+
             const totalPaid = loansForFinancials.reduce((sum, loan) => {
                 const paid = loan.repayments.reduce(
                     (rSum, r) => Math.round((rSum + r.paidAmount) * 100) / 100,
@@ -110,14 +110,14 @@ export class ClientReportService {
                 ).length;
             });
 
-            // Discounts
+
             const totalDiscounts = loans.reduce(
                 (sum, loan) =>
                     Math.round((sum + (loan.earlyPaymentDiscount ?? 0)) * 100) / 100,
                 0
             );
 
-            // Interest paid
+
             const totalInterestPaid = loans.reduce(
                 (sum, loan) =>
                     Math.round(
@@ -134,7 +134,7 @@ export class ClientReportService {
                 0
             );
 
-            // Monthly installment calculation - average of pending repayments
+
             const pendingRepayments = loansForFinancials.flatMap(loan =>
                 loan.repayments.filter(r => r.status === 'PENDING')
             );
@@ -201,7 +201,7 @@ export class ClientReportService {
 
         const allRepayments = client.repayment;
 
-        // --- COUNTS ---
+
         const totalRepayments = allRepayments.length;
         const paidRepayments = allRepayments.filter(
             (r) => r.status === 'PAID' || r.status === 'EARLY_PAID'
@@ -213,7 +213,7 @@ export class ClientReportService {
             (r) => r.status === 'OVERDUE'
         ).length;
 
-        // --- TOTAL DEBIT ---
+
         const totalDebit = client.loans.reduce(
             (sum, loan) =>
                 Math.round(
@@ -222,7 +222,7 @@ export class ClientReportService {
             0
         );
 
-        // --- TOTAL PAID ---
+
         const totalPaid = client.loans.reduce(
             (sum, loan) =>
                 Math.round(
@@ -242,7 +242,7 @@ export class ClientReportService {
 
         const remaining = Math.round((totalDebit - totalPaid) * 100) / 100;
 
-        // --- DISCOUNTS ---
+
         const totalDiscounts = client.loans.reduce(
             (sum, loan) =>
                 Math.round(
@@ -251,7 +251,7 @@ export class ClientReportService {
             0
         );
 
-        // --- PRINCIPAL PAID ---
+
         const totalPrincipalPaid = allRepayments.reduce(
             (sum, r) =>
                 Math.round(
@@ -260,7 +260,7 @@ export class ClientReportService {
             0
         );
 
-        // --- INTEREST PAID (ALREADY ROUNDED) ---
+
         const totalInterestPaid =
             Number(
                 allRepayments.reduce(
@@ -269,7 +269,7 @@ export class ClientReportService {
                 ) / 100
             ) || 0;
 
-        // --- LOAN DETAILS ---
+
         const loans = client.loans.map((loan) => {
             const loanTotalPaid = loan.repayments.reduce(
                 (s, r) =>

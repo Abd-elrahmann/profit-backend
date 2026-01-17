@@ -14,7 +14,7 @@ export class AccountsService {
             .format('iDD iMMMM iYYYY')
     }
 
-    // CREATE ACCOUNT
+
     async createAccount(dto: CreateAccountDto) {
         if (dto.parentId) {
             const parent = await this.prisma.account.findUnique({ where: { id: dto.parentId } });
@@ -28,7 +28,7 @@ export class AccountsService {
         return { message: 'تم انشاء الحساب بنجاح', account };
     }
 
-    // UPDATE ACCOUNT
+
     async updateAccount(id: number, dto: UpdateAccountDto) {
         const account = await this.prisma.account.findUnique({ where: { id } });
         if (!account) throw new NotFoundException('Account not found');
@@ -41,7 +41,7 @@ export class AccountsService {
         return { message: 'تم تعديل الحساب بنجاح', account: updated };
     }
 
-    // DELETE ACCOUNT
+
     async deleteAccount(id: number) {
         const account = await this.prisma.account.findUnique({ where: { id } });
         if (!account) throw new NotFoundException('Account not found');
@@ -53,11 +53,11 @@ export class AccountsService {
         return { message: 'تم حذف الحساب بنجاح' };
     }
 
-    // GET ALL ACCOUNTS
+
     async getAllAccounts(page: number = 1, limit: number = 10, filters?: any) {
         const where: any = {};
 
-        // Search filter (by name or code)
+
         if (filters?.search) {
             const search = filters.search.trim();
             where.OR = [
@@ -66,7 +66,7 @@ export class AccountsService {
             ];
         }
 
-        // Query paginated accounts
+
         const accounts = await this.prisma.account.findMany({
             where,
             skip: (page - 1) * limit,
@@ -74,7 +74,7 @@ export class AccountsService {
             orderBy: { code: 'asc' },
         });
 
-        // Total count for pagination
+
         const total = await this.prisma.account.count({ where });
 
         return {
@@ -85,7 +85,7 @@ export class AccountsService {
         };
     }
 
-    // GET ACCOUNT DETAILS (without journals)
+
     async getAccountDetails(id: number) {
         const account = await this.prisma.account.findUnique({
             where: { id },
@@ -96,7 +96,7 @@ export class AccountsService {
         return account;
     }
 
-    // GET ACCOUNT BY ID
+
     async getAccountById(
         id: number,
         page = 1,
@@ -104,14 +104,14 @@ export class AccountsService {
     ) {
         const { from, to, limit = 10 } = options;
 
-        // Step 1: Get the account with children
+
         const account = await this.prisma.account.findUnique({
             where: { id },
             include: { children: true },
         });
         if (!account) throw new NotFoundException('Account not found');
 
-        // Step 2: Build date filter (Saudi timezone)
+
         const dateFilter: any = {};
         if (from) {
             const saudiFrom = DateTime.fromISO(from, { zone: 'Asia/Riyadh' })
@@ -126,7 +126,7 @@ export class AccountsService {
             dateFilter.lte = saudiTo;
         }
 
-        // Step 3: Count total matching journals
+
         const totalJournals = await this.prisma.journalHeader.count({
             where: {
                 status: 'POSTED',
@@ -135,7 +135,7 @@ export class AccountsService {
             },
         });
 
-        // Step 4: Fetch journals with pagination
+
         const journals = await this.prisma.journalHeader.findMany({
             where: {
                 status: 'POSTED',
@@ -157,7 +157,7 @@ export class AccountsService {
             take: limit,
         });
 
-        // Step 5: Calculate period-specific totals
+
         const periodTotals = await this.prisma.journalLine.aggregate({
             where: {
                 accountId: id,
@@ -175,7 +175,7 @@ export class AccountsService {
         const periodDebit = periodTotals._sum?.debit || 0;
         const periodCredit = periodTotals._sum?.credit || 0;
 
-        // Calculate period balance based on account nature
+
         let periodBalance = 0;
         if (account.nature === 'DEBIT') {
             periodBalance = periodDebit - periodCredit;
@@ -183,7 +183,7 @@ export class AccountsService {
             periodBalance = periodCredit - periodDebit;
         }
 
-        // Step 6: Format response
+
         const formattedJournals = journals.map((j) => ({
             id: j.id,
             reference: j.reference,
@@ -206,14 +206,14 @@ export class AccountsService {
             })),
         }));
 
-        // Step 7: Return result with period-specific balances
+
         return {
             totalPages: Math.ceil(totalJournals / limit),
             currentPage: page,
             limit,
             account: {
                 ...account,
-                // Override the overall balance with period-specific balance
+
                 balance: periodBalance,
                 debit: periodDebit,
                 credit: periodCredit,
@@ -228,7 +228,7 @@ export class AccountsService {
         };
     }
 
-    // GET ACCOUNTS TREE
+
     async getAccountsTree() {
         const accounts = await this.prisma.account.findMany({ orderBy: { code: 'asc' } });
 
@@ -250,7 +250,7 @@ export class AccountsService {
         return roots;
     }
 
-    // GET BANK ACCOUNT WITH ALL JOURNALS AND REPAYMENTS
+
     async getBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
         const skip = (page - 1) * limit;
 
@@ -467,7 +467,7 @@ export class AccountsService {
         };
     }
 
-    // GET BANK ACCOUNT WITH ALL JOURNALS AND REPAYMENTS
+
     async getNEWBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
         const skip = (page - 1) * limit;
 

@@ -8,7 +8,7 @@ datasource db {
   directUrl =  env("DIRECT_URL")
 }
 
-// USERS, ROLES, & PERMISSIONS
+
 model User {
   id             Int                  @id @default(autoincrement())
   name           String
@@ -101,7 +101,7 @@ model RefreshToken {
   @@index([token])
 }
 
-// CLIENTS, PARTNERS, LOANS, REPAYMENTS
+
 model Client {
   id             Int              @id @default(autoincrement())
   name           String
@@ -572,7 +572,7 @@ enum AccountStatus {
   Expired
 }
 
-// ACCOUNTING CORE
+
 model Account {
   id               Int               @id @default(autoincrement())
   name             String

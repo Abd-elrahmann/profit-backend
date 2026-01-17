@@ -25,14 +25,14 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class RepaymentController {
     constructor(private readonly repaymentService: RepaymentService) { }
 
-    // Get specific repayment by ID
+
     @Get('repayment/:id')
     @Permissions('repayments', 'canView')
     getRepaymentById(@Param('id', ParseIntPipe) id: number) {
         return this.repaymentService.getRepaymentById(id);
     }
 
-    // Upload multiple receipt images
+
     @Post('upload/:id')
     @UseInterceptors(FilesInterceptor('file'))
     uploadReceipts(
@@ -43,7 +43,7 @@ export class RepaymentController {
         return this.repaymentService.uploadReceipts(req.user.id, id, files);
     }
 
-    // Approve repayment
+
     @Patch('approve/:id')
     @Permissions('repayments', 'canPost')
     approveRepayment(
@@ -54,7 +54,7 @@ export class RepaymentController {
         return this.repaymentService.approveRepayment(req.user.id, id, dto);
     }
 
-    // Reject repayment
+
     @Patch('reject/:id')
     @Permissions('repayments', 'canPost')
     rejectRepayment(
@@ -65,7 +65,7 @@ export class RepaymentController {
         return this.repaymentService.rejectRepayment(req.user.id, id, dto);
     }
 
-    // Postpone repayment
+
     @Patch('postpone/:id')
     @Permissions('repayments', 'canPost')
     postponeRepayment(
@@ -76,7 +76,7 @@ export class RepaymentController {
         return this.repaymentService.postponeRepayment(req.user.id, id, dto);
     }
 
-    // Upload receipt image
+
     @Post('PaymentProof/:id')
     @Permissions('repayments', 'canPost')
     @UseInterceptors(FileInterceptor('file'))
@@ -88,7 +88,7 @@ export class RepaymentController {
         return this.repaymentService.uploadPaymentProof(req.user.id, id, file);
     }
 
-    // Mark repayment as partial paid
+
     @Patch('partial-paid/:id')
     @Permissions('repayments', 'canPost')
     async markAsPartialPaid(
@@ -114,7 +114,7 @@ export class RepaymentController {
         return result;
     }
 
-    // Approve multiple repayments
+
     @Post('approve-many')
     @Permissions('repayments', 'canPost')
     async approveMany(
@@ -125,7 +125,7 @@ export class RepaymentController {
         return this.repaymentService.approveMany(req.user.id, body.ids, dto);
     }
 
-    // Reject multiple repayments
+
     @Post('reject-many')
     @Permissions('repayments', 'canPost')
     async rejectMany(
@@ -136,7 +136,7 @@ export class RepaymentController {
         return this.repaymentService.rejectMany(req.user.id, body.ids, dto);
     }
 
-    // Upload payment proof for multiple repayments
+
     @Post('payment-proof-bulk')
     @Permissions('repayments', 'canPost')
     @UseInterceptors(FileInterceptor('file'))

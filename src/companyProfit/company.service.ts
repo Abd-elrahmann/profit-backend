@@ -17,27 +17,27 @@ export class CompanyService {
             .format('iDD iMMMM iYYYY')
     }
 
-    // Withdraw company profit
+
     async withdrawProfit(amount: number, userId: number) {
         if (amount <= 0) throw new BadRequestException('المبلغ يجب أن يكون أكبر من صفر');
 
-        // Bank account (Cash in Bank)
+
         const bank = await this.prisma.account.findUnique({ where: { code: "11000" } });
         if (!bank) throw new NotFoundException('لم يتم العثور على حساب البنك');
 
-        // Company Profit Account
+
         const companyProfitAccount = await this.prisma.account.findFirst({
             where: { accountBasicType: 'COMPANY_SHARES' },
         });
         if (!companyProfitAccount) throw new NotFoundException('لم يتم العثور على حساب أرباح الشركة');
 
-        // Check available company profit
+
         if (companyProfitAccount.balance < amount)
             throw new BadRequestException('رصيد أرباح الشركة غير كافٍ لإجراء عملية السحب');
 
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
-        // Create journal entry for profit withdrawal
+
         const journal = await this.journalService.createJournal(
             {
                 reference: `COMPANY-WITHDRAW-${DateTime.now().toFormat('yyyyLLdd-HHmm')}`,
@@ -46,14 +46,14 @@ export class CompanyService {
                 sourceType: 'COMPANY_PROFIT_WITHDRAWAL',
                 lines: [
                     {
-                        // البنك (Credit)
+
                         accountId: bank.id,
                         debit: 0,
                         credit: amount,
                         description: 'سحب أرباح الشركة من حساب البنك',
                     },
                     {
-                        // أرباح الشركة (Debit)
+
                         accountId: companyProfitAccount.id,
                         debit: amount,
                         credit: 0,
@@ -64,10 +64,10 @@ export class CompanyService {
             userId,
         );
 
-        // Post the journal
+
         await this.journalService.postJournal(journal.journal.id, userId);
 
-        // Audit Log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,
@@ -80,7 +80,7 @@ export class CompanyService {
         return { message: 'تم سحب الأرباح بنجاح' };
     }
 
-    // Get company profit balance, withdrawals
+
     async getProfitReport(
         page: number,
         filters?: {
@@ -99,7 +99,7 @@ export class CompanyService {
         if (!companyProfitAccount)
             throw new NotFoundException('Company profit account not found');
 
-        // Withdrawals
+
         const withdrawalWhere: any = { sourceType: 'COMPANY_PROFIT_WITHDRAWAL', status: 'POSTED' };
         if (filters?.search) {
             withdrawalWhere.OR = [
@@ -137,14 +137,14 @@ export class CompanyService {
 
         const totalWithdrawnAmount = formattedWithdrawals.reduce((s, w) => s + w.amount, 0);
 
-        // Closed periods
+
         const closingJournals = await this.prisma.journalHeader.findMany({
             where: { sourceType: 'PERIOD_CLOSING', status: 'POSTED' },
             include: { period: true, lines: { include: { account: true } } },
             orderBy: { date: 'asc' },
         });
 
-        // Pending accruals (for upcoming)
+
         const pendingAccruals = await this.prisma.partnerShareAccrual.findMany({
             where: { isDistributed: false },
             include: { period: true },
@@ -215,19 +215,19 @@ export class CompanyService {
 
         const totalUpcoming = Number((upcomingCompanyProfit + upcomingCents).toFixed(2));
 
-        // Calculate periods with company cents
+
         const periods = [] as any;
 
         for (const journal of closingJournals) {
             const periodId = journal.period?.id;
             if (!periodId) continue;
 
-            // 1️⃣ Total period profit
+
             const totalPeriodProfit = journal.lines
                 .filter(l => l.account.accountBasicType === 'LOAN_INCOME')
                 .reduce((s, l) => s + Number(l.debit || 0), 0);
 
-            // 2️⃣ Get all accruals for this period
+
             const periodAccruals = await this.prisma.partnerShareAccrual.findMany({
                 where: { periodId },
             });
@@ -252,14 +252,14 @@ export class CompanyService {
 
             const totalGross = totalGrossPartner + totalGrossCompany + totalOldCents;
 
-            // 3️⃣ Expenses for this period
+
             const expensesAgg = await this.prisma.journalLine.aggregate({
                 where: { journal: { periodId }, account: { accountBasicType: 'EXPENSES' } },
                 _sum: { debit: true },
             });
             const totalExpenses = Number(expensesAgg._sum.debit || 0);
 
-            // 4️⃣ Partner cents calculation
+
             let centsFromPartners = 0;
             for (const [partnerId, gross] of partnerMap.entries()) {
                 const expenseShare = totalExpenses * (gross / totalGross);
@@ -269,13 +269,13 @@ export class CompanyService {
             }
             centsFromPartners = Number(centsFromPartners.toFixed(2));
 
-            // 5️⃣ Company net after expenses
+
             const companyExpenseShare = totalGross > 0
                 ? totalExpenses * (totalGrossCompany / totalGross)
                 : 0;
             const companyNet = totalGrossCompany - companyExpenseShare;
 
-            // 6️⃣ Adjust old cents proportionally
+
             const adjustedOldCents = totalGrossCompany > 0
                 ? totalOldCents * (companyNet / totalGrossCompany)
                 : 0;

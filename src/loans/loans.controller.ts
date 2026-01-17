@@ -89,7 +89,7 @@ export class LoansController {
 
     @Post(':id/upload-debt-acknowledgment')
     @UseInterceptors(FileInterceptor('file', {
-        limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+        limits: { fileSize: 10 * 1024 * 1024 }, 
     }))
     async uploadDebtAcknowledgment(
         @Req() req,
@@ -102,7 +102,7 @@ export class LoansController {
 
     @Post(':id/upload-promissory-note')
     @UseInterceptors(FileInterceptor('file', {
-        limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+        limits: { fileSize: 10 * 1024 * 1024 }, 
     }))
     async uploadPromissoryNote(
         @Req() req,

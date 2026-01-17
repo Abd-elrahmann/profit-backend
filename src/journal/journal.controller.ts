@@ -57,7 +57,7 @@ export class JournalController {
         });
     }
 
-    // CHECK UNPOSTED OPENING JOURNALS
+
     @Get('check-opening-journals')
     @Permissions('journals', 'canView')
     async checkUnpostedOpeningJournals() {
@@ -83,14 +83,14 @@ export class JournalController {
         return this.journalService.unpostJournal(req.user.id, id);
     }
 
-    // POST MULTIPLE JOURNALS
+
     @Post('post-multiple')
     @Permissions('journals', 'canPost')
     async postMultiple(@Body('ids') ids: number[], @Req() req) {
         return this.journalService.postMultipleJournals(ids, req.user.id);
     }
 
-    // UNPOST MULTIPLE JOURNALS
+
     @Post('unpost-multiple')
     @Permissions('journals', 'canPost')
     async unpostMultiple(@Body('ids') ids: number[], @Req() req) {

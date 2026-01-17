@@ -406,7 +406,7 @@ export class PartnerWithdrawService {
         };
     }
 
-    // Approve full payment
+
     async approveWithdrawalPayment(currentUser: number, scheduleId: number) {
         const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
             where: { id: scheduleId },
@@ -435,7 +435,7 @@ export class PartnerWithdrawService {
             throw new NotFoundException('لا يوجد طلب انسحاب مرتبط بهذا المستثمر');
         }
 
-        // compute amounts
+
         const carry = parseFloat((schedule.carryAmount || 0).toFixed(2));
         const ownRemaining = parseFloat((schedule.remaining ?? schedule.amount ?? 0).toFixed(2));
         const totalToPay = parseFloat((carry + ownRemaining).toFixed(2));
@@ -532,7 +532,7 @@ export class PartnerWithdrawService {
                 })
             }
 
-            // Audit
+
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -550,7 +550,7 @@ export class PartnerWithdrawService {
         });
     }
 
-    // Reject a payment
+
     async rejectWithdrawalPayment(currentUser: number, scheduleId: number) {
         const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
             where: { id: scheduleId },
@@ -569,9 +569,9 @@ export class PartnerWithdrawService {
 
         if (!schedule) throw new NotFoundException('جدول السحب غير موجود');
 
-        // if (!schedule.isPaid && (!schedule.paidAmount || schedule.paidAmount === 0)) {
-        //     throw new BadRequestException('الدفعة غير مدفوعة أو لا توجد دفعات لتراجعها');
-        // }
+
+
+
 
         const withdrawalId = schedule.partner.PartnerWithdrawal?.[0]?.id;
 
@@ -663,7 +663,7 @@ export class PartnerWithdrawService {
                 }
             }
 
-            // audit log
+
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -677,7 +677,7 @@ export class PartnerWithdrawService {
         });
     }
 
-    // Helper: find next schedules for same partner after a given schedule    
+
     private async findNextSchedulesForPartnerAfter(schedule) {
         return this.prisma.partnerWithdrawalSchedule.findMany({
             where: {
@@ -708,7 +708,7 @@ export class PartnerWithdrawService {
         });
     }
 
-    // PARTIAL PAYMENT
+
     async partialPayWithdrawal(currentUser: number, scheduleId: number, paidAmount: number) {
         if (!paidAmount || paidAmount <= 0) throw new BadRequestException('المبلغ المدفوع يجب أن يكون أكبر من صفر');
 
@@ -943,7 +943,7 @@ export class PartnerWithdrawService {
         };
     }
 
-    // UPLOAD WITHDRAWAL RECEIPT FILE
+
     async uploadWithdrawalReceipt(currentUser: number, partnerId: number, file: Express.Multer.File) {
         const withdrawal = await this.prisma.partnerWithdrawal.findFirst({
             where: { partnerId: partnerId },
@@ -963,7 +963,7 @@ export class PartnerWithdrawService {
         const uploadDir = path.join(process.cwd(), 'uploads', 'partners', partner.nationalId, 'withdrawals');
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-        // Delete existing receipt if exists
+
         if (withdrawal.WITHDRAWAL_RECEIPT) {
             try {
                 let existingRelative = withdrawal.WITHDRAWAL_RECEIPT;
@@ -977,19 +977,19 @@ export class PartnerWithdrawService {
             }
         }
 
-        // Generate filename: "مخالصة مالية" with original file extension
+
         const fileExt = path.parse(file.originalname).ext || '.pdf';
         const fileName = `مخالصة مالية${fileExt}`;
 
-        // Save new file
+
         const filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, file.buffer);
 
-        // Build public URL
+
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-        // Update DB
+
         await this.prisma.partnerWithdrawal.update({
             where: { id: withdrawal.id },
             data: { WITHDRAWAL_RECEIPT: publicUrl },
@@ -1008,7 +1008,7 @@ export class PartnerWithdrawService {
             },
         });
 
-        // Create audit log
+
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
@@ -1064,7 +1064,7 @@ export class PartnerWithdrawService {
         }
 
         return await this.prisma.$transaction(async (tx) => {
-            // حذف كل الجداول الحالية
+
             await tx.partnerWithdrawalSchedule.deleteMany({
                 where: { partnerId },
             });

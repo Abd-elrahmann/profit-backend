@@ -6,10 +6,9 @@ export class TelegramService {
     private readonly logger = new Logger(TelegramService.name);
     private readonly botToken = process.env.TELEGRAM_BOT_TOKEN;
 
-    // Send a plain text message or with optional reply_markup (buttons)
+
     async sendMessage(chatId: string, message: string, extra?: any) {
         if (!chatId || !message) {
-            this.logger.warn('Missing chatId or message');
             return;
         }
 
@@ -21,19 +20,14 @@ export class TelegramService {
                     chat_id: chatId,
                     text: message,
                     parse_mode: 'HTML',
-                    ...extra, // include optional buttons or markup
+                    ...extra, 
                 };
 
                 const response = await axios.post(url, payload);
-                this.logger.log(`✅ Telegram message sent to ${chatId}`);
                 return response.data;
             } catch (error: any) {
                 if (axios.isAxiosError(error)) {
-                    this.logger.error(
-                        `❌ Attempt ${attempt} failed for chat ${chatId}: ${error.message} | Response: ${JSON.stringify(error.response?.data)}`
-                    );
                 } else {
-                    this.logger.error(`❌ Attempt ${attempt} failed for chat ${chatId}: ${error}`);
                 }
 
                 if (attempt < 3) {

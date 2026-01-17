@@ -9,7 +9,7 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class RolesController {
     constructor(private readonly rolesService: RolesService) { }
 
-    // Create a role with permissions
+
     @Post()
     @Permissions('roles', 'canAdd')
     createRole(
@@ -32,7 +32,7 @@ export class RolesController {
         return this.rolesService.createRole(req.user.id, body);
     }
 
-    // Get all roles
+
     @Get()
     @Permissions('roles', 'canView')
     getRoles(
@@ -45,13 +45,13 @@ export class RolesController {
         });
     }
 
-    // Get current user's permissions
+
     @Get('permissions')
     getUserPermissions(@Req() req) {
         return this.rolesService.getUserPermissions(req.user.id);
     }
 
-    // Update a role
+
     @Patch(':id')
     @Permissions('roles', 'canUpdate')
     updateRole(
@@ -75,7 +75,7 @@ export class RolesController {
         return this.rolesService.updateRole(id, req.user.id, body);
     }
 
-    // Delete a role
+
     @Delete(':id')
     @Permissions('roles', 'canDelete')
     deleteRole(@Req() req, @Param('id', ParseIntPipe) id: number) {

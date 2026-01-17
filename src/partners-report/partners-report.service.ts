@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PartnersReportService {
     constructor(private prisma: PrismaService) { }
 
-    // Get ALL partners with pagination
+
     async getAllPartners(page: number, limit = 20) {
         const skip = (page - 1) * limit;
 
@@ -63,7 +63,7 @@ export class PartnersReportService {
         };
     }
 
-    // Get partner with FULL detailed report
+
     async getPartnerDetails(id: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
@@ -100,7 +100,7 @@ export class PartnersReportService {
 
         if (!partner) throw new NotFoundException('Partner not found');
 
-        // LOAN SUMMARY
+
         const totalLoans = partner.loans.length;
         const activeLoans = partner.loans.filter(l => l.status === "ACTIVE").length;
         const completedLoans = partner.loans.filter(l => l.status === "COMPLETED").length;
@@ -109,7 +109,7 @@ export class PartnersReportService {
             0
         );
 
-        // TRANSACTION SUMMARY
+
         const totalDeposits = partner.transactions
             .filter(t => t.type === "DEPOSIT")
             .reduce((s, t) => s + t.amount, 0);
@@ -118,7 +118,7 @@ export class PartnersReportService {
             .filter(t => t.type === "WITHDRAWAL")
             .reduce((s, t) => s + t.amount, 0);
 
-        // PROFIT ACCRUAL SUMMARY
+
         const totalRawShare = partner.profitAccruals.reduce((s, a) => s + a.rawShare, 0);
         const totalCompanyCut = partner.profitAccruals.reduce((s, a) => s + a.companyCut, 0);
         const totalPartnerProfit = partner.profitAccruals.reduce((s, a) => s + a.partnerFinal, 0);
@@ -130,17 +130,17 @@ export class PartnersReportService {
         const undistributedProfit = totalPartnerProfit - distributedProfit;
 
 
-        // SAVINGS SUMMARY
+
         const totalSavings = partner.PartnerSavingAccrual.reduce((s, a) => s + Number(a.savingAmount), 0);
         const periodsWithSavings = partner.PartnerSavingAccrual.length;
 
 
-        // PERIOD PROFIT SUMMARY
+
         const totalPeriodProfits = partner.PartnerPeriodProfit.reduce((s, p) => s + p.totalProfit, 0);
         const periodsCount = partner.PartnerPeriodProfit.length;
 
 
-        // ZAKAT SUMMARY
+
         const totalZakatAccrued = Math.round(
             partner.ZakatAccrual.reduce((s, a) => s + a.amount, 0) * 100
         ) / 100;
@@ -151,9 +151,9 @@ export class PartnersReportService {
 
         const zakatBalance = totalZakatAccrued - totalZakatPaid;
 
-        // RETURN FULL RESPONSE
+
         return {
-            // Original raw data:
+
             profile: {
                 id: partner.id,
                 name: partner.name,
@@ -172,7 +172,7 @@ export class PartnersReportService {
             transactions: partner.transactions,
             periodProfits: partner.PartnerPeriodProfit,
 
-            // NEW SUMMARY SECTION
+
             summary: {
                 loans: {
                     totalLoans,
