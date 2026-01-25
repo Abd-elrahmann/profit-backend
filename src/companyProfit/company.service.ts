@@ -195,9 +195,6 @@ export class CompanyService {
                 const netUnrounded = gross - expenseShare;
                 const netRounded = Math.floor(netUnrounded);
                 centsFromPartners += netUnrounded - netRounded;
-                console.log(
-                    `[PARTNER ${partnerId}] gross=${gross} expense=${expenseShare.toFixed(4)} net=${netUnrounded.toFixed(4)} rounded=${netRounded} cents=${centsFromPartners.toFixed(4)}`
-                );
             }
             centsFromPartners = Number(centsFromPartners.toFixed(2));
 
