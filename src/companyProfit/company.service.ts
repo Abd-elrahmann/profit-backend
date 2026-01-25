@@ -166,7 +166,6 @@ export class CompanyService {
 
             let totalGrossPartner = 0;
             let totalGrossCompany = 0;
-            let totalOldCents = 0;
 
             const partnerGrossMap = new Map<number, number>();
             for (const a of periodAccruals) {
@@ -176,12 +175,11 @@ export class CompanyService {
 
                 totalGrossPartner += pf;
                 totalGrossCompany += cc;
-                totalOldCents += cents;
 
                 partnerGrossMap.set(a.partnerId, pf);
             }
 
-            const totalGross = totalGrossPartner + totalGrossCompany + totalOldCents;
+            const totalGross = totalGrossPartner + totalGrossCompany;
 
             const expensesAgg = await this.prisma.journalLine.aggregate({
                 where: { journal: { periodId: Number(periodId) }, account: { accountBasicType: 'EXPENSES' } },
@@ -195,6 +193,7 @@ export class CompanyService {
                 const netUnrounded = gross - expenseShare;
                 const netRounded = Math.floor(netUnrounded);
                 centsFromPartners += netUnrounded - netRounded;
+                console.log({ partnerId, gross, expenseShare, netUnrounded, netRounded, centsFromPartners });
             }
             centsFromPartners = Number(centsFromPartners.toFixed(2));
 
@@ -203,11 +202,7 @@ export class CompanyService {
                 : 0;
             const companyNet = totalGrossCompany - companyExpenseShare;
 
-            const adjustedOldCents = totalGrossCompany > 0
-                ? totalOldCents * (companyNet / totalGrossCompany)
-                : 0;
-
-            const totalCentsCollected = Number((centsFromPartners + adjustedOldCents).toFixed(2));
+            const totalCentsCollected = Number((centsFromPartners).toFixed(2));
 
             upcomingCompanyProfit += Number(companyNet.toFixed(2));
             upcomingCents += totalCentsCollected;
