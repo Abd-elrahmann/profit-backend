@@ -507,7 +507,6 @@ model PartnerShareAccrual {
   partner     Partner   @relation(fields: [partnerId], references: [id])
   loan        Loan?     @relation(fields: [loanId], references: [id])
   repayment   Repayment? @relation(fields: [repaymentId], references: [id])
-  @@unique([partnerId, loanId])
 }
 
 model ZakatAccrual {
