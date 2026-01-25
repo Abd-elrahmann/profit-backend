@@ -178,7 +178,7 @@ export class CompanyService {
                 totalGrossCompany += cc;
                 totalOldCents += cents;
 
-                partnerGrossMap.set(a.partnerId, pf);
+                partnerGrossMap.set(a.partnerId, (partnerGrossMap.get(a.partnerId) || 0) + pf);
             }
 
             const totalGross = totalGrossPartner + totalGrossCompany + totalOldCents;
@@ -250,11 +250,10 @@ export class CompanyService {
                 totalGrossCompany += cc;
                 totalOldCents += cents;
 
-                partnerMap.set(a.partnerId, pf);
+                partnerMap.set(a.partnerId, (partnerMap.get(a.partnerId) || 0) + pf);
             }
 
             const totalGross = totalGrossPartner + totalGrossCompany + totalOldCents;
-
 
             const expensesAgg = await this.prisma.journalLine.aggregate({
                 where: { journal: { periodId }, account: { accountBasicType: 'EXPENSES' } },
