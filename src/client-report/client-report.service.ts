@@ -138,11 +138,16 @@ export class ClientReportService {
             const pendingRepayments = loansForFinancials.flatMap(loan =>
                 loan.repayments.filter(r => r.status === 'PENDING')
             );
-            const averageMonthlyInstallment = pendingRepayments.length > 0
-                ? Math.round(
-                    (pendingRepayments.reduce((sum, r) => sum + r.amount, 0) / pendingRepayments.length) * 100
-                ) / 100
-                : 0;
+
+            const monthlyInstallment = loansForFinancials.reduce((sum, loan) => {
+                if (!loan.repayments.length) return sum;
+
+                const loanAmount = loan.paymentAmount
+
+                return sum + loanAmount;
+            }, 0);
+
+            const averageMonthlyInstallment = monthlyInstallment;
 
             return {
                 id: c.id,
