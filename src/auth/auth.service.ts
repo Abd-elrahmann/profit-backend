@@ -498,29 +498,29 @@ export class AuthService {
     try {
       const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
       
-      // Find the token record
+      
       const tokenRecord = await this.prisma.refreshToken.findFirst({
         where: { token: hashedToken }
       });
 
       if (!tokenRecord) {
-        // Token doesn't exist, nothing to do
+        
         return { message: 'تم تسجيل الخروج بنجاح' };
       }
 
-      // Get user info
+      
       const user = await this.prisma.user.findUnique({
         where: { id: tokenRecord.userId }
       });
 
       if (user) {
-        // Set user as inactive
+        
         await this.prisma.user.update({
           where: { id: tokenRecord.userId },
           data: { isActive: false },
         });
 
-        // Log the logout
+        
         await this.prisma.auditLog.create({
           data: {
             userId: tokenRecord.userId,
@@ -531,15 +531,15 @@ export class AuthService {
         });
       }
 
-      // Delete the refresh token
+      
       await this.prisma.refreshToken.delete({
         where: { id: tokenRecord.id }
       });
 
       return { message: 'تم تسجيل الخروج بنجاح' };
     } catch (error) {
-      // If anything fails, just return success
-      // The cookie will be cleared anyway
+      
+      
       return { message: 'تم تسجيل الخروج بنجاح' };
     }
   }

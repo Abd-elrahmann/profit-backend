@@ -58,15 +58,12 @@ export class AuthController {
     
     if (refreshToken) {
       try {
-        // Get user ID from refresh token to invalidate it
         await this.authService.logoutByRefreshToken(refreshToken);
       } catch (error) {
-        // Even if token is invalid, clear the cookie
         console.log('Logout token validation failed, clearing cookie anyway');
       }
     }
     
-    // Always clear the cookie
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

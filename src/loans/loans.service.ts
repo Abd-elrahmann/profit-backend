@@ -173,6 +173,7 @@ export class LoansService {
                     rawShare: rawShareRoundedArr[i],
                     companyCut: companyCutRoundedArr[i],
                     partnerFinal: partnerFinalInt,
+                    source: loan.source,
                 },
             });
         }
@@ -211,6 +212,7 @@ export class LoansService {
                 partnerId: number;
                 percent: number;
                 orgProfitPercent: number;
+                source: LoanFundSource;
             }[],
         ) => {
             if (interestAmount <= 0 || shares.length === 0) return;
@@ -278,6 +280,7 @@ export class LoansService {
                         rawShare: roundedRawShares[i],
                         companyCut: roundedCompanyCuts[i],
                         partnerFinal: partnerFinalInt,
+                        source: shares[i].source,
                     },
                 });
             }
@@ -290,6 +293,7 @@ export class LoansService {
                     partnerId: s.partnerId,
                     percent: Number(s.sharePercent),
                     orgProfitPercent: Number(s.partner.orgProfitPercent || 0),
+                    source: "GENERAL",
                 })),
             );
 
@@ -299,6 +303,7 @@ export class LoansService {
                     partnerId: s.partnerId,
                     percent: Number(s.percent),
                     orgProfitPercent: Number(s.partner.orgProfitPercent || 0),
+                    source: "NEW_CAPITAL",
                 })),
             );
         }
@@ -1065,7 +1070,6 @@ export class LoansService {
             journalId: journal.id,
         };
     }
-
 
     async deactivateLoan(currentUser, id: number) {
         const loan = await this.prisma.loan.findUnique({

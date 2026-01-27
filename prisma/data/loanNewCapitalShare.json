@@ -1,34 +1,10 @@
 [
   {
-    "id": 36,
-    "loanId": 24,
-    "partnerId": 9,
-    "amountUsed": 250,
-    "percent": 50,
-    "orgProfitPercent": 0
-  },
-  {
-    "id": 35,
-    "loanId": 24,
+    "id": 41,
+    "loanId": 36,
     "partnerId": 8,
-    "amountUsed": 250,
-    "percent": 50,
-    "orgProfitPercent": 0
-  },
-  {
-    "id": 38,
-    "loanId": 25,
-    "partnerId": 9,
-    "amountUsed": 250,
-    "percent": 50,
-    "orgProfitPercent": 0
-  },
-  {
-    "id": 37,
-    "loanId": 25,
-    "partnerId": 8,
-    "amountUsed": 250,
-    "percent": 50,
-    "orgProfitPercent": 0
+    "amountUsed": 500,
+    "percent": 100,
+    "orgProfitPercent": 20
   }
 ]

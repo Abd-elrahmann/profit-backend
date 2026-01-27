@@ -498,6 +498,7 @@ model PartnerShareAccrual {
   companyCut     Float  
   partnerFinal   Float  
   cents          Float     @default(0) 
+  source        LoanFundSource?
   isClosed       Boolean   @default(false)
   isDistributed  Boolean   @default(false)
   periodId      Int?
