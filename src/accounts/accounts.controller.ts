@@ -55,9 +55,10 @@ export class AccountsController {
     getBankAccountReport(
         @Param('page', ParseIntPipe) page: number,
         @Query('month') month?: string,
+        @Query('year') year?: string,
         @Query('limit') limit = 10,
     ) {
-        return this.accountsService.getBankAccountReport(month, page, +limit);
+        return this.accountsService.getBankAccountReport(month, year, page, +limit);
     }
 
     @Get('NewBank/:page')
@@ -65,9 +66,10 @@ export class AccountsController {
     getNEWBankAccountReport(
         @Param('page', ParseIntPipe) page: number,
         @Query('month') month?: string,
+        @Query('year') year?: string,
         @Query('limit') limit = 10,
     ) {
-        return this.accountsService.getNEWBankAccountReport(month, page, +limit);
+        return this.accountsService.getNEWBankAccountReport(month, year, page, +limit);
     }
 
     @Get(':id')
