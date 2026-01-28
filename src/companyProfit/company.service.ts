@@ -308,8 +308,8 @@ export class CompanyService {
             availableAmount: Number(companyProfitAccount.balance.toFixed(2)),
 
             upcomingProfit: upcomingCompanyProfit,
-            cents: upcomingCents,
-            totalUpcoming,
+            cents: upcomingCents ? upcomingCents : 0,
+            totalUpcoming: totalUpcoming ? totalUpcoming : 0,
 
             withdrawableProfit: {
                 totalFromClosedPeriods: Number(totalCompanyProfitFromPeriods.toFixed(2)),
