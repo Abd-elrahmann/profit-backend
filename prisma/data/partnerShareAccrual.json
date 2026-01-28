@@ -1,0 +1,62 @@
+[
+  {
+    "id": 260,
+    "partnerId": 13,
+    "loanId": 36,
+    "repaymentId": null,
+    "rawShare": 250,
+    "companyCut": 50,
+    "partnerFinal": 200,
+    "cents": 0,
+    "source": "GENERAL",
+    "isClosed": false,
+    "isDistributed": false,
+    "periodId": 1,
+    "createdAt": "2026-01-27T16:38:43.433Z"
+  },
+  {
+    "id": 261,
+    "partnerId": 9,
+    "loanId": 36,
+    "repaymentId": null,
+    "rawShare": 250,
+    "companyCut": 50,
+    "partnerFinal": 200,
+    "cents": 0,
+    "source": "GENERAL",
+    "isClosed": false,
+    "isDistributed": false,
+    "periodId": 1,
+    "createdAt": "2026-01-27T16:38:43.440Z"
+  },
+  {
+    "id": 262,
+    "partnerId": 8,
+    "loanId": 36,
+    "repaymentId": null,
+    "rawShare": 250,
+    "companyCut": 50,
+    "partnerFinal": 200,
+    "cents": 0,
+    "source": "GENERAL",
+    "isClosed": false,
+    "isDistributed": false,
+    "periodId": 1,
+    "createdAt": "2026-01-27T16:38:43.444Z"
+  },
+  {
+    "id": 263,
+    "partnerId": 8,
+    "loanId": 36,
+    "repaymentId": null,
+    "rawShare": 250,
+    "companyCut": 50,
+    "partnerFinal": 200,
+    "cents": 0,
+    "source": "NEW_CAPITAL",
+    "isClosed": false,
+    "isDistributed": false,
+    "periodId": 1,
+    "createdAt": "2026-01-27T16:38:43.449Z"
+  }
+]

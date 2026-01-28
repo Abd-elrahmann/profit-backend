@@ -1,0 +1,93 @@
+[
+  {
+    "id": 288,
+    "reference": "int - 36",
+    "description": "تحويل فوائد سلفة للعميل 3 إلى حسابه",
+    "date": "2026-01-27T16:38:43.368Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 36,
+    "sourceType": "LOAN_INTEREST",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2026-01-27T16:38:43.368Z"
+  },
+  {
+    "id": 289,
+    "reference": "LOAN-ACT-36",
+    "description": "تحويل رأس المال الجديد إلى العام",
+    "date": "2026-01-27T16:38:43.507Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 36,
+    "sourceType": "LOAN",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2026-01-27T16:38:43.507Z"
+  },
+  {
+    "id": 225,
+    "reference": "PT-8-1769519549514",
+    "description": "إيداع رأس مال جديد من الشريك يوسف",
+    "date": "2026-01-27T13:12:29.539Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": null,
+    "sourceType": "PARTNER_TRANSACTION_DEPOSIT",
+    "postedById": 1,
+    "periodId": null,
+    "createdAt": "2026-01-27T13:12:29.539Z"
+  },
+  {
+    "id": 190,
+    "reference": "CAP-13",
+    "description": "تعديل رأس المال لشريك test",
+    "date": "2026-01-07T01:35:38.339Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 13,
+    "sourceType": "PARTNER",
+    "postedById": 1,
+    "periodId": null,
+    "createdAt": "2026-01-07T01:35:38.339Z"
+  },
+  {
+    "id": 79,
+    "reference": "CAP-9",
+    "description": "إيداع رأس مال مساهم جديد محمد",
+    "date": "2025-12-31T16:36:29.915Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 9,
+    "sourceType": "PARTNER",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-31T16:36:29.915Z"
+  },
+  {
+    "id": 78,
+    "reference": "CAP-8",
+    "description": "إيداع رأس مال مساهم جديد يوسف",
+    "date": "2025-12-31T16:34:30.662Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 8,
+    "sourceType": "PARTNER",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2025-12-31T16:34:30.662Z"
+  },
+  {
+    "id": 287,
+    "reference": "LN - 36",
+    "description": "صرف سلفة للعميل 3",
+    "date": "2026-01-27T16:38:43.289Z",
+    "type": "GENERAL",
+    "status": "POSTED",
+    "sourceId": 36,
+    "sourceType": "LOAN",
+    "postedById": 1,
+    "periodId": 1,
+    "createdAt": "2026-01-27T16:38:43.289Z"
+  }
+]

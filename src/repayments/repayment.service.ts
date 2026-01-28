@@ -74,14 +74,14 @@ export class RepaymentService {
         if (!period) throw new BadRequestException('No open period found');
         const periodId = period.id;
 
-        
+
         const generalShares = partnerShares.filter(s => s.sharePercent !== undefined);
         const newCapitalShares = partnerShares.filter(s => s.percent !== undefined && s.sharePercent === undefined);
 
         console.log('generalShares count:', generalShares.length);
         console.log('newCapitalShares count:', newCapitalShares.length);
 
-        
+
         await tx.partnerShareAccrual.deleteMany({ where: { loanId: loan.id } });
 
         const sources: { type: LoanFundSource; shares: any[]; totalInterest: number }[] = [
@@ -110,7 +110,7 @@ export class RepaymentService {
                 continue;
             }
 
-            
+
             const sourceRatio = source.totalInterest / totalOriginalInterest;
             const sourceInterest = realizedInterest * sourceRatio;
 
@@ -133,7 +133,7 @@ export class RepaymentService {
                 return { partnerId: s.partnerId, rawShare, companyCut, partnerFinal };
             });
 
-            
+
             const totalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
             const totalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
             const totalFinal = accruals.reduce((a, r) => a + r.partnerFinal, 0);
@@ -143,7 +143,7 @@ export class RepaymentService {
             const lastIndex = accruals.length - 1;
             accruals[lastIndex].rawShare = Number((accruals[lastIndex].rawShare + (sourceInterest - totalRaw)).toFixed(2));
 
-            
+
             const newTotalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
             const newTotalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
             accruals[lastIndex].companyCut = Number((accruals[lastIndex].companyCut + (newTotalCompany - totalCompany)).toFixed(2));
@@ -153,7 +153,7 @@ export class RepaymentService {
 
             console.log('After rounding adjustment:', accruals);
 
-            
+
             for (const r of accruals) {
                 const accrualData = {
                     periodId,
@@ -197,16 +197,16 @@ export class RepaymentService {
         console.log('loan.generalInterestAmount:', loan.generalInterestAmount);
         console.log('loan.newCapitalInterestAmount:', loan.newCapitalInterestAmount);
 
-        
+
         const generalShares = partnerShares.filter(s => {
-            
+
             const isGeneral = s.sharePercent !== undefined;
             console.log(`Partner ${s.partnerId}: has sharePercent=${s.sharePercent !== undefined}, has percent=${s.percent !== undefined} -> isGeneral=${isGeneral}`);
             return isGeneral;
         });
 
         const newCapitalShares = partnerShares.filter(s => {
-            
+
             const isNewCapital = s.percent !== undefined && s.sharePercent === undefined;
             console.log(`Partner ${s.partnerId}: has percent=${s.percent !== undefined}, has sharePercent=${s.sharePercent !== undefined} -> isNewCapital=${isNewCapital}`);
             return isNewCapital;
@@ -215,7 +215,7 @@ export class RepaymentService {
         console.log('generalShares count:', generalShares.length);
         console.log('newCapitalShares count:', newCapitalShares.length);
 
-        
+
         await tx.partnerShareAccrual.deleteMany({ where: { loanId: loan.id } });
 
         const sources: { type: LoanFundSource; shares: any[]; totalInterest: number }[] = [
@@ -244,7 +244,6 @@ export class RepaymentService {
                 continue;
             }
 
-            
             const sourceRatio = source.totalInterest / totalOriginalInterest;
             const sourceInterest = realizedInterest * sourceRatio;
 
@@ -267,7 +266,6 @@ export class RepaymentService {
                 return { partnerId: s.partnerId, rawShare, companyCut, partnerFinal };
             });
 
-            
             const totalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
             const totalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
             const totalFinal = accruals.reduce((a, r) => a + r.partnerFinal, 0);
@@ -275,19 +273,17 @@ export class RepaymentService {
             console.log('Before rounding adjustment:', { totalRaw, totalCompany, totalFinal });
 
             const lastIndex = accruals.length - 1;
-            accruals[lastIndex].rawShare = Number((accruals[lastIndex].rawShare + (sourceInterest - totalRaw)).toFixed(2));
+            const rawShareAdjustment = sourceInterest - totalRaw;
+            accruals[lastIndex].rawShare = Number((accruals[lastIndex].rawShare + rawShareAdjustment).toFixed(2));
 
-            
-            const newTotalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
-            const newTotalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
-            accruals[lastIndex].companyCut = Number((accruals[lastIndex].companyCut + (newTotalCompany - totalCompany)).toFixed(2));
+            const orgPercent = source.type === 'GENERAL'
+                ? Number(source.shares[lastIndex].partner?.orgProfitPercent || 0)
+                : Number(source.shares[lastIndex].partner?.orgProfitPercent || 0);
 
-            const newTotalFinal = accruals.reduce((a, r) => a + r.partnerFinal, 0);
-            accruals[lastIndex].partnerFinal = Number((accruals[lastIndex].partnerFinal + (newTotalFinal - totalFinal)).toFixed(2));
-
+            accruals[lastIndex].companyCut = Number((accruals[lastIndex].rawShare * (orgPercent / 100)).toFixed(2));
+            accruals[lastIndex].partnerFinal = Number((accruals[lastIndex].rawShare - accruals[lastIndex].companyCut).toFixed(2));
             console.log('After rounding adjustment:', accruals);
 
-            
             for (const r of accruals) {
                 const accrualData = {
                     periodId,
@@ -418,6 +414,9 @@ export class RepaymentService {
         if (repayment.status === PaymentStatus.PAID)
             throw new BadRequestException('الدفعة مدفوعة بالفعل');
 
+        if (repayment.status === PaymentStatus.PARTIAL_PAID)
+            throw new BadRequestException('الدفعة مدفوعة جزئياً');
+
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });
@@ -506,7 +505,7 @@ export class RepaymentService {
                 },
             });
 
-            
+
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
                 include: { partner: { select: { orgProfitPercent: true } } },
@@ -517,7 +516,7 @@ export class RepaymentService {
                 include: { partner: { select: { orgProfitPercent: true } } },
             });
 
-            
+
             const partnerShares = [...generalShares, ...newCapitalShares];
 
             const totalInterest = await tx.repayment.aggregate({
@@ -527,8 +526,9 @@ export class RepaymentService {
 
             const realizedInterest = totalInterest;
 
-            
-            await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
+            if (discount > 0) {
+                await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
+            }
 
             await tx.loan.update({
                 where: { id: loan.id },
@@ -619,7 +619,7 @@ export class RepaymentService {
             }
 
             if (wasApproved) {
-                
+
                 const generalShares = await tx.loanPartnerShare.findMany({
                     where: { loanId: loan.id },
                     include: { partner: { select: { orgProfitPercent: true, upcomingProfit: true } } },
@@ -630,7 +630,7 @@ export class RepaymentService {
                     include: { partner: { select: { orgProfitPercent: true, upcomingProfit: true } } },
                 });
 
-                
+
                 const partnerShares = [...generalShares, ...newCapitalShares];
 
                 const totalInterest = await tx.repayment.aggregate({
@@ -642,7 +642,9 @@ export class RepaymentService {
                 const realizedInterest = totalInterest + discount;
 
 
-                await this.updatePartnerShareAccrualsForRejection(tx, loan, realizedInterest, partnerShares);
+                if (discount > 0) {
+                    await this.updatePartnerShareAccrualsForRejection(tx, loan, realizedInterest, partnerShares);
+                }
             }
 
             if (wasApproved) {
@@ -1110,7 +1112,7 @@ export class RepaymentService {
             await this.updateClientStatus(loan.clientId);
 
 
-            
+
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
                 include: { partner: { select: { orgProfitPercent: true } } },
@@ -1121,7 +1123,7 @@ export class RepaymentService {
                 include: { partner: { select: { orgProfitPercent: true } } },
             });
 
-            
+
             const partnerShares = [...generalShares, ...newCapitalShares];
 
             const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;

@@ -1,0 +1,162 @@
+[
+  {
+    "id": 463,
+    "journalId": 79,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم جديد)"
+  },
+  {
+    "id": 464,
+    "journalId": 79,
+    "accountId": 53,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "رأس مال جديد - محمد"
+  },
+  {
+    "id": 465,
+    "journalId": 78,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم جديد)"
+  },
+  {
+    "id": 466,
+    "journalId": 78,
+    "accountId": 49,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "رأس مال جديد - يوسف"
+  },
+  {
+    "id": 928,
+    "journalId": 287,
+    "accountId": 17,
+    "debit": 0,
+    "credit": 500,
+    "balance": -500,
+    "clientId": null,
+    "description": "تحويل من رأس المال الجديد إلى البنك"
+  },
+  {
+    "id": 929,
+    "journalId": 287,
+    "accountId": 6,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "تحويل من رأس المال الجديد إلى البنك"
+  },
+  {
+    "id": 930,
+    "journalId": 287,
+    "accountId": 7,
+    "debit": 2000,
+    "credit": 0,
+    "balance": 2000,
+    "clientId": 3,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 931,
+    "journalId": 287,
+    "accountId": 6,
+    "debit": 0,
+    "credit": 2000,
+    "balance": -2000,
+    "clientId": null,
+    "description": "سلفة عميل"
+  },
+  {
+    "id": 932,
+    "journalId": 288,
+    "accountId": 7,
+    "debit": 1000,
+    "credit": 0,
+    "balance": 1000,
+    "clientId": 3,
+    "description": null
+  },
+  {
+    "id": 933,
+    "journalId": 288,
+    "accountId": 7,
+    "debit": 0,
+    "credit": 1000,
+    "balance": -1000,
+    "clientId": null,
+    "description": null
+  },
+  {
+    "id": 934,
+    "journalId": 289,
+    "accountId": 49,
+    "debit": 500,
+    "credit": 0,
+    "balance": -500,
+    "clientId": null,
+    "description": "تحويل رأس مال شريك إلى العام (قرض 36)"
+  },
+  {
+    "id": 935,
+    "journalId": 289,
+    "accountId": 47,
+    "debit": 0,
+    "credit": 500,
+    "balance": 500,
+    "clientId": null,
+    "description": "إثبات رأس مال الشريك"
+  },
+  {
+    "id": 608,
+    "journalId": 190,
+    "accountId": 6,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال (مساهم قديم)"
+  },
+  {
+    "id": 609,
+    "journalId": 190,
+    "accountId": 67,
+    "debit": 0,
+    "credit": 500,
+    "balance": 500,
+    "clientId": null,
+    "description": "رأس مال test"
+  },
+  {
+    "id": 726,
+    "journalId": 225,
+    "accountId": 17,
+    "debit": 500,
+    "credit": 0,
+    "balance": 500,
+    "clientId": null,
+    "description": "إيداع رأس مال جديد من الشريك يوسف"
+  },
+  {
+    "id": 727,
+    "journalId": 225,
+    "accountId": 49,
+    "debit": 0,
+    "credit": 500,
+    "balance": 500,
+    "clientId": null,
+    "description": "رأس مال جديد - يوسف"
+  }
+]
