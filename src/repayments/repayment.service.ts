@@ -322,6 +322,9 @@ export class RepaymentService {
                         isClosed: true,
                     }
                 },
+                RepaymentPayment: {
+                    select: { repaymentId: true, proofUrl: true }
+                }
             }
         }
         );
@@ -690,6 +693,7 @@ export class RepaymentService {
                 });
             }
             await tx.repaymentCount.deleteMany({ where: { repaymentId: repayment.id } });
+            await tx.repaymentPayment.deleteMany({ where: { repaymentId: repayment.id } });
 
             try {
                 await this.notificationService.sendNotification({
@@ -797,7 +801,18 @@ export class RepaymentService {
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-        const filename = `${id}-اثبات-السداد${path.extname(file.originalname)}`;
+        const proofsCount = await this.prisma.repaymentPayment.count({
+            where: { repaymentId: id },
+        });
+
+        let filename: string;
+        if (proofsCount > 0) {
+            const next = proofsCount + 1;
+            filename = `${id}-اثبات-سداد-${next}${path.extname(file.originalname)}`;
+        } else {
+            filename = `${id}-اثبات-السداد${path.extname(file.originalname)}`;
+        }
+
         const filePath = path.join(uploadDir, filename);
         fs.writeFileSync(filePath, file.buffer);
 
@@ -814,10 +829,16 @@ export class RepaymentService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
-
         await this.prisma.repayment.update({
             where: { id },
             data: { PaymentProof: publicUrl }
+        });
+
+        await this.prisma.repaymentPayment.create({
+            data: {
+                repaymentId: repayment.id,
+                proofUrl: publicUrl,
+            },
         });
 
         const lastRepaymentCount = await this.prisma.repaymentCount.findFirst({
@@ -832,7 +853,6 @@ export class RepaymentService {
                 count: newCount,
             },
         });
-
 
         await this.prisma.auditLog.create({
             data: {
@@ -1161,6 +1181,26 @@ export class RepaymentService {
     async approveMany(currentUser: number, ids: number[], dto: RepaymentDto) {
         if (!ids || ids.length === 0) throw new BadRequestException('No repayment IDs provided');
 
+        const repayments = await this.prisma.repayment.findMany({
+            where: {
+                id: { in: ids },
+            },
+            select: {
+                id: true,
+                status: true,
+            },
+        });
+
+        const partialPaid = repayments.find(
+            r => r.status === 'PARTIAL_PAID'
+        );
+
+        if (partialPaid) {
+            throw new BadRequestException(
+                `لا يمكن الموافقة على الدفعة رقم ${partialPaid.id} لأنها مدفوعة جزئياً`
+            );
+        }
+
         const results = [] as any;
 
         for (const id of ids) {
@@ -1271,6 +1311,13 @@ export class RepaymentService {
             await this.prisma.repayment.update({
                 where: { id: repayment.id },
                 data: { PaymentProof: publicUrl },
+            });
+
+            await this.prisma.repaymentPayment.create({
+                data: {
+                    repaymentId: repayment.id,
+                    proofUrl: publicUrl,
+                },
             });
 
             await this.prisma.auditLog.create({

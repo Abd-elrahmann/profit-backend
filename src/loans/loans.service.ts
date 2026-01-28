@@ -1152,6 +1152,39 @@ export class LoansService {
                     where: { repaymentId: { in: repaymentIds } },
                 });
             }
+
+            const repaymentPayments = await tx.repaymentPayment.findMany({
+                where: {
+                    repaymentId: { in: repaymentIds },
+                },
+                select: {
+                    proofUrl: true,
+                },
+            });
+
+            for (const payment of repaymentPayments) {
+                if (!payment.proofUrl) continue;
+
+                try {
+                    const urlPath = new URL(payment.proofUrl).pathname;
+                    const localPath = path.join(
+                        process.cwd(),
+                        urlPath.replace(/^\//, '')
+                    );
+
+                    if (fs.existsSync(localPath)) {
+                        fs.unlinkSync(localPath);
+                    }
+                } catch (e) {
+                }
+            }
+
+            await tx.repaymentPayment.deleteMany({
+                where: {
+                    repaymentId: { in: repaymentIds },
+                },
+            });
+
             await tx.repayment.deleteMany({ where: { loanId: id } });
 
             await tx.loan.update({
@@ -1235,17 +1268,20 @@ export class LoansService {
             const totalRemainingAmount = Number(allRepaymentsAggregation._sum.remaining || 0);
             const remainingBalance = Math.max(0, totalRemainingAmount);
 
-
-            const paymentProofs = await this.prisma.repayment.findMany({
-                where: { loanId: loan.id, PaymentProof: { not: null } },
-                select: { PaymentProof: true },
-                orderBy: { createdAt: 'desc' },
+            const repaymentPayments = await this.prisma.repaymentPayment.findMany({
+                where: {
+                    repayment: {
+                        loanId: loan.id,
+                    },
+                },
+                select: {
+                    proofUrl: true,
+                },
             });
 
-
-            const PAYMENT_PROOF = [
-                ...new Set(paymentProofs.map(p => p.PaymentProof).filter(Boolean))
-            ];
+            const PAYMENT_PROOF = repaymentPayments
+                .map(p => p.proofUrl)
+                .filter(Boolean);
 
             return {
                 ...loan,
@@ -1350,6 +1386,9 @@ export class LoansService {
                 newDueDate: true,
                 createdAt: true,
                 discount: true,
+                RepaymentPayment: {
+                    select: { repaymentId: true, proofUrl: true }
+                }
             },
         });
 
@@ -1884,6 +1923,39 @@ export class LoansService {
                     where: { repaymentId: { in: repaymentIds } },
                 });
             }
+
+            const repaymentPayments = await tx.repaymentPayment.findMany({
+                where: {
+                    repaymentId: { in: repaymentIds },
+                },
+                select: {
+                    proofUrl: true,
+                },
+            });
+
+            for (const payment of repaymentPayments) {
+                if (!payment.proofUrl) continue;
+
+                try {
+                    const urlPath = new URL(payment.proofUrl).pathname;
+                    const localPath = path.join(
+                        process.cwd(),
+                        urlPath.replace(/^\//, '')
+                    );
+
+                    if (fs.existsSync(localPath)) {
+                        fs.unlinkSync(localPath);
+                    }
+                } catch (e) {
+                }
+            }
+
+            await tx.repaymentPayment.deleteMany({
+                where: {
+                    repaymentId: { in: repaymentIds },
+                },
+            });
+
             await tx.repayment.deleteMany({ where: { loanId: id } });
 
             await tx.loanPartnerShare.deleteMany({ where: { loanId: id } });

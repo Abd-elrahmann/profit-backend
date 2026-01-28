@@ -303,6 +303,17 @@ model Repayment {
   Notification Notification[]
   profitAccruals PartnerShareAccrual[]
   RepaymentCount RepaymentCount[]
+  RepaymentPayment RepaymentPayment[]
+}
+
+model RepaymentPayment {
+  id          Int      @id @default(autoincrement())
+  repaymentId Int
+  amount      Float?
+  proofUrl    String
+  createdAt   DateTime @default(now())
+
+  repayment Repayment @relation(fields: [repaymentId], references: [id])
 }
 
 model SmallLoan {
