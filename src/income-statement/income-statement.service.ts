@@ -135,6 +135,43 @@ export class IncomeStatementService {
             },
         });
 
+        const partnerJournalHeaders = await this.prisma.journalHeader.findMany({
+            where: {
+                sourceType: 'PARTNER',
+                date: {
+                    gte: from,
+                    lte: to,
+                },
+            },
+            select: {
+                sourceId: true,
+                lines: {
+                    select: {
+                        debit: true,
+                        credit: true,
+                    },
+                },
+            },
+        });
+
+        const journalAmountByPartner = new Map<number, number>();
+
+        for (const header of partnerJournalHeaders) {
+            const pid = header.sourceId;
+            if (!pid) continue;
+
+            let headerAmount = 0;
+
+            for (const l of header.lines) {
+                headerAmount += Number(l.credit || 0);
+            }
+
+            journalAmountByPartner.set(
+                pid,
+                (journalAmountByPartner.get(pid) || 0) + headerAmount
+            );
+        }
+
         const partnerProfitInPeriod = await this.prisma.partnerShareAccrual.groupBy({
             by: ['partnerId'],
             where: {
@@ -158,10 +195,18 @@ export class IncomeStatementService {
         }
 
         const capitalByPartner = partners.map(partner => {
-            const totalNewCapital = partner.PartnerNewCapital?.reduce(
-                (s, nc) => s + Number(nc.amount || 0),
-                0
-            ) || 0;
+
+            const depositTransactionsAmount = partner.transactions?.reduce((sum, t) => {
+                if (t.date < from || t.date > to) return sum;
+
+                if (t.type === 'DEPOSIT') return sum + Number(t.amount || 0);
+
+                return sum;
+            }, 0) || 0;
+
+            const journalAmount = journalAmountByPartner.get(partner.id) || 0;
+
+            const periodTotalMovement = depositTransactionsAmount + journalAmount;
 
             const remainingNewCapital = partner.PartnerNewCapital?.reduce(
                 (s, nc) => s + Number(nc.remaining || 0),
@@ -170,22 +215,12 @@ export class IncomeStatementService {
 
             const periodProfit = partnerProfitMap.get(partner.id) || 0;
 
-            const isDepositOnly = partner.transactions?.some(t => t.type === 'DEPOSIT');
-            const amount = partner.transactions?.reduce((s, t) => {
-                if (t.date < from) return s;
-                return s + Number(t.amount || 0);
-            }, 0);
-
             return {
                 partnerName: partner.name,
-                capitalAmount: isDepositOnly ? amount :
-                    Number(partner.capitalAmount || 0),
-                totalProfit: Number(periodProfit),
+                capitalAmount: Number(partner.capitalAmount || 0),
                 newCapitalAmount: remainingNewCapital,
-                totalAmount: isDepositOnly ? amount :
-                    Number(partner.capitalAmount || 0)
-                    + Number(partner.totalProfit || 0)
-                    + remainingNewCapital
+                totalProfit: Number(periodProfit),
+                totalAmount: periodTotalMovement,
             };
         });
 
