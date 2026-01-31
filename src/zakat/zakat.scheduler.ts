@@ -330,7 +330,6 @@ export class ZakatSchedulerService {
                 });
 
                 this.logger.log(`Successfully processed zakat for partner ${partner.name}`);
-
             } catch (error) {
                 this.logger.error(`Failed to process zakat for partner ${acc.partner.name}:`, error);
                 // Continue to next partner instead of breaking entire loop
