@@ -199,17 +199,24 @@ export class PartnerService {
         const remainingMonths = 12 - startMonth + 1;
 
         const annualZakat = zakatBase * 0.025;
-        const monthlyZakat = annualZakat / remainingMonths;
 
         const currentYear = new Date().getFullYear();
 
+        const totalCents = Math.round(annualZakat * 100);
+        const monthlyCents = Math.floor(totalCents / remainingMonths);
+        const remainderCents = totalCents - monthlyCents * remainingMonths;
+
         for (let month = startMonth; month <= 12; month++) {
+            let amountCents = monthlyCents;
+            if (month === 12) {
+                amountCents += remainderCents;
+            }
             await this.prisma.zakatAccrual.create({
                 data: {
                     partnerId: partner.id,
                     year: currentYear,
                     month,
-                    amount: monthlyZakat,
+                    amount: amountCents / 100,
                 },
             });
         }

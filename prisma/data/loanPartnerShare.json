@@ -1,0 +1,23 @@
+[
+  {
+    "id": 20,
+    "loanId": 31,
+    "partnerId": 8,
+    "sharePercent": 33.33333333333333,
+    "isActive": true
+  },
+  {
+    "id": 21,
+    "loanId": 31,
+    "partnerId": 9,
+    "sharePercent": 33.33333333333333,
+    "isActive": true
+  },
+  {
+    "id": 22,
+    "loanId": 31,
+    "partnerId": 13,
+    "sharePercent": 33.33333333333333,
+    "isActive": true
+  }
+]
