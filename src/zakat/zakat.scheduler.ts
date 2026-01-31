@@ -201,12 +201,15 @@ export class ZakatSchedulerService {
         const today = now.date();
         const lastDay = now.endOf('month').date();
 
-        if (today !== lastDay) {
-            return;
-        }
+        // if (today !== lastDay) {
+        //     return;
+        // }
 
-        const year = now.year();
-        const month = now.month() + 1;
+        const year = 2026; // Force year
+        const month = 1;
+
+        // const year = now.year();
+        // const month = now.month() + 1;
 
         const accruals = await this.prisma.zakatAccrual.findMany({
             where: { year, month },
