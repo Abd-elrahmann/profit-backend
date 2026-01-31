@@ -520,8 +520,12 @@ export class RepaymentService {
             
             const partnerShares = [...generalShares, ...newCapitalShares];
 
+            // صافي الربح القابل للتوزيع = مجموع الفائدة المحققة من الدفعات المدفوعة فقط (لا تُحسب الدفعات المعلقة)
             const totalInterest = await tx.repayment.aggregate({
-                where: { loanId: loan.id },
+                where: {
+                    loanId: loan.id,
+                    status: { in: [PaymentStatus.PAID, PaymentStatus.EARLY_PAID] },
+                },
                 _sum: { interestAmount: true },
             }).then(res => res._sum.interestAmount || 0);
 
@@ -633,13 +637,17 @@ export class RepaymentService {
                 
                 const partnerShares = [...generalShares, ...newCapitalShares];
 
+                // عند الرفض: نوزّع فقط الفائدة من الدفعات التي تبقى مدفوعة (نستبعد هذه الدفعة لأننا سنرجعها إلى PENDING)
                 const totalInterest = await tx.repayment.aggregate({
-                    where: { loanId: loan.id },
+                    where: {
+                        loanId: loan.id,
+                        id: { not: repayment.id },
+                        status: { in: [PaymentStatus.PAID, PaymentStatus.EARLY_PAID] },
+                    },
                     _sum: { interestAmount: true },
                 }).then(res => res._sum.interestAmount || 0);
 
-                const discount = repayment.discount ? repayment.discount : 0;
-                const realizedInterest = totalInterest + discount;
+                const realizedInterest = totalInterest;
 
 
                 await this.updatePartnerShareAccrualsForRejection(tx, loan, realizedInterest, partnerShares);
