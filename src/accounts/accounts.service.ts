@@ -14,7 +14,6 @@ export class AccountsService {
             .format('iDD iMMMM iYYYY')
     }
 
-
     async createAccount(dto: CreateAccountDto) {
         if (dto.parentId) {
             const parent = await this.prisma.account.findUnique({ where: { id: dto.parentId } });
@@ -28,7 +27,6 @@ export class AccountsService {
         return { message: 'تم انشاء الحساب بنجاح', account };
     }
 
-
     async updateAccount(id: number, dto: UpdateAccountDto) {
         const account = await this.prisma.account.findUnique({ where: { id } });
         if (!account) throw new NotFoundException('Account not found');
@@ -41,7 +39,6 @@ export class AccountsService {
         return { message: 'تم تعديل الحساب بنجاح', account: updated };
     }
 
-
     async deleteAccount(id: number) {
         const account = await this.prisma.account.findUnique({ where: { id } });
         if (!account) throw new NotFoundException('Account not found');
@@ -52,7 +49,6 @@ export class AccountsService {
         await this.prisma.account.delete({ where: { id } });
         return { message: 'تم حذف الحساب بنجاح' };
     }
-
 
     async getAllAccounts(page: number = 1, limit: number = 10, filters?: any) {
         const where: any = {};
@@ -85,7 +81,6 @@ export class AccountsService {
         };
     }
 
-
     async getAccountDetails(id: number) {
         const account = await this.prisma.account.findUnique({
             where: { id },
@@ -95,7 +90,6 @@ export class AccountsService {
 
         return account;
     }
-
 
     async getAccountById(
         id: number,
@@ -228,7 +222,6 @@ export class AccountsService {
         };
     }
 
-
     async getAccountsTree() {
         const accounts = await this.prisma.account.findMany({ orderBy: { code: 'asc' } });
 
@@ -250,39 +243,40 @@ export class AccountsService {
         return roots;
     }
 
-
-    async getBankAccountReport(month?: string, year?: string, page: number = 1, limit: number = 20) {
+    async getBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
         const skip = (page - 1) * limit;
 
         let monthStart: Date | undefined;
         let monthEnd: Date | undefined;
 
         if (month) {
-            // إذا تم توفير الشهر، استخدمه
-            const [yearNum, monthNum] = month.split("-").map(Number);
+            const parts = month.split("-").map(Number);
 
-            monthStart = DateTime.fromObject(
-                { year: yearNum, month: monthNum, day: 1 },
-                { zone: "Asia/Riyadh" }
-            ).startOf("day").toUTC().toJSDate();
+            if (parts.length === 1) {
+                const [year] = parts;
 
-            monthEnd = DateTime.fromObject(
-                { year: yearNum, month: monthNum, day: 1 },
-                { zone: "Asia/Riyadh" }
-            ).endOf("month").endOf("day").toUTC().toJSDate();
-        } else if (year) {
-            // إذا تم توفير السنة فقط بدون شهر
-            const yearNum = Number(year);
-            
-            monthStart = DateTime.fromObject(
-                { year: yearNum, month: 1, day: 1 },
-                { zone: "Asia/Riyadh" }
-            ).startOf("day").toUTC().toJSDate();
+                monthStart = DateTime.fromObject(
+                    { year, month: 1, day: 1 },
+                    { zone: "Asia/Riyadh" }
+                ).startOf("day").toUTC().toJSDate();
 
-            monthEnd = DateTime.fromObject(
-                { year: yearNum, month: 12, day: 31 },
-                { zone: "Asia/Riyadh" }
-            ).endOf("day").toUTC().toJSDate();
+                monthEnd = DateTime.fromObject(
+                    { year, month: 12, day: 31 },
+                    { zone: "Asia/Riyadh" }
+                ).endOf("day").toUTC().toJSDate();
+            } else {
+                const [year, monthNum] = parts;
+
+                monthStart = DateTime.fromObject(
+                    { year, month: monthNum, day: 1 },
+                    { zone: "Asia/Riyadh" }
+                ).startOf("day").toUTC().toJSDate();
+
+                monthEnd = DateTime.fromObject(
+                    { year, month: monthNum, day: 1 },
+                    { zone: "Asia/Riyadh" }
+                ).endOf("month").endOf("day").toUTC().toJSDate();
+            }
         }
 
         const bankAccount = await this.prisma.account.findUnique({
@@ -329,62 +323,12 @@ export class AccountsService {
 
         const totalPages = Math.ceil(totalJournals / limit);
 
-        // حساب القيم من جميع القيود في الفترة المحددة (وليس فقط القيود المعروضة)
-        const allFilteredEntries = await this.prisma.journalLine.findMany({
-            where: {
-                accountId: bankAccount.id,
-                journal: {
-                    status: "POSTED",
-                    ...(monthStart &&
-                        monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
-                },
-            },
-            select: {
-                debit: true,
-                credit: true,
-                balance: true,
-            },
-            orderBy: { id: "desc" },
-        });
-
-        const filteredDebit = allFilteredEntries.reduce((sum, entry) => sum + Number(entry.debit || 0), 0);
-        const filteredCredit = allFilteredEntries.reduce((sum, entry) => sum + Number(entry.credit || 0), 0);
-        
-        // الرصيد من آخر قيد في الفترة المحددة
-        const filteredBalance = allFilteredEntries.length > 0 
-            ? allFilteredEntries[0].balance 
-            : 0;
-
         const loansAccount = await this.prisma.account.findUnique({
             where: { code: "12000" },
         });
 
         if (!loansAccount)
             throw new NotFoundException("Loans account 12000 not found");
-
-        // حساب الرصيد في السوق من القيود في الفترة المحددة فقط
-        let filteredLoansBalance = 0;
-        if (monthStart && monthEnd) {
-            // جلب آخر قيد لحساب 12000 في الفترة المحددة
-            const loansEntries = await this.prisma.journalLine.findMany({
-                where: {
-                    accountId: loansAccount.id,
-                    journal: {
-                        status: "POSTED",
-                        date: { gte: monthStart, lte: monthEnd },
-                    },
-                },
-                select: {
-                    balance: true,
-                },
-                orderBy: { id: "desc" },
-                take: 1,
-            });
-            filteredLoansBalance = loansEntries.length > 0 ? loansEntries[0].balance : 0;
-        } else {
-            // إذا لم يكن هناك فلتر، استخدم الرصيد الحالي
-            filteredLoansBalance = Number(loansAccount.balance || 0);
-        }
 
         const interestAgg = await this.prisma.partnerShareAccrual.aggregate({
             _sum: {
@@ -405,30 +349,7 @@ export class AccountsService {
             Number(interestAgg._sum.companyCut || 0) +
             Number(interestAgg._sum.cents || 0);
 
-        // جلب جميع القيود في الفترة المحددة لتجميعها حسب الشهر
-        const allEntriesForGrouping = await this.prisma.journalLine.findMany({
-            where: {
-                accountId: bankAccount.id,
-                journal: {
-                    status: "POSTED",
-                    ...(monthStart &&
-                        monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
-                },
-            },
-            include: {
-                journal: {
-                    include: {
-                        postedBy: {
-                            select: { id: true, name: true, email: true },
-                        },
-                    },
-                },
-                client: { select: { id: true, name: true } },
-            },
-            orderBy: { id: "desc" },
-        });
-
-        const groupedByMonth = allEntriesForGrouping.reduce(
+        const groupedByMonth = bankAccount.entries.reduce(
             (acc, line) => {
                 const date = DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
                 const monthKey = date.toFormat("yyyy-LL");
@@ -476,44 +397,33 @@ export class AccountsService {
             };
         }
 
-        // حساب تحصيل الشهر الحالي فقط إذا لم يكن هناك فلتر، أو إذا كان الفلتر هو الشهر الحالي
         const now = DateTime.now().setZone("Asia/Riyadh");
+
         const currentMonthStart = now.startOf("month").toUTC().toJSDate();
         const currentMonthEnd = now.endOf("month").endOf("day").toUTC().toJSDate();
-        
-        // التحقق إذا كان الفلتر المحدد هو الشهر الحالي
-        const isCurrentMonth = monthStart && monthEnd && 
-            monthStart.getTime() === currentMonthStart.getTime() && 
-            monthEnd.getTime() === currentMonthEnd.getTime();
 
-        let currentMonthTotalAmount = 0;
-        let currentMonthPaidUntilNow = 0;
-
-        // حساب تحصيل الشهر الحالي فقط إذا لم يكن هناك فلتر أو إذا كان الفلتر هو الشهر الحالي
-        if (!monthStart || !monthEnd || isCurrentMonth) {
-            const currentMonthRepayments = await this.prisma.repayment.findMany({
-                where: {
-                    dueDate: {
-                        gte: currentMonthStart,
-                        lte: currentMonthEnd,
-                    },
+        const currentMonthRepayments = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: {
+                    gte: currentMonthStart,
+                    lte: currentMonthEnd,
                 },
-                select: {
-                    amount: true,
-                    paidAmount: true,
-                },
-            });
+            },
+            select: {
+                amount: true,
+                paidAmount: true,
+            },
+        });
 
-            currentMonthTotalAmount = currentMonthRepayments.reduce(
-                (sum, x) => sum + Number(x.amount),
-                0
-            );
+        const currentMonthTotalAmount = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.amount),
+            0
+        );
 
-            currentMonthPaidUntilNow = currentMonthRepayments.reduce(
-                (sum, x) => sum + Number(x.paidAmount),
-                0
-            );
-        }
+        const currentMonthPaidUntilNow = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.paidAmount),
+            0
+        );
 
 
         const repayments = await this.prisma.repayment.findMany({
@@ -531,7 +441,7 @@ export class AccountsService {
         );
 
         const loansWithInterest =
-            filteredLoansBalance + totalInterest;
+            Number(loansAccount.balance || 0) + totalInterest;
 
         return {
             pagination: {
@@ -544,13 +454,13 @@ export class AccountsService {
                 id: bankAccount.id,
                 name: bankAccount.name,
                 code: bankAccount.code,
-                debit: filteredDebit,
-                credit: filteredCredit,
-                balance: filteredBalance,
+                debit: bankAccount.debit,
+                credit: bankAccount.credit,
+                balance: bankAccount.balance,
             },
-            loansBalance: filteredLoansBalance,
+            loansBalance: loansAccount.balance,
             loansInterest: totalInterest,
-            total: filteredBalance + filteredLoansBalance,
+            total: bankAccount.balance + loansAccount.balance,
 
             totalJournalEntries: totalJournals,
             journalsByMonth: groupedByMonth,
@@ -565,39 +475,40 @@ export class AccountsService {
         };
     }
 
-
-    async getNEWBankAccountReport(month?: string, year?: string, page: number = 1, limit: number = 20) {
+    async getNEWBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
         const skip = (page - 1) * limit;
 
         let monthStart: Date | undefined;
         let monthEnd: Date | undefined;
 
         if (month) {
-            // إذا تم توفير الشهر، استخدمه
-            const [yearNum, monthNum] = month.split("-").map(Number);
+            const parts = month.split("-").map(Number);
 
-            monthStart = DateTime.fromObject(
-                { year: yearNum, month: monthNum, day: 1 },
-                { zone: "Asia/Riyadh" }
-            ).startOf("day").toUTC().toJSDate();
+            if (parts.length === 1) {
+                const [year] = parts;
 
-            monthEnd = DateTime.fromObject(
-                { year: yearNum, month: monthNum, day: 1 },
-                { zone: "Asia/Riyadh" }
-            ).endOf("month").endOf("day").toUTC().toJSDate();
-        } else if (year) {
-            // إذا تم توفير السنة فقط بدون شهر
-            const yearNum = Number(year);
-            
-            monthStart = DateTime.fromObject(
-                { year: yearNum, month: 1, day: 1 },
-                { zone: "Asia/Riyadh" }
-            ).startOf("day").toUTC().toJSDate();
+                monthStart = DateTime.fromObject(
+                    { year, month: 1, day: 1 },
+                    { zone: "Asia/Riyadh" }
+                ).startOf("day").toUTC().toJSDate();
 
-            monthEnd = DateTime.fromObject(
-                { year: yearNum, month: 12, day: 31 },
-                { zone: "Asia/Riyadh" }
-            ).endOf("day").toUTC().toJSDate();
+                monthEnd = DateTime.fromObject(
+                    { year, month: 12, day: 31 },
+                    { zone: "Asia/Riyadh" }
+                ).endOf("day").toUTC().toJSDate();
+            } else {
+                const [year, monthNum] = parts;
+
+                monthStart = DateTime.fromObject(
+                    { year, month: monthNum, day: 1 },
+                    { zone: "Asia/Riyadh" }
+                ).startOf("day").toUTC().toJSDate();
+
+                monthEnd = DateTime.fromObject(
+                    { year, month: monthNum, day: 1 },
+                    { zone: "Asia/Riyadh" }
+                ).endOf("month").endOf("day").toUTC().toJSDate();
+            }
         }
 
         const bankAccount = await this.prisma.account.findUnique({
@@ -644,32 +555,6 @@ export class AccountsService {
 
         const totalPages = Math.ceil(totalJournals / limit);
 
-        // حساب القيم من جميع القيود في الفترة المحددة (وليس فقط القيود المعروضة)
-        const allFilteredEntriesNew = await this.prisma.journalLine.findMany({
-            where: {
-                accountId: bankAccount.id,
-                journal: {
-                    status: "POSTED",
-                    ...(monthStart &&
-                        monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
-                },
-            },
-            select: {
-                debit: true,
-                credit: true,
-                balance: true,
-            },
-            orderBy: { id: "desc" },
-        });
-
-        const filteredDebitNew = allFilteredEntriesNew.reduce((sum, entry) => sum + Number(entry.debit || 0), 0);
-        const filteredCreditNew = allFilteredEntriesNew.reduce((sum, entry) => sum + Number(entry.credit || 0), 0);
-        
-        // الرصيد من آخر قيد في الفترة المحددة
-        const filteredBalanceNew = allFilteredEntriesNew.length > 0 
-            ? allFilteredEntriesNew[0].balance 
-            : 0;
-
         const loansAccount = await this.prisma.account.findUnique({
             where: { code: "12000" },
         });
@@ -677,30 +562,7 @@ export class AccountsService {
         if (!loansAccount)
             throw new NotFoundException("Loans account 12000 not found");
 
-        // جلب جميع القيود في الفترة المحددة لتجميعها حسب الشهر
-        const allEntriesForGroupingNew = await this.prisma.journalLine.findMany({
-            where: {
-                accountId: bankAccount.id,
-                journal: {
-                    status: "POSTED",
-                    ...(monthStart &&
-                        monthEnd && { date: { gte: monthStart, lte: monthEnd } }),
-                },
-            },
-            include: {
-                journal: {
-                    include: {
-                        postedBy: {
-                            select: { id: true, name: true, email: true },
-                        },
-                    },
-                },
-                client: { select: { id: true, name: true } },
-            },
-            orderBy: { id: "desc" },
-        });
-
-        const groupedByMonth = allEntriesForGroupingNew.reduce(
+        const groupedByMonth = bankAccount.entries.reduce(
             (acc, line) => {
                 const date = DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
                 const monthKey = date.toFormat("yyyy-LL");
@@ -750,45 +612,34 @@ export class AccountsService {
             repaymentFilter.loan = { source: "NEW_CAPITAL" }
         }
 
-        // حساب تحصيل الشهر الحالي فقط إذا لم يكن هناك فلتر، أو إذا كان الفلتر هو الشهر الحالي
         const now = DateTime.now().setZone("Asia/Riyadh");
+
         const currentMonthStart = now.startOf("month").toUTC().toJSDate();
         const currentMonthEnd = now.endOf("month").endOf("day").toUTC().toJSDate();
-        
-        // التحقق إذا كان الفلتر المحدد هو الشهر الحالي
-        const isCurrentMonthNew = monthStart && monthEnd && 
-            monthStart.getTime() === currentMonthStart.getTime() && 
-            monthEnd.getTime() === currentMonthEnd.getTime();
 
-        let currentMonthTotalAmount = 0;
-        let currentMonthPaidUntilNow = 0;
-
-        // حساب تحصيل الشهر الحالي فقط إذا لم يكن هناك فلتر أو إذا كان الفلتر هو الشهر الحالي
-        if (!monthStart || !monthEnd || isCurrentMonthNew) {
-            const currentMonthRepayments = await this.prisma.repayment.findMany({
-                where: {
-                    dueDate: {
-                        gte: currentMonthStart,
-                        lte: currentMonthEnd,
-                    },
-                    loan: { source: "NEW_CAPITAL" }
+        const currentMonthRepayments = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: {
+                    gte: currentMonthStart,
+                    lte: currentMonthEnd,
                 },
-                select: {
-                    amount: true,
-                    paidAmount: true,
-                },
-            });
+                loan: { source: "NEW_CAPITAL" }
+            },
+            select: {
+                amount: true,
+                paidAmount: true,
+            },
+        });
 
-            currentMonthTotalAmount = currentMonthRepayments.reduce(
-                (sum, x) => sum + Number(x.amount),
-                0
-            );
+        const currentMonthTotalAmount = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.amount),
+            0
+        );
 
-            currentMonthPaidUntilNow = currentMonthRepayments.reduce(
-                (sum, x) => sum + Number(x.paidAmount),
-                0
-            );
-        }
+        const currentMonthPaidUntilNow = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.paidAmount),
+            0
+        );
 
         const repayments = await this.prisma.repayment.findMany({
             where: repaymentFilter,
@@ -815,11 +666,11 @@ export class AccountsService {
                 id: bankAccount.id,
                 name: bankAccount.name,
                 code: bankAccount.code,
-                debit: filteredDebitNew,
-                credit: filteredCreditNew,
-                balance: filteredBalanceNew,
+                debit: bankAccount.debit,
+                credit: bankAccount.credit,
+                balance: bankAccount.balance,
             },
-            total: filteredBalanceNew,
+            total: bankAccount.balance,
             totalJournalEntries: totalJournals,
             journalsByMonth: groupedByMonth,
             repayments: {
