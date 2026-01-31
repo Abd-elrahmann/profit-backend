@@ -538,16 +538,18 @@ export class LoansService {
                 where: {
                     isActive: true,
                     joinDistribute: true,
-                    totalAmount: { gt: 0 }
+                    isNewPartner: false
                 },
             });
 
-            const totalCapital = generalPartners.reduce(
-                (sum, p) => sum.plus(p.totalAmount),
-                new Decimal(0),
-            );
+            const bank = await this.prisma.account.findFirst({
+                where: { accountBasicType: 'BANK' },
+            });
+            if (!bank) throw new NotFoundException('Bank account not found');
 
-            if (totalCapital.lt(generalAmount)) {
+            const balance = new Decimal(bank.balance);
+
+            if (balance.lt(generalAmount)) {
                 throw new BadRequestException(
                     `رصيد رأس المال غير كافٍ. المطلوب: ${generalAmount.toFixed(2)}`
                 );
