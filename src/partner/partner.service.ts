@@ -85,7 +85,13 @@ export class PartnerService {
             },
         });
 
-        if (dto.isNewPartner === false) { }
+
+        let capitalAmount = 0;
+        if (dto.isNewPartner === true) {
+            capitalAmount = 0;
+        } else {
+            capitalAmount = dto.capitalAmount;
+        }
 
         const partner = await this.prisma.partner.create({
             data: {
@@ -96,8 +102,8 @@ export class PartnerService {
                 phone: dto.phone,
                 email: dto.email,
                 orgProfitPercent: dto.orgProfitPercent,
-                capitalAmount: dto.capitalAmount,
-                totalAmount: dto.capitalAmount,
+                capitalAmount: capitalAmount,
+                totalAmount: capitalAmount,
                 contractSignedAt: dto.contractSignedAt ? new Date(dto.contractSignedAt) : null,
                 createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
                 mudarabahFileUrl: dto.mudarabahFileUrl,
@@ -110,7 +116,7 @@ export class PartnerService {
                 accountNewCapitalId: newCapitalAccount.id,
                 yearlyZakatRequired: dto.capitalAmount * 0.025,
                 yearlyZakatPaid: 0,
-                yearlyZakatBalance: 0,
+                yearlyZakatBalance: dto.capitalAmount * 0.025,
             },
             include: {
                 AccountPayable: true,
@@ -118,79 +124,8 @@ export class PartnerService {
             },
         });
 
-        const isNew = partner.isNewPartner;
-        const journalLines = isNew
-            ? [
-                {
-                    accountId: newCapitalBank.id,
-                    debit: dto.capitalAmount,
-                    credit: 0,
-                    description: 'إيداع رأس مال (مساهم جديد)',
-                },
-                {
-                    accountId: newCapitalAccount.id,
-                    debit: 0,
-                    credit: dto.capitalAmount,
-                    description: `رأس مال جديد - ${partner.name}`,
-                },
-            ]
-            : [
-                {
-                    accountId: bank.id,
-                    debit: dto.capitalAmount,
-                    credit: 0,
-                    description: 'إيداع رأس مال (مساهم قديم)',
-                },
-                {
-                    accountId: equityAccount.id,
-                    debit: 0,
-                    credit: dto.capitalAmount,
-                    description: `رأس مال ${partner.name}`,
-                },
-            ];
 
-        const journal = await this.journalService.createJournal(
-            {
-                reference: `CAP-${partner.id}`,
-                description: isNew
-                    ? `إيداع رأس مال مساهم جديد ${partner.name}`
-                    : `إيداع رأس مال مساهم قديم ${partner.name}`,
-                type: JournalType.OPENING,
-                sourceType: JournalSourceType.PARTNER,
-                sourceId: partner.id,
-                lines: journalLines,
-            },
-            currentUser,
-        );
-
-        if (isNew) {
-            await this.prisma.partnerNewCapital.create({
-                data: {
-                    partnerId: partner.id,
-                    amount: dto.capitalAmount,
-                    remaining: dto.capitalAmount,
-                },
-            });
-
-            await this.prisma.partner.update({
-                where: { id: partner.id },
-                data: {
-                    capitalAmount: 0,
-                    totalAmount: 0,
-                }
-            })
-        }
-
-        let zakatBase = 0;
-        if (partner.isNewPartner) {
-            const newCapital = await this.prisma.partnerNewCapital.findMany({
-                where: { partnerId: partner.id },
-            });
-
-            zakatBase = newCapital.reduce((sum, c) => sum + c.remaining, 0);
-        } else {
-            zakatBase = partner.capitalAmount;
-        }
+        let zakatBase = dto.capitalAmount;
 
         const startMonth = partner.createdAt
             ? new Date(partner.createdAt).getMonth() + 1
@@ -221,6 +156,90 @@ export class PartnerService {
             });
         }
 
+        const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
+
+        if (!zakatAccount) {
+            throw new BadRequestException('zakat Account (20001) must exist first');
+        }
+
+        const isNew = partner.isNewPartner;
+        const journalLines = isNew
+            ? [
+                {
+                    accountId: newCapitalBank.id,
+                    debit: dto.capitalAmount,
+                    credit: 0,
+                    description: 'إيداع رأس مال (مساهم جديد)',
+                },
+                {
+                    accountId: newCapitalAccount.id,
+                    debit: 0,
+                    credit: dto.capitalAmount,
+                    description: `رأس مال جديد - ${partner.name}`,
+                },
+                {
+                    accountId: partner.accountEquityId,
+                    debit: annualZakat,
+                    credit: 0,
+                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                },
+                {
+                    accountId: zakatAccount.id,
+                    debit: 0,
+                    credit: annualZakat,
+                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                },
+            ]
+            : [
+                {
+                    accountId: bank.id,
+                    debit: dto.capitalAmount,
+                    credit: 0,
+                    description: 'إيداع رأس مال (مساهم قديم)',
+                },
+                {
+                    accountId: equityAccount.id,
+                    debit: 0,
+                    credit: dto.capitalAmount,
+                    description: `رأس مال ${partner.name}`,
+                },
+                {
+                    accountId: partner.accountEquityId,
+                    debit: annualZakat,
+                    credit: 0,
+                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                },
+                {
+                    accountId: zakatAccount.id,
+                    debit: 0,
+                    credit: annualZakat,
+                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                },
+            ];
+
+        const journal = await this.journalService.createJournal(
+            {
+                reference: `CAP-${partner.id}`,
+                description: isNew
+                    ? `إيداع رأس مال مساهم جديد ${partner.name}`
+                    : `إيداع رأس مال مساهم قديم ${partner.name}`,
+                type: JournalType.OPENING,
+                sourceType: JournalSourceType.PARTNER,
+                sourceId: partner.id,
+                lines: journalLines,
+            },
+            currentUser,
+        );
+
+        if (isNew) {
+            await this.prisma.partnerNewCapital.create({
+                data: {
+                    partnerId: partner.id,
+                    amount: dto.capitalAmount,
+                    remaining: dto.capitalAmount,
+                },
+            });
+        }
 
         await this.prisma.auditLog.create({
             data: {
@@ -232,7 +251,6 @@ export class PartnerService {
         });
         return { message: 'تم اضافة مساهم جديد بنجاح', partner };
     }
-
 
     async updatePartner(currentUser: number, id: number, dto: UpdatePartnerDto) {
         const partner = await this.prisma.partner.findUnique({
@@ -265,6 +283,8 @@ export class PartnerService {
                 ...dto,
                 contractSignedAt,
                 createdAt,
+                yearlyZakatRequired: dto.capitalAmount * 0.025,
+                yearlyZakatBalance: dto.capitalAmount * 0.025,
             };
 
             if (partner.isNewPartner) {
@@ -277,7 +297,20 @@ export class PartnerService {
                 data: partnerUpdateData,
             });
 
-            if (dto.capitalAmount !== undefined) {
+            let oldCapitalAmount = 0;
+
+            if (partner.isNewPartner) {
+                const newCapital = await tx.partnerNewCapital.findFirst({
+                    where: { partnerId: partner.id },
+                    select: { amount: true },
+                });
+
+                oldCapitalAmount = newCapital?.amount ?? 0;
+            } else {
+                oldCapitalAmount = partner.capitalAmount + (partner.yearlyZakatRequired || 0);
+            }
+
+            if (dto.capitalAmount !== undefined && dto.capitalAmount !== oldCapitalAmount) {
                 if (!partner.isNewPartner) {
                     await tx.partner.update({
                         where: { id },
@@ -294,23 +327,73 @@ export class PartnerService {
                             remaining: dto.capitalAmount,
                         },
                     });
+
+                    await tx.partner.update({
+                        where: { id: partner.id },
+                        data: {
+                            capitalAmount: 0,
+                            totalAmount: 0,
+                        },
+                    });
                 }
             }
 
-            let oldCapitalAmount = 0;
+            if (dto.capitalAmount !== undefined && dto.capitalAmount !== oldCapitalAmount) {
 
-            if (partner.isNewPartner) {
-                const newCapital = await tx.partnerNewCapital.findFirst({
-                    where: { partnerId: partner.id },
-                    select: { amount: true },
+                let zakatBase = 0;
+                if (partner.isNewPartner) {
+                    const newCapital = await tx.partnerNewCapital.findMany({
+                        where: { partnerId: partner.id },
+                    });
+
+                    zakatBase = newCapital.reduce((sum, c) => sum + c.remaining, 0);
+                } else {
+                    zakatBase = dto.capitalAmount;
+                }
+
+                const startMonth = partner.createdAt
+                    ? new Date(partner.createdAt).getMonth() + 1
+                    : new Date().getMonth() + 1;
+
+                const remainingMonths = 12 - startMonth + 1;
+
+                const annualZakat = zakatBase * 0.025;
+
+                const currentYear = new Date().getFullYear();
+
+                const totalCents = Math.round(annualZakat * 100);
+                const monthlyCents = Math.floor(totalCents / remainingMonths);
+                const remainderCents = totalCents - monthlyCents * remainingMonths;
+
+                const accruals = [] as any;
+
+                for (let month = startMonth; month <= 12; month++) {
+                    let amountCents = monthlyCents;
+                    if (month === 12) amountCents += remainderCents;
+
+                    accruals.push({
+                        partnerId: partner.id,
+                        year: currentYear,
+                        month,
+                        amount: amountCents / 100,
+                    });
+                }
+
+                await tx.zakatAccrual.deleteMany({
+                    where: { partnerId: partner.id, year: currentYear },
                 });
 
-                oldCapitalAmount = newCapital?.amount ?? 0;
-            } else {
-                oldCapitalAmount = partner.capitalAmount;
-            }
+                await tx.zakatAccrual.createMany({
+                    data: accruals,
+                });
 
-            if (dto.capitalAmount !== undefined && dto.capitalAmount !== oldCapitalAmount) {
+                const zakatAccount = await tx.account.findUnique({ where: { code: '20001' } });
+
+                if (!zakatAccount) {
+                    throw new BadRequestException('zakat Account (20001) must exist first');
+                }
+
+
                 const journal = await tx.journalHeader.findFirst({
                     where: {
                         sourceType: 'PARTNER',
@@ -361,7 +444,8 @@ export class PartnerService {
                                 });
                             }
 
-                            if (line.accountId === partner.AccountEquity.id) {
+                            if (line.accountId === partner.AccountEquity.id &&
+                                line.credit > 0) {
                                 await tx.journalLine.update({
                                     where: { id: line.id },
                                     data: {
@@ -372,6 +456,27 @@ export class PartnerService {
                                 });
                             }
                         }
+                        if (line.accountId === zakatAccount.id) {
+                            await tx.journalLine.update({
+                                where: { id: line.id },
+                                data: {
+                                    debit: 0,
+                                    credit: partnerUpdateData.yearlyZakatRequired,
+                                    balance: (partnerUpdateData.yearlyZakatRequired) * -1,
+                                },
+                            });
+                        }
+                        if (line.accountId === partner.accountEquityId &&
+                            line.debit > 0) {
+                            await tx.journalLine.update({
+                                where: { id: line.id },
+                                data: {
+                                    debit: partnerUpdateData.yearlyZakatRequired,
+                                    credit: 0,
+                                    balance: partnerUpdateData.yearlyZakatRequired,
+                                },
+                            });
+                        }
                     }
 
                     await tx.journalHeader.update({
@@ -381,26 +486,36 @@ export class PartnerService {
                         },
                     });
                 }
+
+                if (partner.isNewPartner) {
+                    await this.prisma.partnerNewCapital.updateMany({
+                        where: { partnerId: id },
+                        data: {
+                            partnerId: partner.id,
+                            amount: dto.capitalAmount,
+                            remaining: dto.capitalAmount,
+                        },
+                    });
+                }
+
+                await tx.auditLog.create({
+                    data: {
+                        userId: currentUser,
+                        screen: 'Partners',
+                        action: 'UPDATE',
+                        description: `قام المستخدم ${user?.name} بتحديث بيانات الشريك: ${partner.name}`,
+                    },
+                });
+
+                return updatedPartner;
             }
-
-            await tx.auditLog.create({
-                data: {
-                    userId: currentUser,
-                    screen: 'Partners',
-                    action: 'UPDATE',
-                    description: `قام المستخدم ${user?.name} بتحديث بيانات الشريك: ${partner.name}`,
-                },
-            });
-
-            return updatedPartner;
-        });
+        }, { timeout: 20000 });
 
         return {
             message: 'تم تحديث بيانات المساهم بنجاح',
             partner: updated,
         };
     }
-
 
     async deletePartner(currentUser, id: number) {
         const partner = await this.prisma.partner.findUnique({
@@ -607,6 +722,7 @@ export class PartnerService {
                 newCapitalAmount: newCapital,
                 newCapitalPercent,
 
+                zakat: p.yearlyZakatBalance,
                 total: newCapital + p.totalAmount,
 
                 totalSaving: p.AccountSaving.credit,
@@ -714,6 +830,7 @@ export class PartnerService {
             partnerProfitPercent: generalProfitPercent,
             newCapitalAmount,
             newCapitalPercent,
+            zakat: partner.yearlyZakatBalance,
             total: newCapitalAmount + partner.totalAmount,
             totalSaving: partner.AccountSaving?.credit ?? 0,
             totalAvilableSaving: partner.AccountSaving?.balance ?? 0,

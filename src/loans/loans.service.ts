@@ -331,13 +331,6 @@ export class LoansService {
             const newProfit = new Decimal(partner.upcomingProfit || 0)
                 .plus(acc.partnerFinal)
                 .toDecimalPlaces(2);
-
-            await tx.partner.update({
-                where: { id: acc.partnerId },
-                data: {
-                    upcomingProfit: Number(newProfit),
-                },
-            });
         }
 
         if (
@@ -482,7 +475,6 @@ export class LoansService {
         if (!loanCount) throw new NotFoundException('Loan count not found');
         return loanCount;
     }
-
 
     async createLoan(currentUser, dto: CreateLoanDto) {
         const client = await this.prisma.client.findUnique({ where: { id: dto.clientId } });
@@ -694,7 +686,7 @@ export class LoansService {
                     joinDistribute: true,
                     totalAmount: { gt: 0 }
                 },
-                select: { id: true, totalAmount: true, orgProfitPercent: true },
+                select: { id: true, totalAmount: true, orgProfitPercent: true, yearlyZakatBalance: true },
             });
 
             const totalCapital = partners.reduce(

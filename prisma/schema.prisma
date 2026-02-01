@@ -536,6 +536,8 @@ model ZakatAccrual {
 
 model ZakatPayment {
   id         Int       @id @default(autoincrement())
+  zakatWithdrawId Int
+  zakatWithdraw zakatWithdraw @relation(fields: [zakatWithdrawId], references: [id])
   partnerId  Int
   partner    Partner   @relation(fields: [partnerId], references: [id])
   periodId   Int?
@@ -553,6 +555,7 @@ model zakatWithdraw {
   amount     Int
   document   String?
   createdAt  DateTime  @default(now())
+  ZakatPayment ZakatPayment[]
 }
 
 model PartnerSavingAccrual {

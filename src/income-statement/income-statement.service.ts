@@ -129,6 +129,9 @@ export class IncomeStatementService {
                 capitalAmount: true,
                 totalProfit: true,
                 orgProfitPercent: true,
+                accountEquityId: true,
+                accountNewCapitalId: true,
+                yearlyZakatBalance: true,
                 transactions: { select: { type: true, date: true, amount: true } },
                 PartnerNewCapital: { select: { amount: true, remaining: true } },
                 LoanNewCapitalShare: { select: { loan: { select: { status: true } }, amountUsed: true } },
@@ -147,6 +150,7 @@ export class IncomeStatementService {
                 sourceId: true,
                 lines: {
                     select: {
+                        accountId: true,
                         debit: true,
                         credit: true,
                     },
@@ -157,13 +161,19 @@ export class IncomeStatementService {
         const journalAmountByPartner = new Map<number, number>();
 
         for (const header of partnerJournalHeaders) {
+
             const pid = header.sourceId;
             if (!pid) continue;
+
+            const partner = partners.find(p => p.id === pid);
+            if (!partner) continue;
 
             let headerAmount = 0;
 
             for (const l of header.lines) {
-                headerAmount += Number(l.credit || 0);
+                if (l.accountId === partner.accountEquityId || l.accountId === partner.accountNewCapitalId) {
+                    headerAmount += Number(l.credit || 0);
+                }
             }
 
             journalAmountByPartner.set(
@@ -217,7 +227,7 @@ export class IncomeStatementService {
 
             return {
                 partnerName: partner.name,
-                capitalAmount: Number(partner.capitalAmount || 0),
+                capitalAmount: Number(partner.capitalAmount),
                 newCapitalAmount: remainingNewCapital,
                 totalProfit: Number(periodProfit),
                 totalAmount: periodTotalMovement,

@@ -87,6 +87,15 @@ export class ZakatController {
     return this.zakatService.withdrawZakat(amount, req.user.id);
   }
 
+  @Post('reverseWithdraw/:id')
+  @Permissions('zakat', 'canPost')
+  async rereverseZakatWithdrawal(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.zakatService.reverseZakatWithdrawal(id, req.user.id);
+  }
+
   @Get('account')
   @Permissions('zakat', 'canView')
   async zakatAccountReport(@Query('month') month?: string) {
@@ -112,13 +121,6 @@ export class ZakatController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.zakatService.uploadDocument(req.user.id, file);
-  }
-
-
-  @Get('test/monthly')
-  async testMonthly() {
-    await this.zakatScheduler.runMonthlyZakat();
-    return { message: 'Monthly zakat job executed successfully' };
   }
 
 

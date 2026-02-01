@@ -3,8 +3,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { DateTime } from 'luxon';
 import moment from "moment-hijri";
+import HijriDate from 'hijri-date/lib/safe';
 import * as fs from 'fs';
 import * as path from 'path';
+import puppeteer from 'puppeteer';
 
 type ZakatYearSummary = {
     partnerId: number;
@@ -28,12 +30,64 @@ export class ZakatService {
         private readonly journalService: JournalService,
     ) { }
 
+    private round2(v: number) {
+        return Math.round((v + Number.EPSILON) * 100) / 100;
+    }
+
+    private numberToArabicWords(num: number): string {
+        const ones = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
+        const tens = ['', 'عشرة', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+        const hundreds = ['', 'مائة', 'مائتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة'];
+
+        if (num === 0) return 'صفر';
+        if (num < 10) return ones[num];
+
+        let words = '';
+        const h = Math.floor(num / 100);
+        const t = Math.floor((num % 100) / 10);
+        const o = num % 10;
+
+        if (h > 0) words += hundreds[h] + ' ';
+        if (t > 1) {
+            words += tens[t] + ' ';
+            if (o > 0) words += 'و' + ones[o] + ' ';
+        } else if (t === 1) {
+            if (o === 0) words += 'عشرة';
+            else if (o === 1) words += 'أحد عشر';
+            else if (o === 2) words += 'اثنا عشر';
+            else words += ones[o] + ' عشر';
+        } else {
+            if (o > 0) words += ones[o] + ' ';
+        }
+
+        return words.trim();
+    }
+
+    private fillTemplate(template: string, context: Record<string, any>): string {
+        return template.replace(/\{\{(.*?)\}\}/g, (_, key) => {
+            const value = context[key.trim()];
+            return value !== undefined ? String(value) : '';
+        });
+    }
+
+    private async generatePdfFromHtml(html: string, filename: string): Promise<string> {
+        const dir = path.join(process.cwd(), 'uploads', 'zakat');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        const filePath = path.join(dir, filename);
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.pdf({ path: filePath, format: 'A4', printBackground: true });
+        await browser.close();
+
+        return filePath;
+    }
+
     private toHijri(date: Date) {
         return moment(date)
             .locale('ar-SA')
             .format('iDD iMMMM iYYYY')
     }
-
 
     async getPartnerZakatSummary(partnerId: number, year?: number) {
         const partner = await this.prisma.partner.findUnique({
@@ -111,7 +165,7 @@ export class ZakatService {
                     const journal = await this.prisma.journalHeader.findFirst({
                         where: {
                             sourceType: 'ZAKAT',
-                            sourceId: p.id,
+                            sourceId: p.zakatWithdrawId,
                             status: 'POSTED',
                         },
                     });
@@ -293,88 +347,6 @@ export class ZakatService {
         };
     }
 
-    async withdrawZakat(
-        amount: number,
-        userId: number,
-    ) {
-        if (amount <= 0) {
-            throw new BadRequestException("المبلغ يجب أن يكون أكبر من صفر");
-        }
-
-        const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
-        if (!zakatAccount) throw new BadRequestException('zakat account (20001) must exist');
-
-
-        if (zakatAccount.balance < amount) {
-            throw new BadRequestException("الرصيد في حساب الزكاة غير كافٍ للسحب");
-        }
-
-        const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
-        if (!bankAccount) throw new NotFoundException("Bank account not found");
-
-        if (bankAccount.balance < amount) {
-            throw new BadRequestException("الرصيد في الصندوق غير كافٍ للسحب");
-        }
-
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-        });
-
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-
-        const reference = `ZAKAT-WITHDRAW-${zakatAccount.id}-${year}-${month}`;
-
-        const journal = await this.journalService.createJournal(
-            {
-                reference,
-                description: `سحب مبلغ زكاة قدره ${amount}`,
-                type: 'GENERAL',
-                sourceType: 'ZAKAT',
-                sourceId: undefined,
-                lines: [
-                    {
-                        accountId: zakatAccount.id,
-                        debit: amount,
-                        credit: 0,
-                        description: 'سحب مبلغ الزكاة من حساب الزكاة',
-                    },
-                    {
-                        accountId: bankAccount.id,
-                        debit: 0,
-                        credit: amount,
-                        description: 'سحب مبلغ الزكاة من الحساب البنكي',
-                    },
-                ],
-            },
-            userId,
-        );
-
-        await this.journalService.postJournal(journal.journal.id, userId);
-
-        await this.prisma.zakatWithdraw.create({
-            data: {
-                amount: amount,
-                userId: userId,
-            }
-        })
-
-        await this.prisma.auditLog.create({
-            data: {
-                userId: userId,
-                screen: 'Zakat',
-                action: 'CREATE',
-                description: `قام المستخدم ${user?.name} بسحب مبلغ زكاة قدره ${amount}`,
-            },
-        });
-
-        return {
-            message: "تم سحب مبلغ الزكاة بنجاح",
-            journalId: journal.journal.id
-        };
-    }
-
     async getZakatAccountReport(month?: string) {
         let monthStart: Date | undefined;
         let monthEnd: Date | undefined;
@@ -394,7 +366,7 @@ export class ZakatService {
 
 
         const zakatAccount = await this.prisma.account.findUnique({
-            where: { code: '20001' }, 
+            where: { code: '20001' },
             include: {
                 entries: {
                     where: {
@@ -501,7 +473,16 @@ export class ZakatService {
             groupedByMonth[monthKey].requiredZakat = monthTotal;
         });
 
+        const zakatWithdrawals = await this.prisma.zakatWithdraw.findMany({
+            select: { id: true, amount: true, document: true, createdAt: true },
+        });
 
+        const zakatWithdrawalsWithSaudiTime = zakatWithdrawals.map(w => ({
+            ...w,
+            createdAt: DateTime.fromJSDate(w.createdAt)
+                .setZone('Asia/Riyadh')
+                .toFormat('yyyy-MM-dd'),
+        }));
         return {
             account: {
                 id: zakatAccount.id,
@@ -513,6 +494,7 @@ export class ZakatService {
             },
             totalJournalEntries: zakatAccount.entries.length,
             journalsByMonth: groupedByMonth,
+            zakatWithdrawals: zakatWithdrawalsWithSaudiTime,
         };
     }
 
@@ -543,5 +525,276 @@ export class ZakatService {
         });
 
         return { message: 'تم رفع المستند بنجاح', path: publicUrl };
+    }
+
+    async reverseZakatWithdrawal(
+        zakatWithdrawId: number,
+        userId: number,
+    ) {
+        const zakatWithdraw = await this.prisma.zakatWithdraw.findUnique({
+            where: { id: zakatWithdrawId },
+        });
+
+        if (!zakatWithdraw) {
+            throw new NotFoundException('عملية سحب الزكاة غير موجودة');
+        }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
+        if (!zakatAccount) throw new BadRequestException('zakat account (20001) must exist');
+
+        const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        if (!bankAccount) throw new NotFoundException("Bank account not found");
+
+        // Find all zakat payments related to this withdrawal
+        const year = zakatWithdraw.createdAt.getFullYear();
+        const month = zakatWithdraw.createdAt.getMonth() + 1;
+
+        const zakatPayments = await this.prisma.zakatPayment.findMany({
+            where: {
+                zakatWithdrawId: zakatWithdraw.id
+            },
+            include: {
+                partner: true,
+            },
+        });
+
+        const amount = zakatWithdraw.amount;
+
+        const originalJournal = await this.prisma.journalHeader.findFirst({
+            where: {
+                sourceType: 'ZAKAT',
+                sourceId: zakatWithdraw.id,
+                status: 'POSTED',
+            },
+        });
+
+        if (!originalJournal) {
+            throw new BadRequestException('لم يتم العثور على القيد الأصلي أو أن القيد غير معتمد');
+        }
+
+        await this.journalService.unpostJournal(userId, originalJournal.id);
+
+        // Reverse partner zakat payments
+        await this.prisma.$transaction(async (tx) => {
+            for (const payment of zakatPayments) {
+                await tx.partner.update({
+                    where: { id: payment.partnerId },
+                    data: {
+                        yearlyZakatPaid: { decrement: payment.amount },
+                        yearlyZakatBalance: { increment: payment.amount },
+                    },
+                });
+
+                // Delete the payment record
+                await tx.zakatPayment.delete({
+                    where: { id: payment.id },
+                });
+            }
+
+            // Delete the withdrawal record
+            await tx.zakatWithdraw.delete({
+                where: { id: zakatWithdrawId },
+            });
+
+            await tx.journalLine.deleteMany({
+                where: { journalId: originalJournal.id },
+            });
+
+            await tx.journalHeader.delete({
+                where: { id: originalJournal.id },
+            });
+        });
+
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId,
+                screen: 'Zakat',
+                action: 'DELETE',
+                description: `قام المستخدم ${user?.name} بعكس سحب مبلغ زكاة قدره ${amount}`,
+            },
+        });
+
+        return {
+            message: "تم عكس عملية سحب الزكاة بنجاح وحذف القيد الأصلي",
+            deletedJournalId: originalJournal.id,
+        };
+    }
+
+    async withdrawZakat(
+        amount: number,
+        userId: number,
+    ) {
+        if (amount <= 0) {
+            throw new BadRequestException("المبلغ يجب أن يكون أكبر من صفر");
+        }
+
+        const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
+        if (!zakatAccount) throw new BadRequestException('zakat account (20001) must exist');
+
+        if (zakatAccount.balance < amount) {
+            throw new BadRequestException("الرصيد في حساب الزكاة غير كافٍ للسحب");
+        }
+
+        const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        if (!bankAccount) throw new NotFoundException("Bank account not found");
+
+        if (bankAccount.balance < amount) {
+            throw new BadRequestException("الرصيد في الصندوق غير كافٍ للسحب");
+        }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        const zakatWithdraw = await this.prisma.zakatWithdraw.create({
+            data: {
+                amount: amount,
+                userId: userId,
+            }
+        });
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+
+        const reference = `ZAKAT-WITHDRAW-${zakatWithdraw.id}-${year}-${month}`;
+
+        const journal = await this.journalService.createJournal(
+            {
+                reference,
+                description: `سحب مبلغ زكاة قدره ${amount}`,
+                type: 'GENERAL',
+                sourceType: 'ZAKAT',
+                sourceId: zakatWithdraw.id,
+                lines: [
+                    {
+                        accountId: zakatAccount.id,
+                        debit: amount,
+                        credit: 0,
+                        description: 'سحب مبلغ الزكاة من حساب الزكاة',
+                    },
+                    {
+                        accountId: bankAccount.id,
+                        debit: 0,
+                        credit: amount,
+                        description: 'سحب مبلغ الزكاة من الحساب البنكي',
+                    },
+                ],
+            },
+            userId,
+        );
+
+        await this.journalService.postJournal(journal.journal.id, userId);
+
+        const partners = await this.prisma.partner.findMany({
+            where: {
+                yearlyZakatBalance: { gt: 0 },
+            },
+        });
+
+        const totalZakatBalance = partners.reduce(
+            (sum, p) => sum + (p.yearlyZakatBalance || 0),
+            0
+        );
+
+        const createdPayments: number[] = [];
+
+        await this.prisma.$transaction(async (tx) => {
+            for (const partner of partners) {
+                const share =
+                    ((partner.yearlyZakatBalance || 0) / totalZakatBalance) * amount;
+
+                const roundedShare = Math.round(share * 100) / 100;
+
+                const zakatPayment = await tx.zakatPayment.create({
+                    data: {
+                        zakatWithdrawId: zakatWithdraw.id,
+                        partnerId: partner.id,
+                        amount: roundedShare,
+                        year,
+                        month,
+                    },
+                });
+
+                createdPayments.push(zakatPayment.id);
+
+                await tx.partner.update({
+                    where: { id: partner.id },
+                    data: {
+                        capitalAmount: { decrement: roundedShare },
+                        totalAmount: { decrement: roundedShare },
+                        yearlyZakatPaid: { increment: roundedShare },
+                        yearlyZakatBalance: { decrement: roundedShare },
+                    },
+                });
+            }
+        }, { timeout: 15000 });
+
+        const template = await this.prisma.template.findUnique({
+            where: { name: 'PAYMENT_VOUCHER' },
+        });
+
+        if (template) {
+            for (const paymentId of createdPayments) {
+                const zakatPayment = await this.prisma.zakatPayment.findUnique({
+                    where: { id: paymentId },
+                    include: { partner: true },
+                });
+
+                if (!zakatPayment) continue;
+
+                const partner = zakatPayment.partner;
+
+                const todayG = DateTime.now().setZone('Asia/Riyadh').toFormat('yyyy-MM-dd');
+                const todayH = new HijriDate();
+                const hijriDateFormatted = `${todayH.getFullYear()}-${todayH.getMonth() + 1}-${todayH.getDate()}`;
+
+                const context = {
+                    رقم_السند: zakatPayment.id,
+                    التاريخ_الهجري: hijriDateFormatted,
+                    التاريخ_الميلادي: todayG,
+                    سبب_الصرف: `دفع زكاة مستحقة  ${month}-${year}`,
+                    المبلغ_رقما: zakatPayment.amount.toFixed(2),
+                    المبلغ_كتابة: this.numberToArabicWords(zakatPayment.amount),
+                    اسم_المساهم: partner.name,
+                    رقم_هوية_المساهم: partner.nationalId ?? '---',
+                    اسم_المستلم: partner.name,
+                    رقم_هوية_المستلم: partner.nationalId ?? '---',
+                };
+
+                const filledHtml = this.fillTemplate(template.content, context);
+                const pdfFilename = `zakat-${zakatPayment.id}.pdf`;
+                const pdfPath = await this.generatePdfFromHtml(filledHtml, pdfFilename);
+                const fileUrl = `${process.env.URL}uploads/zakat/${pdfFilename}`;
+
+                await this.prisma.zakatPayment.update({
+                    where: { id: zakatPayment.id },
+                    data: { PAYMENT_VOUCHER: fileUrl },
+                });
+
+                console.log(`PDF generated for partner ${partner.name}`);
+            }
+        } else {
+            console.warn(`Template PAYMENT_VOUCHER not found, skipping PDF generation`);
+        }
+
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId,
+                screen: 'Zakat',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بسحب مبلغ زكاة قدره ${amount}`,
+            },
+        });
+
+        return {
+            message: "تم سحب مبلغ الزكاة بنجاح",
+            journalId: journal.journal.id,
+            zakatWithdrawId: zakatWithdraw.id,
+        };
     }
 }
