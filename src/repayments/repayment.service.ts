@@ -1082,10 +1082,11 @@ export class RepaymentService {
             r => r.status === 'PAID'
         );
 
-        let interestCarryOver = 0;
+        let excessDiscount = 0;
         for (const rep of paidRepayments) {
-            const interestPaid = rep.interestAmount;
-            interestCarryOver += interestPaid;
+            if (rep.interestAmount < 0) {
+                excessDiscount += Math.abs(rep.interestAmount);
+            }
         }
 
         const unpaidRepayments = loan.repayments.filter(
@@ -1108,10 +1109,14 @@ export class RepaymentService {
             totalRemainingInterest += Math.max(remainingInterest, 0);
         });
 
-        totalRemainingInterest += interestCarryOver;
-
+        totalRemainingInterest -= excessDiscount;
         if (totalRemainingInterest < 0) {
             totalRemainingInterest = 0;
+        }
+
+        totalRemainingPrincipal += excessDiscount;
+        if (totalRemainingPrincipal < 0) {
+            totalRemainingPrincipal = 0;
         }
 
         if (earlyPaymentDiscount > totalRemainingInterest) {
@@ -1200,8 +1205,6 @@ export class RepaymentService {
 
             await this.updateClientStatus(loan.clientId);
 
-
-
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
                 include: { partner: { select: { orgProfitPercent: true } } },
@@ -1215,10 +1218,17 @@ export class RepaymentService {
 
             const partnerShares = [...generalShares, ...newCapitalShares];
 
-            const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;
 
-            await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
+            const totalInterest = await tx.repayment.aggregate({
+                where: { loanId: loan.id },
+                _sum: { interestAmount: true },
+            }).then(res => res._sum.interestAmount || 0);
 
+            const realizedInterest = totalInterest;
+
+            if (earlyPaymentDiscount > 0) {
+                await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
+            }
 
             await tx.loan.update({
                 where: { id: loan.id },
