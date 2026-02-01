@@ -84,7 +84,6 @@ export class DistributionService {
         if (!Bank) throw new BadRequestException('bank is not existed');
 
         if (savingAmountInput && savingAmountInput > 0) {
-
             const totalPartnersProfit = accruals.reduce(
                 (sum, a) => sum + Number(a.totalProfit),
                 0,
@@ -93,21 +92,34 @@ export class DistributionService {
             if (totalPartnersProfit <= 0)
                 throw new BadRequestException('إجمالي أرباح الشركاء غير صالح');
 
+            let remainingAmount = savingAmountInput;
+            const partnerSavingAmounts: { partnerId: number; amount: number }[] = [];
+
             for (const acc of accruals) {
                 const partner = acc.partner;
                 const totalProfit = Number(acc.totalProfit);
 
-                const partnerEquity = await this.prisma.account.findUnique({ where: { id: partner.accountEquityId } });
-                if (!partnerEquity) throw new BadRequestException('لا يوجد حساب رأس مال');
+                let amount = (savingAmountInput * totalProfit) / totalPartnersProfit;
+                amount = Math.floor(amount * 100) / 100; // floor to 2 decimals
+                partnerSavingAmounts.push({ partnerId: partner.id, amount });
+                remainingAmount -= amount;
+            }
 
-                const partnerSaving = await this.prisma.account.findUnique({ where: { id: partner.accountSavingId } });
-                if (!partnerSaving) throw new BadRequestException('لا يوجد حساب ادخار');
+            remainingAmount = Math.round(remainingAmount * 100) / 100;
+            for (let i = 0; remainingAmount > 0 && i < partnerSavingAmounts.length; i++) {
+                partnerSavingAmounts[i].amount += 0.01;
+                remainingAmount -= 0.01;
+            }
 
-                const partnerRatio = totalProfit / totalPartnersProfit;
+            for (const acc of accruals) {
+                const partner = acc.partner;
+                const partnerAmountObj = partnerSavingAmounts.find(p => p.partnerId === partner.id);
+                if (!partnerAmountObj) continue;
 
-                let savingAmount = savingAmountInput * partnerRatio;
-                savingAmount = Math.round(savingAmount * 100) / 100;
+                let savingAmount = partnerAmountObj.amount;
 
+                const partnerEquity = await this.prisma.account.findUniqueOrThrow({ where: { id: partner.accountEquityId } });
+                const partnerSaving = await this.prisma.account.findUniqueOrThrow({ where: { id: partner.accountSavingId } });
 
                 if ((partnerEquity.balance - partnerSaving.balance) < savingAmount) {
                     savingAmount = Math.round((partnerEquity.balance - partnerSaving.balance) * 100) / 100;
@@ -172,7 +184,6 @@ export class DistributionService {
                 }
             }
         }
-
 
         await this.prisma.partnerShareAccrual.updateMany({
             where: { periodId: periodId },
