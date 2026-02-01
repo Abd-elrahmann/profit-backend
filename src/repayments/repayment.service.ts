@@ -1126,7 +1126,8 @@ export class RepaymentService {
         }
 
         let finalPayment = totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount);
-
+        let finalremainingInterest = totalRemainingInterest + excessDiscount;
+        let finalremainingPrincipal = totalRemainingPrincipal - excessDiscount;
 
         const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
         const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
@@ -1141,8 +1142,8 @@ export class RepaymentService {
         const roundToTwo = (num) => Math.round(num * 100) / 100;
 
         finalPayment = roundToTwo(finalPayment);
-        totalRemainingPrincipal = roundToTwo(totalRemainingPrincipal);
-        totalRemainingInterest = roundToTwo(totalRemainingInterest);
+        finalremainingInterest = roundToTwo(finalremainingInterest);
+        finalremainingPrincipal = roundToTwo(finalremainingPrincipal);
 
         return await this.prisma.$transaction(async (tx) => {
 
@@ -1155,8 +1156,8 @@ export class RepaymentService {
                     sourceId: unpaidRepayments[0].id,
                     lines: [
                         { accountId: creditAccount.id, debit: finalPayment, credit: 0, description: `استلام سداد مبكر من العميل ${loan.client.name}` },
-                        { accountId: loansReceivable.id, debit: 0, credit: totalRemainingPrincipal, description: 'سداد أصل السلفة بالكامل', clientId: loan.client.id },
-                        { accountId: loanIncome.id, debit: 0, credit: totalRemainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر', clientId: loan.client.id, },
+                        { accountId: loansReceivable.id, debit: 0, credit: finalremainingPrincipal, description: 'سداد أصل السلفة بالكامل', clientId: loan.client.id },
+                        { accountId: loanIncome.id, debit: 0, credit: finalremainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر', clientId: loan.client.id, },
                         { accountId: loansReceivable.id, debit: earlyPaymentDiscount, credit: 0, description: 'خصم' },
                         { accountId: loansReceivable.id, debit: 0, credit: earlyPaymentDiscount, description: 'خصم', clientId: loan.client.id },
                     ],
