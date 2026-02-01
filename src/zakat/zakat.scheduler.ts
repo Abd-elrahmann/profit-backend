@@ -71,129 +71,6 @@ export class ZakatSchedulerService {
         private readonly journalService: JournalService,
     ) { }
 
-
-    // @Cron('5 0 28-31 * *', {
-    //     timeZone: 'Asia/Riyadh',
-    // })
-    // async runMonthlyZakat() {
-    //     const now = moment().tz('Asia/Riyadh');
-
-    //     const today = now.date();
-    //     const lastDay = now.endOf('month').date();
-
-    //     if (today !== lastDay) {
-    //         return;
-    //     }
-
-    //     const year = now.year();
-    //     const month = now.month() + 1;
-
-    //     const accruals = await this.prisma.zakatAccrual.findMany({
-    //         where: { year, month },
-    //         include: { partner: true },
-    //     });
-
-    //     const zakat = await this.prisma.account.findUnique({ where: { code: '20001' } });
-    //     if (!zakat) throw new BadRequestException('zakat account (20001) must exist');
-
-    //     for (const acc of accruals) {
-    //         const partner = acc.partner;
-    //         const amount = this.round2(acc.amount);
-
-
-    //         const zakatPayment = await this.prisma.zakatPayment.create({
-    //             data: {
-    //                 partnerId: partner.id,
-    //                 year,
-    //                 month,
-    //                 amount,
-    //             },
-    //         });
-
-
-    //         const journal = await this.journalService.createJournal(
-    //             {
-    //                 reference: `ZAKAT-${partner.id}-${year}-${month}`,
-    //                 description: `دفع زكاة شهرية لشريك ${partner.name}`,
-    //                 type: 'GENERAL',
-    //                 sourceType: 'ZAKAT',
-    //                 sourceId: zakatPayment.id,
-    //                 lines: [
-    //                     {
-
-    //                         accountId: zakat.id,
-    //                         debit: 0,
-    //                         credit: amount,
-    //                         description: 'مصروف زكاة',
-    //                     },
-    //                     {
-
-    //                         accountId: partner.accountEquityId,
-    //                         debit: amount,
-    //                         credit: 0,
-    //                         description: 'التزام زكاة',
-    //                     },
-    //                 ],
-    //             },
-    //             1,
-    //         );
-
-    //         await this.journalService.postJournal(journal.journal.id, 1)
-
-    //         const template = await this.prisma.template.findUnique({
-    //             where: { name: 'PAYMENT_VOUCHER' },
-    //         });
-
-    //         if (!template) {
-    //             continue;
-    //         }
-
-    //         const todayG = DateTime.now().setZone('Asia/Riyadh').toFormat('yyyy-MM-dd');
-    //         const todayH = new HijriDate();
-    //         const hijriDateFormatted = `${todayH.getFullYear()}-${todayH.getMonth() + 1}-${todayH.getDate()}`;
-
-    //         const context = {
-    //             رقم_السند: zakatPayment.id,
-    //             التاريخ_الهجري: hijriDateFormatted,
-    //             التاريخ_الميلادي: todayG,
-    //             سبب_الصرف: `دفع زكاة مستحقة لشهر ${month}-${year}`,
-    //             المبلغ_رقما: amount.toFixed(2),
-    //             المبلغ_كتابة: this.numberToArabicWords(amount),
-    //             اسم_المساهم: partner.name,
-    //             رقم_هوية_المساهم: partner.nationalId ?? '---',
-    //             اسم_المستلم: partner.name,
-    //             رقم_هوية_المستلم: partner.nationalId ?? '---',
-    //         };
-
-    //         const filledHtml = this.fillTemplate(template.content, context);
-
-    //         const pdfFilename = `zakat-${zakatPayment.id}.pdf`;
-    //         const pdfPath = await this.generatePdfFromHtml(filledHtml, pdfFilename);
-
-    //         const fileUrl = `${process.env.URL}uploads/zakat/${pdfFilename}`;
-
-
-    //         await this.prisma.zakatPayment.update({
-    //             where: { id: zakatPayment.id },
-    //             data: {
-    //                 PAYMENT_VOUCHER: fileUrl,
-    //             },
-    //         });
-
-
-    //         await this.prisma.partner.update({
-    //             where: { id: partner.id },
-    //             data: {
-    //                 capitalAmount: { decrement: amount },
-    //                 totalAmount: { decrement: amount },
-    //                 yearlyZakatPaid: {
-    //                     increment: amount,
-    //                 },
-    //             },
-    //         });
-    //     }
-    // }
-
     @Cron('5 0 28-31 * *', { timeZone: 'Asia/Riyadh' })
     async runMonthlyZakat() {
         const now = moment().tz('Asia/Riyadh');
@@ -201,15 +78,12 @@ export class ZakatSchedulerService {
         const today = now.date();
         const lastDay = now.endOf('month').date();
 
-        // if (today !== lastDay) {
-        //     return;
-        // }
+        if (today !== lastDay) {
+            return;
+        }
 
-        const year = 2026; // Force year
-        const month = 1;
-
-        // const year = now.year();
-        // const month = now.month() + 1;
+        const year = now.year();
+        const month = now.month() + 1;
 
         const accruals = await this.prisma.zakatAccrual.findMany({
             where: { year, month },
@@ -335,7 +209,6 @@ export class ZakatSchedulerService {
                 this.logger.log(`Successfully processed zakat for partner ${partner.name}`);
             } catch (error) {
                 this.logger.error(`Failed to process zakat for partner ${acc.partner.name}:`, error);
-                // Continue to next partner instead of breaking entire loop
             }
         }
 
