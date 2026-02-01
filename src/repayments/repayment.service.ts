@@ -1078,6 +1078,15 @@ export class RepaymentService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUserId } });
 
+        const paidRepayments = loan.repayments.filter(
+            r => r.status === 'PAID'
+        );
+
+        let interestCarryOver = 0;
+        for (const rep of paidRepayments) {
+            const interestPaid = rep.interestAmount;
+            interestCarryOver += interestPaid;
+        }
 
         const unpaidRepayments = loan.repayments.filter(
             r => r.status !== 'PAID' && r.status !== 'EARLY_PAID'
@@ -1099,6 +1108,11 @@ export class RepaymentService {
             totalRemainingInterest += Math.max(remainingInterest, 0);
         });
 
+        totalRemainingInterest += interestCarryOver;
+
+        if (totalRemainingInterest < 0) {
+            totalRemainingInterest = 0;
+        }
 
         if (earlyPaymentDiscount > totalRemainingInterest) {
             throw new BadRequestException(
