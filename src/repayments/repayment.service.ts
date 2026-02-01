@@ -64,7 +64,7 @@ export class RepaymentService {
         console.log('=== START updatePartnerShareAccrualsForRejection ===');
         console.log('realizedInterest:', realizedInterest);
 
-        if (realizedInterest < 0 || partnerShares.length === 0) return;
+        if (realizedInterest <= 0 || partnerShares.length === 0) return;
 
         const period = await tx.periodHeader.findFirst({
             where: { endDate: null },
@@ -74,12 +74,14 @@ export class RepaymentService {
         if (!period) throw new BadRequestException('No open period found');
         const periodId = period.id;
 
+        
         const generalShares = partnerShares.filter(s => s.sharePercent !== undefined);
         const newCapitalShares = partnerShares.filter(s => s.percent !== undefined && s.sharePercent === undefined);
 
         console.log('generalShares count:', generalShares.length);
         console.log('newCapitalShares count:', newCapitalShares.length);
 
+        
         await tx.partnerShareAccrual.deleteMany({ where: { loanId: loan.id } });
 
         const sources: { type: LoanFundSource; shares: any[]; totalInterest: number }[] = [
@@ -108,6 +110,7 @@ export class RepaymentService {
                 continue;
             }
 
+            
             const sourceRatio = source.totalInterest / totalOriginalInterest;
             const sourceInterest = realizedInterest * sourceRatio;
 
@@ -130,56 +133,27 @@ export class RepaymentService {
                 return { partnerId: s.partnerId, rawShare, companyCut, partnerFinal };
             });
 
-            // Calculate totals BEFORE rounding
-            const totalRawShare = accruals.reduce((sum, r) => sum + r.rawShare, 0);
-            const totalCompanyCut = accruals.reduce((sum, r) => sum + r.companyCut, 0);
-            const totalPartnerFinal = accruals.reduce((sum, r) => sum + r.partnerFinal, 0);
+            
+            const totalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
+            const totalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
+            const totalFinal = accruals.reduce((a, r) => a + r.partnerFinal, 0);
 
-            // Round all values to 2 decimals
-            const rawShareRoundedArr = accruals.map(r => Number(r.rawShare.toFixed(2)));
-            const companyCutRoundedArr = accruals.map(r => Number(r.companyCut.toFixed(2)));
-            const partnerFinalRoundedArr = accruals.map(r => Number(r.partnerFinal.toFixed(2)));
+            console.log('Before rounding adjustment:', { totalRaw, totalCompany, totalFinal });
 
-            // Calculate rounding differences for each column independently
-            const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
-            const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
-
-            const companyCutRoundedSum = companyCutRoundedArr.reduce((a, b) => a + b, 0);
-            const companyCutDiff = Number((totalCompanyCut - companyCutRoundedSum).toFixed(2));
-
-            const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
-            const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
-
-            console.log('Before rounding adjustment:', { totalRawShare, totalCompanyCut, totalPartnerFinal });
-            console.log('Rounding diffs:', { rawShareDiff, companyCutDiff, partnerFinalDiff });
-
-            // Apply independent adjustments to the last partner for each column
             const lastIndex = accruals.length - 1;
-            if (rawShareDiff !== 0 && lastIndex >= 0) {
-                rawShareRoundedArr[lastIndex] = Number(
-                    (rawShareRoundedArr[lastIndex] + rawShareDiff).toFixed(2)
-                );
-            }
-            if (companyCutDiff !== 0 && lastIndex >= 0) {
-                companyCutRoundedArr[lastIndex] = Number(
-                    (companyCutRoundedArr[lastIndex] + companyCutDiff).toFixed(2)
-                );
-            }
-            if (partnerFinalDiff !== 0 && lastIndex >= 0) {
-                partnerFinalRoundedArr[lastIndex] = Number(
-                    (partnerFinalRoundedArr[lastIndex] + partnerFinalDiff).toFixed(2)
-                );
-            }
+            accruals[lastIndex].rawShare = Number((accruals[lastIndex].rawShare + (sourceInterest - totalRaw)).toFixed(2));
 
-            // Update accruals with rounded and adjusted values
-            for (let i = 0; i < accruals.length; i++) {
-                accruals[i].rawShare = rawShareRoundedArr[i];
-                accruals[i].companyCut = companyCutRoundedArr[i];
-                accruals[i].partnerFinal = partnerFinalRoundedArr[i];
-            }
+            
+            const newTotalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
+            const newTotalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
+            accruals[lastIndex].companyCut = Number((accruals[lastIndex].companyCut + (newTotalCompany - totalCompany)).toFixed(2));
+
+            const newTotalFinal = accruals.reduce((a, r) => a + r.partnerFinal, 0);
+            accruals[lastIndex].partnerFinal = Number((accruals[lastIndex].partnerFinal + (newTotalFinal - totalFinal)).toFixed(2));
 
             console.log('After rounding adjustment:', accruals);
 
+            
             for (const r of accruals) {
                 const accrualData = {
                     periodId,
@@ -210,7 +184,7 @@ export class RepaymentService {
         console.log('realizedInterest:', realizedInterest);
         console.log('partnerShares:', JSON.stringify(partnerShares, null, 2));
 
-        if (realizedInterest < 0 || partnerShares.length === 0) return;
+        if (realizedInterest <= 0 || partnerShares.length === 0) return;
 
         const period = await tx.periodHeader.findFirst({
             where: { endDate: null },
@@ -223,13 +197,16 @@ export class RepaymentService {
         console.log('loan.generalInterestAmount:', loan.generalInterestAmount);
         console.log('loan.newCapitalInterestAmount:', loan.newCapitalInterestAmount);
 
+        
         const generalShares = partnerShares.filter(s => {
+            
             const isGeneral = s.sharePercent !== undefined;
             console.log(`Partner ${s.partnerId}: has sharePercent=${s.sharePercent !== undefined}, has percent=${s.percent !== undefined} -> isGeneral=${isGeneral}`);
             return isGeneral;
         });
 
         const newCapitalShares = partnerShares.filter(s => {
+            
             const isNewCapital = s.percent !== undefined && s.sharePercent === undefined;
             console.log(`Partner ${s.partnerId}: has percent=${s.percent !== undefined}, has sharePercent=${s.sharePercent !== undefined} -> isNewCapital=${isNewCapital}`);
             return isNewCapital;
@@ -238,6 +215,7 @@ export class RepaymentService {
         console.log('generalShares count:', generalShares.length);
         console.log('newCapitalShares count:', newCapitalShares.length);
 
+        
         await tx.partnerShareAccrual.deleteMany({ where: { loanId: loan.id } });
 
         const sources: { type: LoanFundSource; shares: any[]; totalInterest: number }[] = [
@@ -266,6 +244,7 @@ export class RepaymentService {
                 continue;
             }
 
+            
             const sourceRatio = source.totalInterest / totalOriginalInterest;
             const sourceInterest = realizedInterest * sourceRatio;
 
@@ -288,56 +267,27 @@ export class RepaymentService {
                 return { partnerId: s.partnerId, rawShare, companyCut, partnerFinal };
             });
 
-            // Calculate totals BEFORE rounding
-            const totalRawShare = accruals.reduce((sum, r) => sum + r.rawShare, 0);
-            const totalCompanyCut = accruals.reduce((sum, r) => sum + r.companyCut, 0);
-            const totalPartnerFinal = accruals.reduce((sum, r) => sum + r.partnerFinal, 0);
+            
+            const totalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
+            const totalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
+            const totalFinal = accruals.reduce((a, r) => a + r.partnerFinal, 0);
 
-            // Round all values to 2 decimals
-            const rawShareRoundedArr = accruals.map(r => Number(r.rawShare.toFixed(2)));
-            const companyCutRoundedArr = accruals.map(r => Number(r.companyCut.toFixed(2)));
-            const partnerFinalRoundedArr = accruals.map(r => Number(r.partnerFinal.toFixed(2)));
+            console.log('Before rounding adjustment:', { totalRaw, totalCompany, totalFinal });
 
-            // Calculate rounding differences for each column independently
-            const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
-            const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
-
-            const companyCutRoundedSum = companyCutRoundedArr.reduce((a, b) => a + b, 0);
-            const companyCutDiff = Number((totalCompanyCut - companyCutRoundedSum).toFixed(2));
-
-            const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
-            const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
-
-            console.log('Before rounding adjustment:', { totalRawShare, totalCompanyCut, totalPartnerFinal });
-            console.log('Rounding diffs:', { rawShareDiff, companyCutDiff, partnerFinalDiff });
-
-            // Apply independent adjustments to the last partner for each column
             const lastIndex = accruals.length - 1;
-            if (rawShareDiff !== 0 && lastIndex >= 0) {
-                rawShareRoundedArr[lastIndex] = Number(
-                    (rawShareRoundedArr[lastIndex] + rawShareDiff).toFixed(2)
-                );
-            }
-            if (companyCutDiff !== 0 && lastIndex >= 0) {
-                companyCutRoundedArr[lastIndex] = Number(
-                    (companyCutRoundedArr[lastIndex] + companyCutDiff).toFixed(2)
-                );
-            }
-            if (partnerFinalDiff !== 0 && lastIndex >= 0) {
-                partnerFinalRoundedArr[lastIndex] = Number(
-                    (partnerFinalRoundedArr[lastIndex] + partnerFinalDiff).toFixed(2)
-                );
-            }
+            accruals[lastIndex].rawShare = Number((accruals[lastIndex].rawShare + (sourceInterest - totalRaw)).toFixed(2));
 
-            // Update accruals with rounded and adjusted values
-            for (let i = 0; i < accruals.length; i++) {
-                accruals[i].rawShare = rawShareRoundedArr[i];
-                accruals[i].companyCut = companyCutRoundedArr[i];
-                accruals[i].partnerFinal = partnerFinalRoundedArr[i];
-            }
+            
+            const newTotalRaw = accruals.reduce((a, r) => a + r.rawShare, 0);
+            const newTotalCompany = accruals.reduce((a, r) => a + r.companyCut, 0);
+            accruals[lastIndex].companyCut = Number((accruals[lastIndex].companyCut + (newTotalCompany - totalCompany)).toFixed(2));
+
+            const newTotalFinal = accruals.reduce((a, r) => a + r.partnerFinal, 0);
+            accruals[lastIndex].partnerFinal = Number((accruals[lastIndex].partnerFinal + (newTotalFinal - totalFinal)).toFixed(2));
 
             console.log('After rounding adjustment:', accruals);
 
+            
             for (const r of accruals) {
                 const accrualData = {
                     periodId,
@@ -376,9 +326,6 @@ export class RepaymentService {
                         isClosed: true,
                     }
                 },
-                RepaymentPayment: {
-                    select: { repaymentId: true, proofUrl: true }
-                }
             }
         }
         );
@@ -471,9 +418,6 @@ export class RepaymentService {
         if (repayment.status === PaymentStatus.PAID)
             throw new BadRequestException('الدفعة مدفوعة بالفعل');
 
-        if (repayment.status === PaymentStatus.PARTIAL_PAID)
-            throw new BadRequestException('الدفعة مدفوعة جزئياً');
-
         const user = await this.prisma.user.findUnique({
             where: { id: currentUser },
         });
@@ -485,10 +429,9 @@ export class RepaymentService {
         const principalAmount = roundToTwo(repayment.principalAmount);
 
         const discount = dto.discount ? roundToTwo(dto.discount) : 0;
-
-        if (discount > totalAmount) {
+        if (discount > interestAmount) {
             throw new BadRequestException(
-                `الخصم لا يمكن أن يتجاوز الفائدة  (${totalAmount})`
+                `الخصم لا يمكن أن يتجاوز الفائدة  (${interestAmount})`
             );
         }
 
@@ -563,7 +506,7 @@ export class RepaymentService {
                 },
             });
 
-
+            
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
                 include: { partner: { select: { orgProfitPercent: true } } },
@@ -574,7 +517,7 @@ export class RepaymentService {
                 include: { partner: { select: { orgProfitPercent: true } } },
             });
 
-
+            
             const partnerShares = [...generalShares, ...newCapitalShares];
 
             const totalInterest = await tx.repayment.aggregate({
@@ -584,9 +527,8 @@ export class RepaymentService {
 
             const realizedInterest = totalInterest;
 
-            if (discount > 0) {
-                await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
-            }
+            
+            await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares);
 
             await tx.loan.update({
                 where: { id: loan.id },
@@ -677,7 +619,7 @@ export class RepaymentService {
             }
 
             if (wasApproved) {
-
+                
                 const generalShares = await tx.loanPartnerShare.findMany({
                     where: { loanId: loan.id },
                     include: { partner: { select: { orgProfitPercent: true, upcomingProfit: true } } },
@@ -688,7 +630,7 @@ export class RepaymentService {
                     include: { partner: { select: { orgProfitPercent: true, upcomingProfit: true } } },
                 });
 
-
+                
                 const partnerShares = [...generalShares, ...newCapitalShares];
 
                 const totalInterest = await tx.repayment.aggregate({
@@ -700,9 +642,7 @@ export class RepaymentService {
                 const realizedInterest = totalInterest + discount;
 
 
-                if (discount > 0) {
-                    await this.updatePartnerShareAccrualsForRejection(tx, loan, realizedInterest, partnerShares);
-                }
+                await this.updatePartnerShareAccrualsForRejection(tx, loan, realizedInterest, partnerShares);
             }
 
             if (wasApproved) {
@@ -748,7 +688,6 @@ export class RepaymentService {
                 });
             }
             await tx.repaymentCount.deleteMany({ where: { repaymentId: repayment.id } });
-            await tx.repaymentPayment.deleteMany({ where: { repaymentId: repayment.id } });
 
             try {
                 await this.notificationService.sendNotification({
@@ -856,18 +795,7 @@ export class RepaymentService {
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', nationalId);
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-        const proofsCount = await this.prisma.repaymentPayment.count({
-            where: { repaymentId: id },
-        });
-
-        let filename: string;
-        if (proofsCount > 0) {
-            const next = proofsCount + 1;
-            filename = `${id}-اثبات-سداد-${next}${path.extname(file.originalname)}`;
-        } else {
-            filename = `${id}-اثبات-السداد${path.extname(file.originalname)}`;
-        }
-
+        const filename = `${id}-اثبات-السداد${path.extname(file.originalname)}`;
         const filePath = path.join(uploadDir, filename);
         fs.writeFileSync(filePath, file.buffer);
 
@@ -884,16 +812,10 @@ export class RepaymentService {
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
 
+
         await this.prisma.repayment.update({
             where: { id },
             data: { PaymentProof: publicUrl }
-        });
-
-        await this.prisma.repaymentPayment.create({
-            data: {
-                repaymentId: repayment.id,
-                proofUrl: publicUrl,
-            },
         });
 
         const lastRepaymentCount = await this.prisma.repaymentCount.findFirst({
@@ -908,6 +830,7 @@ export class RepaymentService {
                 count: newCount,
             },
         });
+
 
         await this.prisma.auditLog.create({
             data: {
@@ -1201,7 +1124,7 @@ export class RepaymentService {
             await this.updateClientStatus(loan.clientId);
 
 
-
+            
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
                 include: { partner: { select: { orgProfitPercent: true } } },
@@ -1212,7 +1135,7 @@ export class RepaymentService {
                 include: { partner: { select: { orgProfitPercent: true } } },
             });
 
-
+            
             const partnerShares = [...generalShares, ...newCapitalShares];
 
             const realizedInterest = totalRemainingInterest - earlyPaymentDiscount;
@@ -1249,26 +1172,6 @@ export class RepaymentService {
 
     async approveMany(currentUser: number, ids: number[], dto: RepaymentDto) {
         if (!ids || ids.length === 0) throw new BadRequestException('No repayment IDs provided');
-
-        const repayments = await this.prisma.repayment.findMany({
-            where: {
-                id: { in: ids },
-            },
-            select: {
-                id: true,
-                status: true,
-            },
-        });
-
-        const partialPaid = repayments.find(
-            r => r.status === 'PARTIAL_PAID'
-        );
-
-        if (partialPaid) {
-            throw new BadRequestException(
-                `لا يمكن الموافقة على الدفعة رقم ${partialPaid.id} لأنها مدفوعة جزئياً`
-            );
-        }
 
         const results = [] as any;
 
@@ -1380,13 +1283,6 @@ export class RepaymentService {
             await this.prisma.repayment.update({
                 where: { id: repayment.id },
                 data: { PaymentProof: publicUrl },
-            });
-
-            await this.prisma.repaymentPayment.create({
-                data: {
-                    repaymentId: repayment.id,
-                    proofUrl: publicUrl,
-                },
             });
 
             await this.prisma.auditLog.create({
