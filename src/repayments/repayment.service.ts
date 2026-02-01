@@ -1166,7 +1166,7 @@ export class RepaymentService {
             await this.journalService.postJournal(journal.journal.id, currentUserId)
 
 
-            const discountRatio = earlyPaymentDiscount / totalRemainingInterest;
+            const discountRatio = earlyPaymentDiscount / (totalRemainingInterest - excessDiscount);
             let interestDistributed = 0;
 
             for (const [index, rep] of unpaidRepayments.entries()) {
