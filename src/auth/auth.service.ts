@@ -55,6 +55,7 @@ export class AuthService {
       throw new UnauthorizedException('ليس لديك أي صلاحيات أو أدوار للدخول على النظام. برجاء التواصل مع المدير لتعيين الصلاحية.');
     }
 
+    // تفعيل المستخدم عند التسجيل بنجاح
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -62,6 +63,10 @@ export class AuthService {
       }
     })
 
+    // حذف أي refresh tokens قديمة عند تسجيل دخول جديد
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId: user.id }
+    });
 
     await this.prisma.auditLog.create({
       data: {
@@ -73,9 +78,7 @@ export class AuthService {
     });
 
     return this.generateToken(user);
-  }
-
-  async logout(userId: number) {
+  }  async logout(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -432,15 +435,11 @@ export class AuthService {
       }
 
 
-      if (!user.isActive) {
-        throw new UnauthorizedException('User is not active');
-      }
-
-
+      // ✅ توليد access token جديد
       const payload = { sub: user.id, email: user.email };
       const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 
-      return {
+      const result = {
         accessToken,
         user: {
           id: user.id,
@@ -449,7 +448,11 @@ export class AuthService {
           profileImage: user.profileImage
         }
       };
+
+      console.log('Refresh token successful for user:', user.id);
+      return result;
     } catch (error) {
+      console.error('Refresh token error:', error.message);
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }

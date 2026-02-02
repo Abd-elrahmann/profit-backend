@@ -127,14 +127,35 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refreshToken(@Req() req: Request) {
-
+  async refreshToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ) {
     const refreshToken = req.cookies?.refreshToken;
     
     if (!refreshToken) {
+      console.warn('Refresh endpoint called but no refresh token in cookies');
       throw new UnauthorizedException('No refresh token provided');
     }
 
-    return this.authService.refreshAccessToken(refreshToken);
+    try {
+      console.log('Refreshing token for cookies');
+      const result = await this.authService.refreshAccessToken(refreshToken);
+      
+      // Optional: Generate a new refresh token if needed
+      // For now, we keep the same refresh token
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/'
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Refresh endpoint error:', error.message);
+      throw error;
+    }
   }
 }

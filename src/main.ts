@@ -82,7 +82,8 @@ async function bootstrap() {
 
   app.setGlobalPrefix('/api');
 
-  const PORT = process.env.PORT || 3001;
+  // Frontend (Api.js) calls http://localhost:3000 — backend must listen on 3000
+  const PORT = process.env.PORT || 3000;
 
   await app.listen(PORT, () => {
     console.log(`Server is running on port: ${PORT}`);

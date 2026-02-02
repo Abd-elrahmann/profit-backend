@@ -104,6 +104,7 @@ export class SavingService {
                 transactions: {
                     where: { type: 'SAVING_WITHDRAWAL' },
                 },
+                AccountSaving: true,
             },
         });
 
@@ -121,7 +122,7 @@ export class SavingService {
                 totalWithdrawals += Number(t.amount);
             });
 
-            const currentBalance = totalSavings - totalWithdrawals;
+            const currentBalance = Number(p.AccountSaving?.balance || 0);
 
 
             const periods = p.PartnerSavingAccrual
@@ -178,17 +179,21 @@ export class SavingService {
         let monthStart: Date | undefined;
         let monthEnd: Date | undefined;
 
-        if (month) {
+        if (month && typeof month === 'string') {
             const [year, monthNum] = month.split('-').map(Number);
-            monthStart = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
-                .startOf('day')
-                .toUTC()
-                .toJSDate();
-            monthEnd = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
-                .endOf('month')
-                .endOf('day')
-                .toUTC()
-                .toJSDate();
+            if (!Number.isFinite(year) || !Number.isFinite(monthNum) || monthNum < 1 || monthNum > 12) {
+                month = undefined;
+            } else {
+                    monthStart = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
+                    .startOf('day')
+                    .toUTC()
+                    .toJSDate();
+                monthEnd = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
+                    .endOf('month')
+                    .endOf('day')
+                    .toUTC()
+                    .toJSDate();
+            }
         }
 
         const savingAccount = await this.prisma.account.findFirst({
@@ -276,7 +281,7 @@ export class SavingService {
 
         let distributed = 0;
         for (const p of result) {
-            p.withdraw = Math.floor(p.withdraw * 100) / 100;
+            p.withdraw = Number((Math.round(p.withdraw * 100) / 100).toFixed(2));
             distributed += p.withdraw;
             p.savingAfter = Number((p.savingBefore - p.withdraw).toFixed(2));
         }
@@ -286,7 +291,7 @@ export class SavingService {
             const largest = result.reduce((a, b) =>
                 a.withdraw > b.withdraw ? a : b
             );
-            largest.withdraw += remainder;
+            largest.withdraw = Number((largest.withdraw + remainder).toFixed(2));
             largest.savingAfter = Number(
                 (largest.savingBefore - largest.withdraw).toFixed(2)
             );
@@ -299,12 +304,11 @@ export class SavingService {
         if (amount <= 0)
             throw new BadRequestException('المبلغ يجب أن يكون أكبر من صفر');
 
-        const partners = await this.prisma.partner.findMany({
-            where: {
-                AccountSaving: { balance: { gt: 0 } },
-            },
+        const allPartners = await this.prisma.partner.findMany({
             include: { AccountSaving: true },
         });
+        
+        const partners = allPartners.filter(p => p.AccountSaving && Number(p.AccountSaving.balance) > 0);
 
         if (!partners.length)
             throw new BadRequestException('لا يوجد شركاء لديهم رصيد توفير');
@@ -326,10 +330,17 @@ export class SavingService {
             amount
         );
 
+        const affectedCount = distribution.filter(d => d.withdraw > 0).length;
+        const newBalance = totalSaving - amount;
+
         return {
             amount,
             totalSaving,
             partnersCount: partners.length,
+            affectedPartners: affectedCount,
+            totalPartners: partners.length,
+            totalWithdrawn: amount,
+            newBalance,
             distribution: distribution.map(item => {
                 const partner = partners.find(p => p.id === item.partnerId);
                 return {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseFloatPipe, ParseIntPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { SavingService } from './saving.service';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
@@ -9,18 +9,18 @@ import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 export class SavingController {
     constructor(private readonly savingService: SavingService) { }
 
-    @Get('preview/withdraw')
+    @Get('withdraw-preview')
     @Permissions('saving', 'canView')
     previewGlobalSavingWithdraw(
-        @Query('amount', ParseIntPipe) amount: number,
+        @Query('amount', ParseFloatPipe) amount: number,
     ) {
-        return this.savingService.previewGlobalSavingWithdrawal(amount);
+        return this.savingService.previewGlobalSavingWithdrawal(Number(amount));
     }
 
     @Post('withdraw')
     @Permissions('saving', 'canAdd')
     withdrawFromAllPartnersSavings(
-        @Body('amount', ParseIntPipe) amount: number,
+        @Body('amount', ParseFloatPipe) amount: number,
         @Body('description') description: string,
         @Req() req
     ) {
@@ -39,7 +39,8 @@ export class SavingController {
         return this.savingService.getSavingAccountReport(month);
     }
 
-    @Get(':page')
+    /** يجب أن يبقى آخر route — أي مسار ثابت فوقه يتطابق أولاً */
+    @Get('partners/:page')
     @Permissions('saving', 'canView')
     getAllPartners(
         @Param('page', ParseIntPipe) page: number,
