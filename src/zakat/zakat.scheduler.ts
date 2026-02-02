@@ -41,7 +41,7 @@ export class ZakatSchedulerService {
             const diff = this.round2(annualZakat - paidAmount);
 
             if (diff !== 0) {
-                await this.journalService.createJournal(
+                const journal = await this.journalService.createJournal(
                     {
                         reference: `ZAKAT-YEAR-END-${p.id}-${year}`,
                         description: `تسوية زكاة نهاية السنة لشريك ${p.name}`,
@@ -80,6 +80,7 @@ export class ZakatSchedulerService {
                     },
                     1,
                 );
+                await this.journalService.postJournal(journal.journal.id, 1);
             }
 
             await this.prisma.partner.update({
@@ -99,7 +100,7 @@ export class ZakatSchedulerService {
         timeZone: 'Asia/Riyadh',
     })
     async runNextYearZakatAccruals() {
-        const now = moment().tz('Asia/Riyadh');
+        const year = moment().tz('Asia/Riyadh').year();
 
         const partners = await this.prisma.partner.findMany();
 
@@ -108,6 +109,35 @@ export class ZakatSchedulerService {
 
         for (const partner of partners) {
             const annualZakat = this.round2(partner.totalAmount * 0.025);
+
+            if (annualZakat <= 0) continue;
+
+            const journal = await this.journalService.createJournal(
+                {
+                    reference: `ZAKAT-ACCRUAL-${partner.id}-${year}`,
+                    description: `إثبات استحقاق زكاة السنة الجديدة للشريك ${partner.name}`,
+                    type: 'GENERAL',
+                    sourceType: 'ZAKAT',
+                    sourceId: partner.id,
+                    lines: [
+                        {
+                            accountId: zakatAccount.id,
+                            debit: 0,
+                            credit: annualZakat,
+                            description: 'إثبات استحقاق زكاة السنة',
+                        },
+                        {
+                            accountId: partner.accountEquityId,
+                            debit: annualZakat,
+                            credit: 0,
+                            description: 'تحميل الزكاة على حقوق الشريك',
+                        },
+                    ],
+                },
+                1,
+            );
+            await this.journalService.postJournal(journal.journal.id, 1);
+
             await this.prisma.partner.update({
                 where: { id: partner.id },
                 data: {

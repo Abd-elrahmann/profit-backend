@@ -78,7 +78,9 @@ export class AuthService {
     });
 
     return this.generateToken(user);
-  }  async logout(userId: number) {
+  }
+
+  async logout(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -122,22 +124,22 @@ export class AuthService {
 
   private async generateToken(user: any) {
     const payload = { sub: user.id, email: user.email };
-    
+
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    
+
 
     const refreshToken = crypto.randomBytes(64).toString('hex');
     const hashedRefreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
-    
+
 
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY);
-    
+
 
     await this.prisma.refreshToken.deleteMany({
       where: { userId: user.id }
     });
-    
+
     await this.prisma.refreshToken.create({
       data: {
         userId: user.id,
@@ -145,10 +147,10 @@ export class AuthService {
         expiresAt
       }
     });
-    
+
     return {
       accessToken,
-      refreshToken, 
+      refreshToken,
       user: {
         id: user.id,
         name: user.name,
@@ -279,7 +281,7 @@ export class AuthService {
 
     const randomToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(randomToken).digest('hex');
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
 
     await this.prisma.resetPasswordToken.create({
@@ -472,9 +474,9 @@ export class AuthService {
     if (refreshToken) {
       const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
       await this.prisma.refreshToken.deleteMany({
-        where: { 
+        where: {
           userId: userId,
-          token: hashedToken 
+          token: hashedToken
         }
       });
     } else {
@@ -500,30 +502,30 @@ export class AuthService {
   async logoutByRefreshToken(refreshToken: string) {
     try {
       const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
-      
-      
+
+
       const tokenRecord = await this.prisma.refreshToken.findFirst({
         where: { token: hashedToken }
       });
 
       if (!tokenRecord) {
-        
+
         return { message: 'تم تسجيل الخروج بنجاح' };
       }
 
-      
+
       const user = await this.prisma.user.findUnique({
         where: { id: tokenRecord.userId }
       });
 
       if (user) {
-        
+
         await this.prisma.user.update({
           where: { id: tokenRecord.userId },
           data: { isActive: false },
         });
 
-        
+
         await this.prisma.auditLog.create({
           data: {
             userId: tokenRecord.userId,
@@ -534,15 +536,15 @@ export class AuthService {
         });
       }
 
-      
+
       await this.prisma.refreshToken.delete({
         where: { id: tokenRecord.id }
       });
 
       return { message: 'تم تسجيل الخروج بنجاح' };
     } catch (error) {
-      
-      
+
+
       return { message: 'تم تسجيل الخروج بنجاح' };
     }
   }
