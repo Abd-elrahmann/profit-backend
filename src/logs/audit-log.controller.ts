@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards, Delete } from '@nestjs/common';
 import { AuditLogService } from './audit-log.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -23,5 +23,11 @@ export class AuditLogController {
         @Query('to') to?: string,
     ) {
         return this.auditLogService.getAllLogs(+page, +limit, { userId , screen, action, userName, from, to });
+    }
+
+    @Delete('all')
+    @Permissions('logs', 'canDelete')
+    async deleteAllLogs() {
+        return this.auditLogService.deleteAllLogs();
     }
 }

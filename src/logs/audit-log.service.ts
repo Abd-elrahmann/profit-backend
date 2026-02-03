@@ -92,4 +92,12 @@ export class AuditLogService {
             data: convertedLogs,
         };
     }
-}   
+
+    async deleteAllLogs() {
+        const result = await this.prisma.auditLog.deleteMany({});
+        return {
+            message: 'تم حذف جميع السجلات بنجاح',
+            deletedCount: result.count
+        };
+    }
+}
