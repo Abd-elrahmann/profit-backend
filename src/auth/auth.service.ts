@@ -378,6 +378,49 @@ export class AuthService {
     return permissionsList;
   }
 
+  async getAllUserPermissions(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        role: {
+          include: {
+            permissions: true,
+          },
+        },
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.role) return [];
+    if (!user.role.permissions || user.role.permissions.length === 0) return [];
+
+    const allPermissions: string[] = [];
+
+    user.role.permissions.forEach((permission) => {
+      let moduleKey = permission.module;
+      
+      switch (permission.module) {
+        case 'messages-templates':
+          moduleKey = 'messagesTemplates';
+          break;
+        case 'journal-entries':
+          moduleKey = 'journalEntries';
+          break;
+        case 'contract-templates':
+          moduleKey = 'contractTemplates';
+          break;
+      }
+
+      if (permission.canView) allPermissions.push(`${moduleKey}_View`);
+      if (permission.canAdd) allPermissions.push(`${moduleKey}_Add`);
+      if (permission.canUpdate) allPermissions.push(`${moduleKey}_Update`);
+      if (permission.canDelete) allPermissions.push(`${moduleKey}_Delete`);
+      if (permission.canPost) allPermissions.push(`${moduleKey}_Post`);
+      if (permission.canExport) allPermissions.push(`${moduleKey}_Export`);
+    });
+
+    return allPermissions;
+  }
 
   async getUserModules(userId: number) {
     const user = await this.prisma.user.findUnique({

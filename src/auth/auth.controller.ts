@@ -119,6 +119,14 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('permissions')
+  getAllUserPermissions(
+    @Req() req,
+  ) {
+    return this.authService.getAllUserPermissions(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('modules')
   getUserModules(
     @Req() req,
