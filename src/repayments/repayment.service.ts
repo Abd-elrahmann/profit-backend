@@ -1198,6 +1198,7 @@ export class RepaymentService {
                         interestAmount: interestPortion,
                         remaining: 0,
                         paymentDate: new Date(),
+                        discount: interestDiscount,
                         reviewStatus: 'APPROVED',
                         notes: `تم السداد المبكر مع خصم الفائدة ${interestDiscount.toFixed(2)}`,
                     },

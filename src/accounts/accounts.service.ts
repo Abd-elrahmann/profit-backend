@@ -412,6 +412,8 @@ export class AccountsService {
             select: {
                 amount: true,
                 paidAmount: true,
+                remaining: true,
+                discount: true,
             },
         });
 
@@ -425,20 +427,31 @@ export class AccountsService {
             0
         );
 
+        const currentMonthremaining = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.remaining),
+            0
+        );
+
+        const currentMonthdiscount = currentMonthRepayments.reduce(
+            (sum, x) => sum + Number(x.discount),
+            0
+        );
+
 
         const repayments = await this.prisma.repayment.findMany({
             where: repaymentFilter,
             select: {
                 amount: true,
                 paidAmount: true,
+                remaining: true,
+                discount: true,
             },
         });
 
         const totalAmount = repayments.reduce((sum, x) => sum + Number(x.amount), 0);
-        const paidUntilNow = repayments.reduce(
-            (sum, x) => sum + Number(x.paidAmount),
-            0
-        );
+        const paidUntilNow = repayments.reduce((sum, x) => sum + Number(x.paidAmount), 0);
+        const remaining = repayments.reduce((sum, x) => sum + Number(x.remaining), 0);
+        const discount = repayments.reduce((sum, x) => sum + Number(x.discount), 0);
 
         const loansWithInterest =
             Number(loansAccount.balance || 0) + totalInterest;
@@ -467,10 +480,14 @@ export class AccountsService {
             repayments: {
                 totalAmount,
                 paidUntilNow,
+                remaining,
+                discount,
             },
             currentMonth: {
                 totalAmount: currentMonthTotalAmount,
                 paidUntilNow: currentMonthPaidUntilNow,
+                remaining: currentMonthremaining,
+                discount: currentMonthdiscount,
             },
         };
     }
