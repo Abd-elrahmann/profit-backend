@@ -95,11 +95,6 @@ export class PartnerWithdrawService {
         });
 
         if (!partner) throw new NotFoundException('المستثمر غير موجود');
-        if (!partner.isActive)
-            throw new BadRequestException('لا يمكن تنفيذ الانسحاب لهذا المستثمر الآن - المستثمر غير نشط');
-
-        if (partner.joinDistribute === true)
-            throw new BadRequestException('لا يمكن تنفيذ الانسحاب لهذا المستثمر الآن');
 
         const partnerDefaultedLoans = await this.prisma.loanPartnerShare.findMany({
             where: {

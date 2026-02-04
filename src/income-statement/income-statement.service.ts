@@ -273,8 +273,6 @@ export class IncomeStatementService {
             const company = Number(acc.companyCut + acc.cents || 0);
             const partner = Number(acc.partnerFinal || 0);
 
-            if (raw <= 0) continue;
-
             totalRevenue += raw;
             totalCompanyRevenue += company;
             totalPartnersRevenue += partner;
