@@ -515,10 +515,11 @@ export class RepaymentService {
         });
 
 
-        const wasApproved = repayment.status === PaymentStatus.PAID || repayment.status === PaymentStatus.EARLY_PAID;
+        const wasApproved = repayment.status === PaymentStatus.PAID || repayment.status === PaymentStatus.EARLY_PAID || repayment.status === PaymentStatus.PARTIAL_PAID;
 
         return await this.prisma.$transaction(async (tx) => {
-            const journal = await tx.journalHeader.findFirst({
+
+            const journals = await tx.journalHeader.findMany({
                 where: {
                     sourceType: JournalSourceType.REPAYMENT,
                     sourceId: repayment.id,
@@ -526,10 +527,12 @@ export class RepaymentService {
                 include: { lines: true },
             });
 
-            if (journal) {
-                await this.journalService.unpostJournal(currentUser, journal.id);
-                await tx.journalLine.deleteMany({ where: { journalId: journal.id } });
-                await tx.journalHeader.delete({ where: { id: journal.id } });
+            if (journals.length > 0) {
+                for (const journal of journals) {
+                    await this.journalService.unpostJournal(currentUser, journal.id);
+                    await tx.journalLine.deleteMany({ where: { journalId: journal.id } });
+                    await tx.journalHeader.delete({ where: { id: journal.id } });
+                }
             }
 
             if (wasApproved) {
@@ -854,6 +857,27 @@ export class RepaymentService {
             );
             await this.journalService.postJournal(journal.journal.id, currentUser)
 
+            const generalShares = await tx.loanPartnerShare.findMany({
+                where: { loanId: loan.id },
+                include: { partner: { select: { orgProfitPercent: true } } },
+            });
+
+            const newCapitalShares = await tx.loanNewCapitalShare.findMany({
+                where: { loanId: loan.id },
+                include: { partner: { select: { orgProfitPercent: true } } },
+            });
+
+            const partnerShares = [...generalShares, ...newCapitalShares];
+
+            if (interestPart > 0) {
+                await this.updatePartnerShareAccruals(
+                    tx,
+                    loan,
+                    interestPart,
+                    partnerShares,
+                    repayment.id
+                );
+            }
 
             const updated = await tx.repayment.update({
                 where: { id },
