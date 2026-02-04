@@ -784,7 +784,7 @@ export class LoansService {
         const firstRepaymentDate = dto.repaymentDay
             ? new Date(dto.repaymentDay)
             : (() => {
-                throw new BadRequestException('يجب تحديد تاريخ أول قسط');
+                throw new BadRequestException('يجب تحديد تاريخ أول دفعة');
             })();
 
 
@@ -2371,7 +2371,7 @@ export class LoansService {
         }
 
         if (!splits.length) {
-            throw new BadRequestException('لا يوجد أقساط صالحة للتحويل');
+            throw new BadRequestException('لا يوجد دفعات صالحة للتحويل');
         }
 
         const result = await this.prisma.$transaction(async (tx) => {

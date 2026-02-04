@@ -1027,7 +1027,7 @@ export class PartnerWithdrawService {
         newMonthlyAmount: number,
     ) {
         if (!newMonthlyAmount || newMonthlyAmount <= 0) {
-            throw new BadRequestException('قيمة القسط الجديد غير صحيحة');
+            throw new BadRequestException('قيمة الدفعة الجديدة غير صحيحة');
         }
 
         const partner = await this.prisma.partner.findUnique({
