@@ -545,7 +545,7 @@ export class PartnerService {
         }
 
         const active = await this.prisma.partnerShareAccrual.findMany({
-            where: { partnerId: partner.id }
+            where: { partnerId: partner.id, isClosed: false, isDistributed: false },
         })
 
         if (active.length > 0) {
