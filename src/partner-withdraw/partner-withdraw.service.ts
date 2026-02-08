@@ -25,11 +25,13 @@ export class PartnerWithdrawService {
 
         if (!partner) throw new NotFoundException('المستثمر غير موجود');
 
-        const partnerDefaultedLoans = await this.prisma.loanPartnerShare.findMany({
+        // Calculate defaults from general capital loans
+        const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
                 loan: {
                     status: 'ACTIVE',
+                    source: { in: ['GENERAL', 'MIX'] },
                     client: {
                         status: 'متعثر',
                     },
@@ -39,6 +41,37 @@ export class PartnerWithdrawService {
                 sharePercent: true,
                 loan: {
                     select: {
+                        source: true,
+                        generalAmount: true,
+                        newCapitalAmount: true,
+                        repayments: {
+                            where: { remaining: { gt: 0 } },
+                            select: { remaining: true },
+                        },
+                    },
+                },
+            },
+        });
+
+        // Calculate defaults from new capital loans
+        const partnerDefaultedNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
+            where: {
+                partnerId: partner.id,
+                loan: {
+                    status: 'ACTIVE',
+                    source: { in: ['NEW_CAPITAL', 'MIX'] },
+                    client: {
+                        status: 'متعثر',
+                    },
+                },
+            },
+            select: {
+                percent: true,
+                loan: {
+                    select: {
+                        generalAmount: true,
+                        source: true,
+                        newCapitalAmount: true,
                         repayments: {
                             where: { remaining: { gt: 0 } },
                             select: { remaining: true },
@@ -50,13 +83,38 @@ export class PartnerWithdrawService {
 
         let partnerDefaultsBase = 0;
 
-        for (const lps of partnerDefaultedLoans) {
+        // Process general capital defaults
+        for (const lps of partnerDefaultedGeneralLoans) {
             const loanRemaining = lps.loan.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            partnerDefaultsBase += loanRemaining * (lps.sharePercent / 100);
+            // For MIX loans, only count the general portion
+            let applicableRemaining = loanRemaining;
+            if (lps.loan.source === 'MIX' && lps.loan.generalAmount) {
+                const generalRatio = lps.loan.generalAmount / (lps.loan.generalAmount + (lps.loan.newCapitalAmount || 0));
+                applicableRemaining = loanRemaining * generalRatio;
+            }
+
+            partnerDefaultsBase += applicableRemaining * (lps.sharePercent / 100);
+        }
+
+        // Process new capital defaults
+        for (const lncs of partnerDefaultedNewCapitalLoans) {
+            const loanRemaining = lncs.loan?.repayments.reduce(
+                (sum, r) => sum + (r.remaining || 0),
+                0,
+            );
+
+            // For MIX loans, only count the new capital portion
+            let applicableRemaining = loanRemaining || 0;
+            if (lncs.loan?.source === 'MIX' && lncs.loan?.newCapitalAmount) {
+                const newCapitalRatio = lncs.loan?.newCapitalAmount / ((lncs.loan?.generalAmount || 0) + lncs.loan?.newCapitalAmount);
+                applicableRemaining = (loanRemaining || 0) * newCapitalRatio;
+            }
+
+            partnerDefaultsBase += applicableRemaining * (lncs.percent / 100);
         }
 
         const partnerOperationalRatio =
@@ -91,16 +149,21 @@ export class PartnerWithdrawService {
             include: {
                 AccountSaving: true,
                 LoanPartnerShare: true,
+                LoanNewCapitalShare: true,
+                AccountNewCapital: { select: { balance: true } },
+                AccountEquity: { select: { balance: true } },
             },
         });
 
         if (!partner) throw new NotFoundException('المستثمر غير موجود');
 
-        const partnerDefaultedLoans = await this.prisma.loanPartnerShare.findMany({
+        // Calculate defaults from GENERAL capital loans
+        const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
                 loan: {
                     status: 'ACTIVE',
+                    source: { in: ['GENERAL', 'MIX'] },
                     client: {
                         status: 'متعثر',
                     },
@@ -110,6 +173,37 @@ export class PartnerWithdrawService {
                 sharePercent: true,
                 loan: {
                     select: {
+                        source: true,
+                        generalAmount: true,
+                        newCapitalAmount: true,
+                        repayments: {
+                            where: { remaining: { gt: 0 } },
+                            select: { remaining: true },
+                        },
+                    },
+                },
+            },
+        });
+
+        // Calculate defaults from NEW_CAPITAL loans
+        const partnerDefaultedNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
+            where: {
+                partnerId: partner.id,
+                loan: {
+                    status: 'ACTIVE',
+                    source: { in: ['NEW_CAPITAL', 'MIX'] },
+                    client: {
+                        status: 'متعثر',
+                    },
+                },
+            },
+            select: {
+                percent: true,
+                loan: {
+                    select: {
+                        source: true,
+                        generalAmount: true,
+                        newCapitalAmount: true,
                         repayments: {
                             where: { remaining: { gt: 0 } },
                             select: { remaining: true },
@@ -121,13 +215,40 @@ export class PartnerWithdrawService {
 
         let partnerDefaultsBase = 0;
 
-        for (const lps of partnerDefaultedLoans) {
+        // Process general capital defaults
+        for (const lps of partnerDefaultedGeneralLoans) {
             const loanRemaining = lps.loan.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            partnerDefaultsBase += loanRemaining * (lps.sharePercent / 100);
+            // For MIX loans, only count the general portion
+            let applicableRemaining = loanRemaining;
+            if (lps.loan.source === 'MIX' && lps.loan.generalAmount && lps.loan.newCapitalAmount) {
+                const totalLoanAmount = lps.loan.generalAmount + lps.loan.newCapitalAmount;
+                const generalRatio = lps.loan.generalAmount / totalLoanAmount;
+                applicableRemaining = loanRemaining * generalRatio;
+            }
+
+            partnerDefaultsBase += applicableRemaining * (lps.sharePercent / 100);
+        }
+
+        // Process new capital defaults
+        for (const lncs of partnerDefaultedNewCapitalLoans) {
+            const loanRemaining = lncs.loan?.repayments.reduce(
+                (sum, r) => sum + (r.remaining || 0),
+                0,
+            );
+
+            // For MIX loans, only count the new capital portion
+            let applicableRemaining = loanRemaining || 0;
+            if (lncs.loan?.source === 'MIX' && lncs.loan?.generalAmount && lncs.loan?.newCapitalAmount) {
+                const totalLoanAmount = lncs.loan?.generalAmount + lncs.loan?.newCapitalAmount;
+                const newCapitalRatio = lncs.loan?.newCapitalAmount / totalLoanAmount;
+                applicableRemaining = (loanRemaining || 0) * newCapitalRatio;
+            }
+
+            partnerDefaultsBase += applicableRemaining * (lncs.percent / 100);
         }
 
         const partnerOperationalRatio =
@@ -139,7 +260,10 @@ export class PartnerWithdrawService {
 
         if (partnerDefaultShare < 0) partnerDefaultShare = 0;
 
-        const remainingCapital = partner.totalAmount - partnerDefaultShare;
+        // Calculate total capital including new capital
+        const newCapitalRemaining = partner.AccountNewCapital.balance || 0;
+        const totalCapital = partner.totalAmount + newCapitalRemaining;
+        const remainingCapital = totalCapital - partnerDefaultShare;
 
         await this.prisma.partner.update({
             where: { id: partnerId },
@@ -149,6 +273,13 @@ export class PartnerWithdrawService {
                 WithdrawingStatus: 'WITHDRAWING',
                 isFrozen: true,
                 totalAmount: remainingCapital,
+            },
+        });
+
+        await this.prisma.partnerNewCapital.updateMany({
+            where: { partnerId: partnerId },
+            data: {
+                remaining: 0,
             },
         });
 
@@ -182,7 +313,7 @@ export class PartnerWithdrawService {
             if (!lossAccount)
                 throw new BadRequestException('حساب الخسائر غير موجود');
 
-            await this.journalService.createJournal(
+            const journal = await this.journalService.createJournal(
                 {
                     reference: `DEFAULT-${partnerId}-${Date.now()}`,
                     description: `خصم نصيب المساهم (${partner.name}) من خسائر التعثر`,
@@ -206,8 +337,39 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
+            await this.journalService.postJournal(journal.journal.id, userId);
         }
 
+        let convertAmount = newCapitalRemaining;
+        if (convertAmount > 0) {
+            const journal = await this.journalService.createJournal(
+                {
+                    reference: `CONVERT-${partnerId}-${Date.now()}`,
+                    description: `تحويل رأس مال المساهم (${partner.name}) من رأس المال الجديد إلى رأس المال العام بعد الانسحاب`,
+                    type: 'GENERAL',
+                    sourceType: 'PARTNER_WITHDRAWING',
+                    sourceId: partnerId,
+                    lines: [
+                        {
+                            accountId: partner.accountNewCapitalId,
+                            debit: convertAmount,
+                            credit: 0,
+                            description: 'خصم من رأس المال الجديد',
+                        },
+                        {
+                            accountId: partner.accountEquityId,
+                            debit: 0,
+                            credit: convertAmount,
+                            description: 'إضافة إلى رأس المال العام',
+                        },
+                    ],
+                },
+                userId,
+            );
+            await this.journalService.postJournal(journal.journal.id, userId);
+        }
+
+        // Handle savings withdrawal
         const savingsAmount = partner.AccountSaving.balance;
 
         const savingAccount = await this.prisma.account.findUnique({
@@ -218,7 +380,7 @@ export class PartnerWithdrawService {
             throw new BadRequestException('حساب الادخار (20002) يجب ان يكون موجود');
 
         if (savingsAmount > 0) {
-            await this.journalService.createJournal(
+            const journal = await this.journalService.createJournal(
                 {
                     reference: `SAVING-${partnerId}-${Date.now()}`,
                     description: `صرف مدخرات المساهم ${partner.name}`,
@@ -242,9 +404,11 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
+            await this.journalService.postJournal(journal.journal.id, userId);
         }
 
-        const partnerLoans = await this.prisma.loanPartnerShare.findMany({
+        // Remove partner from general capital loans and redistribute shares
+        const partnerGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
                 loan: { status: 'ACTIVE' },
@@ -258,7 +422,7 @@ export class PartnerWithdrawService {
             },
         });
 
-        for (const pls of partnerLoans) {
+        for (const pls of partnerGeneralLoans) {
             const loan = pls.loan;
 
             await this.prisma.loanPartnerShare.delete({
@@ -289,6 +453,55 @@ export class PartnerWithdrawService {
             }
         }
 
+        // Remove partner from new capital loans and redistribute shares
+        const partnerNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
+            where: {
+                partnerId: partner.id,
+                loan: { status: 'ACTIVE' },
+            },
+            include: {
+                loan: {
+                    include: {
+                        LoanNewCapitalShare: true,
+                    },
+                },
+            },
+        });
+
+        for (const lncs of partnerNewCapitalLoans) {
+            const loan = lncs.loan;
+
+            if (!loan) continue;
+
+            await this.prisma.loanNewCapitalShare.delete({
+                where: { id: lncs.id },
+            });
+
+            const remainingPartners = loan.LoanNewCapitalShare.filter(
+                p => p.partnerId !== partner.id
+            );
+
+            if (remainingPartners.length === 0) continue;
+
+            const totalRemainingPercent = remainingPartners.reduce(
+                (sum, p) => sum + p.percent,
+                0,
+            );
+
+            for (const rp of remainingPartners) {
+                const newPercent =
+                    (rp.percent / totalRemainingPercent) * 100;
+
+                await this.prisma.loanNewCapitalShare.update({
+                    where: { id: rp.id },
+                    data: {
+                        percent: parseFloat(newPercent.toFixed(2)),
+                    },
+                });
+            }
+        }
+
+        // Create withdrawal schedule
         let remaining = remainingCapital;
         const schedule = [] as any;
         const startDate = new Date();
@@ -323,7 +536,7 @@ export class PartnerWithdrawService {
             data: {
                 partnerId,
                 monthlyAmount,
-                totalCapital: partner.totalAmount,
+                totalCapital: totalCapital,
                 defaultShare: partnerDefaultShare,
                 remainingCapital,
                 savingAmount: savingsAmount,
@@ -337,6 +550,8 @@ export class PartnerWithdrawService {
             savingsAmount,
             partnerDefaultShare,
             remainingCapital,
+            totalCapital,
+            newCapitalAmount: newCapitalRemaining,
         };
     }
 
@@ -400,7 +615,6 @@ export class PartnerWithdrawService {
             journals,
         };
     }
-
 
     async approveWithdrawalPayment(currentUser: number, scheduleId: number) {
         const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
@@ -545,7 +759,6 @@ export class PartnerWithdrawService {
         });
     }
 
-
     async rejectWithdrawalPayment(currentUser: number, scheduleId: number) {
         const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
             where: { id: scheduleId },
@@ -563,10 +776,6 @@ export class PartnerWithdrawService {
         });
 
         if (!schedule) throw new NotFoundException('جدول السحب غير موجود');
-
-
-
-
 
         const withdrawalId = schedule.partner.PartnerWithdrawal?.[0]?.id;
 
@@ -672,7 +881,6 @@ export class PartnerWithdrawService {
         });
     }
 
-
     private async findNextSchedulesForPartnerAfter(schedule) {
         return this.prisma.partnerWithdrawalSchedule.findMany({
             where: {
@@ -702,7 +910,6 @@ export class PartnerWithdrawService {
             ],
         });
     }
-
 
     async partialPayWithdrawal(currentUser: number, scheduleId: number, paidAmount: number) {
         if (!paidAmount || paidAmount <= 0) throw new BadRequestException('المبلغ المدفوع يجب أن يكون أكبر من صفر');
@@ -938,7 +1145,6 @@ export class PartnerWithdrawService {
         };
     }
 
-
     async uploadWithdrawalReceipt(currentUser: number, partnerId: number, file: Express.Multer.File) {
         const withdrawal = await this.prisma.partnerWithdrawal.findFirst({
             where: { partnerId: partnerId },
@@ -1128,11 +1334,13 @@ export class PartnerWithdrawService {
         return lastPartnerCount ? lastPartnerCount.count + 1 : 1;
     }
 
-    async cancelWithdrawal(currentUser: number, partnerId: number) {
+    async reverseWithdrawal(currentUser: number, partnerId: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id: partnerId },
             include: {
                 PartnerWithdrawal: true,
+                AccountNewCapital: { select: { balance: true } },
+                AccountEquity: { select: { balance: true } },
             },
         });
 
@@ -1148,7 +1356,7 @@ export class PartnerWithdrawService {
 
         const withdrawal = partner.PartnerWithdrawal[0];
 
-        // التحقق من وجود دفعات مدفوعة
+        // Check if any payments have been made
         const paidSchedules = await this.prisma.partnerWithdrawalSchedule.findMany({
             where: {
                 partnerId,
@@ -1157,23 +1365,9 @@ export class PartnerWithdrawService {
         });
 
         if (paidSchedules.length > 0) {
-            throw new BadRequestException('لا يمكن إلغاء الانسحاب لأن هناك دفعات مدفوعة بالفعل');
-        }
-
-        // التحقق من وجود قيود محاسبية معتمدة مرتبطة بالانسحاب
-        const journals = await this.prisma.journalHeader.findMany({
-            where: {
-                sourceType: 'PARTNER_WITHDRAWING',
-                OR: [
-                    { sourceId: partner.id },
-                    { sourceId: withdrawal.id },
-                ],
-                status: 'POSTED',
-            },
-        });
-
-        if (journals.length > 0) {
-            throw new BadRequestException('لا يمكن إلغاء الانسحاب لأن هناك قيود محاسبية معتمدة مرتبطة به');
+            throw new BadRequestException(
+                `لا يمكن التراجع عن الانسحاب لأن هناك ${paidSchedules.length} دفعة مدفوعة. يجب التراجع عن جميع الدفعات أولاً`
+            );
         }
 
         const user = await this.prisma.user.findUnique({
@@ -1181,61 +1375,149 @@ export class PartnerWithdrawService {
         });
 
         return await this.prisma.$transaction(async (tx) => {
-            // حذف جدول الانسحاب
-            await tx.partnerWithdrawalSchedule.deleteMany({
-                where: { partnerId },
-            });
-
-            // حذف القيود المحاسبية غير المعتمدة
-            const unpostedJournals = await tx.journalHeader.findMany({
+            const withdrawalJournals = await tx.journalHeader.findMany({
                 where: {
                     sourceType: 'PARTNER_WITHDRAWING',
                     OR: [
                         { sourceId: partner.id },
                         { sourceId: withdrawal.id },
                     ],
-                    status: 'DRAFT',
                 },
+                include: {
+                    lines: true,
+                },
+                orderBy: { createdAt: 'desc' },
             });
 
-            for (const journal of unpostedJournals) {
+            const journalSummary = {
+                default: null as any,
+                convert: null as any,
+                saving: null as any,
+                posted: [] as number[],
+                draft: [] as number[],
+            };
+
+            for (const journal of withdrawalJournals) {
+                const ref = journal.reference || '';
+
+                // Categorize journals
+                if (ref.includes('DEFAULT-')) {
+                    journalSummary.default = journal;
+                } else if (ref.includes('CONVERT-')) {
+                    journalSummary.convert = journal;
+                } else if (ref.includes('SAVING-')) {
+                    journalSummary.saving = journal;
+                }
+
+                // Track posted vs draft
+                if (journal.status === 'POSTED') {
+                    journalSummary.posted.push(journal.id);
+                } else {
+                    journalSummary.draft.push(journal.id);
+                }
+
+                // Unpost if posted
+                if (journal.status === 'POSTED') {
+                    try {
+                        await this.journalService.unpostJournal(currentUser, journal.id);
+                    } catch (e) {
+                        console.warn(`Failed to unpost journal ${journal.id}:`, e);
+                    }
+                }
+
+                // Delete journal lines
                 await tx.journalLine.deleteMany({
                     where: { journalId: journal.id },
                 });
+
+                // Delete journal header
                 await tx.journalHeader.delete({
                     where: { id: journal.id },
                 });
             }
 
-            // حذف طلب الانسحاب
-            await tx.partnerWithdrawal.delete({
-                where: { id: withdrawal.id },
+            const deletedSchedules = await tx.partnerWithdrawalSchedule.deleteMany({
+                where: { partnerId },
             });
 
-            // إعادة حالة المستثمر ورأس المال الأصلي
+            const originalTotalCapital = withdrawal.totalCapital;
+            const defaultShare = withdrawal.defaultShare || 0;
+            const savingAmount = withdrawal.savingAmount || 0;
+
+            let convertedAmount = 0;
+            if (journalSummary.convert) {
+                const convertLine = journalSummary.convert.lines.find(
+                    (l: any) => l.accountId === partner.accountNewCapitalId && l.debit > 0
+                );
+                if (convertLine) {
+                    convertedAmount = convertLine.debit;
+                }
+            }
+
+            const originalNewCapital = convertedAmount;
+            const originalGeneralCapital = originalTotalCapital - originalNewCapital;
+
             await tx.partner.update({
                 where: { id: partnerId },
                 data: {
                     isActive: true,
                     joinDistribute: true,
-                    WithdrawingStatus: null,
+                    WithdrawingStatus: 'ACTIVE',
                     isFrozen: false,
-                    totalAmount: withdrawal.totalCapital, // إعادة رأس المال الأصلي
+                    capitalAmount: originalGeneralCapital,
+                    totalAmount: originalGeneralCapital,
                 },
             });
 
-            // تسجيل في سجل التدقيق
+            await this.prisma.partnerNewCapital.updateMany({
+                where: { partnerId: partnerId },
+                data: {
+                    remaining: originalNewCapital,
+                },
+            });
+
+            await tx.partnerWithdrawal.delete({
+                where: { id: withdrawal.id },
+            });
+
+
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
                     screen: 'PartnerWithdrawals',
                     action: 'DELETE',
-                    description: `قام المستخدم ${user?.name} بإلغاء انسحاب المستثمر ${partner.name}`,
+                    description: `قام المستخدم ${user?.name} بالتراجع الكامل عن انسحاب المستثمر ${partner.name}. ` +
+                        `تم حذف ${withdrawalJournals.length} قيد محاسبي و ${deletedSchedules.count} جدول دفعات. ` +
+                        `استعادة: رأس المال العام ${originalGeneralCapital}, رأس المال الجديد ${originalNewCapital}`,
                 },
             });
 
             return {
-                message: 'تم إلغاء الانسحاب بنجاح',
+                message: 'تم التراجع الكامل عن الانسحاب بنجاح',
+                summary: {
+                    deletedJournals: {
+                        total: withdrawalJournals.length,
+                        posted: journalSummary.posted.length,
+                        draft: journalSummary.draft.length,
+                        defaultJournal: journalSummary.default ? 'تم حذفه' : 'غير موجود',
+                        convertJournal: journalSummary.convert ? 'تم حذفه' : 'غير موجود',
+                        savingJournal: journalSummary.saving ? 'تم حذفه' : 'غير موجود',
+                    },
+                    deletedSchedules: deletedSchedules.count,
+                    restoredCapital: {
+                        generalCapital: originalGeneralCapital,
+                        newCapital: originalNewCapital,
+                        totalCapital: originalTotalCapital,
+                        defaultShare: defaultShare,
+                        savingAmount: savingAmount,
+                    },
+                    partnerStatus: {
+                        isActive: true,
+                        joinDistribute: true,
+                        withdrawingStatus: 'ACTIVE',
+                        isFrozen: false,
+                    },
+                },
             };
         });
     }

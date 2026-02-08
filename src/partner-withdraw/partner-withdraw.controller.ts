@@ -105,10 +105,10 @@ export class PartnerWithdrawController {
 
     @Post('cancel/:partnerId')
     @Permissions('partners-withdraw', 'canPost')
-    cancelWithdrawal(
+    reverseWithdrawal(
         @Req() req,
         @Param('partnerId', ParseIntPipe) partnerId: number,
     ) {
-        return this.service.cancelWithdrawal(req.user.id, partnerId);
+        return this.service.reverseWithdrawal(req.user.id, partnerId);
     }
 }
