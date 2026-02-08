@@ -157,6 +157,44 @@ export class PartnerWithdrawService {
 
         if (!partner) throw new NotFoundException('المستثمر غير موجود');
 
+        const loanSharesToBackup = await this.prisma.loanPartnerShare.findMany({
+            where: {
+                loan: {
+                    status: 'ACTIVE',
+                    LoanPartnerShare: {
+                        some: { partnerId: partner.id }
+                    }
+                },
+            },
+            select: {
+                id: true,
+                partnerId: true,
+                loanId: true,
+                sharePercent: true,
+                orgProfitPercent: true,
+                isActive: true,
+            },
+        });
+
+        const newCapitalSharesToBackup = await this.prisma.loanNewCapitalShare.findMany({
+            where: {
+                loan: {
+                    status: 'ACTIVE',
+                    LoanNewCapitalShare: {
+                        some: { partnerId: partner.id }
+                    }
+                },
+            },
+            select: {
+                id: true,
+                partnerId: true,
+                loanId: true,
+                amountUsed: true,
+                percent: true,
+                orgProfitPercent: true,
+            },
+        });
+
         // Calculate defaults from GENERAL capital loans
         const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
@@ -540,6 +578,15 @@ export class PartnerWithdrawService {
                 defaultShare: partnerDefaultShare,
                 remainingCapital,
                 savingAmount: savingsAmount,
+            },
+        });
+
+        await this.prisma.partnerWithdrawalBackup.create({
+            data: {
+                withdrawalId: withdrawal.id,
+                partnerId: partnerId,
+                loanShares: JSON.stringify(loanSharesToBackup),
+                newCapitalShares: JSON.stringify(newCapitalSharesToBackup),
             },
         });
 
@@ -1356,6 +1403,27 @@ export class PartnerWithdrawService {
 
         const withdrawal = partner.PartnerWithdrawal[0];
 
+        // Get backup data
+        const backup = await this.prisma.partnerWithdrawalBackup.findFirst({
+            where: { withdrawalId: withdrawal.id },
+        });
+
+        // Parse backup data with proper type handling
+        let loanSharesBackup: any[] = [];
+        let newCapitalSharesBackup: any[] = [];
+
+        if (backup) {
+            try {
+                const parsedLoanShares = JSON.parse(backup.loanShares as string);
+                const parsedNewCapitalShares = JSON.parse(backup.newCapitalShares as string);
+
+                loanSharesBackup = Array.isArray(parsedLoanShares) ? parsedLoanShares : [];
+                newCapitalSharesBackup = Array.isArray(parsedNewCapitalShares) ? parsedNewCapitalShares : [];
+            } catch (error) {
+                throw new BadRequestException('خطأ في قراءة بيانات النسخة الاحتياطية');
+            }
+        }
+
         // Check if any payments have been made
         const paidSchedules = await this.prisma.partnerWithdrawalSchedule.findMany({
             where: {
@@ -1469,17 +1537,87 @@ export class PartnerWithdrawService {
                 },
             });
 
-            await this.prisma.partnerNewCapital.updateMany({
+            await tx.partnerNewCapital.updateMany({
                 where: { partnerId: partnerId },
                 data: {
                     remaining: originalNewCapital,
                 },
             });
 
+            let restoredLoanSharesCount = 0;
+            let restoredNewCapitalSharesCount = 0;
+
+            const loanSharesByLoanId = new Map<number, any[]>();
+            for (const share of loanSharesBackup) {
+                const loanId = share.loanId;
+                if (!loanId) continue;
+
+                if (!loanSharesByLoanId.has(loanId)) {
+                    loanSharesByLoanId.set(loanId, []);
+                }
+                loanSharesByLoanId.get(loanId)!.push(share);
+            }
+
+            // Restore loan shares loan by loan
+            for (const [loanId, backupShares] of loanSharesByLoanId) {
+                // Delete ALL current shares for this loan
+                await tx.loanPartnerShare.deleteMany({
+                    where: { loanId },
+                });
+
+                // Recreate ALL shares from backup (including the withdrawing partner)
+                for (const backupShare of backupShares) {
+                    await tx.loanPartnerShare.create({
+                        data: {
+                            loanId: loanId,
+                            partnerId: backupShare.partnerId,
+                            sharePercent: backupShare.sharePercent,
+                            orgProfitPercent: backupShare.orgProfitPercent,
+                            isActive: backupShare.isActive ?? true,
+                        },
+                    });
+                    restoredLoanSharesCount++;
+                }
+            }
+
+            const newCapitalSharesByLoanId = new Map<number, any[]>();
+            for (const share of newCapitalSharesBackup) {
+                const loanId = share.loanId;
+                if (!loanId) continue;
+
+                if (!newCapitalSharesByLoanId.has(loanId)) {
+                    newCapitalSharesByLoanId.set(loanId, []);
+                }
+                newCapitalSharesByLoanId.get(loanId)!.push(share);
+            }
+
+            for (const [loanId, backupShares] of newCapitalSharesByLoanId) {
+                await tx.loanNewCapitalShare.deleteMany({
+                    where: { loanId },
+                });
+
+                for (const backupShare of backupShares) {
+                    await tx.loanNewCapitalShare.create({
+                        data: {
+                            loanId: loanId,
+                            partnerId: backupShare.partnerId,
+                            amountUsed: backupShare.amountUsed,
+                            percent: backupShare.percent,
+                            orgProfitPercent: backupShare.orgProfitPercent,
+                        },
+                    });
+                    restoredNewCapitalSharesCount++;
+                }
+            }
+
+            // Delete the backup after successful restoration
+            await tx.partnerWithdrawalBackup.delete({
+                where: { withdrawalId: withdrawal.id },
+            });
+
             await tx.partnerWithdrawal.delete({
                 where: { id: withdrawal.id },
             });
-
 
             await tx.auditLog.create({
                 data: {
@@ -1488,7 +1626,8 @@ export class PartnerWithdrawService {
                     action: 'DELETE',
                     description: `قام المستخدم ${user?.name} بالتراجع الكامل عن انسحاب المستثمر ${partner.name}. ` +
                         `تم حذف ${withdrawalJournals.length} قيد محاسبي و ${deletedSchedules.count} جدول دفعات. ` +
-                        `استعادة: رأس المال العام ${originalGeneralCapital}, رأس المال الجديد ${originalNewCapital}`,
+                        `استعادة ${restoredLoanSharesCount} حصة قروض عامة و ${restoredNewCapitalSharesCount} حصة رأس مال جديد. ` +
+                        `رأس المال العام ${originalGeneralCapital}, رأس المال الجديد ${originalNewCapital}`,
                 },
             });
 
@@ -1504,6 +1643,10 @@ export class PartnerWithdrawService {
                         savingJournal: journalSummary.saving ? 'تم حذفه' : 'غير موجود',
                     },
                     deletedSchedules: deletedSchedules.count,
+                    restoredShares: {
+                        loanShares: restoredLoanSharesCount,
+                        newCapitalShares: restoredNewCapitalSharesCount,
+                    },
                     restoredCapital: {
                         generalCapital: originalGeneralCapital,
                         newCapital: originalNewCapital,

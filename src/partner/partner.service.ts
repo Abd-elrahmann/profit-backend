@@ -832,6 +832,7 @@ export class PartnerService {
             newCapitalPercent,
             zakat: partner.yearlyZakatBalance,
             total: newCapitalAmount + partner.totalAmount,
+            totalAmount: newCapitalAmount + partner.capitalAmount,
             totalSaving: partner.AccountSaving?.credit ?? 0,
             totalAvilableSaving: partner.AccountSaving?.balance ?? 0,
             totalWithdrawal: partner.AccountSaving?.debit ?? 0,

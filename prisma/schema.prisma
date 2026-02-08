@@ -476,8 +476,19 @@ model PartnerWithdrawal {
   savingAmount Float
   WITHDRAWAL_RECEIPT String?
   createdAt DateTime @default(now())
-
+  PartnerWithdrawalBackup PartnerWithdrawalBackup[]
   partner Partner @relation(fields: [partnerId], references: [id])
+}
+
+model PartnerWithdrawalBackup {
+  id          Int      @id @default(autoincrement())
+  withdrawalId Int     @unique
+  partnerId   Int
+  loanShares        Json    
+  newCapitalShares  Json    
+  
+  createdAt   DateTime @default(now())
+  withdrawal  PartnerWithdrawal @relation(fields: [withdrawalId], references: [id])
 }
 
 model PartnerTransaction {
