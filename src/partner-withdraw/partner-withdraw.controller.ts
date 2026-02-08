@@ -102,4 +102,13 @@ export class PartnerWithdrawController {
     async getNextPartnerCount() {
         return this.service.getNextPartnerCount();
     }
+
+    @Post('cancel/:partnerId')
+    @Permissions('partners-withdraw', 'canPost')
+    cancelWithdrawal(
+        @Req() req,
+        @Param('partnerId', ParseIntPipe) partnerId: number,
+    ) {
+        return this.service.cancelWithdrawal(req.user.id, partnerId);
+    }
 }

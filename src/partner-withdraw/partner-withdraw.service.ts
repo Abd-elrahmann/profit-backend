@@ -1127,4 +1127,116 @@ export class PartnerWithdrawService {
 
         return lastPartnerCount ? lastPartnerCount.count + 1 : 1;
     }
+
+    async cancelWithdrawal(currentUser: number, partnerId: number) {
+        const partner = await this.prisma.partner.findUnique({
+            where: { id: partnerId },
+            include: {
+                PartnerWithdrawal: true,
+            },
+        });
+
+        if (!partner) throw new NotFoundException('المستثمر غير موجود');
+
+        if (partner.WithdrawingStatus !== 'WITHDRAWING' && partner.WithdrawingStatus !== 'WITHDRAWN') {
+            throw new BadRequestException('المستثمر ليس في حالة انسحاب');
+        }
+
+        if (!partner.PartnerWithdrawal || partner.PartnerWithdrawal.length === 0) {
+            throw new BadRequestException('لا يوجد طلب انسحاب لهذا المستثمر');
+        }
+
+        const withdrawal = partner.PartnerWithdrawal[0];
+
+        // التحقق من وجود دفعات مدفوعة
+        const paidSchedules = await this.prisma.partnerWithdrawalSchedule.findMany({
+            where: {
+                partnerId,
+                isPaid: true,
+            },
+        });
+
+        if (paidSchedules.length > 0) {
+            throw new BadRequestException('لا يمكن إلغاء الانسحاب لأن هناك دفعات مدفوعة بالفعل');
+        }
+
+        // التحقق من وجود قيود محاسبية معتمدة مرتبطة بالانسحاب
+        const journals = await this.prisma.journalHeader.findMany({
+            where: {
+                sourceType: 'PARTNER_WITHDRAWING',
+                OR: [
+                    { sourceId: partner.id },
+                    { sourceId: withdrawal.id },
+                ],
+                status: 'POSTED',
+            },
+        });
+
+        if (journals.length > 0) {
+            throw new BadRequestException('لا يمكن إلغاء الانسحاب لأن هناك قيود محاسبية معتمدة مرتبطة به');
+        }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        return await this.prisma.$transaction(async (tx) => {
+            // حذف جدول الانسحاب
+            await tx.partnerWithdrawalSchedule.deleteMany({
+                where: { partnerId },
+            });
+
+            // حذف القيود المحاسبية غير المعتمدة
+            const unpostedJournals = await tx.journalHeader.findMany({
+                where: {
+                    sourceType: 'PARTNER_WITHDRAWING',
+                    OR: [
+                        { sourceId: partner.id },
+                        { sourceId: withdrawal.id },
+                    ],
+                    status: 'DRAFT',
+                },
+            });
+
+            for (const journal of unpostedJournals) {
+                await tx.journalLine.deleteMany({
+                    where: { journalId: journal.id },
+                });
+                await tx.journalHeader.delete({
+                    where: { id: journal.id },
+                });
+            }
+
+            // حذف طلب الانسحاب
+            await tx.partnerWithdrawal.delete({
+                where: { id: withdrawal.id },
+            });
+
+            // إعادة حالة المستثمر ورأس المال الأصلي
+            await tx.partner.update({
+                where: { id: partnerId },
+                data: {
+                    isActive: true,
+                    joinDistribute: true,
+                    WithdrawingStatus: null,
+                    isFrozen: false,
+                    totalAmount: withdrawal.totalCapital, // إعادة رأس المال الأصلي
+                },
+            });
+
+            // تسجيل في سجل التدقيق
+            await tx.auditLog.create({
+                data: {
+                    userId: currentUser,
+                    screen: 'PartnerWithdrawals',
+                    action: 'DELETE',
+                    description: `قام المستخدم ${user?.name} بإلغاء انسحاب المستثمر ${partner.name}`,
+                },
+            });
+
+            return {
+                message: 'تم إلغاء الانسحاب بنجاح',
+            };
+        });
+    }
 }
