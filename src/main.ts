@@ -49,16 +49,27 @@ async function bootstrap() {
         url && url.endsWith('/') ? url.slice(0, -1) : url
       );
 
-      if (!origin || cleanOrigins.includes(origin)) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        console.log('⚠️ Request with no origin, allowing...');
+        return callback(null, true);
+      }
+
+      if (cleanOrigins.includes(origin)) {
+        console.log('✅ CORS allowed for origin:', origin);
         callback(null, true);
       } else {
+        console.warn('❌ CORS blocked for origin:', origin);
+        console.warn('📋 Allowed origins:', cleanOrigins);
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true,
+    credentials: true, // Important: This allows cookies to be sent
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language', 'page', 'Cookie'],
     exposedHeaders: ['Set-Cookie'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
 
   app.use(cookieParser());

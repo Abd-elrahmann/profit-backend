@@ -29,29 +29,38 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() body: { email: string; password: string },
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response
   ) {
     const result = await this.authService.login(body);
     
+    // Get origin from request headers
+    const origin = req.headers.origin || req.headers.referer;
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     // Set Access Token in HTTP-Only Cookie (15 minutes)
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
-      secure: false,
+      secure: isProduction, // Use secure in production (HTTPS)
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
-      path: '/'
+      path: '/',
+      domain: undefined, // Let browser set domain automatically
     });
 
     // Set Refresh Token in HTTP-Only Cookie (7 days)
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: isProduction, // Use secure in production (HTTPS)
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, 
-      path: '/'
+      path: '/',
+      domain: undefined, // Let browser set domain automatically
     });
 
     console.log('✅ Access & Refresh token cookies set successfully');
+    console.log('📍 Request origin:', origin);
+    console.log('🍪 Cookies set with sameSite: lax, secure:', isProduction);
 
     // Return only user data (NO tokens in response body)
     return {
@@ -164,31 +173,39 @@ export class AuthController {
     if (!refreshToken) {
       console.warn('❌ Refresh endpoint called but no refresh token in cookies');
       console.warn('Available cookies:', Object.keys(req.cookies || {}));
+      console.warn('Request headers:', {
+        cookie: req.headers.cookie,
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+      });
       throw new UnauthorizedException('No refresh token provided');
     }
 
     console.log('🔄 Refresh token found in cookies, attempting refresh...');
 
     try {
-      console.log('Refreshing token for cookies');
       const result = await this.authService.refreshAccessToken(refreshToken);
+      
+      const isProduction = process.env.NODE_ENV === 'production';
       
       // Set new Access Token in HTTP-Only Cookie
       res.cookie('accessToken', result.accessToken, {
         httpOnly: true,
-        secure: false,
+        secure: isProduction, // Use secure in production (HTTPS)
         sameSite: 'lax',
         maxAge: 15 * 60 * 1000, // 15 minutes
-        path: '/'
+        path: '/',
+        domain: undefined, // Let browser set domain automatically
       });
 
       // Re-set the refresh token cookie to extend its lifetime
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: false,
+        secure: isProduction, // Use secure in production (HTTPS)
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/'
+        path: '/',
+        domain: undefined, // Let browser set domain automatically
       });
 
       console.log('✅ Access token refreshed successfully for user:', result.user.id);
