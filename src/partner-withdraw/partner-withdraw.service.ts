@@ -1218,7 +1218,7 @@ export class PartnerWithdrawService {
                 data: {
                     isActive: true,
                     joinDistribute: true,
-                    WithdrawingStatus: null,
+                    WithdrawingStatus: 'ACTIVE',
                     isFrozen: false,
                     totalAmount: withdrawal.totalCapital, // إعادة رأس المال الأصلي
                 },
