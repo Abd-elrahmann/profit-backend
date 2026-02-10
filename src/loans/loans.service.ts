@@ -2214,13 +2214,13 @@ export class LoansService {
                 },
             });
 
-            const lastLoanCount = await this.prisma.loanCount.findFirst({
+            const lastLoanCount = await tx.loanCount.findFirst({
                 orderBy: { count: 'desc' },
             });
 
             const newCount = lastLoanCount ? lastLoanCount.count + 1 : 1;
 
-            await this.prisma.loanCount.create({
+            await tx.loanCount.create({
                 data: {
                     loanId: newLoan.id,
                     count: newCount,
