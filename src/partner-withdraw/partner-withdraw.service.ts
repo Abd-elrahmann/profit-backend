@@ -378,6 +378,12 @@ export class PartnerWithdrawService {
             await this.journalService.postJournal(journal.journal.id, userId);
         }
 
+        const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
+        if (!bankAccount) throw new BadRequestException('BANK account not found');
+
+        const newCapitalBank = await this.prisma.account.findFirst({ where: { accountBasicType: 'NEW_CAPITAL_BANK' } });
+        if (!newCapitalBank) throw new BadRequestException('NEW_CAPITAL_BANK account not found');
+
         let convertAmount = newCapitalRemaining;
         if (convertAmount > 0) {
             const journal = await this.journalService.createJournal(
@@ -398,6 +404,18 @@ export class PartnerWithdrawService {
                             accountId: partner.accountEquityId,
                             debit: 0,
                             credit: convertAmount,
+                            description: 'إضافة إلى رأس المال العام',
+                        },
+                        {
+                            accountId: newCapitalBank.id,
+                            debit: 0,
+                            credit: convertAmount,
+                            description: 'خصم من رأس المال الجديد',
+                        },
+                        {
+                            accountId: bankAccount.id,
+                            debit: convertAmount,
+                            credit: 0,
                             description: 'إضافة إلى رأس المال العام',
                         },
                     ],

@@ -417,12 +417,28 @@ export class AccountsService {
             },
         });
 
+        const currentPaidMonthRepayments = await this.prisma.repayment.findMany({
+            where: {
+                dueDate: {
+                    gte: currentMonthStart,
+                    lte: currentMonthEnd,
+                },
+                paymentDate: {
+                    gte: currentMonthStart,
+                    lte: currentMonthEnd,
+                },
+            },
+            select: {
+                paidAmount: true,
+            },
+        });
+
         const currentMonthTotalAmount = currentMonthRepayments.reduce(
             (sum, x) => sum + Number(x.amount),
             0
         );
 
-        const currentMonthPaidUntilNow = currentMonthRepayments.reduce(
+        const currentMonthPaidUntilNow = currentPaidMonthRepayments.reduce(
             (sum, x) => sum + Number(x.paidAmount),
             0
         );
