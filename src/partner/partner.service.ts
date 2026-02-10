@@ -114,9 +114,9 @@ export class PartnerService {
                 accountEquityId: equityAccount.id,
                 accountSavingId: savingAccount.id,
                 accountNewCapitalId: newCapitalAccount.id,
-                yearlyZakatRequired: dto.capitalAmount * 0.025,
+                yearlyZakatRequired: Number((dto.capitalAmount * 0.025).toFixed(2)),
                 yearlyZakatPaid: 0,
-                yearlyZakatBalance: dto.capitalAmount * 0.025,
+                yearlyZakatBalance: Number((dto.capitalAmount * 0.025).toFixed(2)),
             },
             include: {
                 AccountPayable: true,
@@ -133,7 +133,7 @@ export class PartnerService {
 
         const remainingMonths = 12 - startMonth + 1;
 
-        const annualZakat = zakatBase * 0.025;
+        const annualZakat = Number((zakatBase * 0.025).toFixed(2));
 
         const currentYear = new Date().getFullYear();
 
@@ -283,8 +283,8 @@ export class PartnerService {
                 ...dto,
                 contractSignedAt,
                 createdAt,
-                yearlyZakatRequired: dto.capitalAmount * 0.025,
-                yearlyZakatBalance: dto.capitalAmount * 0.025,
+                yearlyZakatRequired: Number((dto.capitalAmount * 0.025).toFixed(2)),
+                yearlyZakatBalance: Number((dto.capitalAmount * 0.025).toFixed(2)),
             };
 
             if (partner.isNewPartner) {
@@ -357,7 +357,7 @@ export class PartnerService {
 
                 const remainingMonths = 12 - startMonth + 1;
 
-                const annualZakat = zakatBase * 0.025;
+                const annualZakat = Number((zakatBase * 0.025).toFixed(2));
 
                 const currentYear = new Date().getFullYear();
 

@@ -468,6 +468,42 @@ export class PartnerWithdrawService {
             await this.journalService.postJournal(journal.journal.id, userId);
         }
 
+        const zakatAccount = await this.prisma.account.findUnique({
+            where: { code: '20001' },
+        });
+
+        if (!zakatAccount)
+            throw new BadRequestException('حساب الزكاة (20001) يجب ان يكون موجود');
+
+
+        if (partner.yearlyZakatBalance && partner.yearlyZakatBalance > 0) {
+            const journal = await this.journalService.createJournal(
+                {
+                    reference: `zakat-${partnerId}-${Date.now()}`,
+                    description: `تحويل زكاة المساهم ${partner.name}`,
+                    type: 'GENERAL',
+                    sourceType: 'PARTNER_WITHDRAWING',
+                    sourceId: partnerId,
+                    lines: [
+                        {
+                            accountId: zakatAccount.id,
+                            debit: partner.yearlyZakatBalance,
+                            credit: 0,
+                            description: 'خصم زكاة المساهم',
+                        },
+                        {
+                            accountId: partner.accountEquityId,
+                            debit: 0,
+                            credit: partner.yearlyZakatBalance,
+                            description: 'إضافة إلى رأس المال العام',
+                        },
+                    ],
+                },
+                userId,
+            );
+            await this.journalService.postJournal(journal.journal.id, userId);
+        }
+
         // Remove partner from general capital loans and redistribute shares
         const partnerGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
