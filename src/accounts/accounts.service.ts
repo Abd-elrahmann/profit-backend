@@ -395,6 +395,7 @@ export class AccountsService {
                 gte: monthStart,
                 lte: monthEnd,
             };
+            repaymentFilter.loan = { status: "ACTIVE" };
         }
 
         const now = DateTime.now().setZone("Asia/Riyadh");
@@ -408,6 +409,10 @@ export class AccountsService {
                     gte: currentMonthStart,
                     lte: currentMonthEnd,
                 },
+                loan: {
+                    status: 'ACTIVE',
+                },
+
             },
             select: {
                 amount: true,
@@ -433,6 +438,9 @@ export class AccountsService {
                         },
                     },
                 ],
+                loan: {
+                    status: 'ACTIVE',
+                },
             },
             select: {
                 paidAmount: true,
