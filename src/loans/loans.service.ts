@@ -1904,15 +1904,15 @@ export class LoansService {
             _sum: { paidAmount: true },
         }).then(res => res._sum.paidAmount || 0);
 
-        await this.prisma.loan.update({
-            where: { id: loan.id },
-            data: {
-                SETTLEMENT: publicUrl,
-                status: 'COMPLETED',
-                endDate: new Date(),
-                newAmount: totalPaidAmount
-            },
-        });
+        // await this.prisma.loan.update({
+        //     where: { id: loan.id },
+        //     data: {
+        //         SETTLEMENT: publicUrl,
+        //         status: 'COMPLETED',
+        //         endDate: new Date(),
+        //         newAmount: totalPaidAmount
+        //     },
+        // });
 
         await this.updateClientStatus(loan.clientId);
 
