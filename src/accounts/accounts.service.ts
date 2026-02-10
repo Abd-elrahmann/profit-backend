@@ -419,14 +419,20 @@ export class AccountsService {
 
         const currentPaidMonthRepayments = await this.prisma.repayment.findMany({
             where: {
-                dueDate: {
-                    gte: currentMonthStart,
-                    lte: currentMonthEnd,
-                },
-                paymentDate: {
-                    gte: currentMonthStart,
-                    lte: currentMonthEnd,
-                },
+                OR: [
+                    {
+                        dueDate: {
+                            gte: currentMonthStart,
+                            lte: currentMonthEnd,
+                        },
+                    },
+                    {
+                        paymentDate: {
+                            gte: currentMonthStart,
+                            lte: currentMonthEnd,
+                        },
+                    },
+                ],
             },
             select: {
                 paidAmount: true,
