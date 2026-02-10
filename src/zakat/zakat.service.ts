@@ -74,7 +74,14 @@ export class ZakatService {
         const dir = path.join(process.cwd(), 'uploads', 'zakat');
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         const filePath = path.join(dir, filename);
-        const browser = await puppeteer.launch({ headless: true });
+        // const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+            ],
+        });
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'networkidle0' });
         await page.pdf({ path: filePath, format: 'A4', printBackground: true });
