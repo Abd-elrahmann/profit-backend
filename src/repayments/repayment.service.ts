@@ -1024,7 +1024,9 @@ export class RepaymentService {
             await this.journalService.postJournal(journal.journal.id, currentUserId)
 
 
-            const discountRatio = earlyPaymentDiscount / (totalRemainingInterest);
+            const discountRatio = totalRemainingInterest > 0
+                ? earlyPaymentDiscount / totalRemainingInterest
+                : 0;
             let interestDistributed = 0;
 
             for (const [index, rep] of unpaidRepayments.entries()) {
@@ -1034,9 +1036,12 @@ export class RepaymentService {
                 const remainingInterest = rep.amount - rep.principalAmount - paidInterest;
 
 
-                let interestDiscount = parseFloat((remainingInterest * discountRatio).toFixed(2));
-                let interestPortion = parseFloat((remainingInterest - interestDiscount).toFixed(2));
-
+                let interestDiscount = totalRemainingInterest > 0
+                    ? parseFloat((remainingInterest * discountRatio).toFixed(2))
+                    : 0;
+                let interestPortion = totalRemainingInterest > 0
+                    ? parseFloat((remainingInterest - interestDiscount).toFixed(2))
+                    : 0;
 
                 if (index === unpaidRepayments.length - 1) {
                     interestPortion = parseFloat(((totalRemainingInterest) - earlyPaymentDiscount - interestDistributed).toFixed(2));
