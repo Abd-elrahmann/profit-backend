@@ -488,6 +488,15 @@ export class LoansService {
                 new Decimal(0),
             );
 
+            console.log('newCapitalAmount:', newCapitalAmount.toString());
+            console.log('totalNewCapital:', totalNewCapital.toString());
+
+            if (newCapitalAmount.gt(totalNewCapital)) {
+                throw new BadRequestException(
+                    `المبلغ المطلوب (${newCapitalAmount}) أكبر من رأس المال الجديد المتاح (${totalNewCapital})`
+                );
+            }
+
             let distributed = new Decimal(0);
 
             for (let i = 0; i < partners.length; i++) {
@@ -518,12 +527,16 @@ export class LoansService {
                     where: { id: p.id },
                     select: { remaining: true },
                 });
-                const newRemaining = Math.max(0, Number(currentPartner?.remaining || 0) - Number(usedAmount));
+
+                const currentRemaining = new Decimal(currentPartner?.remaining || 0);
+                const usedDecimal = new Decimal(usedAmount);
+                const newRemaining = Decimal.max(0, currentRemaining.minus(usedDecimal))
+                    .toDecimalPlaces(2);
 
                 await this.prisma.partnerNewCapital.update({
                     where: { id: p.id },
                     data: {
-                        remaining: newRemaining,
+                        remaining: Number(newRemaining),
                     },
                 });
             }
@@ -790,12 +803,6 @@ export class LoansService {
                 disbursementJournalId: journal.id,
             },
         });
-
-        // if (loan.source === LoanFundSource.MIX) {
-        //     await this.createPartnerAccrualsOnActivationMix(id);
-        // } else {
-        //     await this.createPartnerAccrualsOnActivation(id);
-        // }
 
         await this.prisma.$transaction(async (tx) => {
             await this.handleNewCapitalOnActivation(
