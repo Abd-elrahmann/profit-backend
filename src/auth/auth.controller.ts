@@ -29,13 +29,10 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() body: { email: string; password: string },
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response
   ) {
     const result = await this.authService.login(body);
     
-    // Get origin from request headers
-    const origin = req.headers.origin || req.headers.referer;
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Set Access Token in HTTP-Only Cookie (15 minutes)
@@ -58,10 +55,6 @@ export class AuthController {
       domain: undefined, // Let browser set domain automatically
     });
 
-    console.log('✅ Access & Refresh token cookies set successfully');
-    console.log('📍 Request origin:', origin);
-    console.log('🍪 Cookies set with sameSite: lax, secure:', isProduction);
-
     // Return only user data (NO tokens in response body)
     return {
       user: result.user
@@ -79,7 +72,7 @@ export class AuthController {
       try {
         await this.authService.logoutByRefreshToken(refreshToken);
       } catch (error) {
-        console.log('Logout token validation failed, clearing cookie anyway');
+        // Clear cookie anyway
       }
     }
     
@@ -97,8 +90,6 @@ export class AuthController {
       sameSite: 'lax',
       path: '/'
     });
-
-    console.log('✅ Access & Refresh token cookies cleared');
 
     return { message: 'تم تسجيل الخروج بنجاح' };
   }
@@ -171,17 +162,8 @@ export class AuthController {
     const refreshToken = req.cookies?.refreshToken;
     
     if (!refreshToken) {
-      console.warn('❌ Refresh endpoint called but no refresh token in cookies');
-      console.warn('Available cookies:', Object.keys(req.cookies || {}));
-      console.warn('Request headers:', {
-        cookie: req.headers.cookie,
-        origin: req.headers.origin,
-        referer: req.headers.referer,
-      });
       throw new UnauthorizedException('No refresh token provided');
     }
-
-    console.log('🔄 Refresh token found in cookies, attempting refresh...');
 
     try {
       const result = await this.authService.refreshAccessToken(refreshToken);
@@ -208,14 +190,11 @@ export class AuthController {
         domain: undefined, // Let browser set domain automatically
       });
 
-      console.log('✅ Access token refreshed successfully for user:', result.user.id);
-
       // Return only user data (NO accessToken in response body)
       return {
         user: result.user
       };
     } catch (error) {
-      console.error('Refresh endpoint error:', error.message);
       throw error;
     }
   }

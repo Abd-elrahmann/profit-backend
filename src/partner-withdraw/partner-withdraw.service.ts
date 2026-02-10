@@ -138,10 +138,15 @@ export class PartnerWithdrawService {
     async withdrawPartner(
         partnerId: number,
         monthlyAmount: number,
-        userId: number
+        userId: number,
+        firstPaymentDate?: string
     ) {
         if (!monthlyAmount || monthlyAmount <= 0) {
             throw new BadRequestException("قيمة السداد الشهري غير صحيحة");
+        }
+
+        if (!firstPaymentDate) {
+            throw new BadRequestException("تاريخ أول دفعة مطلوب");
         }
 
         const partner = await this.prisma.partner.findUnique({
@@ -542,8 +547,8 @@ export class PartnerWithdrawService {
         // Create withdrawal schedule
         let remaining = remainingCapital;
         const schedule = [] as any;
-        const startDate = new Date();
-        let monthIndex = 1;
+        const startDate = firstPaymentDate ? new Date(firstPaymentDate) : new Date();
+        let monthIndex = 0;
 
         while (remaining > 0) {
             const amount =
@@ -1273,9 +1278,14 @@ export class PartnerWithdrawService {
         currentUser: number,
         partnerId: number,
         newMonthlyAmount: number,
+        firstPaymentDate?: string
     ) {
         if (!newMonthlyAmount || newMonthlyAmount <= 0) {
             throw new BadRequestException('قيمة الدفعة الجديدة غير صحيحة');
+        }
+
+        if (!firstPaymentDate) {
+            throw new BadRequestException("تاريخ أول دفعة مطلوب");
         }
 
         const partner = await this.prisma.partner.findUnique({
@@ -1318,8 +1328,8 @@ export class PartnerWithdrawService {
             });
 
             let remaining = parseFloat(withdrawal.remainingCapital.toFixed(2));
-            const startDate = new Date();
-            let monthIndex = 1;
+            const startDate = firstPaymentDate ? new Date(firstPaymentDate) : new Date();
+            let monthIndex = 0;
             const newSchedule = [] as any;
 
             while (remaining > 0) {

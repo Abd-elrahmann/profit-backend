@@ -17,8 +17,9 @@ export class PartnerWithdrawController {
         @Req() req,
         @Param('partnerId', ParseIntPipe) partnerId: number,
         @Body('amount') amount: number,
+        @Body('firstPaymentDate') firstPaymentDate?: string,
     ) {
-        return this.service.withdrawPartner(partnerId, amount, req.user.id);
+        return this.service.withdrawPartner(partnerId, amount, req.user.id, firstPaymentDate);
     }
 
     @Get('preview/:partnerId')
@@ -35,11 +36,13 @@ export class PartnerWithdrawController {
         @Req() req,
         @Param('partnerId', ParseIntPipe) partnerId: number,
         @Body('amount') amount: number,
+        @Body('firstPaymentDate') firstPaymentDate?: string,
     ) {
         return this.service.updateWithdrawalMonthlyAmount(
             req.user.id,
             partnerId,
             amount,
+            firstPaymentDate,
         );
     }
 
