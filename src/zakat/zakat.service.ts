@@ -699,6 +699,7 @@ export class ZakatService {
 
         const partners = await this.prisma.partner.findMany({
             where: {
+                WithdrawingStatus: 'ACTIVE',
                 yearlyZakatBalance: { gt: 0 },
             },
         });
