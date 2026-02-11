@@ -710,6 +710,16 @@ export class PartnerWithdrawService {
 
         const savingsAmount = partner.AccountSaving?.balance ?? 0;
 
+        // إجمالي المصروف من جدول الدفعات ورأس المال المتبقي فعلياً بعد الصرف
+        const totalPaidFromSchedules = schedule.reduce(
+            (sum, s) => sum + (s.paidAmount ?? 0),
+            0,
+        );
+        const remainingCapitalToDate = Math.max(
+            0,
+            parseFloat((withdrawal.remainingCapital - totalPaidFromSchedules).toFixed(2)),
+        );
+
         return {
             partner: {
                 id: partner.id,
@@ -725,6 +735,8 @@ export class PartnerWithdrawService {
             withdrawal,
             schedule,
             journals,
+            totalPaidFromSchedules: parseFloat(totalPaidFromSchedules.toFixed(2)),
+            remainingCapitalToDate,
         };
     }
 
@@ -1223,6 +1235,7 @@ export class PartnerWithdrawService {
                 include: {
                     AccountSaving: true,
                     PartnerWithdrawal: true,
+                    PartnerWithdrawalSchedule: { select: { paidAmount: true } },
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
@@ -1244,16 +1257,28 @@ export class PartnerWithdrawService {
             limit,
             total,
             totalPages,
-            data: partners.map(partner => ({
-                id: partner.id,
-                name: partner.name,
-                nationalId: partner.nationalId,
-                totalAmount: partner.totalAmount,
-                savings: partner.AccountSaving?.balance ?? 0,
-                withdrawingStatus: partner.WithdrawingStatus,
-                isFrozen: partner.isFrozen,
-                withdrawalRequest: partner.PartnerWithdrawal?.[0] ?? null,
-            })),
+            data: partners.map(partner => {
+                const withdrawal = partner.PartnerWithdrawal?.[0] ?? null;
+                const totalPaidSoFar = (partner.PartnerWithdrawalSchedule ?? []).reduce(
+                    (sum, s) => sum + (s.paidAmount ?? 0),
+                    0,
+                );
+                const remainingToPay = withdrawal
+                    ? Math.max(0, parseFloat((withdrawal.remainingCapital - totalPaidSoFar).toFixed(2)))
+                    : 0;
+                return {
+                    id: partner.id,
+                    name: partner.name,
+                    nationalId: partner.nationalId,
+                    totalAmount: partner.totalAmount,
+                    savings: partner.AccountSaving?.balance ?? 0,
+                    withdrawingStatus: partner.WithdrawingStatus,
+                    isFrozen: partner.isFrozen,
+                    withdrawalRequest: withdrawal,
+                    totalPaidSoFar: parseFloat(totalPaidSoFar.toFixed(2)),
+                    remainingToPay,
+                };
+            }),
         };
     }
 
