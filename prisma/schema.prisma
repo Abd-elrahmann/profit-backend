@@ -485,7 +485,8 @@ model PartnerWithdrawalBackup {
   withdrawalId Int     @unique
   partnerId   Int
   loanShares        Json    
-  newCapitalShares  Json    
+  newCapitalShares  Json
+  zakatAccruals  Json    
   
   createdAt   DateTime @default(now())
   withdrawal  PartnerWithdrawal @relation(fields: [withdrawalId], references: [id])

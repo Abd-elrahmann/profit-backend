@@ -200,6 +200,11 @@ export class PartnerWithdrawService {
             },
         });
 
+        // get partner zakat to backup
+        const partnerZakatAccrualsToBackup = await this.prisma.zakatAccrual.findMany({
+            where: { partnerId: partner.id },
+        });
+
         // Calculate defaults from GENERAL capital loans
         const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
@@ -646,6 +651,7 @@ export class PartnerWithdrawService {
                 partnerId: partnerId,
                 loanShares: JSON.stringify(loanSharesToBackup),
                 newCapitalShares: JSON.stringify(newCapitalSharesToBackup),
+                zakatAccruals: JSON.stringify(partnerZakatAccrualsToBackup),
             },
         });
 
@@ -1475,14 +1481,17 @@ export class PartnerWithdrawService {
         // Parse backup data with proper type handling
         let loanSharesBackup: any[] = [];
         let newCapitalSharesBackup: any[] = [];
+        let zakatAccruals: any[] = [];
 
         if (backup) {
             try {
                 const parsedLoanShares = JSON.parse(backup.loanShares as string);
                 const parsedNewCapitalShares = JSON.parse(backup.newCapitalShares as string);
+                const parsedZakatAccruals = JSON.parse(backup.zakatAccruals as string);
 
                 loanSharesBackup = Array.isArray(parsedLoanShares) ? parsedLoanShares : [];
                 newCapitalSharesBackup = Array.isArray(parsedNewCapitalShares) ? parsedNewCapitalShares : [];
+                zakatAccruals = Array.isArray(parsedZakatAccruals) ? parsedZakatAccruals : [];
             } catch (error) {
                 throw new BadRequestException('خطأ في قراءة بيانات النسخة الاحتياطية');
             }
@@ -1525,6 +1534,7 @@ export class PartnerWithdrawService {
                 default: null as any,
                 convert: null as any,
                 saving: null as any,
+                zakat: null as any,
                 posted: [] as number[],
                 draft: [] as number[],
             };
@@ -1539,6 +1549,8 @@ export class PartnerWithdrawService {
                     journalSummary.convert = journal;
                 } else if (ref.includes('SAVING-')) {
                     journalSummary.saving = journal;
+                } else if (ref.includes('zakat-')) {
+                    journalSummary.zakat = journal;
                 }
 
                 // Track posted vs draft
@@ -1674,6 +1686,21 @@ export class PartnerWithdrawService {
                 }
             }
 
+            // Restore zakat accruals
+            let restoredZakatAccrualsCount = 0;
+            for (const zakatAccrual of zakatAccruals) {
+                await tx.zakatAccrual.create({
+                    data: {
+                        partnerId: zakatAccrual.partnerId,
+                        periodId: zakatAccrual.periodId,
+                        year: zakatAccrual.year,
+                        month: zakatAccrual.month,
+                        amount: zakatAccrual.amount,
+                    },
+                });
+                restoredZakatAccrualsCount++;
+            }
+
             // Delete the backup after successful restoration
             await tx.partnerWithdrawalBackup.delete({
                 where: { withdrawalId: withdrawal.id },
@@ -1705,11 +1732,13 @@ export class PartnerWithdrawService {
                         defaultJournal: journalSummary.default ? 'تم حذفه' : 'غير موجود',
                         convertJournal: journalSummary.convert ? 'تم حذفه' : 'غير موجود',
                         savingJournal: journalSummary.saving ? 'تم حذفه' : 'غير موجود',
+                        zakatJournals: journalSummary.zakat ? ' (تم حذفها)' : 'غير موجود',
                     },
                     deletedSchedules: deletedSchedules.count,
                     restoredShares: {
                         loanShares: restoredLoanSharesCount,
                         newCapitalShares: restoredNewCapitalSharesCount,
+                        zakatAccruals: zakatAccruals.length,
                     },
                     restoredCapital: {
                         generalCapital: originalGeneralCapital,
