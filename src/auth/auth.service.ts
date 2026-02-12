@@ -55,7 +55,7 @@ export class AuthService {
       throw new UnauthorizedException('ليس لديك أي صلاحيات أو أدوار للدخول على النظام. برجاء التواصل مع المدير لتعيين الصلاحية.');
     }
 
-    // تفعيل المستخدم عند التسجيل بنجاح
+    
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -63,7 +63,7 @@ export class AuthService {
       }
     })
 
-    // حذف أي refresh tokens قديمة عند تسجيل دخول جديد
+    
     await this.prisma.refreshToken.deleteMany({
       where: { userId: user.id }
     });
@@ -480,7 +480,7 @@ export class AuthService {
       }
 
 
-      // ✅ توليد access token جديد
+      
       const payload = { sub: user.id, email: user.email };
       const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 

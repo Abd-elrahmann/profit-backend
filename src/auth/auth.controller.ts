@@ -35,27 +35,27 @@ export class AuthController {
     
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // Set Access Token in HTTP-Only Cookie (15 minutes)
+    
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
-      secure: isProduction, // Use secure in production (HTTPS)
+      secure: isProduction, 
       sameSite: 'lax',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 15 * 60 * 1000, 
       path: '/',
-      domain: undefined, // Let browser set domain automatically
+      domain: undefined, 
     });
 
-    // Set Refresh Token in HTTP-Only Cookie (7 days)
+    
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: isProduction, // Use secure in production (HTTPS)
+      secure: isProduction, 
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, 
       path: '/',
-      domain: undefined, // Let browser set domain automatically
+      domain: undefined, 
     });
 
-    // Return only user data (NO tokens in response body)
+    
     return {
       user: result.user
     };
@@ -72,11 +72,11 @@ export class AuthController {
       try {
         await this.authService.logoutByRefreshToken(refreshToken);
       } catch (error) {
-        // Clear cookie anyway
+        
       }
     }
     
-    // Clear both Access and Refresh tokens
+    
     res.clearCookie('accessToken', {
       httpOnly: true,
       secure: false,
@@ -170,27 +170,27 @@ export class AuthController {
       
       const isProduction = process.env.NODE_ENV === 'production';
       
-      // Set new Access Token in HTTP-Only Cookie
+      
       res.cookie('accessToken', result.accessToken, {
         httpOnly: true,
-        secure: isProduction, // Use secure in production (HTTPS)
+        secure: isProduction, 
         sameSite: 'lax',
-        maxAge: 15 * 60 * 1000, // 15 minutes
+        maxAge: 15 * 60 * 1000, 
         path: '/',
-        domain: undefined, // Let browser set domain automatically
+        domain: undefined, 
       });
 
-      // Re-set the refresh token cookie to extend its lifetime
+      
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: isProduction, // Use secure in production (HTTPS)
+        secure: isProduction, 
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
-        domain: undefined, // Let browser set domain automatically
+        domain: undefined, 
       });
 
-      // Return only user data (NO accessToken in response body)
+      
       return {
         user: result.user
       };

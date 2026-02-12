@@ -11,7 +11,7 @@ interface CachedUserPermissions {
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   private permissionsCache = new Map<number, CachedUserPermissions>();
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly CACHE_TTL = 5 * 60 * 1000; 
 
   constructor(
     private reflector: Reflector,

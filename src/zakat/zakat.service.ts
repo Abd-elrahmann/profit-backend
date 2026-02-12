@@ -72,7 +72,7 @@ export class ZakatService {
         const dir = path.join(process.cwd(), 'uploads', 'zakat');
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         const filePath = path.join(dir, filename);
-        // const browser = await puppeteer.launch({ headless: true });
+        
         const browser = await puppeteer.launch({
             headless: true,
             args: [
@@ -103,83 +103,44 @@ export class ZakatService {
         if (!partner) throw new NotFoundException('Partner not found');
 
 
-        const buildYearSummary = async (yr: number): Promise<ZakatYearSummary> => {
-
-
-            const partnerStartYear = partner.createdAt ? new Date(partner.createdAt).getFullYear() : yr;
-            const startMonth = yr === partnerStartYear
-                ? new Date(partner.createdAt).getMonth() + 1
-                : 1;
-
+        const buildYearSummary = async (yr: number): Promise<ZakatYearSummary | null> => {
             const baseCapital = Number(partner.capitalAmount ?? 0);
 
             const newCapitalAmount = partner.PartnerNewCapital
                 .reduce((sum, c) => sum + Number(c.remaining ?? 0), 0);
 
             const totalAmount = baseCapital + newCapitalAmount;
-            const remainingMonths = 12 - startMonth + 1;
 
-            const annualZakat = partner.yearlyZakatRequired ?? 0;
-            const monthlyZakat = Number((annualZakat / remainingMonths).toFixed(2));
-
-            const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
-            const currentMonthlyZakat = currentAnnualZakat / remainingMonths;
-
-
+            
             const accruals = await this.prisma.zakatAccrual.findMany({
                 where: { partnerId, year: yr },
                 orderBy: { month: 'asc' },
             });
 
+            
+            if (accruals.length === 0) {
+                return null;
+            }
 
-            const payments = await this.prisma.zakatPayment.findMany({
+            
+            const annualZakat = accruals.reduce((sum, acc) => sum + acc.amount, 0);
+
+            
+            const payments = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId, year: yr },
+                _sum: { amount: true },
             });
 
-
-            const monthlyWithStatus = await Promise.all(
-                accruals.map(async (acc) => {
-
-                    const payment = payments.find((p) => p.month === acc.month);
-
-                    let status = 'NOT_PAID';
-
-                    if (payment) {
-                        const journal = await this.prisma.journalHeader.findFirst({
-                            where: {
-                                sourceType: 'ZAKAT',
-                                sourceId: payment.id,
-                                status: 'POSTED',
-                            },
-                        });
-
-                        if (journal) status = 'PAID';
-                    }
-
-                    return {
-                        ...acc,
-                        status,
-                        paymentVoucher: payment?.PAYMENT_VOUCHER
-                    };
-                })
-            );
-
-            const postedPayments = await Promise.all(
-                payments.map(async (p) => {
-                    const journal = await this.prisma.journalHeader.findFirst({
-                        where: {
-                            sourceType: 'ZAKAT',
-                            sourceId: p.zakatWithdrawId,
-                            status: 'POSTED',
-                        },
-                    });
-                    return journal ? p.amount : 0;
-                })
-            );
-
-            const totalPaid = postedPayments.reduce((a, b) => a + b, 0);
-
+            const totalPaid = payments._sum.amount || 0;
             const remaining = annualZakat - totalPaid;
+            const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
+
+            
+            const monthlyBreakdown = accruals.map((acc) => ({
+                ...acc,
+                status: totalPaid > 0 ? 'PAID' : 'NOT_PAID',
+                paymentVoucher: null,
+            }));
 
             return {
                 partnerId,
@@ -190,13 +151,17 @@ export class ZakatService {
                 annualZakat,
                 totalPaid,
                 remaining: remaining < 0 ? 0 : Number(remaining.toFixed(2)),
-                monthlyBreakdown: monthlyWithStatus,
+                monthlyBreakdown,
             };
         };
 
 
         if (year) {
-            return await buildYearSummary(year);
+            const result = await buildYearSummary(year);
+            if (!result) {
+                throw new NotFoundException(`No zakat accrual found for partner in year ${year}`);
+            }
+            return result;
         }
 
 
@@ -210,7 +175,10 @@ export class ZakatService {
         const results: ZakatYearSummary[] = [];
 
         for (const yr of distinctYears) {
-            results.push(await buildYearSummary(yr));
+            const summary = await buildYearSummary(yr);
+            if (summary) {
+                results.push(summary);
+            }
         }
 
         return results;
@@ -220,12 +188,20 @@ export class ZakatService {
         const pageLimit = limit && limit > 0 ? limit : 10;
         const skip = (page - 1) * pageLimit;
 
-        const totalPartners = await this.prisma.partner.count({
+        
+        const partnersWithAccruals = await this.prisma.partner.findMany({
             where: {
                 WithdrawingStatus: 'ACTIVE',
+                ZakatAccrual: {
+                    some: { year },
+                },
             },
+            select: { id: true },
         });
 
+        const partnersWithAccrualsIds = partnersWithAccruals.map(p => p.id);
+
+        const totalPartners = partnersWithAccrualsIds.length;
         const totalPages = Math.ceil(totalPartners / pageLimit);
         if (page > totalPages && totalPartners > 0) throw new NotFoundException('Page not found');
 
@@ -243,10 +219,11 @@ export class ZakatService {
             };
         }
 
-
+        
         const partners = await this.prisma.partner.findMany({
             where: {
                 WithdrawingStatus: 'ACTIVE',
+                id: { in: partnersWithAccrualsIds },
             },
             skip,
             take: pageLimit,
@@ -260,60 +237,31 @@ export class ZakatService {
         const results: ZakatYearSummary[] = [];
 
         for (const p of partners) {
-            const partnerStartYear = p.createdAt ? new Date(p.createdAt).getFullYear() : new Date().getFullYear();
-            const startMonth = year === partnerStartYear
-                ? new Date(p.createdAt).getMonth() + 1
-                : 1;
-
-            const remainingMonths = 12 - startMonth + 1;
-
             const baseCapital = Number(p.capitalAmount ?? 0);
 
             const newCapitalAmount = p.PartnerNewCapital
                 .reduce((sum, c) => sum + Number(c.remaining ?? 0), 0);
 
             const totalAmount = baseCapital + newCapitalAmount;
-
-            const annualZakat = p.yearlyZakatRequired ?? 0;
-            const monthlyZakat = Number((annualZakat / remainingMonths).toFixed(2));
-
             const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
-            const currentMonthlyZakat = currentAnnualZakat / remainingMonths;
 
+            
+            const annualZakat = p.ZakatAccrual.reduce((sum, acc) => sum + acc.amount, 0);
 
+            
             const payments = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId: p.id, year },
                 _sum: { amount: true },
             });
             const totalPaid = payments._sum.amount || 0;
-            const remaining = annualZakat ? annualZakat - totalPaid : currentAnnualZakat - totalPaid;
+            const remaining = annualZakat - totalPaid;
 
-
-            const monthlyBreakdown = await Promise.all(
-                p.ZakatAccrual.map(async (acc) => {
-                    const payment = await this.prisma.zakatPayment.findFirst({
-                        where: { partnerId: p.id, year, month: acc.month },
-                    });
-
-                    let status: 'PAID' | 'NOT_PAID' = 'NOT_PAID';
-                    if (payment) {
-                        const journal = await this.prisma.journalHeader.findFirst({
-                            where: {
-                                sourceType: 'ZAKAT',
-                                sourceId: payment.id,
-                                status: 'POSTED',
-                            },
-                        });
-                        if (journal) status = 'PAID';
-                    }
-
-                    return {
-                        ...acc,
-                        status,
-                        paymentVoucher: payment?.PAYMENT_VOUCHER,
-                    };
-                })
-            );
+            
+            const monthlyBreakdown = p.ZakatAccrual.map((acc) => ({
+                ...acc,
+                status: totalPaid > 0 ? 'PAID' : 'NOT_PAID',
+                paymentVoucher: null,
+            }));
 
             results.push({
                 partnerId: p.id,
@@ -543,7 +491,7 @@ export class ZakatService {
         const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
         if (!bankAccount) throw new NotFoundException("Bank account not found");
 
-        // Find all zakat payments related to this withdrawal
+        
         const year = zakatWithdraw.createdAt.getFullYear();
         const month = zakatWithdraw.createdAt.getMonth() + 1;
 
@@ -572,7 +520,7 @@ export class ZakatService {
 
         await this.journalService.unpostJournal(userId, originalJournal.id);
 
-        // Reverse partner zakat payments
+        
         await this.prisma.$transaction(async (tx) => {
             for (const payment of zakatPayments) {
                 await tx.partner.update({
@@ -585,13 +533,13 @@ export class ZakatService {
                     },
                 });
 
-                // Delete the payment record
+                
                 await tx.zakatPayment.delete({
                     where: { id: payment.id },
                 });
             }
 
-            // Delete the withdrawal record
+            
             await tx.zakatWithdraw.delete({
                 where: { id: zakatWithdrawId },
             });

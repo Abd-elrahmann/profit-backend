@@ -25,7 +25,7 @@ export class PartnerWithdrawService {
 
         if (!partner) throw new NotFoundException('المستثمر غير موجود');
 
-        // Calculate defaults from general capital loans
+        
         const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -53,7 +53,7 @@ export class PartnerWithdrawService {
             },
         });
 
-        // Calculate defaults from new capital loans
+        
         const partnerDefaultedNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -83,14 +83,14 @@ export class PartnerWithdrawService {
 
         let partnerDefaultsBase = 0;
 
-        // Process general capital defaults
+        
         for (const lps of partnerDefaultedGeneralLoans) {
             const loanRemaining = lps.loan.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            // For MIX loans, only count the general portion
+            
             let applicableRemaining = loanRemaining;
             if (lps.loan.source === 'MIX' && lps.loan.generalAmount) {
                 const generalRatio = lps.loan.generalAmount / (lps.loan.generalAmount + (lps.loan.newCapitalAmount || 0));
@@ -100,14 +100,14 @@ export class PartnerWithdrawService {
             partnerDefaultsBase += applicableRemaining * (lps.sharePercent / 100);
         }
 
-        // Process new capital defaults
+        
         for (const lncs of partnerDefaultedNewCapitalLoans) {
             const loanRemaining = lncs.loan?.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            // For MIX loans, only count the new capital portion
+            
             let applicableRemaining = loanRemaining || 0;
             if (lncs.loan?.source === 'MIX' && lncs.loan?.newCapitalAmount) {
                 const newCapitalRatio = lncs.loan?.newCapitalAmount / ((lncs.loan?.generalAmount || 0) + lncs.loan?.newCapitalAmount);
@@ -200,12 +200,12 @@ export class PartnerWithdrawService {
             },
         });
 
-        // get partner zakat to backup
+        
         const partnerZakatAccrualsToBackup = await this.prisma.zakatAccrual.findMany({
             where: { partnerId: partner.id },
         });
 
-        // Calculate defaults from GENERAL capital loans
+        
         const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -233,7 +233,7 @@ export class PartnerWithdrawService {
             },
         });
 
-        // Calculate defaults from NEW_CAPITAL loans
+        
         const partnerDefaultedNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -263,14 +263,14 @@ export class PartnerWithdrawService {
 
         let partnerDefaultsBase = 0;
 
-        // Process general capital defaults
+        
         for (const lps of partnerDefaultedGeneralLoans) {
             const loanRemaining = lps.loan.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            // For MIX loans, only count the general portion
+            
             let applicableRemaining = loanRemaining;
             if (lps.loan.source === 'MIX' && lps.loan.generalAmount && lps.loan.newCapitalAmount) {
                 const totalLoanAmount = lps.loan.generalAmount + lps.loan.newCapitalAmount;
@@ -281,14 +281,14 @@ export class PartnerWithdrawService {
             partnerDefaultsBase += applicableRemaining * (lps.sharePercent / 100);
         }
 
-        // Process new capital defaults
+        
         for (const lncs of partnerDefaultedNewCapitalLoans) {
             const loanRemaining = lncs.loan?.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            // For MIX loans, only count the new capital portion
+            
             let applicableRemaining = loanRemaining || 0;
             if (lncs.loan?.source === 'MIX' && lncs.loan?.generalAmount && lncs.loan?.newCapitalAmount) {
                 const totalLoanAmount = lncs.loan?.generalAmount + lncs.loan?.newCapitalAmount;
@@ -308,7 +308,7 @@ export class PartnerWithdrawService {
 
         if (partnerDefaultShare < 0) partnerDefaultShare = 0;
 
-        // Calculate total capital including new capital
+        
         const newCapitalRemaining = partner.AccountNewCapital.balance || 0;
         const totalCapital = partner.totalAmount + newCapitalRemaining;
         const remainingCapital = totalCapital - partnerDefaultShare;
@@ -433,7 +433,7 @@ export class PartnerWithdrawService {
             );
         }
 
-        // Handle savings withdrawal
+        
         const savingsAmount = partner.AccountSaving.balance;
 
         const savingAccount = await this.prisma.account.findUnique({
@@ -505,7 +505,7 @@ export class PartnerWithdrawService {
             );
         }
 
-        // Remove partner from general capital loans and redistribute shares
+        
         const partnerGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -551,7 +551,7 @@ export class PartnerWithdrawService {
             }
         }
 
-        // Remove partner from new capital loans and redistribute shares
+        
         const partnerNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -599,7 +599,7 @@ export class PartnerWithdrawService {
             }
         }
 
-        // Create withdrawal schedule
+        
         let remaining = remainingCapital;
         const schedule = [] as any;
         const startDate = firstPaymentDate ? new Date(firstPaymentDate) : new Date();
@@ -706,7 +706,7 @@ export class PartnerWithdrawService {
 
         const savingsAmount = partner.AccountSaving?.balance ?? 0;
 
-        // إجمالي المصروف من جدول الدفعات ورأس المال المتبقي فعلياً بعد الصرف
+        
         const totalPaidFromSchedules = schedule.reduce(
             (sum, s) => sum + (s.paidAmount ?? 0),
             0,
@@ -1490,12 +1490,12 @@ export class PartnerWithdrawService {
 
         const withdrawal = partner.PartnerWithdrawal[0];
 
-        // Get backup data
+        
         const backup = await this.prisma.partnerWithdrawalBackup.findFirst({
             where: { withdrawalId: withdrawal.id },
         });
 
-        // Parse backup data with proper type handling
+        
         let loanSharesBackup: any[] = [];
         let newCapitalSharesBackup: any[] = [];
         let zakatAccruals: any[] = [];
@@ -1514,7 +1514,7 @@ export class PartnerWithdrawService {
             }
         }
 
-        // Check if any payments have been made
+        
         const paidSchedules = await this.prisma.partnerWithdrawalSchedule.findMany({
             where: {
                 partnerId,
@@ -1559,7 +1559,7 @@ export class PartnerWithdrawService {
             for (const journal of withdrawalJournals) {
                 const ref = journal.reference || '';
 
-                // Categorize journals
+                
                 if (ref.includes('DEFAULT-')) {
                     journalSummary.default = journal;
                 } else if (ref.includes('CONVERT-')) {
@@ -1570,14 +1570,14 @@ export class PartnerWithdrawService {
                     journalSummary.zakat = journal;
                 }
 
-                // Track posted vs draft
+                
                 if (journal.status === 'POSTED') {
                     journalSummary.posted.push(journal.id);
                 } else {
                     journalSummary.draft.push(journal.id);
                 }
 
-                // Unpost if posted
+                
                 if (journal.status === 'POSTED') {
                     try {
                         await this.journalService.unpostJournal(currentUser, journal.id);
@@ -1586,12 +1586,12 @@ export class PartnerWithdrawService {
                     }
                 }
 
-                // Delete journal lines
+                
                 await tx.journalLine.deleteMany({
                     where: { journalId: journal.id },
                 });
 
-                // Delete journal header
+                
                 await tx.journalHeader.delete({
                     where: { id: journal.id },
                 });
@@ -1651,14 +1651,14 @@ export class PartnerWithdrawService {
                 loanSharesByLoanId.get(loanId)!.push(share);
             }
 
-            // Restore loan shares loan by loan
+            
             for (const [loanId, backupShares] of loanSharesByLoanId) {
-                // Delete ALL current shares for this loan
+                
                 await tx.loanPartnerShare.deleteMany({
                     where: { loanId },
                 });
 
-                // Recreate ALL shares from backup (including the withdrawing partner)
+                
                 for (const backupShare of backupShares) {
                     await tx.loanPartnerShare.create({
                         data: {
@@ -1703,7 +1703,7 @@ export class PartnerWithdrawService {
                 }
             }
 
-            // Restore zakat accruals
+            
             let restoredZakatAccrualsCount = 0;
             for (const zakatAccrual of zakatAccruals) {
                 await tx.zakatAccrual.create({
@@ -1718,7 +1718,7 @@ export class PartnerWithdrawService {
                 restoredZakatAccrualsCount++;
             }
 
-            // Delete the backup after successful restoration
+            
             await tx.partnerWithdrawalBackup.delete({
                 where: { withdrawalId: withdrawal.id },
             });

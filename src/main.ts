@@ -55,7 +55,7 @@ async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true, // Important: This allows cookies to be sent
+    credentials: true, 
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language', 'page', 'Cookie'],
     exposedHeaders: ['Set-Cookie'],

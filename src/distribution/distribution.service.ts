@@ -100,7 +100,7 @@ export class DistributionService {
                 const totalProfit = Number(acc.totalProfit);
 
                 let amount = (savingAmountInput * totalProfit) / totalPartnersProfit;
-                amount = Math.floor(amount * 100) / 100; // floor to 2 decimals
+                amount = Math.floor(amount * 100) / 100; 
                 partnerSavingAmounts.push({ partnerId: partner.id, amount });
                 remainingAmount -= amount;
             }

@@ -39,7 +39,6 @@ export class SavingController {
         return this.savingService.getSavingAccountReport(month);
     }
 
-    /** يجب أن يبقى آخر route — أي مسار ثابت فوقه يتطابق أولاً */
     @Get('partners/:page')
     @Permissions('saving', 'canView')
     getAllPartners(
