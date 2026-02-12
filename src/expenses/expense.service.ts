@@ -88,8 +88,6 @@ export class ExpenseService {
             userId,
         );
 
-        await this.journalService.postJournal(journal.journal.id, userId);
-
         await Promise.all(expenses.map(async (e) => {
             await this.prisma.expenseRecord.create({
                 data: {
@@ -307,8 +305,6 @@ export class ExpenseService {
                 lines: { deleteMany: {}, create: journalLines },
             },
         });
-
-        await this.journalService.postJournal(journalId, userId);
 
         await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
 

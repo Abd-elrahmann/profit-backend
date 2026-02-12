@@ -153,8 +153,6 @@ export class LoansService {
             },
             currentUser,
         );
-
-        await this.journalService.postJournal(journal.journal.id, currentUser);
     }
 
     private async handleNewCapitalOnDeactivation(
@@ -780,8 +778,6 @@ export class LoansService {
             userId,
         );
 
-        await this.journalService.postJournal(journal.id, userId);
-
         const clientjournal = await this.journalService.createJournal({
             reference: `int - ${loan.id}`,
             description: `تحويل فوائد سلفة للعميل ${loan.clientId} إلى حسابه`,
@@ -793,8 +789,6 @@ export class LoansService {
                 { accountId: receivable.id, debit: 0, credit: loan.interestAmount },
             ],
         }, userId);
-
-        await this.journalService.postJournal(clientjournal.journal.id, userId);
 
         await this.prisma.loan.update({
             where: { id },
@@ -2048,8 +2042,6 @@ export class LoansService {
                 ],
             }, userId);
 
-            await this.journalService.postJournal(journal.id, userId);
-
 
             await tx.auditLog.create({
                 data: {
@@ -2276,8 +2268,6 @@ export class LoansService {
                 },
                 userId,
             );
-
-            await this.journalService.postJournal(journal.id, userId);
 
             return { newLoanId: newLoan.id };
         });

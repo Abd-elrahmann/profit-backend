@@ -86,8 +86,6 @@ export class ZakatSchedulerService {
             await this.prisma.partner.update({
                 where: { id: p.id },
                 data: {
-                    capitalAmount: { decrement: diff },
-                    totalAmount: { decrement: diff },
                     yearlyZakatBalance: diff,
                     yearlyZakatRequired: annualZakat,
                     yearlyZakatPaid: paidAmount,
@@ -109,6 +107,8 @@ export class ZakatSchedulerService {
 
         for (const partner of partners) {
             const annualZakat = this.round2(partner.totalAmount * 0.025);
+            const balance = partner.yearlyZakatBalance || 0;
+            const totalZakat = this.round2(annualZakat + balance);
 
             if (annualZakat <= 0) continue;
 
@@ -138,13 +138,20 @@ export class ZakatSchedulerService {
             );
             await this.journalService.postJournal(journal.journal.id, 1);
 
+            await this.prisma.zakatAccrual.create({
+                data: {
+                    partnerId: partner.id,
+                    year,
+                    month: 1,
+                    amount: annualZakat,
+                },
+            });
+
             await this.prisma.partner.update({
                 where: { id: partner.id },
                 data: {
-                    capitalAmount: { decrement: annualZakat },
-                    totalAmount: { decrement: annualZakat },
-                    yearlyZakatBalance: annualZakat,
-                    yearlyZakatRequired: annualZakat,
+                    yearlyZakatBalance: totalZakat,
+                    yearlyZakatRequired: totalZakat,
                     yearlyZakatPaid: 0,
                 },
             });

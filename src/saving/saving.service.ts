@@ -417,8 +417,6 @@ export class SavingService {
                 currentUser,
             );
 
-            await this.journalService.postJournal(journal.journal.id, currentUser);
-
             for (const item of preview.distribution) {
                 if (item.withdraw <= 0) continue;
 

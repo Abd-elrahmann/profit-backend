@@ -82,8 +82,6 @@ export class SmallLoanService {
                 currentUser,
             );
 
-            await this.journalService.postJournal(journal.journal.id, currentUser);
-
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -191,8 +189,6 @@ export class SmallLoanService {
                 },
                 currentUser,
             );
-
-            await this.journalService.postJournal(journal.journal.id, currentUser);
 
             const newPaid = Number((loan.paidAmount + payAmount).toFixed(2));
             const newRemaining = Number((loan.amount - newPaid).toFixed(2));
@@ -376,11 +372,6 @@ export class SmallLoanService {
                     },
                 ],
             });
-
-            await this.journalService.postJournal(
-                journal.id,
-                currentUser,
-            );
 
             await tx.auditLog.create({
                 data: {

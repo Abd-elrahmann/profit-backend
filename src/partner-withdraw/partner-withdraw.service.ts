@@ -385,7 +385,6 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
-            await this.journalService.postJournal(journal.journal.id, userId);
         }
 
         const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
@@ -432,7 +431,6 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
-            await this.journalService.postJournal(journal.journal.id, userId);
         }
 
         // Handle savings withdrawal
@@ -470,7 +468,6 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
-            await this.journalService.postJournal(journal.journal.id, userId);
         }
 
         const zakatAccount = await this.prisma.account.findUnique({
@@ -506,7 +503,6 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
-            await this.journalService.postJournal(journal.journal.id, userId);
         }
 
         // Remove partner from general capital loans and redistribute shares
@@ -809,7 +805,6 @@ export class PartnerWithdrawService {
                     },
                     currentUser,
                 );
-                await this.journalService.postJournal(carryJournal.journal.id, currentUser);
                 createdJournalIds.push(carryJournal.journal.id);
             }
 
@@ -838,7 +833,6 @@ export class PartnerWithdrawService {
                     },
                     currentUser,
                 );
-                await this.journalService.postJournal(ownJournal.journal.id, currentUser);
                 createdJournalIds.push(ownJournal.journal.id);
             }
 
@@ -1099,7 +1093,6 @@ export class PartnerWithdrawService {
                             { accountId: bankAccount.id, debit: 0, credit: allocatedToCarry, description: 'صرف جزء محمول' },
                         ],
                     }, currentUser);
-                    await this.journalService.postJournal(carryJournal.journal.id, currentUser);
                     createdJournalIds.push(carryJournal.journal.id);
                 }
             }
@@ -1122,7 +1115,6 @@ export class PartnerWithdrawService {
                             { accountId: bankAccount.id, debit: 0, credit: allocatedToOwn, description: 'صرف جزئي' },
                         ],
                     }, currentUser);
-                    await this.journalService.postJournal(ownJournal.journal.id, currentUser);
                     createdJournalIds.push(ownJournal.journal.id);
                 }
             }

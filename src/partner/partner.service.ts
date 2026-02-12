@@ -1170,9 +1170,6 @@ export class PartnerService {
 
         const journal = await this.journalService.createJournal(journalDto, currentUser);
 
-
-        await this.journalService.postJournal(journal.journal.id, currentUser);
-
         let newCapitalAmount = partner.capitalAmount;
         let newTotalAmount = partner.totalAmount;
         let newProfitAmount = partner.totalProfit;

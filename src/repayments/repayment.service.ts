@@ -461,8 +461,6 @@ export class RepaymentService {
                 currentUser,
             );
 
-            await this.journalService.postJournal(journal.journal.id, currentUser);
-
             await tx.repayment.update({
                 where: { id },
                 data: {
@@ -905,7 +903,6 @@ export class RepaymentService {
                 },
                 currentUser
             );
-            await this.journalService.postJournal(journal.journal.id, currentUser)
 
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
@@ -1054,8 +1051,6 @@ export class RepaymentService {
                 },
                 currentUserId
             );
-            await this.journalService.postJournal(journal.journal.id, currentUserId)
-
 
             const discountRatio = totalRemainingInterest > 0
                 ? earlyPaymentDiscount / totalRemainingInterest

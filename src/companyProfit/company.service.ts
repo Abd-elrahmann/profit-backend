@@ -64,10 +64,6 @@ export class CompanyService {
             userId,
         );
 
-
-        await this.journalService.postJournal(journal.journal.id, userId);
-
-
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,

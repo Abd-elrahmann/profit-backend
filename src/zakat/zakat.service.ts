@@ -14,9 +14,7 @@ type ZakatYearSummary = {
     capitalAmount: number;
     year: number;
     currentAnnualZakat: number;
-    currentMonthlyZakat: number;
     annualZakat: number;
-    monthlyZakat: number;
     totalPaid: number;
     remaining: number;
     monthlyBreakdown: any[];
@@ -166,7 +164,6 @@ export class ZakatService {
                 })
             );
 
-
             const postedPayments = await Promise.all(
                 payments.map(async (p) => {
                     const journal = await this.prisma.journalHeader.findFirst({
@@ -190,9 +187,7 @@ export class ZakatService {
                 capitalAmount: totalAmount,
                 year: yr,
                 currentAnnualZakat: currentAnnualZakat ?? 0,
-                currentMonthlyZakat: currentMonthlyZakat,
                 annualZakat,
-                monthlyZakat,
                 totalPaid,
                 remaining: remaining < 0 ? 0 : Number(remaining.toFixed(2)),
                 monthlyBreakdown: monthlyWithStatus,
@@ -227,10 +222,7 @@ export class ZakatService {
 
         const totalPartners = await this.prisma.partner.count({
             where: {
-                OR: [
-                    { ZakatAccrual: { some: { year } } },
-                    { ZakatPayment: { some: { year } } },
-                ],
+                WithdrawingStatus: 'ACTIVE',
             },
         });
 
@@ -254,10 +246,7 @@ export class ZakatService {
 
         const partners = await this.prisma.partner.findMany({
             where: {
-                OR: [
-                    { ZakatAccrual: { some: { year } } },
-                    { ZakatPayment: { some: { year } } },
-                ],
+                WithdrawingStatus: 'ACTIVE',
             },
             skip,
             take: pageLimit,
@@ -332,9 +321,7 @@ export class ZakatService {
                 capitalAmount: totalAmount,
                 year,
                 currentAnnualZakat: currentAnnualZakat,
-                currentMonthlyZakat: currentMonthlyZakat,
                 annualZakat,
-                monthlyZakat,
                 totalPaid,
                 remaining: remaining < 0 ? 0 : Number(remaining.toFixed(2)),
                 monthlyBreakdown,
@@ -591,6 +578,8 @@ export class ZakatService {
                 await tx.partner.update({
                     where: { id: payment.partnerId },
                     data: {
+                        capitalAmount: { increment: payment.amount },
+                        totalAmount: { increment: payment.amount },
                         yearlyZakatPaid: { decrement: payment.amount },
                         yearlyZakatBalance: { increment: payment.amount },
                     },
@@ -694,8 +683,6 @@ export class ZakatService {
             },
             userId,
         );
-
-        await this.journalService.postJournal(journal.journal.id, userId);
 
         const partners = await this.prisma.partner.findMany({
             where: {
