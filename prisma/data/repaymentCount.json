@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "repaymentId": 481,
+    "count": 1
+  },
+  {
+    "id": 2,
+    "repaymentId": 483,
+    "count": 2
+  },
+  {
+    "id": 6,
+    "repaymentId": 484,
+    "count": 3
+  },
+  {
+    "id": 7,
+    "repaymentId": 484,
+    "count": 4
+  },
+  {
+    "id": 8,
+    "repaymentId": 484,
+    "count": 5
+  },
+  {
+    "id": 9,
+    "repaymentId": 482,
+    "count": 6
+  },
+  {
+    "id": 12,
+    "repaymentId": 486,
+    "count": 8
+  },
+  {
+    "id": 13,
+    "repaymentId": 487,
+    "count": 9
+  }
+]

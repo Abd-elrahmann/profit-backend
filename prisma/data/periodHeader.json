@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "opening",
+    "startDate": "2025-12-01T00:00:00.000Z",
+    "endDate": "2026-02-04T15:56:27.601Z",
+    "createdAt": "2025-12-01T00:00:00.000Z",
+    "openingJournalId": null,
+    "closingJournalId": 399,
+    "isClosed": true
+  },
+  {
+    "id": 4,
+    "name": "فترة مفتوحة تبدأ من 2026-02-04",
+    "startDate": "2026-02-04T15:56:27.603Z",
+    "endDate": "2026-02-04T15:59:20.152Z",
+    "createdAt": "2026-02-04T15:56:27.607Z",
+    "openingJournalId": null,
+    "closingJournalId": 401,
+    "isClosed": true
+  },
+  {
+    "id": 5,
+    "name": "فترة مفتوحة تبدأ من 2026-02-04",
+    "startDate": "2026-02-04T15:59:20.154Z",
+    "endDate": "2026-02-09T10:22:12.400Z",
+    "createdAt": "2026-02-04T15:59:20.157Z",
+    "openingJournalId": null,
+    "closingJournalId": 426,
+    "isClosed": true
+  },
+  {
+    "id": 6,
+    "name": "فترة مفتوحة تبدأ من 2026-02-09",
+    "startDate": "2026-02-09T10:22:12.406Z",
+    "endDate": "2026-02-17T11:36:51.636Z",
+    "createdAt": "2026-02-09T10:22:12.411Z",
+    "openingJournalId": null,
+    "closingJournalId": 470,
+    "isClosed": true
+  },
+  {
+    "id": 7,
+    "name": "فترة مفتوحة تبدأ من 2026-02-17",
+    "startDate": "2026-02-17T11:36:51.642Z",
+    "endDate": null,
+    "createdAt": "2026-02-17T11:36:51.643Z",
+    "openingJournalId": null,
+    "closingJournalId": null,
+    "isClosed": false
+  }
+]

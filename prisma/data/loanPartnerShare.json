@@ -1,0 +1,82 @@
+[
+  {
+    "id": 86,
+    "loanId": 50,
+    "partnerId": 30,
+    "sharePercent": 19.37984496124031,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 87,
+    "loanId": 50,
+    "partnerId": 26,
+    "sharePercent": 20.15503875968992,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 88,
+    "loanId": 50,
+    "partnerId": 23,
+    "sharePercent": 20.15503875968992,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 89,
+    "loanId": 50,
+    "partnerId": 24,
+    "sharePercent": 20.15503875968992,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 90,
+    "loanId": 50,
+    "partnerId": 25,
+    "sharePercent": 20.15503875968992,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 65,
+    "loanId": 47,
+    "partnerId": 26,
+    "sharePercent": 100,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 66,
+    "loanId": 48,
+    "partnerId": 26,
+    "sharePercent": 25,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 67,
+    "loanId": 48,
+    "partnerId": 23,
+    "sharePercent": 25,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 68,
+    "loanId": 48,
+    "partnerId": 24,
+    "sharePercent": 25,
+    "orgProfitPercent": 20,
+    "isActive": true
+  },
+  {
+    "id": 69,
+    "loanId": 48,
+    "partnerId": 25,
+    "sharePercent": 25,
+    "orgProfitPercent": 20,
+    "isActive": true
+  }
+]
