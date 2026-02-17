@@ -89,7 +89,7 @@ export class LoansController {
 
     @Post(':id/upload-debt-acknowledgment')
     @UseInterceptors(FileInterceptor('file', {
-        limits: { fileSize: 10 * 1024 * 1024 }, 
+        limits: { fileSize: 10 * 1024 * 1024 },
     }))
     async uploadDebtAcknowledgment(
         @Req() req,
@@ -102,7 +102,7 @@ export class LoansController {
 
     @Post(':id/upload-promissory-note')
     @UseInterceptors(FileInterceptor('file', {
-        limits: { fileSize: 10 * 1024 * 1024 }, 
+        limits: { fileSize: 10 * 1024 * 1024 },
     }))
     async uploadPromissoryNote(
         @Req() req,
@@ -152,9 +152,13 @@ export class LoansController {
         @Body('fromClientId', ParseIntPipe) fromClientId: number,
         @Body('toClientId', ParseIntPipe) toClientId: number,
         @Body('amount', ParseIntPipe) amount: number,
+        @Body('paymentAmount', ParseIntPipe) paymentAmount: number,
+        @Body('repaymentDay') repaymentDay: string,
         @Body('kafeelId') kafeelId?: number | null,
     ) {
-        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, kafeelId || null, req.user.id);
+        const parsedRepaymentDay = new Date(repaymentDay);
+
+        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, paymentAmount, parsedRepaymentDay, kafeelId || null, req.user.id);
     }
 
     @Get('get/counts/:loanId')

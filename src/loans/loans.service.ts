@@ -2068,11 +2068,17 @@ export class LoansService {
         toClientId: number,
         loanId: number,
         amountToTransfer: number,
+        paymentAmount: number,
+        repaymentDay: Date,
         kafeelId: number | null,
         userId: number,
     ) {
         if (amountToTransfer <= 0) {
             throw new BadRequestException('مبلغ التحويل يجب أن يكون أكبر من صفر');
+        }
+
+        if (paymentAmount <= 0) {
+            throw new BadRequestException('مبلغ الدفعة يجب أن يكون أكبر من صفر');
         }
 
         const fromClient = await this.prisma.client.findUnique({ where: { id: fromClientId } });
@@ -2112,6 +2118,24 @@ export class LoansService {
             throw new BadRequestException('المبلغ المطلوب أكبر من المتبقي على السلفة');
         }
 
+        // Calculate how many months needed based on amountToTransfer / paymentAmount
+        const principal = new Decimal(amountToTransfer);
+        const paymentAmountDecimal = new Decimal(paymentAmount);
+        const fullMonths = principal.div(paymentAmountDecimal).floor().toNumber();
+        const lastPayment = principal.minus(paymentAmountDecimal.mul(fullMonths));
+        const hasRemainder = lastPayment.gt(0);
+        const months = hasRemainder ? fullMonths + 1 : fullMonths;
+
+        // Calculate total interest based on original loan's interest rate
+        const interestRate = new Decimal(loan.interestRate || 0).div(100);
+        const totalInterest = principal.mul(interestRate);
+        const totalAmount = principal.plus(totalInterest);
+
+        if (paymentAmountDecimal.gt(totalAmount)) {
+            throw new BadRequestException('مبلغ الدفعة لا يمكن أن يكون أكبر من إجمالي المبلغ');
+        }
+
+        // Distribute amountToTransfer across original repayments
         let remainingToTransfer = amountToTransfer;
         const splits: {
             repaymentId: number;
@@ -2140,6 +2164,7 @@ export class LoansService {
 
             const takenMap = new Map<number, { principal: number; interest: number }>();
 
+            // Extract principal and interest from source repayments
             for (const split of splits) {
                 const rep = await tx.repayment.findUnique({ where: { id: split.repaymentId } });
                 if (!rep) continue;
@@ -2161,6 +2186,7 @@ export class LoansService {
                     interest: Number(interestTaken),
                 });
 
+                // Update original repayment
                 await tx.repayment.update({
                     where: { id: rep.id },
                     data: {
@@ -2178,6 +2204,7 @@ export class LoansService {
             actualInterest = Number(new Decimal(actualInterest).toDecimalPlaces(2));
             const totalTransferred = Number(new Decimal(actualPrincipal).plus(actualInterest).toDecimalPlaces(2));
 
+            // Create new loan with split repayments
             const newLoan = await tx.loan.create({
                 data: {
                     code: `SPLIT-${loan.code}-${Date.now()}`,
@@ -2191,13 +2218,13 @@ export class LoansService {
                     newCapitalAmount: loan.newCapitalAmount,
                     generalInterestAmount: loan.generalInterestAmount,
                     newCapitalInterestAmount: loan.newCapitalInterestAmount,
-                    paymentAmount: loan.paymentAmount,
-                    durationMonths: loan.durationMonths,
+                    paymentAmount: paymentAmount,
+                    durationMonths: months,
                     type: loan.type,
                     source: loan.source,
                     status: 'ACTIVE',
                     startDate: new Date(),
-                    repaymentDay: splits[0].dueDate,
+                    repaymentDay: repaymentDay,
                     issuanceCity: loan.issuanceCity,
                     paymentCity: loan.paymentCity,
                     partnerId: loan.partnerId,
@@ -2219,27 +2246,61 @@ export class LoansService {
                 },
             });
 
-            let count = 1;
-            for (const split of splits) {
-                const taken = takenMap.get(split.repaymentId);
-                if (!taken) continue;
+            // Create repayments for new loan with proper distribution
+            let remainingPrincipal = new Decimal(actualPrincipal);
+            let remainingInterest = new Decimal(actualInterest);
+            const newRepayments: Prisma.RepaymentCreateManyInput[] = [];
 
-                await tx.repayment.create({
-                    data: {
-                        loanId: newLoan.id,
-                        clientId: toClientId,
-                        count: count++,
-                        dueDate: split.dueDate,
-                        amount: Number(new Decimal(taken.principal).plus(taken.interest).toDecimalPlaces(2)),
-                        remaining: Number(new Decimal(taken.principal).plus(taken.interest).toDecimalPlaces(2)),
-                        paidAmount: 0,
-                        principalAmount: taken.principal,
-                        interestAmount: taken.interest,
-                        status: 'PENDING',
-                    },
+            for (let i = 0; i < months; i++) {
+                const dueDate = new Date(repaymentDay);
+
+                if (loan.type === LoanType.DAILY) {
+                    dueDate.setDate(dueDate.getDate() + i);
+                } else if (loan.type === LoanType.WEEKLY) {
+                    dueDate.setDate(dueDate.getDate() + (i * 7));
+                } else {
+                    dueDate.setMonth(dueDate.getMonth() + i);
+                }
+
+                let amount = new Decimal(paymentAmount);
+
+                if (i === months - 1 && hasRemainder) {
+                    amount = new Decimal(actualPrincipal).minus(new Decimal(paymentAmount).mul(fullMonths));
+                }
+
+                let principalAmount: Decimal;
+                let interestAmount: Decimal;
+
+                if (remainingPrincipal.plus(remainingInterest).lte(amount)) {
+                    principalAmount = remainingPrincipal;
+                    interestAmount = remainingInterest;
+                } else {
+                    const ratio = remainingPrincipal.div(remainingPrincipal.plus(remainingInterest));
+                    principalAmount = amount.mul(ratio).toDecimalPlaces(2);
+                    interestAmount = amount.minus(principalAmount).toDecimalPlaces(2);
+                }
+
+                remainingPrincipal = remainingPrincipal.minus(principalAmount);
+                remainingInterest = remainingInterest.minus(interestAmount);
+
+                const repaymentAmount = Number(principalAmount.plus(interestAmount).toDecimalPlaces(2));
+
+                newRepayments.push({
+                    count: i + 1,
+                    loanId: newLoan.id,
+                    clientId: toClientId,
+                    dueDate,
+                    amount: repaymentAmount,
+                    remaining: repaymentAmount,
+                    principalAmount: Number(principalAmount.toDecimalPlaces(2)),
+                    interestAmount: Number(interestAmount.toDecimalPlaces(2)),
+                    status: 'PENDING',
                 });
             }
 
+            await tx.repayment.createMany({ data: newRepayments });
+
+            // Update original loan totals
             await tx.loan.update({
                 where: { id: loanId },
                 data: {
@@ -2249,6 +2310,7 @@ export class LoansService {
                 },
             });
 
+            // Create journal entry
             const receivable = await tx.account.findFirst({
                 where: { accountBasicType: 'LOANS_RECEIVABLE' },
             });
