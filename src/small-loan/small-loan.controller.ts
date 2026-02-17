@@ -32,6 +32,12 @@ export class SmallLoanController {
         return this.service.create(body, req.user.id);
     }
 
+    @Get('unposted-journals')
+    @Permissions('loans', 'canView')
+    getUnpostedJournals() {
+        return this.service.getUnpostedJournalsForSmallLoans();
+    }
+
     @Get(":page")
     @Permissions('loans', 'canView')
     findAll(

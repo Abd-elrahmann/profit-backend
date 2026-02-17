@@ -95,6 +95,38 @@ export class SmallLoanService {
         });
     }
 
+    async getUnpostedJournalsForSmallLoans() {
+        const unpostedJournals = await this.prisma.journalHeader.findMany({
+            where: {
+                sourceType: JournalSourceType.SMALL_LOAN,
+                status: { not: 'POSTED' },
+            },
+            orderBy: { id: 'asc' },
+        });
+
+        const loanIds = [...new Set(unpostedJournals.map((j) => j.sourceId).filter((id): id is number => id != null))];
+        const smallLoans = loanIds.length > 0
+            ? await this.prisma.smallLoan.findMany({
+                where: { id: { in: loanIds } },
+                select: { id: true, Name: true },
+            })
+            : [];
+
+        const loanMap = Object.fromEntries(smallLoans.map((l) => [l.id, l]));
+
+        const items = unpostedJournals.map((j) => ({
+            id: j.id,
+            reference: j.reference,
+            sourceId: j.sourceId,
+            loanName: j.sourceId ? loanMap[j.sourceId]?.Name : null,
+        }));
+
+        return {
+            count: items.length,
+            items,
+        };
+    }
+
     async findAll(page = 1, limit = 20, status?: string, clientName?: string) {
         page = Number(page) > 0 ? Number(page) : 1;
         limit = Number(limit) > 0 ? Number(limit) : 20;

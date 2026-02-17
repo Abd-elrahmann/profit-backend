@@ -48,6 +48,12 @@ export class LoansController {
         return this.loansService.deactivateLoan(req.user.id, id);
     }
 
+    @Get('get/unposted-journals')
+    @Permissions('loans', 'canView')
+    getUnpostedJournals() {
+        return this.loansService.getUnpostedJournalsForLoans();
+    }
+
     @Get('all/:page')
     @Permissions('loans', 'canView')
     getAll(

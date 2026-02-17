@@ -70,6 +70,61 @@ export class LoansService {
             .format('iDD iMMMM iYYYY')
     }
 
+    async getUnpostedJournalsForLoans() {
+        const loanSourceTypes = [
+            JournalSourceType.LOAN,
+            JournalSourceType.REPAYMENT,
+            JournalSourceType.LOAN_INTEREST,
+            JournalSourceType.LOAN_CONVERSION,
+        ];
+
+        const unpostedJournals = await this.prisma.journalHeader.findMany({
+            where: {
+                sourceType: { in: loanSourceTypes },
+                status: { not: 'POSTED' },
+            },
+            orderBy: { id: 'asc' },
+        });
+
+        const items: { id: number; reference: string | null; sourceType: string; loanCode?: string; clientName?: string }[] = [];
+
+        for (const j of unpostedJournals) {
+            let loanCode: string | undefined;
+            let clientName: string | undefined;
+
+            if (j.sourceType === 'LOAN' || j.sourceType === 'LOAN_INTEREST' || j.sourceType === 'LOAN_CONVERSION') {
+                if (j.sourceId) {
+                    const loan = await this.prisma.loan.findUnique({
+                        where: { id: j.sourceId },
+                        include: { client: { select: { name: true } } },
+                    });
+                    loanCode = loan?.code;
+                    clientName = loan?.client?.name;
+                }
+            } else if (j.sourceType === 'REPAYMENT' && j.sourceId) {
+                const repayment = await this.prisma.repayment.findUnique({
+                    where: { id: j.sourceId },
+                    include: { loan: { include: { client: { select: { name: true } } } } },
+                });
+                loanCode = repayment?.loan?.code;
+                clientName = repayment?.loan?.client?.name;
+            }
+
+            items.push({
+                id: j.id,
+                reference: j.reference,
+                sourceType: j.sourceType ?? '',
+                loanCode,
+                clientName,
+            });
+        }
+
+        return {
+            count: items.length,
+            items,
+        };
+    }
+
     private async handleNewCapitalOnActivation(
         tx: Prisma.TransactionClient,
         loan: any,
