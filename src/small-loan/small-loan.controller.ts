@@ -15,6 +15,7 @@ import { SmallLoanService } from './small-loan.service';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
+import { UnpostedJournalsGuard } from '../common/guards/unposted-journals.guard';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('small-loans')
@@ -23,6 +24,7 @@ export class SmallLoanController {
 
     @Post()
     @Permissions('loans', 'canAdd')
+    @UseGuards(UnpostedJournalsGuard)
     create(
         @Req() req,
         @Body() body: any

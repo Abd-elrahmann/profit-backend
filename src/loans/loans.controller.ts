@@ -11,7 +11,7 @@ import {
     UseGuards,
     UploadedFile,
     UseInterceptors,
-    Req,
+    Req
 } from '@nestjs/common';
 import { LoansService } from './loans.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
@@ -19,6 +19,7 @@ import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UnpostedJournalsGuard } from '../common/guards/unposted-journals.guard';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('loans')
@@ -27,12 +28,14 @@ export class LoansController {
 
     @Post()
     @Permissions('loans', 'canAdd')
+    @UseGuards(UnpostedJournalsGuard)
     create(@Req() req, @Body() dto: CreateLoanDto) {
         return this.loansService.createLoan(req.user.id, dto);
     }
 
     @Patch(':id/activate')
     @Permissions('loans', 'canUpdate')
+    @UseGuards(UnpostedJournalsGuard)
     activate(@Req() req, @Param('id', ParseIntPipe) id: number) {
 
         return this.loansService.activateLoan(id, req.user.id);
@@ -40,6 +43,7 @@ export class LoansController {
 
     @Patch(':id/deactivate')
     @Permissions('loans', 'canUpdate')
+    @UseGuards(UnpostedJournalsGuard)
     deactivateLoan(@Req() req, @Param('id', ParseIntPipe) id: number) {
         return this.loansService.deactivateLoan(req.user.id, id);
     }
@@ -77,12 +81,14 @@ export class LoansController {
 
     @Patch(':id')
     @Permissions('loans', 'canUpdate')
+    @UseGuards(UnpostedJournalsGuard)
     update(@Req() req, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateLoanDto) {
         return this.loansService.updateLoan(req.user.id, id, dto);
     }
 
     @Delete(':id')
     @Permissions('loans', 'canDelete')
+    @UseGuards(UnpostedJournalsGuard)
     delete(@Req() req, @Param('id', ParseIntPipe) id: number) {
         return this.loansService.deleteLoan(req.user.id, id);
     }
@@ -134,6 +140,7 @@ export class LoansController {
 
     @Patch('convert-client/:loanId')
     @Permissions('loans', 'canUpdate')
+    @UseGuards(UnpostedJournalsGuard)
     async convertClient(
         @Req() req,
         @Param('loanId', ParseIntPipe) loanId: number,
@@ -146,6 +153,7 @@ export class LoansController {
 
     @Patch('convert-partial/:loanId')
     @Permissions('loans', 'canUpdate')
+    @UseGuards(UnpostedJournalsGuard)
     async transferPartialLoanAmount(
         @Req() req,
         @Param('loanId', ParseIntPipe) loanId: number,

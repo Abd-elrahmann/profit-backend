@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UnpostedJournalsGuard } from '../common/guards/unposted-journals.guard';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('partner-withdraw')
@@ -13,6 +14,8 @@ export class PartnerWithdrawController {
     ) { }
 
     @Post(':partnerId')
+    @Permissions('partners-withdraw', 'canAdd')
+    @UseGuards(UnpostedJournalsGuard)
     withdrawPartner(
         @Req() req,
         @Param('partnerId', ParseIntPipe) partnerId: number,
@@ -23,6 +26,7 @@ export class PartnerWithdrawController {
     }
 
     @Get('preview/:partnerId')
+    @Permissions('partners-withdraw', 'canView')
     async previewDefaultShare(
         @Param('partnerId') partnerId: number,
     ) {
@@ -32,6 +36,7 @@ export class PartnerWithdrawController {
     }
 
     @Patch(':partnerId')
+    @Permissions('partners-withdraw', 'canUpdate')
     async updateWithdrawalAmount(
         @Req() req,
         @Param('partnerId', ParseIntPipe) partnerId: number,
@@ -47,6 +52,7 @@ export class PartnerWithdrawController {
     }
 
     @Get('details/:partnerId')
+    @Permissions('partners-withdraw', 'canView')
     getWithdrawalDetails(
         @Param('partnerId', ParseIntPipe) partnerId: number
     ) {
@@ -83,6 +89,7 @@ export class PartnerWithdrawController {
     }
 
     @Get('all-withdrawing/:page')
+    @Permissions('partners-withdraw', 'canView')
     getAllWithdrawingPartners(
         @Param('page', ParseIntPipe) page: number,
         @Query('limit') limit = 10,
