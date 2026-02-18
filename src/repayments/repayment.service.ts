@@ -145,29 +145,25 @@ export class RepaymentService {
             const totalCompanyCut = accruals.reduce((sum, r) => sum + r.companyCut, 0);
             const totalPartnerFinal = accruals.reduce((sum, r) => sum + r.partnerFinal, 0);
 
+            // Round individual values
             const rawShareRoundedArr = accruals.map(r => Number(r.rawShare.toFixed(2)));
             const companyCutRoundedArr = accruals.map(r => Number(r.companyCut.toFixed(2)));
+            const partnerFinalRoundedArr = accruals.map(r => Number(r.partnerFinal.toFixed(2)));
 
-            
-            const partnerFinalRoundedArr = rawShareRoundedArr.map((rawShare, idx) =>
-                Number((rawShare - companyCutRoundedArr[idx]).toFixed(2))
-            );
-
-            
+            // Calculate sums and differences
             const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
             const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
 
             const companyCutRoundedSum = companyCutRoundedArr.reduce((a, b) => a + b, 0);
             const companyCutDiff = Number((totalCompanyCut - companyCutRoundedSum).toFixed(2));
 
-            
             const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
             const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
 
             console.log('Before rounding adjustment:', { totalRawShare, totalCompanyCut, totalPartnerFinal });
             console.log('Rounding diffs:', { rawShareDiff, companyCutDiff, partnerFinalDiff });
 
-            
+            // Adjust last index to make sums match
             const lastIndex = accruals.length - 1;
             if (rawShareDiff !== 0 && lastIndex >= 0) {
                 rawShareRoundedArr[lastIndex] = Number(
@@ -179,15 +175,12 @@ export class RepaymentService {
                     (companyCutRoundedArr[lastIndex] + companyCutDiff).toFixed(2)
                 );
             }
-
-            
-            for (let i = 0; i < partnerFinalRoundedArr.length; i++) {
-                partnerFinalRoundedArr[i] = Number(
-                    (rawShareRoundedArr[i] - companyCutRoundedArr[i]).toFixed(2)
+            if (partnerFinalDiff !== 0 && lastIndex >= 0) {
+                partnerFinalRoundedArr[lastIndex] = Number(
+                    (partnerFinalRoundedArr[lastIndex] + partnerFinalDiff).toFixed(2)
                 );
             }
 
-            
             for (let i = 0; i < accruals.length; i++) {
                 accruals[i].rawShare = rawShareRoundedArr[i];
                 accruals[i].companyCut = companyCutRoundedArr[i];
