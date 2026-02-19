@@ -487,17 +487,6 @@ export class PartnerService {
                     });
                 }
 
-                if (partner.isNewPartner) {
-                    await this.prisma.partnerNewCapital.updateMany({
-                        where: { partnerId: id },
-                        data: {
-                            partnerId: partner.id,
-                            amount: dto.capitalAmount,
-                            remaining: dto.capitalAmount,
-                        },
-                    });
-                }
-
                 await tx.auditLog.create({
                     data: {
                         userId: currentUser,
@@ -509,7 +498,7 @@ export class PartnerService {
 
                 return updatedPartner;
             }
-        }, { timeout: 20000 });
+        }, { timeout: 60000 });
 
         return {
             message: 'تم تحديث بيانات المساهم بنجاح',
