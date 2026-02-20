@@ -29,6 +29,7 @@ model User {
   updatedAt      DateTime             @updatedAt
   expenseAccountId  Int?               @unique
   expenseAccount  Account? @relation(name: "account_expenses", references: [id], fields: [expenseAccountId])
+  CreatedWithdrawals PartnerWithdrawal[] @relation("WithdrawalCreatedBy")
 }
 
 model ExpenseRecord {
@@ -475,9 +476,11 @@ model PartnerWithdrawal {
   remainingCapital Float
   savingAmount Float
   WITHDRAWAL_RECEIPT String?
+  createdById Int?
   createdAt DateTime @default(now())
   PartnerWithdrawalBackup PartnerWithdrawalBackup[]
   partner Partner @relation(fields: [partnerId], references: [id])
+  createdBy User? @relation("WithdrawalCreatedBy", fields: [createdById], references: [id])
 }
 
 model PartnerWithdrawalBackup {

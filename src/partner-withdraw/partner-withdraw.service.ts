@@ -638,6 +638,7 @@ export class PartnerWithdrawService {
                 defaultShare: partnerDefaultShare,
                 remainingCapital,
                 savingAmount: savingsAmount,
+                createdById: userId,
             },
         });
 
@@ -679,6 +680,14 @@ export class PartnerWithdrawService {
 
         const withdrawal = await this.prisma.partnerWithdrawal.findFirst({
             where: { partnerId },
+            include: {
+                createdBy: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
         });
 
         if (!withdrawal)
