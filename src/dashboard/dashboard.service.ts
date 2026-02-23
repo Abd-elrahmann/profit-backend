@@ -106,6 +106,9 @@ export class DashboardService {
             where: { status: 'نشط', ...(dateFilter && { createdAt: dateFilter }) },
         });
 
+        const completedCount = await this.prisma.client.count({
+            where: { status: 'منتهي', ...(dateFilter && { createdAt: dateFilter }) },
+        });
 
         const overdueCount = await this.prisma.client.count({
             where: { status: 'متعثر', ...(dateFilter && { createdAt: dateFilter }) },
@@ -163,6 +166,7 @@ export class DashboardService {
             totalPaid: totalPaidResult._sum.paidAmount || 0,
             remaining: remainingResult,
             activeCount,
+            completedCount,
             overdueCount,
             newClientsToday,
             clientsTrend,
