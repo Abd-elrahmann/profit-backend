@@ -586,6 +586,7 @@ export class PartnerService {
             await tx.loanPartnerShare.deleteMany({ where: { partnerId: id } });
             await tx.partnerWithdrawalSchedule.deleteMany({ where: { partnerId: id } });
             await tx.partnerWithdrawal.deleteMany({ where: { partnerId: id } });
+            await tx.partnerCount.deleteMany({ where: { partnerId: id } });
             await tx.partner.delete({ where: { id } });
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountEquityId } })
             await tx.accountsClosing.deleteMany({ where: { accountId: partner.accountPayableId } })
@@ -596,7 +597,6 @@ export class PartnerService {
             await tx.account.delete({ where: { id: partner.accountSavingId } });
             await tx.account.delete({ where: { id: partner.accountNewCapitalId } });
         });
-
 
         await this.prisma.auditLog.create({
             data: {
