@@ -46,12 +46,56 @@ export class DashboardService {
         throw new BadRequestException('Invalid filter');
     }
 
+    private getTrendPeriods(filter?: string, from?: string, to?: string) {
+        const now = moment().tz("Asia/Riyadh");
+        let currentStart: Date, currentEnd: Date, previousStart: Date, previousEnd: Date;
+        let trendLabel = 'منذ الفترة السابقة';
+
+        if (from && to) {
+            const start = moment(from, 'YYYY-MM-DD').tz("Asia/Riyadh").startOf('day');
+            const end = moment(to, 'YYYY-MM-DD').tz("Asia/Riyadh").endOf('day');
+            const duration = end.diff(start, 'days') + 1;
+            
+            currentStart = start.toDate();
+            currentEnd = end.toDate();
+            previousStart = start.clone().subtract(duration, 'days').toDate();
+            previousEnd = start.clone().subtract(1, 'day').endOf('day').toDate();
+            trendLabel = 'مقارنة بالفترة السابقة';
+        } else if (filter === 'daily') {
+            currentStart = now.clone().startOf('day').toDate();
+            currentEnd = now.clone().endOf('day').toDate();
+            previousStart = now.clone().subtract(1, 'day').startOf('day').toDate();
+            previousEnd = now.clone().subtract(1, 'day').endOf('day').toDate();
+            trendLabel = 'منذ أمس';
+        } else if (filter === 'weekly') {
+            currentStart = now.clone().startOf('week').toDate();
+            currentEnd = now.clone().endOf('week').toDate();
+            previousStart = now.clone().subtract(1, 'week').startOf('week').toDate();
+            previousEnd = now.clone().subtract(1, 'week').endOf('week').toDate();
+            trendLabel = 'منذ الأسبوع الماضي';
+        } else if (filter === 'yearly') {
+            currentStart = now.clone().startOf('year').toDate();
+            currentEnd = now.clone().endOf('year').toDate();
+            previousStart = now.clone().subtract(1, 'year').startOf('year').toDate();
+            previousEnd = now.clone().subtract(1, 'year').endOf('year').toDate();
+            trendLabel = 'منذ العام الماضي';
+        } else {
+            currentStart = now.clone().startOf('month').toDate();
+            currentEnd = now.clone().endOf('month').toDate();
+            previousStart = now.clone().subtract(1, 'month').startOf('month').toDate();
+            previousEnd = now.clone().subtract(1, 'month').endOf('month').toDate();
+            trendLabel = 'منذ الشهر الماضي';
+        }
+
+        return { currentStart, currentEnd, previousStart, previousEnd, trendLabel };
+    }
+
     async getClientStats(filter?: string, from?: string, to?: string) {
         const { startDate, endDate } = this.parseDateRange(filter, from, to);
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
         const now = moment().tz("Asia/Riyadh");
-
+        const { currentStart, currentEnd, previousStart, previousEnd, trendLabel } = this.getTrendPeriods(filter, from, to);
 
         const count = await this.prisma.client.count({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
@@ -97,6 +141,22 @@ export class DashboardService {
 
         const remainingResult = Math.max((totalDebitResult || 0) - (totalPaidResult._sum.paidAmount || 0), 0);
 
+        // Calculate client count trend based on filter
+        const currentPeriodClients = await this.prisma.client.count({
+            where: { createdAt: { gte: currentStart, lte: currentEnd } },
+        });
+
+        const previousPeriodClients = await this.prisma.client.count({
+            where: { createdAt: { gte: previousStart, lte: previousEnd } },
+        });
+
+        let clientsTrend = 0;
+        if (previousPeriodClients > 0) {
+            clientsTrend = Number(((currentPeriodClients - previousPeriodClients) / previousPeriodClients * 100).toFixed(1));
+        } else if (currentPeriodClients > 0) {
+            clientsTrend = 100;
+        }
+
         return {
             count,
             totalDebit: totalDebitResult || 0,
@@ -105,6 +165,8 @@ export class DashboardService {
             activeCount,
             overdueCount,
             newClientsToday,
+            clientsTrend,
+            trendLabel,
             filter: filter || 'all',
             range: { startDate, endDate },
         };
@@ -142,6 +204,7 @@ export class DashboardService {
         const { startDate, endDate } = this.parseDateRange(filter, from, to);
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
+        const { currentStart, currentEnd, previousStart, previousEnd, trendLabel } = this.getTrendPeriods(filter, from, to);
 
         const partnersCount = await this.prisma.partner.count({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
@@ -165,12 +228,57 @@ export class DashboardService {
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
+        // Calculate capital trend based on filter
+        const currentPeriodCapital = await this.prisma.partner.aggregate({
+            _sum: { capitalAmount: true },
+            where: { createdAt: { gte: currentStart, lte: currentEnd } },
+        });
+
+        const previousPeriodCapital = await this.prisma.partner.aggregate({
+            _sum: { capitalAmount: true },
+            where: { createdAt: { gte: previousStart, lte: previousEnd } },
+        });
+
+        const currentCapital = currentPeriodCapital._sum.capitalAmount || 0;
+        const previousCapital = previousPeriodCapital._sum.capitalAmount || 0;
+
+        let capitalTrend = 0;
+        if (previousCapital > 0) {
+            capitalTrend = Number(((currentCapital - previousCapital) / previousCapital * 100).toFixed(1));
+        } else if (currentCapital > 0) {
+            capitalTrend = 100;
+        }
+
+        // Calculate profit trend based on filter
+        const currentPeriodProfit = await this.prisma.partnerWithdrawal.aggregate({
+            _sum: { monthlyAmount: true },
+            where: { createdAt: { gte: currentStart, lte: currentEnd } },
+        });
+
+        const previousPeriodProfit = await this.prisma.partnerWithdrawal.aggregate({
+            _sum: { monthlyAmount: true },
+            where: { createdAt: { gte: previousStart, lte: previousEnd } },
+        });
+
+        const currentProfit = currentPeriodProfit._sum.monthlyAmount || 0;
+        const previousProfit = previousPeriodProfit._sum.monthlyAmount || 0;
+
+        let profitTrend = 0;
+        if (previousProfit > 0) {
+            profitTrend = Number(((currentProfit - previousProfit) / previousProfit * 100).toFixed(1));
+        } else if (currentProfit > 0) {
+            profitTrend = 100;
+        }
+
         return {
             partnersCount,
             activePartners,
             inactivePartners,
             totalCapitalAmount: aggregated._sum.capitalAmount || 0,
             totalProfit: aggregated._sum.totalProfit || 0,
+            capitalTrend,
+            profitTrend,
+            trendLabel,
             filter: filter || 'all',
             range: { startDate, endDate },
         };
@@ -180,6 +288,7 @@ export class DashboardService {
         const { startDate, endDate } = this.parseDateRange(filter, from, to);
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
+        const { currentStart, currentEnd, previousStart, previousEnd, trendLabel } = this.getTrendPeriods(filter, from, to);
 
         const loans = await this.prisma.loan.findMany({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
@@ -231,6 +340,49 @@ export class DashboardService {
 
         const bankBalance = bankAccounts?.balance || 0;
 
+        // Calculate active loans trend based on filter
+        const currentPeriodActiveLoans = await this.prisma.loan.count({
+            where: { 
+                status: 'ACTIVE',
+                createdAt: { gte: currentStart, lte: currentEnd } 
+            },
+        });
+
+        const previousPeriodActiveLoans = await this.prisma.loan.count({
+            where: { 
+                status: 'ACTIVE',
+                createdAt: { gte: previousStart, lte: previousEnd } 
+            },
+        });
+
+        let activeLoansTrend = 0;
+        if (previousPeriodActiveLoans > 0) {
+            activeLoansTrend = Number(((currentPeriodActiveLoans - previousPeriodActiveLoans) / previousPeriodActiveLoans * 100).toFixed(1));
+        } else if (currentPeriodActiveLoans > 0) {
+            activeLoansTrend = 100;
+        }
+
+        // Calculate total amount trend based on filter
+        const currentPeriodAmounts = await this.prisma.loan.aggregate({
+            _sum: { totalAmount: true, newAmount: true },
+            where: { createdAt: { gte: currentStart, lte: currentEnd } },
+        });
+
+        const previousPeriodAmounts = await this.prisma.loan.aggregate({
+            _sum: { totalAmount: true, newAmount: true },
+            where: { createdAt: { gte: previousStart, lte: previousEnd } },
+        });
+
+        const currentPeriodTotal = currentPeriodAmounts._sum.newAmount || currentPeriodAmounts._sum.totalAmount || 0;
+        const previousPeriodTotal = previousPeriodAmounts._sum.newAmount || previousPeriodAmounts._sum.totalAmount || 0;
+
+        let totalAmountTrend = 0;
+        if (previousPeriodTotal > 0) {
+            totalAmountTrend = Number(((currentPeriodTotal - previousPeriodTotal) / previousPeriodTotal * 100).toFixed(1));
+        } else if (currentPeriodTotal > 0) {
+            totalAmountTrend = 100;
+        }
+
         return {
             loans: {
                 count: loansCount,
@@ -239,6 +391,9 @@ export class DashboardService {
                     loanAmounts._sum.newAmount
                         ? loanAmounts._sum.newAmount
                         : loanAmounts._sum.totalAmount || 0,
+                activeLoansTrend,
+                totalAmountTrend,
+                trendLabel,
             },
             bank: {
                 balance: bankBalance,
@@ -662,6 +817,7 @@ export class DashboardService {
             include: {
                 loans: {
                     select: {
+                        status: true,
                         totalAmount: true,
                         newAmount: true,
                         repayments: {
@@ -692,6 +848,16 @@ export class DashboardService {
                 (sum, l) => sum + l.repayments.filter((r) => (r.paidAmount || 0) > 0).length,
                 0,
             );
+            const loansCount = client.loans.length;
+            const completedLoansCount = client.loans.filter((l) => l.status === 'COMPLETED').length;
+            const loansPayments = client.loans.map((loan) => {
+                const paidAmount = loan.repayments.reduce((sum, r) => sum + (r.paidAmount || 0), 0);
+                return {
+                    paidCount: loan.repayments.filter((r) => (r.paidAmount || 0) > 0).length,
+                    paymentsCount: loan.repayments.length,
+                    paidAmount,
+                };
+            });
 
             return {
                 id: client.id,
@@ -703,6 +869,9 @@ export class DashboardService {
                 paidCount,
                 totalDue,
                 status: client.status,
+                loansCount,
+                completedLoansCount,
+                loansPayments,
             };
         });
 
@@ -965,6 +1134,150 @@ export class DashboardService {
             totalRemaining,
             month: month,
             year: year,
+        };
+    }
+
+    async getExpenseStats(filter?: string, from?: string, to?: string, period: 'first' | 'last' = 'first') {
+        const { startDate, endDate } = this.parseDateRange(filter, from, to);
+        const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
+
+        // إجمالي مصاريف الفترة
+        const totalAgg = await this.prisma.expenseRecord.aggregate({
+            _sum: { amount: true },
+            where: dateFilter ? { createdAt: dateFilter } : undefined,
+        });
+        const totalExpenses = totalAgg._sum.amount || 0;
+
+        // المصاريف المعلقة (قيد صحيفة DRAFT)
+        const pendingExpenses = await this.prisma.expenseRecord.aggregate({
+            _sum: { amount: true },
+            where: {
+                journal: { status: 'DRAFT' },
+                ...(dateFilter && { createdAt: dateFilter }),
+            },
+        });
+        const pendingAmount = pendingExpenses._sum.amount || 0;
+
+        // توزيع حسب النوع
+        const byType = await this.prisma.expenseRecord.groupBy({
+            by: ['type'],
+            _sum: { amount: true },
+            where: dateFilter ? { createdAt: dateFilter } : undefined,
+        });
+
+        const categoryBreakdown = byType.map((t) => ({
+            type: t.type,
+            amount: t._sum.amount || 0,
+            percentage: totalExpenses > 0 ? Math.round(((t._sum.amount || 0) / totalExpenses) * 100) : 0,
+        }));
+
+        // أعلى فئة صرف
+        const topCategory = categoryBreakdown.length > 0
+            ? categoryBreakdown.reduce((a, b) => (a.amount > b.amount ? a : b))
+            : null;
+
+        // اتجاه المصاريف الشهرية (أول 6 أشهر أو آخر 6 أشهر من السنة)
+        const now = moment().tz("Asia/Riyadh");
+        const currentYear = now.year();
+        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const monthlyTrend: { month: string; amount: number }[] = [];
+        const startMonth = period === 'first' ? 0 : 6;
+        const endMonth = period === 'first' ? 5 : 11;
+        for (let m = startMonth; m <= endMonth; m++) {
+            const monthStart = moment.tz([currentYear, m, 1], 'Asia/Riyadh').startOf('month').toDate();
+            const monthEnd = moment.tz([currentYear, m, 1], 'Asia/Riyadh').endOf('month').toDate();
+            const agg = await this.prisma.expenseRecord.aggregate({
+                _sum: { amount: true },
+                where: { createdAt: { gte: monthStart, lte: monthEnd } },
+            });
+            monthlyTrend.push({
+                month: monthNames[m],
+                amount: agg._sum.amount || 0,
+            });
+        }
+
+        // اتجاه النسبة المئوية (مقارنة بالفترة السابقة)
+        const { currentStart, currentEnd, previousStart, previousEnd, trendLabel } = this.getTrendPeriods(filter, from, to);
+        const currentPeriodAgg = await this.prisma.expenseRecord.aggregate({
+            _sum: { amount: true },
+            where: { createdAt: { gte: currentStart, lte: currentEnd } },
+        });
+        const previousPeriodAgg = await this.prisma.expenseRecord.aggregate({
+            _sum: { amount: true },
+            where: { createdAt: { gte: previousStart, lte: previousEnd } },
+        });
+        const currentTotal = currentPeriodAgg._sum.amount || 0;
+        const previousTotal = previousPeriodAgg._sum.amount || 0;
+        let totalTrend = 0;
+        if (previousTotal > 0) {
+            totalTrend = Number(((currentTotal - previousTotal) / previousTotal * 100).toFixed(1));
+        } else if (currentTotal > 0) {
+            totalTrend = 100;
+        }
+
+        let pendingTrend = 0;
+        const currentPending = await this.prisma.expenseRecord.aggregate({
+            _sum: { amount: true },
+            where: {
+                journal: { status: 'DRAFT' },
+                createdAt: { gte: currentStart, lte: currentEnd },
+            },
+        });
+        const previousPending = await this.prisma.expenseRecord.aggregate({
+            _sum: { amount: true },
+            where: {
+                journal: { status: 'DRAFT' },
+                createdAt: { gte: previousStart, lte: previousEnd },
+            },
+        });
+        const cp = currentPending._sum.amount || 0;
+        const pp = previousPending._sum.amount || 0;
+        if (pp > 0) {
+            pendingTrend = Number(((cp - pp) / pp * 100).toFixed(1));
+        } else if (cp > 0) {
+            pendingTrend = 100;
+        }
+
+        // آخر المصاريف المسجلة
+        const recentExpenses = await this.prisma.expenseRecord.findMany({
+            where: dateFilter ? { createdAt: dateFilter } : undefined,
+            include: {
+                user: { select: { name: true } },
+                employee: { select: { name: true } },
+                journal: { select: { status: true, reference: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+        });
+
+        const recentMapped = recentExpenses.map((e) => ({
+            id: e.id,
+            journalId: e.journalId,
+            reference: e.journal?.reference || `#EXP-${e.journalId}`,
+            type: e.type,
+            amount: e.amount,
+            description: e.description,
+            createdAt: e.createdAt,
+            status: e.journal?.status === 'POSTED' ? 'مكتمل' : e.journal?.status === 'DRAFT' ? 'معلق' : 'قيد المعالجة',
+            addedBy: e.user?.name,
+        }));
+
+        return {
+            totalExpenses,
+            totalTrend,
+            pendingAmount,
+            pendingTrend,
+            topCategory: topCategory ? {
+                type: topCategory.type,
+                amount: topCategory.amount,
+                percentage: topCategory.percentage,
+            } : null,
+            categoryBreakdown,
+            monthlyTrend,
+            recentExpenses: recentMapped,
+            trendLabel,
+            filter: filter || 'all',
+            range: startDate && endDate ? { startDate, endDate } : undefined,
         };
     }
 }

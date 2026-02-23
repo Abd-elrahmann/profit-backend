@@ -52,6 +52,16 @@ export class DashboardController {
         return this.dashboardService.getMonthlyCollection();
     }
 
+    @Get('expense-stats')
+    async getExpenseStats(
+        @Query('filter') filter?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'all',
+        @Query('from') from?: string,
+        @Query('to') to?: string,
+        @Query('period') period?: 'first' | 'last',
+    ) {
+        return this.dashboardService.getExpenseStats(filter, from, to, period === 'last' ? 'last' : 'first');
+    }
+
     @Get('Upcoming-Repayments')
     async getUpcomingRepayments(
         @Query('limit') limit?: string,

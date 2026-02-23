@@ -7,6 +7,7 @@ const DASHBOARD_SECTIONS = [
     'partner-stats',
     'loan-stats',
     'monthly-collection',
+    'expense-stats',
     'Upcoming-Repayments',
     'Last-Actions',
 ];
