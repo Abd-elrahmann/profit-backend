@@ -301,10 +301,7 @@ export class JournalService {
         const [unformmatedjournals, total] = await Promise.all([
             this.prisma.journalHeader.findMany({
                 where,
-                include: {
-                    postedBy: { select: { id: true, name: true, email: true } },
-                    lines: { select: { debit: true, credit: true } },
-                },
+                include: { postedBy: { select: { id: true, name: true, email: true } } },
                 skip,
                 take: limit,
                 orderBy: { date: 'desc' },
@@ -312,32 +309,28 @@ export class JournalService {
             this.prisma.journalHeader.count({ where }),
         ]);
 
-        const journals = unformmatedjournals.map((journal) => {
-            const totalDebit = journal.lines.reduce((sum, l) => sum + (l.debit || 0), 0);
-            const totalCredit = journal.lines.reduce((sum, l) => sum + (l.credit || 0), 0);
-            const { lines, ...rest } = journal;
-            return {
-                ...rest,
-                totalDebit,
-                totalCredit,
-                date: journal.date
-                    ? DateTime.fromJSDate(journal.date)
-                        .setZone('Asia/Riyadh')
-                        .toFormat('yyyy-LL-dd HH:mm:ss')
-                    : null,
-                dateHijri: journal.date
-                    ? this.toHijri(journal.date)
-                    : null,
-                createdAt: journal.createdAt
-                    ? DateTime.fromJSDate(journal.createdAt)
-                        .setZone('Asia/Riyadh')
-                        .toFormat('yyyy-LL-dd HH:mm:ss')
-                    : null,
-                createdAtHijri: journal.createdAt
-                    ? this.toHijri(journal.createdAt)
-                    : null,
-            };
-        });
+        const journals = unformmatedjournals.map((journal) => ({
+            ...journal,
+            date: journal.date
+                ? DateTime.fromJSDate(journal.date)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+
+            dateHijri: journal.date
+                ? this.toHijri(journal.date)
+                : null,
+
+            createdAt: journal.createdAt
+                ? DateTime.fromJSDate(journal.createdAt)
+                    .setZone('Asia/Riyadh')
+                    .toFormat('yyyy-LL-dd HH:mm:ss')
+                : null,
+
+            createdAtHijri: journal.createdAt
+                ? this.toHijri(journal.createdAt)
+                : null,
+        }));
 
         return {
             total,
