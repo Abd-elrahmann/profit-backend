@@ -157,23 +157,19 @@ export class PeriodService {
                 });
             }
 
+            lines.push({
+                accountId: LOAN_INCOME.id,
+                debit: finalCompanyProfit,
+                credit: 0,
+                description: 'نصيب الشركة من أرباح الفترة',
+            });
 
-            if (finalCompanyProfit > 0) {
-                lines.push({
-                    accountId: LOAN_INCOME.id,
-                    debit: finalCompanyProfit,
-                    credit: 0,
-                    description: 'نصيب الشركة من أرباح الفترة',
-                });
-
-                lines.push({
-                    accountId: COMPANY_SHARES.id,
-                    debit: 0,
-                    credit: finalCompanyProfit,
-                    description: 'نصيب الشركة من أرباح الفترة',
-                });
-            }
-
+            lines.push({
+                accountId: COMPANY_SHARES.id,
+                debit: 0,
+                credit: finalCompanyProfit,
+                description: 'نصيب الشركة من أرباح الفترة',
+            });
 
             const closingJournal = await this.journalService.createJournal({
                 periodId: period.id,
