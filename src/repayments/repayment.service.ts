@@ -62,10 +62,6 @@ export class RepaymentService {
         partnerShares: any[],
         repaymentId: number
     ) {
-        console.log('=== START updatePartnerShareAccruals ===');
-        console.log('realizedInterest:', realizedInterest);
-        console.log('partnerShares:', JSON.stringify(partnerShares, null, 2));
-
         const period = await tx.periodHeader.findFirst({
             where: { endDate: null },
             orderBy: { startDate: 'desc' }
@@ -74,56 +70,34 @@ export class RepaymentService {
         if (!period) throw new BadRequestException('No open period found');
         const periodId = period.id;
 
-        console.log('loan.generalInterestAmount:', loan.generalInterestAmount);
-        console.log('loan.newCapitalInterestAmount:', loan.newCapitalInterestAmount);
-
-        const generalShares = partnerShares.filter(s => {
-            const isGeneral = s.sharePercent !== undefined;
-            console.log(`Partner ${s.partnerId}: has sharePercent=${s.sharePercent !== undefined}, has percent=${s.percent !== undefined} -> isGeneral=${isGeneral}`);
-            return isGeneral;
-        });
-
-        const newCapitalShares = partnerShares.filter(s => {
-            const isNewCapital = s.percent !== undefined && s.sharePercent === undefined;
-            console.log(`Partner ${s.partnerId}: has percent=${s.percent !== undefined}, has sharePercent=${s.sharePercent !== undefined} -> isNewCapital=${isNewCapital}`);
-            return isNewCapital;
-        });
-
-        console.log('generalShares count:', generalShares.length);
-        console.log('newCapitalShares count:', newCapitalShares.length);
+        const generalShares = partnerShares.filter(s => s.sharePercent !== undefined);
+        const newCapitalShares = partnerShares.filter(
+            s => s.percent !== undefined && s.sharePercent === undefined
+        );
 
         const sources: { type: LoanFundSource; shares: any[]; totalInterest: number }[] = [
             {
                 type: 'GENERAL',
                 shares: generalShares,
-                totalInterest: Number(loan.generalInterestAmount || 0)
+                totalInterest: Number(loan.generalInterestAmount || 0),
             },
             {
                 type: 'NEW_CAPITAL',
                 shares: newCapitalShares,
-                totalInterest: Number(loan.newCapitalInterestAmount || 0)
+                totalInterest: Number(loan.newCapitalInterestAmount || 0),
             },
         ];
 
         const totalOriginalInterest =
             Number(loan.generalInterestAmount || 0) + Number(loan.newCapitalInterestAmount || 0);
 
-        console.log('totalOriginalInterest:', totalOriginalInterest);
-
         if (totalOriginalInterest === 0) return;
 
         for (const source of sources) {
-            if (source.shares.length === 0 || source.totalInterest <= 0) {
-                console.log(`Skipping ${source.type}: no shares or zero interest`);
-                continue;
-            }
+            if (source.shares.length === 0 || source.totalInterest <= 0) continue;
 
             const sourceRatio = source.totalInterest / totalOriginalInterest;
             const sourceInterest = realizedInterest * sourceRatio;
-
-            console.log(`\n=== Processing ${source.type} ===`);
-            console.log(`sourceRatio: ${sourceRatio}`);
-            console.log(`sourceInterest: ${sourceInterest}`);
 
             const accruals = source.shares.map(s => {
                 const sharePercent = source.type === 'GENERAL'
@@ -131,77 +105,58 @@ export class RepaymentService {
                     : Number(s.percent || 0);
                 const orgPercent = Number(s.orgProfitPercent || 0);
 
-                console.log(`Partner ${s.partnerId}: sharePercent=${sharePercent}, orgPercent=${orgPercent}`);
-
-                const rawShare = sourceInterest * (sharePercent / 100);
-                const companyCut = rawShare * (orgPercent / 100);
-
-                return { partnerId: s.partnerId, rawShare, companyCut, partnerFinal: 0 };
+                return {
+                    partnerId: s.partnerId,
+                    orgPercent,
+                    rawShare: sourceInterest * (sharePercent / 100),
+                };
             });
 
-            const totalRawShare = accruals.reduce((sum, r) => sum + r.rawShare, 0);
-            const totalCompanyCut = accruals.reduce((sum, r) => sum + r.companyCut, 0);
-
-            // Round rawShare and companyCut first
-            const rawShareRoundedArr = accruals.map(r => Number(r.rawShare.toFixed(2)));
-            const companyCutRoundedArr = accruals.map(r => Number(r.companyCut.toFixed(2)));
-
-            // Calculate sums and differences for rawShare and companyCut
-            const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
-            const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
-
-            const companyCutRoundedSum = companyCutRoundedArr.reduce((a, b) => a + b, 0);
-            const companyCutDiff = Number((totalCompanyCut - companyCutRoundedSum).toFixed(2));
-
-            console.log('Before rounding adjustment:', { totalRawShare, totalCompanyCut });
-            console.log('Rounding diffs:', { rawShareDiff, companyCutDiff });
-
-            // Adjust last index to make sums match for rawShare and companyCut
-            const lastIndex = accruals.length - 1;
-            if (rawShareDiff !== 0 && lastIndex >= 0) {
-                rawShareRoundedArr[lastIndex] = Number(
-                    (rawShareRoundedArr[lastIndex] + rawShareDiff).toFixed(2)
-                );
-            }
-            if (companyCutDiff !== 0 && lastIndex >= 0) {
-                companyCutRoundedArr[lastIndex] = Number(
-                    (companyCutRoundedArr[lastIndex] + companyCutDiff).toFixed(2)
-                );
+            const exactTotalRaw = accruals.reduce((s, r) => s + r.rawShare, 0);
+            const rawShareRounded = accruals.map(r => Number(r.rawShare.toFixed(2)));
+            const rawShareSum = Number(rawShareRounded.reduce((a, b) => a + b, 0).toFixed(2));
+            const rawShareDiff = Number((exactTotalRaw - rawShareSum).toFixed(2));
+            const rawShareArr = [...rawShareRounded];
+            if (rawShareDiff !== 0 && rawShareArr.length > 0) {
+                const maxIndex = accruals.map(r => r.rawShare).indexOf(Math.max(...accruals.map(r => r.rawShare)));
+                rawShareArr[maxIndex] = Number((rawShareArr[maxIndex] + rawShareDiff).toFixed(2));
             }
 
-            // Calculate partnerFinal from rounded values to ensure consistency
-            // partnerFinal = rawShare - companyCut (using rounded values)
-            const partnerFinalRoundedArr = rawShareRoundedArr.map((rawShare, i) => 
-                Number((rawShare - companyCutRoundedArr[i]).toFixed(2))
+            const bankerRound = (value: number, decimals: number = 2): number => {
+                const factor = Math.pow(10, decimals);
+                const shifted = value * factor;
+                const floor = Math.floor(shifted);
+                const remainder = shifted - floor;
+
+                if (remainder < 0.5) return floor / factor;
+                if (remainder > 0.5) return (floor + 1) / factor;
+                return (floor % 2 === 0 ? floor : floor + 1) / factor;
+            };
+
+            const companyCutArr = rawShareArr.map((raw, i) => {
+                const value = raw * (accruals[i].orgPercent / 100);
+                return bankerRound(value, 2);
+            });
+
+            const partnerFinalArr = rawShareArr.map((raw, i) =>
+                Number((raw - companyCutArr[i]).toFixed(2))
             );
 
             for (let i = 0; i < accruals.length; i++) {
-                accruals[i].rawShare = rawShareRoundedArr[i];
-                accruals[i].companyCut = companyCutRoundedArr[i];
-                accruals[i].partnerFinal = partnerFinalRoundedArr[i];
-            }
-
-            console.log('After rounding adjustment:', accruals);
-
-            for (const r of accruals) {
-                const accrualData = {
-                    periodId,
-                    loanId: loan.id,
-                    repaymentId: repaymentId,
-                    partnerId: r.partnerId,
-                    rawShare: Number(r.rawShare.toFixed(2)),
-                    companyCut: Number(r.companyCut.toFixed(2)),
-                    partnerFinal: Number(r.partnerFinal.toFixed(2)),
-                    source: source.type,
-                };
-
-                console.log('Creating accrual:', accrualData);
-
-                await tx.partnerShareAccrual.create({ data: accrualData });
+                await tx.partnerShareAccrual.create({
+                    data: {
+                        periodId,
+                        loanId: loan.id,
+                        repaymentId,
+                        partnerId: accruals[i].partnerId,
+                        rawShare: rawShareArr[i],
+                        companyCut: companyCutArr[i],
+                        partnerFinal: partnerFinalArr[i],
+                        source: source.type,
+                    },
+                });
             }
         }
-
-        console.log('=== END updatePartnerShareAccruals ===\n');
     }
 
     async getRepaymentById(id: number) {
