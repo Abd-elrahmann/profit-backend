@@ -135,35 +135,28 @@ export class RepaymentService {
 
                 const rawShare = sourceInterest * (sharePercent / 100);
                 const companyCut = rawShare * (orgPercent / 100);
-                const partnerFinal = rawShare - companyCut;
 
-                return { partnerId: s.partnerId, rawShare, companyCut, partnerFinal };
+                return { partnerId: s.partnerId, rawShare, companyCut, partnerFinal: 0 };
             });
 
-            
             const totalRawShare = accruals.reduce((sum, r) => sum + r.rawShare, 0);
             const totalCompanyCut = accruals.reduce((sum, r) => sum + r.companyCut, 0);
-            const totalPartnerFinal = accruals.reduce((sum, r) => sum + r.partnerFinal, 0);
 
-            // Round individual values
+            // Round rawShare and companyCut first
             const rawShareRoundedArr = accruals.map(r => Number(r.rawShare.toFixed(2)));
             const companyCutRoundedArr = accruals.map(r => Number(r.companyCut.toFixed(2)));
-            const partnerFinalRoundedArr = accruals.map(r => Number(r.partnerFinal.toFixed(2)));
 
-            // Calculate sums and differences
+            // Calculate sums and differences for rawShare and companyCut
             const rawShareRoundedSum = rawShareRoundedArr.reduce((a, b) => a + b, 0);
             const rawShareDiff = Number((totalRawShare - rawShareRoundedSum).toFixed(2));
 
             const companyCutRoundedSum = companyCutRoundedArr.reduce((a, b) => a + b, 0);
             const companyCutDiff = Number((totalCompanyCut - companyCutRoundedSum).toFixed(2));
 
-            const partnerFinalRoundedSum = partnerFinalRoundedArr.reduce((a, b) => a + b, 0);
-            const partnerFinalDiff = Number((totalPartnerFinal - partnerFinalRoundedSum).toFixed(2));
+            console.log('Before rounding adjustment:', { totalRawShare, totalCompanyCut });
+            console.log('Rounding diffs:', { rawShareDiff, companyCutDiff });
 
-            console.log('Before rounding adjustment:', { totalRawShare, totalCompanyCut, totalPartnerFinal });
-            console.log('Rounding diffs:', { rawShareDiff, companyCutDiff, partnerFinalDiff });
-
-            // Adjust last index to make sums match
+            // Adjust last index to make sums match for rawShare and companyCut
             const lastIndex = accruals.length - 1;
             if (rawShareDiff !== 0 && lastIndex >= 0) {
                 rawShareRoundedArr[lastIndex] = Number(
@@ -175,11 +168,12 @@ export class RepaymentService {
                     (companyCutRoundedArr[lastIndex] + companyCutDiff).toFixed(2)
                 );
             }
-            if (partnerFinalDiff !== 0 && lastIndex >= 0) {
-                partnerFinalRoundedArr[lastIndex] = Number(
-                    (partnerFinalRoundedArr[lastIndex] + partnerFinalDiff).toFixed(2)
-                );
-            }
+
+            // Calculate partnerFinal from rounded values to ensure consistency
+            // partnerFinal = rawShare - companyCut (using rounded values)
+            const partnerFinalRoundedArr = rawShareRoundedArr.map((rawShare, i) => 
+                Number((rawShare - companyCutRoundedArr[i]).toFixed(2))
+            );
 
             for (let i = 0; i < accruals.length; i++) {
                 accruals[i].rawShare = rawShareRoundedArr[i];
