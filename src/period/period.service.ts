@@ -930,6 +930,56 @@ export class PeriodService {
         };
     }
 
+    async findPeriodByDateRange(startDateStr: string, endDateStr: string) {
+        if (!startDateStr || !endDateStr) {
+            throw new BadRequestException('يجب تحديد تاريخ البداية والنهاية');
+        }
+
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            throw new BadRequestException('تواريخ غير صالحة');
+        }
+
+        const period = await this.prisma.periodHeader.findFirst({
+            where: {
+                startDate: { lte: startDate },
+                endDate: { gte: endDate },
+            },
+            orderBy: { startDate: 'desc' },
+        });
+
+        if (!period) {
+            const exactMatch = await this.prisma.periodHeader.findFirst({
+                where: {
+                    startDate: startDate,
+                    endDate: endDate,
+                },
+            });
+            if (exactMatch) {
+                return {
+                    period: {
+                        id: exactMatch.id,
+                        name: exactMatch.name,
+                        startDate: exactMatch.startDate,
+                        endDate: exactMatch.endDate,
+                    },
+                };
+            }
+            throw new NotFoundException('لم يتم العثور على فترة تطابق التواريخ المحددة');
+        }
+
+        return {
+            period: {
+                id: period.id,
+                name: period.name,
+                startDate: period.startDate,
+                endDate: period.endDate,
+            },
+        };
+    }
+
     async comparePeriods(periodId1: number, periodId2: number) {
 
         const getPeriodData = async (periodId: number) => {
