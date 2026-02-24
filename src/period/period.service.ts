@@ -94,25 +94,8 @@ export class PeriodService {
                 netProfit: number;
             }>();
 
-            const partnerExpenses: Array<[number, number]> = [];
-
-            // Calculate individual expense shares with precision
-            let totalCalculatedExpenses = 0;
             for (const [partnerId, gross] of partnerGrossMap.entries()) {
                 const expense = totalExpenses * (gross / totalGrossProfit);
-                partnerExpenses.push([partnerId, expense]);
-                totalCalculatedExpenses += expense;
-            }
-
-            // Distribute rounding difference to match total exactly
-            const difference = totalExpenses - totalCalculatedExpenses;
-            if (partnerExpenses.length > 0) {
-                const [lastPartnerId, lastExpense] = partnerExpenses[partnerExpenses.length - 1];
-                partnerExpenses[partnerExpenses.length - 1] = [lastPartnerId, lastExpense + difference];
-            }
-
-            for (const [partnerId, expense] of partnerExpenses) {
-                const gross = partnerGrossMap.get(partnerId)!;
                 const netUnrounded = gross - expense;
 
                 const netRounded = Math.floor(netUnrounded);
@@ -587,25 +570,9 @@ export class PeriodService {
             let centsFromPartners = 0;
 
             const partnerMap = new Map<number, any>();
-            const partnerExpenses: Array<[number, number]> = [];
 
-            // Calculate individual expense shares with precision
-            let totalCalculatedExpenses = 0;
             for (const [partnerId, gross] of partnerGrossMap.entries()) {
                 const expense = totalExpenses * (gross / totalGrossProfit);
-                partnerExpenses.push([partnerId, expense]);
-                totalCalculatedExpenses += expense;
-            }
-
-            // Distribute rounding difference to match total exactly
-            const difference = totalExpenses - totalCalculatedExpenses;
-            if (partnerExpenses.length > 0) {
-                const [lastPartnerId, lastExpense] = partnerExpenses[partnerExpenses.length - 1];
-                partnerExpenses[partnerExpenses.length - 1] = [lastPartnerId, lastExpense + difference];
-            }
-
-            for (const [partnerId, expense] of partnerExpenses) {
-                const gross = partnerGrossMap.get(partnerId)!;
                 const netUnrounded = gross - expense;
 
                 const netRounded = Math.floor(netUnrounded);
@@ -751,25 +718,9 @@ export class PeriodService {
             let centsFromPartners = 0;
 
             const partnerMap = new Map<number, any>();
-            const partnerExpenses: Array<[number, number]> = [];
 
-            // Calculate individual expense shares with precision
-            let totalCalculatedExpenses = 0;
             for (const [partnerId, gross] of partnerGrossMap.entries()) {
                 const expense = totalExpenses * (gross / totalGrossProfit);
-                partnerExpenses.push([partnerId, expense]);
-                totalCalculatedExpenses += expense;
-            }
-
-            // Distribute rounding difference to match total exactly
-            const difference = totalExpenses - totalCalculatedExpenses;
-            if (partnerExpenses.length > 0) {
-                const [lastPartnerId, lastExpense] = partnerExpenses[partnerExpenses.length - 1];
-                partnerExpenses[partnerExpenses.length - 1] = [lastPartnerId, lastExpense + difference];
-            }
-
-            for (const [partnerId, expense] of partnerExpenses) {
-                const gross = partnerGrossMap.get(partnerId)!;
                 const netUnrounded = gross - expense;
 
                 const netRounded = Math.floor(netUnrounded);
@@ -927,56 +878,6 @@ export class PeriodService {
                 startDateHijri: this.toHijri(p.startDate),
                 endDateHijri: this.toHijri(p.endDate),
             })),
-        };
-    }
-
-    async findPeriodByDateRange(startDateStr: string, endDateStr: string) {
-        if (!startDateStr || !endDateStr) {
-            throw new BadRequestException('يجب تحديد تاريخ البداية والنهاية');
-        }
-
-        const startDate = new Date(startDateStr);
-        const endDate = new Date(endDateStr);
-
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            throw new BadRequestException('تواريخ غير صالحة');
-        }
-
-        const period = await this.prisma.periodHeader.findFirst({
-            where: {
-                startDate: { lte: startDate },
-                endDate: { gte: endDate },
-            },
-            orderBy: { startDate: 'desc' },
-        });
-
-        if (!period) {
-            const exactMatch = await this.prisma.periodHeader.findFirst({
-                where: {
-                    startDate: startDate,
-                    endDate: endDate,
-                },
-            });
-            if (exactMatch) {
-                return {
-                    period: {
-                        id: exactMatch.id,
-                        name: exactMatch.name,
-                        startDate: exactMatch.startDate,
-                        endDate: exactMatch.endDate,
-                    },
-                };
-            }
-            throw new NotFoundException('لم يتم العثور على فترة تطابق التواريخ المحددة');
-        }
-
-        return {
-            period: {
-                id: period.id,
-                name: period.name,
-                startDate: period.startDate,
-                endDate: period.endDate,
-            },
         };
     }
 
