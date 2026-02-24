@@ -94,8 +94,25 @@ export class PeriodService {
                 netProfit: number;
             }>();
 
+            const partnerExpenses: Array<[number, number]> = [];
+
+            // Calculate individual expense shares with precision
+            let totalCalculatedExpenses = 0;
             for (const [partnerId, gross] of partnerGrossMap.entries()) {
                 const expense = totalExpenses * (gross / totalGrossProfit);
+                partnerExpenses.push([partnerId, expense]);
+                totalCalculatedExpenses += expense;
+            }
+
+            // Distribute rounding difference to match total exactly
+            const difference = totalExpenses - totalCalculatedExpenses;
+            if (partnerExpenses.length > 0) {
+                const [lastPartnerId, lastExpense] = partnerExpenses[partnerExpenses.length - 1];
+                partnerExpenses[partnerExpenses.length - 1] = [lastPartnerId, lastExpense + difference];
+            }
+
+            for (const [partnerId, expense] of partnerExpenses) {
+                const gross = partnerGrossMap.get(partnerId)!;
                 const netUnrounded = gross - expense;
 
                 const netRounded = Math.floor(netUnrounded);
@@ -570,9 +587,25 @@ export class PeriodService {
             let centsFromPartners = 0;
 
             const partnerMap = new Map<number, any>();
+            const partnerExpenses: Array<[number, number]> = [];
 
+            // Calculate individual expense shares with precision
+            let totalCalculatedExpenses = 0;
             for (const [partnerId, gross] of partnerGrossMap.entries()) {
                 const expense = totalExpenses * (gross / totalGrossProfit);
+                partnerExpenses.push([partnerId, expense]);
+                totalCalculatedExpenses += expense;
+            }
+
+            // Distribute rounding difference to match total exactly
+            const difference = totalExpenses - totalCalculatedExpenses;
+            if (partnerExpenses.length > 0) {
+                const [lastPartnerId, lastExpense] = partnerExpenses[partnerExpenses.length - 1];
+                partnerExpenses[partnerExpenses.length - 1] = [lastPartnerId, lastExpense + difference];
+            }
+
+            for (const [partnerId, expense] of partnerExpenses) {
+                const gross = partnerGrossMap.get(partnerId)!;
                 const netUnrounded = gross - expense;
 
                 const netRounded = Math.floor(netUnrounded);
@@ -718,9 +751,25 @@ export class PeriodService {
             let centsFromPartners = 0;
 
             const partnerMap = new Map<number, any>();
+            const partnerExpenses: Array<[number, number]> = [];
 
+            // Calculate individual expense shares with precision
+            let totalCalculatedExpenses = 0;
             for (const [partnerId, gross] of partnerGrossMap.entries()) {
                 const expense = totalExpenses * (gross / totalGrossProfit);
+                partnerExpenses.push([partnerId, expense]);
+                totalCalculatedExpenses += expense;
+            }
+
+            // Distribute rounding difference to match total exactly
+            const difference = totalExpenses - totalCalculatedExpenses;
+            if (partnerExpenses.length > 0) {
+                const [lastPartnerId, lastExpense] = partnerExpenses[partnerExpenses.length - 1];
+                partnerExpenses[partnerExpenses.length - 1] = [lastPartnerId, lastExpense + difference];
+            }
+
+            for (const [partnerId, expense] of partnerExpenses) {
+                const gross = partnerGrossMap.get(partnerId)!;
                 const netUnrounded = gross - expense;
 
                 const netRounded = Math.floor(netUnrounded);
