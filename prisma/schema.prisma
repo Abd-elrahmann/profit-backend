@@ -139,7 +139,7 @@ model Kafeel {
   clientId    Int
   name        String
   nationalId  String
-  birthDate   DateTime
+  birthDate   DateTime?
   city        String
   district    String
   employer    String

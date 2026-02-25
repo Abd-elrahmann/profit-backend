@@ -83,7 +83,7 @@ export class ClientService {
                             clientId: newClient.id,
                             name: k.name,
                             nationalId: k.nationalId,
-                            birthDate: new Date(k.birthDate),
+                            birthDate: k.birthDate ? new Date(k.birthDate) : undefined,
                             city: k.city,
                             district: k.district,
                             employer: k.employer,

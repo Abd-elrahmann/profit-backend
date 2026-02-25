@@ -7,6 +7,7 @@ import {
   IsDateString,
   IsArray,
   ValidateNested,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ClientStatus } from '@prisma/client';
@@ -18,8 +19,10 @@ export class KafeelDto {
   @IsString()
   nationalId: string;
 
+  @IsOptional()
+  @ValidateIf((_, v) => v != null && v !== '')
   @IsDateString()
-  birthDate: string;
+  birthDate?: string;
 
   @IsString()
   city: string;
@@ -64,6 +67,7 @@ export class UpdateKafeelDto {
   nationalId?: string;
 
   @IsOptional()
+  @ValidateIf((_, v) => v != null && v !== '')
   @IsDateString()
   birthDate?: string;
 

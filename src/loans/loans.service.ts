@@ -697,7 +697,7 @@ export class LoansService {
             where: { id },
             include: {
                 repayments: true,
-                client: { select: { id: true } },
+                client: { select: { id: true, name: true } },
                 LoanPartnerShare: { include: { partner: true } },
                 LoanNewCapitalShare: true,
             },
@@ -821,10 +821,11 @@ export class LoansService {
             creditAccount = generalBank;
         }
 
+        const clientName = loan.client?.name ?? `العميل ${loan.clientId}`;
         const { journal } = await this.journalService.createJournal(
             {
                 reference: `LN - ${loan.id}`,
-                description: `صرف سلفة للعميل ${loan.clientId}`,
+                description: `صرف سلفة للعميل ${clientName}`,
                 type: 'GENERAL',
                 sourceType: JournalSourceType.LOAN,
                 sourceId: loan.id,
@@ -835,7 +836,7 @@ export class LoansService {
 
         const clientjournal = await this.journalService.createJournal({
             reference: `int - ${loan.id}`,
-            description: `تحويل فوائد سلفة للعميل ${loan.clientId} إلى حسابه`,
+            description: `تحويل فوائد سلفة للعميل ${clientName} إلى حسابه`,
             type: 'GENERAL',
             sourceType: 'LOAN_INTEREST',
             sourceId: loan.id,
@@ -869,7 +870,7 @@ export class LoansService {
                 userId,
                 screen: 'Loans',
                 action: 'POST',
-                description: `قام المستخدم ${user?.name} بتفعيل السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+                description: `قام المستخدم ${user?.name} بتفعيل السلفة رقم ${loan.code} للعميل ${clientName}`,
             },
         });
 
@@ -885,6 +886,7 @@ export class LoansService {
             where: { id },
             include: {
                 repayments: true,
+                client: { select: { name: true } },
             },
         });
 
@@ -895,6 +897,8 @@ export class LoansService {
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.ACTIVE)
             throw new BadRequestException('فقط السلف النشطة يمكن إلغاء تفعيلها');
+
+        const clientName = loan.client?.name ?? `العميل ${loan.clientId}`;
 
         return await this.prisma.$transaction(async (tx) => {
 
@@ -1017,7 +1021,7 @@ export class LoansService {
                     userId: currentUser,
                     screen: 'Loans',
                     action: 'POST',
-                    description: `قام المستخدم ${user?.name} بإلغاء تفعيل السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+                    description: `قام المستخدم ${user?.name} بإلغاء تفعيل السلفة رقم ${loan.code} للعميل ${clientName}`,
                 },
             });
 
@@ -1325,7 +1329,11 @@ export class LoansService {
     async updateLoan(currentUser, id: number, dto: UpdateLoanDto) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
-            include: { LoanPartnerShare: true, LoanNewCapitalShare: true },
+            include: {
+                LoanPartnerShare: true,
+                LoanNewCapitalShare: true,
+                client: { select: { name: true } },
+            },
         });
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
@@ -1665,12 +1673,13 @@ export class LoansService {
         }
 
 
+        const clientName = loan.client?.name ?? `العميل ${loan.clientId}`;
         await this.prisma.auditLog.create({
             data: {
                 userId: currentUser,
                 screen: 'Loans',
                 action: 'UPDATE',
-                description: `قام المستخدم ${user?.name} بتحديث السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+                description: `قام المستخدم ${user?.name} بتحديث السلفة رقم ${loan.code} للعميل ${clientName}`,
             },
         });
 
@@ -1681,7 +1690,10 @@ export class LoansService {
     async deleteLoan(currentUser, id: number) {
         const loan = await this.prisma.loan.findUnique({
             where: { id },
-            include: { repayments: true },
+            include: {
+                repayments: true,
+                client: { select: { name: true } },
+            },
         });
 
         if (!loan) throw new NotFoundException('Loan not found');
@@ -1815,13 +1827,13 @@ export class LoansService {
 
             await tx.loan.delete({ where: { id } });
 
-
+            const clientName = loan.client?.name ?? `العميل ${loan.clientId}`;
             await this.prisma.auditLog.create({
                 data: {
                     userId: currentUser,
                     screen: 'Loans',
                     action: 'DELETE',
-                    description: `قام المستخدم ${user?.name} بحذف السلفة رقم ${loan.code} للعميل ${loan.clientId}`,
+                    description: `قام المستخدم ${user?.name} بحذف السلفة رقم ${loan.code} للعميل ${clientName}`,
                 },
             });
 
