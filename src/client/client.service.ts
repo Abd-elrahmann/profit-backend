@@ -29,6 +29,10 @@ export class ClientService {
         });
         if (exists) throw new BadRequestException('العميل موجود مسبقاً');
 
+        if (!files?.clientIdImage?.length) {
+            throw new BadRequestException('صورة هوية العميل مطلوبة');
+        }
+
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
 
