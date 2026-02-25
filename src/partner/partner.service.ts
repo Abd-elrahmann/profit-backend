@@ -231,6 +231,11 @@ export class PartnerService {
             currentUser,
         );
 
+        const autoPostSetting = await this.prisma.settings.findFirst();
+        if (autoPostSetting?.autoPost) {
+            await this.journalService.postJournal(journal.journal.id, currentUser);
+        }
+
         if (isNew) {
             await this.prisma.partnerNewCapital.create({
                 data: {
@@ -1158,6 +1163,11 @@ export class PartnerService {
 
 
         const journal = await this.journalService.createJournal(journalDto, currentUser);
+
+        const autoPostSetting = await this.prisma.settings.findFirst();
+        if (autoPostSetting?.autoPost) {
+            await this.journalService.postJournal(journal.journal.id, currentUser);
+        }
 
         let newCapitalAmount = partner.capitalAmount;
         let newTotalAmount = partner.totalAmount;

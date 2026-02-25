@@ -140,7 +140,7 @@ export class SavingService {
             return {
                 partnerId: p.id,
                 partnerName: p.name,
-                totalPeriods: uniquePeriods.length, 
+                totalPeriods: uniquePeriods.length,
                 periods: [
                     {
                         period: lastPeriod
@@ -184,7 +184,7 @@ export class SavingService {
             if (!Number.isFinite(year) || !Number.isFinite(monthNum) || monthNum < 1 || monthNum > 12) {
                 month = undefined;
             } else {
-                    monthStart = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
+                monthStart = DateTime.fromObject({ year, month: monthNum, day: 1 }, { zone: 'Asia/Riyadh' })
                     .startOf('day')
                     .toUTC()
                     .toJSDate();
@@ -307,7 +307,7 @@ export class SavingService {
         const allPartners = await this.prisma.partner.findMany({
             include: { AccountSaving: true },
         });
-        
+
         const partners = allPartners.filter(p => p.AccountSaving && Number(p.AccountSaving.balance) > 0);
 
         if (!partners.length)
@@ -416,6 +416,11 @@ export class SavingService {
                 },
                 currentUser,
             );
+
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, currentUser);
+            }
 
             for (const item of preview.distribution) {
                 if (item.withdraw <= 0) continue;

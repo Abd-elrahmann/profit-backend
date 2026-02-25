@@ -25,7 +25,7 @@ export class PartnerWithdrawService {
 
         if (!partner) throw new NotFoundException('المستثمر غير موجود');
 
-        
+
         const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -53,7 +53,7 @@ export class PartnerWithdrawService {
             },
         });
 
-        
+
         const partnerDefaultedNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -83,14 +83,14 @@ export class PartnerWithdrawService {
 
         let partnerDefaultsBase = 0;
 
-        
+
         for (const lps of partnerDefaultedGeneralLoans) {
             const loanRemaining = lps.loan.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            
+
             let applicableRemaining = loanRemaining;
             if (lps.loan.source === 'MIX' && lps.loan.generalAmount) {
                 const generalRatio = lps.loan.generalAmount / (lps.loan.generalAmount + (lps.loan.newCapitalAmount || 0));
@@ -100,14 +100,14 @@ export class PartnerWithdrawService {
             partnerDefaultsBase += applicableRemaining * (lps.sharePercent / 100);
         }
 
-        
+
         for (const lncs of partnerDefaultedNewCapitalLoans) {
             const loanRemaining = lncs.loan?.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            
+
             let applicableRemaining = loanRemaining || 0;
             if (lncs.loan?.source === 'MIX' && lncs.loan?.newCapitalAmount) {
                 const newCapitalRatio = lncs.loan?.newCapitalAmount / ((lncs.loan?.generalAmount || 0) + lncs.loan?.newCapitalAmount);
@@ -200,12 +200,12 @@ export class PartnerWithdrawService {
             },
         });
 
-        
+
         const partnerZakatAccrualsToBackup = await this.prisma.zakatAccrual.findMany({
             where: { partnerId: partner.id },
         });
 
-        
+
         const partnerDefaultedGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -233,7 +233,7 @@ export class PartnerWithdrawService {
             },
         });
 
-        
+
         const partnerDefaultedNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -263,14 +263,14 @@ export class PartnerWithdrawService {
 
         let partnerDefaultsBase = 0;
 
-        
+
         for (const lps of partnerDefaultedGeneralLoans) {
             const loanRemaining = lps.loan.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            
+
             let applicableRemaining = loanRemaining;
             if (lps.loan.source === 'MIX' && lps.loan.generalAmount && lps.loan.newCapitalAmount) {
                 const totalLoanAmount = lps.loan.generalAmount + lps.loan.newCapitalAmount;
@@ -281,14 +281,14 @@ export class PartnerWithdrawService {
             partnerDefaultsBase += applicableRemaining * (lps.sharePercent / 100);
         }
 
-        
+
         for (const lncs of partnerDefaultedNewCapitalLoans) {
             const loanRemaining = lncs.loan?.repayments.reduce(
                 (sum, r) => sum + (r.remaining || 0),
                 0,
             );
 
-            
+
             let applicableRemaining = loanRemaining || 0;
             if (lncs.loan?.source === 'MIX' && lncs.loan?.generalAmount && lncs.loan?.newCapitalAmount) {
                 const totalLoanAmount = lncs.loan?.generalAmount + lncs.loan?.newCapitalAmount;
@@ -308,7 +308,7 @@ export class PartnerWithdrawService {
 
         if (partnerDefaultShare < 0) partnerDefaultShare = 0;
 
-        
+
         const newCapitalRemaining = partner.AccountNewCapital.balance || 0;
         const totalCapital = partner.totalAmount + newCapitalRemaining;
         const remainingCapital = totalCapital - partnerDefaultShare;
@@ -385,6 +385,11 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
+
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, userId);
+            }
         }
 
         const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
@@ -431,9 +436,14 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
+
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, userId);
+            }
         }
 
-        
+
         const savingsAmount = partner.AccountSaving.balance;
 
         const savingAccount = await this.prisma.account.findUnique({
@@ -468,6 +478,10 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, userId);
+            }
         }
 
         const zakatAccount = await this.prisma.account.findUnique({
@@ -503,9 +517,13 @@ export class PartnerWithdrawService {
                 },
                 userId,
             );
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, userId);
+            }
         }
 
-        
+
         const partnerGeneralLoans = await this.prisma.loanPartnerShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -551,7 +569,7 @@ export class PartnerWithdrawService {
             }
         }
 
-        
+
         const partnerNewCapitalLoans = await this.prisma.loanNewCapitalShare.findMany({
             where: {
                 partnerId: partner.id,
@@ -599,7 +617,7 @@ export class PartnerWithdrawService {
             }
         }
 
-        
+
         let remaining = remainingCapital;
         const schedule = [] as any;
         const startDate = firstPaymentDate ? new Date(firstPaymentDate) : new Date();
@@ -715,7 +733,7 @@ export class PartnerWithdrawService {
 
         const savingsAmount = partner.AccountSaving?.balance ?? 0;
 
-        
+
         const totalPaidFromSchedules = schedule.reduce(
             (sum, s) => sum + (s.paidAmount ?? 0),
             0,
@@ -814,6 +832,11 @@ export class PartnerWithdrawService {
                     },
                     currentUser,
                 );
+
+                const autoPostSetting = await this.prisma.settings.findFirst();
+                if (autoPostSetting?.autoPost) {
+                    await this.journalService.postJournal(carryJournal.journal.id, currentUser);
+                }
                 createdJournalIds.push(carryJournal.journal.id);
             }
 
@@ -842,6 +865,12 @@ export class PartnerWithdrawService {
                     },
                     currentUser,
                 );
+
+                const autoPostSetting = await this.prisma.settings.findFirst();
+                if (autoPostSetting?.autoPost) {
+                    await this.journalService.postJournal(ownJournal.journal.id, currentUser);
+                }
+
                 createdJournalIds.push(ownJournal.journal.id);
             }
 
@@ -1102,6 +1131,11 @@ export class PartnerWithdrawService {
                             { accountId: bankAccount.id, debit: 0, credit: allocatedToCarry, description: 'صرف جزء محمول' },
                         ],
                     }, currentUser);
+
+                    const autoPostSetting = await this.prisma.settings.findFirst();
+                    if (autoPostSetting?.autoPost) {
+                        await this.journalService.postJournal(carryJournal.journal.id, currentUser);
+                    }
                     createdJournalIds.push(carryJournal.journal.id);
                 }
             }
@@ -1124,6 +1158,11 @@ export class PartnerWithdrawService {
                             { accountId: bankAccount.id, debit: 0, credit: allocatedToOwn, description: 'صرف جزئي' },
                         ],
                     }, currentUser);
+
+                    const autoPostSetting = await this.prisma.settings.findFirst();
+                    if (autoPostSetting?.autoPost) {
+                        await this.journalService.postJournal(ownJournal.journal.id, currentUser);
+                    }
                     createdJournalIds.push(ownJournal.journal.id);
                 }
             }
@@ -1499,12 +1538,12 @@ export class PartnerWithdrawService {
 
         const withdrawal = partner.PartnerWithdrawal[0];
 
-        
+
         const backup = await this.prisma.partnerWithdrawalBackup.findFirst({
             where: { withdrawalId: withdrawal.id },
         });
 
-        
+
         let loanSharesBackup: any[] = [];
         let newCapitalSharesBackup: any[] = [];
         let zakatAccruals: any[] = [];
@@ -1523,7 +1562,7 @@ export class PartnerWithdrawService {
             }
         }
 
-        
+
         const paidSchedules = await this.prisma.partnerWithdrawalSchedule.findMany({
             where: {
                 partnerId,
@@ -1568,7 +1607,7 @@ export class PartnerWithdrawService {
             for (const journal of withdrawalJournals) {
                 const ref = journal.reference || '';
 
-                
+
                 if (ref.includes('DEFAULT-')) {
                     journalSummary.default = journal;
                 } else if (ref.includes('CONVERT-')) {
@@ -1579,14 +1618,14 @@ export class PartnerWithdrawService {
                     journalSummary.zakat = journal;
                 }
 
-                
+
                 if (journal.status === 'POSTED') {
                     journalSummary.posted.push(journal.id);
                 } else {
                     journalSummary.draft.push(journal.id);
                 }
 
-                
+
                 if (journal.status === 'POSTED') {
                     try {
                         await this.journalService.unpostJournal(currentUser, journal.id);
@@ -1595,12 +1634,12 @@ export class PartnerWithdrawService {
                     }
                 }
 
-                
+
                 await tx.journalLine.deleteMany({
                     where: { journalId: journal.id },
                 });
 
-                
+
                 await tx.journalHeader.delete({
                     where: { id: journal.id },
                 });
@@ -1660,14 +1699,14 @@ export class PartnerWithdrawService {
                 loanSharesByLoanId.get(loanId)!.push(share);
             }
 
-            
+
             for (const [loanId, backupShares] of loanSharesByLoanId) {
-                
+
                 await tx.loanPartnerShare.deleteMany({
                     where: { loanId },
                 });
 
-                
+
                 for (const backupShare of backupShares) {
                     await tx.loanPartnerShare.create({
                         data: {
@@ -1712,7 +1751,7 @@ export class PartnerWithdrawService {
                 }
             }
 
-            
+
             let restoredZakatAccrualsCount = 0;
             for (const zakatAccrual of zakatAccruals) {
                 await tx.zakatAccrual.create({
@@ -1727,7 +1766,7 @@ export class PartnerWithdrawService {
                 restoredZakatAccrualsCount++;
             }
 
-            
+
             await tx.partnerWithdrawalBackup.delete({
                 where: { withdrawalId: withdrawal.id },
             });

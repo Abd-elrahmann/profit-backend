@@ -359,6 +359,11 @@ export class RepaymentService {
                 currentUser,
             );
 
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, currentUser);
+            }
+
             await tx.repayment.update({
                 where: { id },
                 data: {
@@ -802,6 +807,11 @@ export class RepaymentService {
                 currentUser
             );
 
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, currentUser);
+            }
+
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
                 include: { partner: { select: { orgProfitPercent: true } } },
@@ -949,6 +959,11 @@ export class RepaymentService {
                 },
                 currentUserId
             );
+
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, currentUserId);
+            }
 
             const discountRatio = totalRemainingInterest > 0
                 ? earlyPaymentDiscount / totalRemainingInterest

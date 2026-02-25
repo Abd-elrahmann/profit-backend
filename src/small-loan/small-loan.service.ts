@@ -82,6 +82,11 @@ export class SmallLoanService {
                 currentUser,
             );
 
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, currentUser);
+            }
+
             await tx.auditLog.create({
                 data: {
                     userId: currentUser,
@@ -221,6 +226,11 @@ export class SmallLoanService {
                 },
                 currentUser,
             );
+
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, currentUser);
+            }
 
             const newPaid = Number((loan.paidAmount + payAmount).toFixed(2));
             const newRemaining = Number((loan.amount - newPaid).toFixed(2));

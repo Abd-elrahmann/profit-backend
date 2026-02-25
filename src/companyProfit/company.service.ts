@@ -64,6 +64,11 @@ export class CompanyService {
             userId,
         );
 
+        const autoPostSetting = await this.prisma.settings.findFirst();
+        if (autoPostSetting?.autoPost) {
+            await this.journalService.postJournal(journal.journal.id, userId);
+        }
+
         await this.prisma.auditLog.create({
             data: {
                 userId: userId,

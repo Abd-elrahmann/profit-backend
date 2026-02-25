@@ -632,6 +632,11 @@ export class ZakatService {
             userId,
         );
 
+        const autoPostSetting = await this.prisma.settings.findFirst();
+        if (autoPostSetting?.autoPost) {
+            await this.journalService.postJournal(journal.journal.id, userId);
+        }
+
         const partners = await this.prisma.partner.findMany({
             where: {
                 WithdrawingStatus: 'ACTIVE',

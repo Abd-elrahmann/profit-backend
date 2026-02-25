@@ -88,6 +88,11 @@ export class ExpenseService {
             userId,
         );
 
+        const autoPostSetting = await this.prisma.settings.findFirst();
+        if (autoPostSetting?.autoPost) {
+            await this.journalService.postJournal(journal.journal.id, userId);
+        }
+
         await Promise.all(expenses.map(async (e) => {
             await this.prisma.expenseRecord.create({
                 data: {

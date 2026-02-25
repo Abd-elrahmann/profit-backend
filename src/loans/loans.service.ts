@@ -208,6 +208,11 @@ export class LoansService {
             },
             currentUser,
         );
+
+        const autoPostSetting = await this.prisma.settings.findFirst();
+        if (autoPostSetting?.autoPost) {
+            await this.journalService.postJournal(journal.journal.id, currentUser);
+        }
     }
 
     private async handleNewCapitalOnDeactivation(
@@ -845,6 +850,12 @@ export class LoansService {
                 { accountId: receivable.id, debit: 0, credit: loan.interestAmount },
             ],
         }, userId);
+
+        const autoPostSetting = await this.prisma.settings.findFirst();
+        if (autoPostSetting?.autoPost) {
+            await this.journalService.postJournal(journal.id, userId);
+            await this.journalService.postJournal(clientjournal.journal.id, userId);
+        }
 
         await this.prisma.loan.update({
             where: { id },
@@ -2109,6 +2120,10 @@ export class LoansService {
                 ],
             }, userId);
 
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.id, userId);
+            }
 
             await tx.auditLog.create({
                 data: {
@@ -2397,6 +2412,11 @@ export class LoansService {
                 },
                 userId,
             );
+
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.id, userId);
+            }
 
             return { newLoanId: newLoan.id };
         });
