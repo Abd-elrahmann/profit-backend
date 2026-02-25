@@ -72,7 +72,7 @@ export class ZakatService {
         const dir = path.join(process.cwd(), 'uploads', 'zakat');
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         const filePath = path.join(dir, filename);
-        
+
         const browser = await puppeteer.launch({
             headless: true,
             args: [
@@ -111,21 +111,21 @@ export class ZakatService {
 
             const totalAmount = baseCapital + newCapitalAmount;
 
-            
+
             const accruals = await this.prisma.zakatAccrual.findMany({
                 where: { partnerId, year: yr },
                 orderBy: { month: 'asc' },
             });
 
-            
+
             if (accruals.length === 0) {
                 return null;
             }
 
-            
+
             const annualZakat = accruals.reduce((sum, acc) => sum + acc.amount, 0);
 
-            
+
             const payments = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId, year: yr },
                 _sum: { amount: true },
@@ -135,7 +135,7 @@ export class ZakatService {
             const remaining = annualZakat - totalPaid;
             const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
 
-            
+
             const monthlyBreakdown = accruals.map((acc) => ({
                 ...acc,
                 status: totalPaid > 0 ? 'PAID' : 'NOT_PAID',
@@ -188,7 +188,7 @@ export class ZakatService {
         const pageLimit = limit && limit > 0 ? limit : 10;
         const skip = (page - 1) * pageLimit;
 
-        
+
         const partnersWithAccruals = await this.prisma.partner.findMany({
             where: {
                 WithdrawingStatus: 'ACTIVE',
@@ -219,7 +219,7 @@ export class ZakatService {
             };
         }
 
-        
+
         const partners = await this.prisma.partner.findMany({
             where: {
                 WithdrawingStatus: 'ACTIVE',
@@ -245,10 +245,10 @@ export class ZakatService {
             const totalAmount = baseCapital + newCapitalAmount;
             const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
 
-            
+
             const annualZakat = p.ZakatAccrual.reduce((sum, acc) => sum + acc.amount, 0);
 
-            
+
             const payments = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId: p.id, year },
                 _sum: { amount: true },
@@ -256,7 +256,7 @@ export class ZakatService {
             const totalPaid = payments._sum.amount || 0;
             const remaining = annualZakat - totalPaid;
 
-            
+
             const monthlyBreakdown = p.ZakatAccrual.map((acc) => ({
                 ...acc,
                 status: totalPaid > 0 ? 'PAID' : 'NOT_PAID',
@@ -491,7 +491,7 @@ export class ZakatService {
         const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
         if (!bankAccount) throw new NotFoundException("Bank account not found");
 
-        
+
         const year = zakatWithdraw.createdAt.getFullYear();
         const month = zakatWithdraw.createdAt.getMonth() + 1;
 
@@ -520,7 +520,7 @@ export class ZakatService {
 
         await this.journalService.unpostJournal(userId, originalJournal.id);
 
-        
+
         await this.prisma.$transaction(async (tx) => {
             for (const payment of zakatPayments) {
                 await tx.partner.update({
@@ -533,13 +533,13 @@ export class ZakatService {
                     },
                 });
 
-                
+
                 await tx.zakatPayment.delete({
                     where: { id: payment.id },
                 });
             }
 
-            
+
             await tx.zakatWithdraw.delete({
                 where: { id: zakatWithdrawId },
             });
@@ -647,11 +647,21 @@ export class ZakatService {
         const createdPayments: number[] = [];
 
         await this.prisma.$transaction(async (tx) => {
-            for (const partner of partners) {
-                const share =
-                    ((partner.yearlyZakatBalance || 0) / totalZakatBalance) * amount;
+            let totalDistributed = 0;
 
-                const roundedShare = Math.round(share * 100) / 100;
+            for (let i = 0; i < partners.length; i++) {
+                const partner = partners[i];
+                const isLast = i === partners.length - 1;
+
+                let roundedShare: number;
+
+                if (isLast) {
+                    roundedShare = Math.round((amount - totalDistributed) * 100) / 100;
+                } else {
+                    const share = ((partner.yearlyZakatBalance || 0) / totalZakatBalance) * amount;
+                    roundedShare = Math.round(share * 100) / 100;
+                    totalDistributed += roundedShare;
+                }
 
                 const zakatPayment = await tx.zakatPayment.create({
                     data: {
