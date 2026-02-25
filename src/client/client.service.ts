@@ -43,7 +43,7 @@ export class ClientService {
             const newClient = await tx.client.create({
                 data: {
                     ...clientData,
-                    birthDate: new Date(dto.birthDate),
+                    birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
                     status: dto.status ?? ClientStatus.نشط,
                 },
                 select: { id: true, name: true, nationalId: true },

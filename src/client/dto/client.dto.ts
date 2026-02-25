@@ -142,8 +142,10 @@ export class CreateClientDto {
   @IsString()
   telegramChatId?: string;
 
+  @IsOptional()
+  @ValidateIf((_, v) => v != null && v !== '')
   @IsDateString()
-  birthDate: string;
+  birthDate?: string;
 
   @IsString()
   address: string;

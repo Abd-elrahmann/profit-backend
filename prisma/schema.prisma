@@ -109,7 +109,7 @@ model Client {
   email          String?
   phone          String
   telegramChatId String?
-  birthDate      DateTime
+  birthDate      DateTime?
   address        String
   nationalId     String
   city           String
