@@ -1,7 +1,7 @@
-export class CreateSettingsDto {
-  autoPost?: boolean;
-}
+import { IsBoolean, IsOptional } from 'class-validator';
 
 export class UpdateSettingsDto {
-  autoPost?: boolean;
+    @IsOptional()
+    @IsBoolean()
+    autoPost?: boolean;
 }
