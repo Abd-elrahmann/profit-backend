@@ -31,9 +31,11 @@ import { PartnerWithdrawModule } from './partner-withdraw/partner-withdraw.modul
 import { SmallLoanModule } from './small-loan/small-loan.module';
 import { IncomeStatementModule } from './income-statement/income-statement.module';
 import { SettingsModule } from './settings/settings.module';
+import { PermissionsModule } from './common/permissions.module';
 
 @Module({
   imports: [
+    PermissionsModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

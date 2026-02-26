@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { DateTime } from 'luxon';
 
 const DASHBOARD_SECTIONS = [
@@ -14,7 +15,11 @@ const DASHBOARD_SECTIONS = [
 
 @Injectable()
 export class RolesService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private permissionsGuard: PermissionsGuard,
+    ) {}
+
 
 
     async createRole(currentUser, data: {
@@ -65,6 +70,8 @@ export class RolesService {
                 description: `المستخدم ${user?.name} أنشأ الدور ${role.name}`,
             },
         });
+
+        this.permissionsGuard.clearCache();
 
         return { message: 'تم انشاء الدور بنجاح', role };
     }
@@ -193,6 +200,8 @@ export class RolesService {
             },
         });
 
+        this.permissionsGuard.clearCache();
+
         return { message: 'تم تعديل الدور بنجاح', role: updatedRole };
     }
 
@@ -219,6 +228,8 @@ export class RolesService {
                 description: `المستخدم ${user?.name} حذف الدور ${role.name}`,
             },
         });
+
+        this.permissionsGuard.clearCache();
 
         return { message: 'تم حذف الدور بنجاح' };
     }
@@ -271,6 +282,8 @@ export class RolesService {
                     description: `المستخدم ${user?.name} عدّل صلاحيات Dashboard للدور ${role.name}`,
                 },
             });
+
+            this.permissionsGuard.clearCache();
 
             return {
                 message: 'تم تحديث صلاحيات الداشبورد بنجاح',
