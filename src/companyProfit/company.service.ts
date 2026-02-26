@@ -122,7 +122,7 @@ export class CompanyService {
             skip,
             take: limit,
             orderBy: { date: 'desc' },
-            include: { lines: true },
+            include: { lines: true, postedBy: { select: { id: true, name: true, profileImage: true } } },
         });
 
         const formattedWithdrawals = withdrawals.map(j => ({
@@ -134,6 +134,8 @@ export class CompanyService {
             amount: j.lines
                 .filter(l => l.accountId === companyProfitAccount.id)
                 .reduce((s, l) => s + Number(l.debit || 0), 0),
+            userName: j.postedBy?.name || 'غير محدد',
+            userProfileImage: j.postedBy?.profileImage || null,
         }));
 
         const totalWithdrawnAmount = formattedWithdrawals.reduce((s, w) => s + w.amount, 0);
@@ -301,6 +303,8 @@ export class CompanyService {
 
         const totalCompanyProfitFromPeriods = periods.reduce((s, p) => s + p.companyProfit, 0);
 
+        const balanceChartData = await this.getBalanceChartData(companyProfitAccount.id, 7);
+
         return {
             totalPages,
             currentPage: page,
@@ -326,6 +330,41 @@ export class CompanyService {
                 periodsCount: periods.length,
                 periods,
             },
+            balanceChartData,
+            totalWithdrawnAmount: Number(totalWithdrawnAmount.toFixed(2)),
         };
+    }
+
+    private async getBalanceChartData(companyProfitAccountId: number, days: number) {
+        const { DateTime } = await import('luxon');
+        const endDate = DateTime.now().endOf('day');
+        const result: { date: string; label: string; balance: number }[] = [];
+        const dayLabels: Record<number, string> = {
+            1: 'الاثنين', 2: 'الثلاثاء', 3: 'الأربعاء', 4: 'الخميس',
+            5: 'الجمعة', 6: 'السبت', 7: 'الأحد',
+        };
+
+        for (let i = days - 1; i >= 0; i--) {
+            const d = endDate.minus({ days: i });
+            const dateStr = d.toFormat('yyyy-MM-dd');
+
+            const lines = await this.prisma.journalLine.findMany({
+                where: {
+                    accountId: companyProfitAccountId,
+                    journal: {
+                        status: 'POSTED',
+                        date: { lte: d.toJSDate() },
+                    },
+                },
+            });
+
+            const balance = lines.reduce((sum, l) => sum + Number(l.credit || 0) - Number(l.debit || 0), 0);
+            result.push({
+                date: dateStr,
+                label: dayLabels[d.weekday] || d.toFormat('EEE'),
+                balance: Number(balance.toFixed(2)),
+            });
+        }
+        return result;
     }
 }

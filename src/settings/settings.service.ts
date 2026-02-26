@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateSettingsDto } from './dto/settings.dto';
 
@@ -10,7 +10,7 @@ export class SettingsService {
         const settings = await this.prisma.settings.findFirst();
 
         if (!settings) {
-            throw new NotFoundException('Settings not found');
+            return { id: 0, autoPost: false, createdAt: null, updatedAt: null };
         }
 
         return settings;

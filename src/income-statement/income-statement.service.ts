@@ -370,6 +370,61 @@ export class IncomeStatementService {
 
         const netProfit = totalRevenue - totalExpenses;
 
+        // Revenue line items for income statement table
+        const revenueLineItems = [
+            { label: 'فوائد السلف المحصلة', amount: Number((totalRevenueGeneral + totalRevenueNewCapital).toFixed(2)) },
+        ];
+        const otherRevenue = totalRevenue - (totalRevenueGeneral + totalRevenueNewCapital);
+        if (otherRevenue > 0) {
+            revenueLineItems.push({ label: 'إيرادات أخرى', amount: Number(otherRevenue.toFixed(2)) });
+        }
+
+        // Expense breakdown by raw type for donut chart (مصروف بنزين، مصروفات انترنت، مصروفات كهرباء، etc.)
+        const expenseByTypeMap = new Map<string, number>();
+        for (const e of expenseRecords) {
+            const rawType = e.type || 'أخرى';
+            expenseByTypeMap.set(rawType, (expenseByTypeMap.get(rawType) || 0) + Number(e.amount));
+        }
+        const expenseByType = Array.from(expenseByTypeMap.entries()).map(([type, amount]) => ({
+            type,
+            amount: Number(amount.toFixed(2)),
+            percentage: totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0,
+        })).sort((a, b) => b.amount - a.amount);
+
+        // Monthly breakdown for bar chart - use same filters as main revenue (periodId + date intersection)
+        const fromDt = DateTime.fromJSDate(from).setZone('Asia/Riyadh');
+        const toDt = DateTime.fromJSDate(to).setZone('Asia/Riyadh');
+        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const monthlyBreakdown: { month: number; monthName: string; revenue: number; expenses: number }[] = [];
+        let cursor = fromDt.startOf('month');
+        while (cursor <= toDt) {
+            const monthStart = cursor.startOf('month').toUTC().toJSDate();
+            const monthEnd = cursor.endOf('month').toUTC().toJSDate();
+            // Intersect month range with period range - only count data within the selected period
+            const effectiveFrom = from > monthStart ? from : monthStart;
+            const effectiveTo = to < monthEnd ? to : monthEnd;
+            const dateFilter = { gte: effectiveFrom, lte: effectiveTo };
+            const accrualWhere: any = { createdAt: dateFilter };
+            if (periodId) accrualWhere.periodId = periodId;
+            const [monthRevenue, monthExpenses] = await Promise.all([
+                this.prisma.partnerShareAccrual.aggregate({
+                    _sum: { rawShare: true },
+                    where: accrualWhere,
+                }),
+                this.prisma.expenseRecord.aggregate({
+                    _sum: { amount: true },
+                    where: { createdAt: dateFilter },
+                }),
+            ]);
+            monthlyBreakdown.push({
+                month: cursor.month,
+                monthName: monthNames[cursor.month - 1],
+                revenue: Number(monthRevenue._sum.rawShare || 0),
+                expenses: Number(monthExpenses._sum.amount || 0),
+            });
+            cursor = cursor.plus({ months: 1 });
+        }
+
         return {
             period: {
                 from: DateTime.fromJSDate(from).setZone('Asia/Riyadh').toFormat('yyyy-MM-dd'),
@@ -390,9 +445,12 @@ export class IncomeStatementService {
                 generalLoans: totalRevenueGeneral,
                 newCapitalLoans: totalRevenueNewCapital,
             },
+            revenueLineItems,
             revenueByClient,
             totalExpenses,
             detailedExpenses,
+            expenseByType,
+            monthlyBreakdown,
             netProfit,
         };
     }

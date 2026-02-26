@@ -18,6 +18,13 @@ export class PartnerService {
     ) { }
 
 
+    async checkNationalIdExists(nationalId: string): Promise<boolean> {
+        const existing = await this.prisma.partner.findFirst({
+            where: { nationalId },
+        });
+        return !!existing;
+    }
+
     async createPartner(currentUser, dto: CreatePartnerDto) {
         const existing = await this.prisma.partner.findFirst({
             where: { nationalId: dto.nationalId },

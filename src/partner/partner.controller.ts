@@ -43,6 +43,13 @@ export class PartnerController {
         return this.partnerService.deletePartner(req.user.id, id);
     }
 
+    @Get('check-national-id/:nationalId')
+    @Permissions('partners', 'canView')
+    async checkNationalId(@Param('nationalId') nationalId: string) {
+        const exists = await this.partnerService.checkNationalIdExists(nationalId);
+        return { exists };
+    }
+
     @Get('all/:page')
     @Permissions('partners', 'canView')
     getAll(

@@ -115,7 +115,8 @@ export class AuthService {
         roleId: true,
         isActive: true,
         createdAt: true,
-        profileImage: true
+        profileImage: true,
+        role: { select: { name: true } }
       },
     });
     return user;

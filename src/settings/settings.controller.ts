@@ -17,6 +17,7 @@ export class SettingsController {
     constructor(private readonly settingsService: SettingsService) { }
 
     @Get()
+    @Permissions('settings', 'canView')
     getSettings() {
         return this.settingsService.getSettings();
     }
