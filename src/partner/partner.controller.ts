@@ -14,6 +14,7 @@ import {
     Req,
 } from '@nestjs/common';
 import { PartnerService } from './partner.service';
+import { partnerTransactionService } from './partnerTransaction.service';
 import { CreatePartnerDto, UpdatePartnerDto } from './dto/partner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
@@ -23,7 +24,10 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('partners')
 export class PartnerController {
-    constructor(private readonly partnerService: PartnerService) { }
+    constructor(private readonly partnerService: PartnerService,
+        private readonly partnerTransactionService: partnerTransactionService
+
+    ) { }
 
     @Post()
     @Permissions('partners', 'canAdd')
@@ -103,7 +107,7 @@ export class PartnerController {
         },
     ) {
         const currentUser = req.user.id;
-        return await this.partnerService.createPartnerTransaction(
+        return await this.partnerTransactionService.createPartnerTransaction(
             currentUser,
             partnerId,
             dto,
@@ -118,7 +122,7 @@ export class PartnerController {
         @Param('id', ParseIntPipe) id: number,
     ) {
         const currentUser = req.user.id;
-        return await this.partnerService.deletePartnerTransaction(currentUser, id);
+        return await this.partnerTransactionService.deletePartnerTransaction(currentUser, id);
     }
 
 
@@ -133,7 +137,7 @@ export class PartnerController {
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
     ) {
-        return await this.partnerService.getPartnerTransactions(partnerId, page, {
+        return await this.partnerTransactionService.getPartnerTransactions(partnerId, page, {
             limit: limit ? Number(limit) : 10,
             type,
             search,

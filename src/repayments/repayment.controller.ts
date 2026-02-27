@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { RepaymentService } from './repayment.service';
+import { RepaymentFilesService } from './repaymentFiles.service';
 import { RepaymentDto } from './dto/repayment.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -23,8 +24,9 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 
 @Controller('repayments')
 export class RepaymentController {
-    constructor(private readonly repaymentService: RepaymentService) { }
-
+    constructor(private readonly repaymentService: RepaymentService,
+        private readonly repaymentFilesService: RepaymentFilesService
+    ) { }
 
     @Get('repayment/:id')
     @Permissions('repayments', 'canView')
@@ -40,7 +42,7 @@ export class RepaymentController {
         @Param('id', ParseIntPipe) id: number,
         @UploadedFiles() files: Express.Multer.File[],
     ) {
-        return this.repaymentService.uploadReceipts(req.user.id, id, files);
+        return this.repaymentFilesService.uploadReceipts(req.user.id, id, files);
     }
 
 
@@ -85,7 +87,7 @@ export class RepaymentController {
         @Param('id', ParseIntPipe) id: number,
         @UploadedFile() file: Express.Multer.File,
     ) {
-        return this.repaymentService.uploadPaymentProof(req.user.id, id, file);
+        return this.repaymentFilesService.uploadPaymentProof(req.user.id, id, file);
     }
 
 
@@ -145,7 +147,7 @@ export class RepaymentController {
         @UploadedFile() file: Express.Multer.File,
         @Body('repaymentIds') repaymentIds: number[],
     ) {
-        return this.repaymentService.uploadPaymentProofBulk(
+        return this.repaymentFilesService.uploadPaymentProofBulk(
             req.user.id,
             repaymentIds,
             file,
@@ -155,6 +157,6 @@ export class RepaymentController {
     @Get('next-count')
     @Permissions('repayments', 'canView')
     async getNextRepaymentCount() {
-        return this.repaymentService.getNextRepaymentCount();
+        return this.repaymentFilesService.getNextRepaymentCount();
     }
 }

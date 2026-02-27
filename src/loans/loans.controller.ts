@@ -14,6 +14,8 @@ import {
     Req
 } from '@nestjs/common';
 import { LoansService } from './loans.service';
+import { LoansConversionService } from './loanConversion.service';
+import { loansFilesService } from './loansFiles.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -24,7 +26,10 @@ import { UnpostedJournalsGuard } from '../common/guards/unposted-journals.guard'
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('loans')
 export class LoansController {
-    constructor(private readonly loansService: LoansService) { }
+    constructor(private readonly loansService: LoansService,
+        private readonly LoansConversionService: LoansConversionService,
+        private readonly loansFilesService: loansFilesService
+    ) { }
 
     @Post()
     @Permissions('loans', 'canAdd')
@@ -109,7 +114,7 @@ export class LoansController {
         @UploadedFile() file: Express.Multer.File,
         @Body() body: any
     ) {
-        return this.loansService.uploadDebtAcknowledgmentFile(req.user.id, id, file, body);
+        return this.loansFilesService.uploadDebtAcknowledgmentFile(req.user.id, id, file, body);
     }
 
     @Post(':id/upload-promissory-note')
@@ -122,7 +127,7 @@ export class LoansController {
         @UploadedFile() file: Express.Multer.File,
         @Body() body: any
     ) {
-        return this.loansService.uploadPromissoryNoteFile(req.user.id, id, file, body);
+        return this.loansFilesService.uploadPromissoryNoteFile(req.user.id, id, file, body);
     }
 
     @Post(':id/save-contract-numbers')
@@ -131,7 +136,7 @@ export class LoansController {
         @Param('id') id: number,
         @Body() body: { debtAcknowledgmentNumber?: string; promissoryNoteNumber?: string }
     ) {
-        return this.loansService.saveContractNumbers(req.user.id, id, body);
+        return this.loansFilesService.saveContractNumbers(req.user.id, id, body);
     }
 
     @Post(':id/upload-Settlement')
@@ -141,7 +146,7 @@ export class LoansController {
         @Param('id') id: number,
         @UploadedFile() file: Express.Multer.File
     ) {
-        return this.loansService.uploadSettlementFile(req.user.id, id, file);
+        return this.loansFilesService.uploadSettlementFile(req.user.id, id, file);
     }
 
     @Patch('convert-client/:loanId')
@@ -154,7 +159,7 @@ export class LoansController {
         @Body('toClientId', ParseIntPipe) toClientId: number,
         @Body('kafeelId') kafeelId?: number | null,
     ) {
-        return this.loansService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId || null, req.user.id);
+        return this.LoansConversionService.convertLoanClient(fromClientId, toClientId, loanId, kafeelId || null, req.user.id);
     }
 
     @Patch('convert-partial/:loanId')
@@ -172,7 +177,7 @@ export class LoansController {
     ) {
         const parsedRepaymentDay = new Date(repaymentDay);
 
-        return this.loansService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, paymentAmount, parsedRepaymentDay, kafeelId || null, req.user.id);
+        return this.LoansConversionService.transferPartialLoanAmount(fromClientId, toClientId, loanId, amount, paymentAmount, parsedRepaymentDay, kafeelId || null, req.user.id);
     }
 
     @Get('get/counts/:loanId')

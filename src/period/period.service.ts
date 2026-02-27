@@ -198,7 +198,6 @@ export class PeriodService {
                 });
             }
 
-
             await this.closeAccountsWithParents(tx, periodId);
 
 
@@ -210,7 +209,6 @@ export class PeriodService {
                     endDate: new Date(),
                 },
             });
-
 
             const newPeriod = await tx.periodHeader.create({
                 data: {
@@ -228,11 +226,9 @@ export class PeriodService {
     }
 
     private async closeAccountsWithParents(tx: any, periodId: number) {
-
         const accounts = await tx.account.findMany({
             select: { id: true, parentId: true, nature: true },
         });
-
 
         const periodLines = new Map<number, { debit: number; credit: number }>();
         for (const acc of accounts) {
@@ -245,7 +241,6 @@ export class PeriodService {
                 credit: Number(sums._sum.credit ?? 0),
             });
         }
-
 
         const prevClosings = new Map<number, { closingDebit: number; closingCredit: number; closingBalance: number }>();
         for (const acc of accounts) {
@@ -260,7 +255,6 @@ export class PeriodService {
             });
         }
 
-
         const childrenMap = new Map<number, number[]>();
         for (const acc of accounts) {
             if (acc.parentId) {
@@ -268,7 +262,6 @@ export class PeriodService {
                 childrenMap.get(acc.parentId)!.push(acc.id);
             }
         }
-
 
         const computed = new Map<number, { debit: number; credit: number; openingBalance: number; closingBalance: number }>();
         const compute = async (accountId: number): Promise<{ debit: number; credit: number; openingBalance: number; closingBalance: number }> => {
@@ -279,7 +272,6 @@ export class PeriodService {
             let totalDebit = own.debit;
             let totalCredit = own.credit;
 
-
             const children = childrenMap.get(accountId) ?? [];
             for (const childId of children) {
                 const childTotals = await compute(childId);
@@ -287,10 +279,8 @@ export class PeriodService {
                 totalCredit += childTotals.credit;
             }
 
-
             const prev = prevClosings.get(accountId);
             const openingBalance = prev?.closingBalance ?? 0;
-
 
             let closingBalance: number;
             if (acc.nature === 'DEBIT') {
@@ -300,9 +290,7 @@ export class PeriodService {
             }
             closingBalance = parseFloat(closingBalance.toFixed(2));
 
-
             computed.set(accountId, { debit: totalDebit, credit: totalCredit, openingBalance, closingBalance });
-
 
             await tx.accountsClosing.create({
                 data: {
@@ -320,7 +308,6 @@ export class PeriodService {
 
             return computed.get(accountId)!;
         };
-
 
         for (const acc of accounts) {
             await compute(acc.id);
@@ -340,7 +327,6 @@ export class PeriodService {
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
             });
-
 
             if (periodId !== (await tx.periodHeader.findFirst({
                 where: { isClosed: true },
@@ -403,7 +389,6 @@ export class PeriodService {
                 data: { closingJournalId: null, isClosed: false, endDate: null },
             });
 
-
             await this.prisma.auditLog.create({
                 data: {
                     userId: userId,
@@ -465,7 +450,6 @@ export class PeriodService {
 
         if (!period) throw new NotFoundException('Period not found');
 
-
         const savings = await this.prisma.partnerSavingAccrual.findMany({
             where: { periodId },
             select: { partnerId: true, savingAmount: true }
@@ -473,7 +457,6 @@ export class PeriodService {
 
         const savingMap = new Map<number, number>();
         savings.forEach(s => savingMap.set(s.partnerId, Number(s.savingAmount)));
-
 
         const journals = period.journals.map(journal => {
             const totalDebit = journal.lines.reduce((sum, line) => sum + Number(line.debit), 0);
@@ -506,7 +489,6 @@ export class PeriodService {
         let partnerProfits = [] as any[];
         let totalPartnerProfit = 0;
         let companyProfit = 0;
-
 
         const expenses = await this.prisma.journalLine.aggregate({
             where: {
@@ -878,7 +860,6 @@ export class PeriodService {
     }
 
     async comparePeriods(periodId1: number, periodId2: number) {
-
         const getPeriodData = async (periodId: number) => {
             const period = await this.prisma.periodHeader.findUnique({
                 where: { id: periodId },
