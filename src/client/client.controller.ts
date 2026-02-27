@@ -180,6 +180,16 @@ export class ClientController {
     }
 
 
+    @Get(':id/statement/export')
+    @Permissions('clients', 'canView')
+    getClientStatementExport(
+        @Param('id', ParseIntPipe) id: number,
+        @Query('from') from?: string,
+        @Query('to') to?: string,
+    ) {
+        return this.clientService.getClientStatementForExport(id, { from, to });
+    }
+
     @Get(':id/statement/:page')
     @Permissions('clients', 'canView')
     getClientStatement(

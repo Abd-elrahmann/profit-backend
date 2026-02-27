@@ -587,12 +587,9 @@ export class ClientService {
         if (from) dateFilter.gte = new Date(from);
         if (to) dateFilter.lte = new Date(to);
 
-
         const journals = await this.prisma.journalHeader.findMany({
             where: {
-                OR: [
-                    { lines: { some: { clientId } } },
-                ],
+                OR: [{ lines: { some: { clientId } } }],
                 ...(Object.keys(dateFilter).length ? { createdAt: dateFilter } : {}),
             },
             include: {
@@ -601,7 +598,6 @@ export class ClientService {
             },
             orderBy: { createdAt: 'asc' },
         });
-
 
         let runningBalance = 0;
         const transactions = journals.map((j) => {
@@ -623,15 +619,172 @@ export class ClientService {
             };
         });
 
+        const repaymentsDateFilter: any = {};
+        if (from) repaymentsDateFilter.gte = new Date(from);
+        if (to) repaymentsDateFilter.lte = new Date(to);
+        const repaymentsWhere = {
+            clientId,
+            ...(Object.keys(repaymentsDateFilter).length ? { dueDate: repaymentsDateFilter } : {}),
+        };
 
-        const startIndex = (page - 1) * limit;
-        const paginatedTransactions = transactions.slice(startIndex, startIndex + limit);
+        const repayments = await this.prisma.repayment.findMany({
+            where: repaymentsWhere,
+            include: {
+                loan: { select: { id: true, code: true } },
+            },
+            orderBy: { dueDate: 'asc' },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        const allRepayments = await this.prisma.repayment.findMany({
+            where: repaymentsWhere,
+        });
+
+        const paidRepaymentsCount = allRepayments.filter(
+            (r) => r.status === 'PAID' || r.status === 'EARLY_PAID',
+        ).length;
+        const remainingRepaymentsCount = allRepayments.length - paidRepaymentsCount;
+        const totalPaidAmount = allRepayments.reduce((sum, r) => sum + (r.paidAmount || 0), 0);
+        const totalRemainingAmount = allRepayments.reduce((sum, r) => sum + (r.remaining || 0), 0);
+
+        const formattedRepayments = repayments.map((r) => ({
+            id: r.id,
+            count: r.count,
+            loanId: r.loanId,
+            loanCode: r.loan?.code,
+            dueDate: toSaudiDate(r.dueDate),
+            paymentDate: r.paymentDate ? toSaudiDate(r.paymentDate) : null,
+            amount: Number(r.amount.toFixed(2)),
+            principalAmount: Number(r.principalAmount.toFixed(2)),
+            interestAmount: Number(r.interestAmount.toFixed(2)),
+            paidAmount: Number(r.paidAmount.toFixed(2)),
+            remaining: Number((r.remaining || 0).toFixed(2)),
+            status: r.status,
+            discount: r.discount || 0,
+        }));
 
         return {
             currentPage: page,
             totalTransactions: transactions.length,
             client,
-            transactions: paginatedTransactions,
+            transactions,
+            repayments: formattedRepayments,
+            totalRepayments: allRepayments.length,
+            paidRepaymentsCount,
+            remainingRepaymentsCount,
+            totalPaidAmount,
+            totalRemainingAmount,
+            fromDate: from || null,
+            toDate: to || null,
+        };
+    }
+
+    async getClientStatementForExport(
+        clientId: number,
+        options: { from?: string; to?: string } = {},
+    ) {
+        const { from, to } = options;
+
+        const client = await this.prisma.client.findUnique({
+            where: { id: clientId },
+            select: {
+                id: true,
+                name: true,
+                nationalId: true,
+                balance: true,
+                debit: true,
+                credit: true,
+            },
+        });
+
+        if (!client) throw new NotFoundException('Client not found');
+
+        const toSaudiDate = (date: Date | string) =>
+            DateTime.fromJSDate(new Date(date))
+                .setZone('Asia/Riyadh')
+                .toFormat('yyyy-LL-dd HH:mm:ss');
+
+        const dateFilter: any = {};
+        if (from) dateFilter.gte = new Date(from);
+        if (to) dateFilter.lte = new Date(to);
+
+        const journals = await this.prisma.journalHeader.findMany({
+            where: {
+                OR: [{ lines: { some: { clientId } } }],
+                ...(Object.keys(dateFilter).length ? { createdAt: dateFilter } : {}),
+            },
+            include: {
+                lines: { where: { clientId }, select: { debit: true, credit: true } },
+            },
+            orderBy: { createdAt: 'asc' },
+        });
+
+        let runningBalance = 0;
+        const transactions = journals.map((j) => {
+            const totalDebit = j.lines.reduce((sum, l) => sum + l.debit, 0);
+            const totalCredit = j.lines.reduce((sum, l) => sum + l.credit, 0);
+            runningBalance += totalDebit - totalCredit;
+            return {
+                id: j.id,
+                reference: j.reference,
+                description: j.description,
+                date: toSaudiDate(j.createdAt),
+                type: j.type,
+                debit: totalDebit,
+                credit: totalCredit,
+                balance: runningBalance,
+            };
+        });
+
+        const repaymentsDateFilter: any = {};
+        if (from) repaymentsDateFilter.gte = new Date(from);
+        if (to) repaymentsDateFilter.lte = new Date(to);
+        const repaymentsWhere = {
+            clientId,
+            ...(Object.keys(repaymentsDateFilter).length ? { dueDate: repaymentsDateFilter } : {}),
+        };
+
+        const repayments = await this.prisma.repayment.findMany({
+            where: repaymentsWhere,
+            include: { loan: { select: { id: true, code: true } } },
+            orderBy: { dueDate: 'asc' },
+        });
+
+        const paidRepaymentsCount = repayments.filter(
+            (r) => r.status === 'PAID' || r.status === 'EARLY_PAID',
+        ).length;
+        const totalPaidAmount = repayments.reduce((sum, r) => sum + (r.paidAmount || 0), 0);
+        const totalRemainingAmount = repayments.reduce((sum, r) => sum + (r.remaining || 0), 0);
+
+        const formattedRepayments = repayments.map((r) => ({
+            id: r.id,
+            count: r.count,
+            loanId: r.loanId,
+            loanCode: r.loan?.code,
+            dueDate: toSaudiDate(r.dueDate),
+            paymentDate: r.paymentDate ? toSaudiDate(r.paymentDate) : null,
+            amount: Number(r.amount.toFixed(2)),
+            principalAmount: Number(r.principalAmount.toFixed(2)),
+            interestAmount: Number(r.interestAmount.toFixed(2)),
+            paidAmount: Number(r.paidAmount.toFixed(2)),
+            remaining: Number((r.remaining || 0).toFixed(2)),
+            status: r.status,
+            discount: r.discount || 0,
+        }));
+
+        return {
+            client,
+            totalTransactions: transactions.length,
+            transactions,
+            repayments: formattedRepayments,
+            totalRepayments: repayments.length,
+            paidRepaymentsCount,
+            remainingRepaymentsCount: repayments.length - paidRepaymentsCount,
+            totalPaidAmount,
+            totalRemainingAmount,
+            fromDate: from || null,
+            toDate: to || null,
         };
     }
 
