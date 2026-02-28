@@ -166,6 +166,7 @@ export class AuthService {
   async updateProfile(userId: number, data: { name?: string; phone?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
+    data = data ?? {};
     if (data.phone && data.phone !== user.phone) {
       const phoneExists = await this.prisma.user.findUnique({ where: { phone: data.phone } });
       if (phoneExists) throw new BadRequestException('رقم الهاتف مستخدم مسبقاً');
@@ -246,6 +247,43 @@ export class AuthService {
     return {
       message: 'تم رفع صورة البروفايل بنجاح',
       profileImage: publicPath,
+      user: updatedUser
+    };
+  }
+
+  async deleteProfileImage(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.profileImage) throw new BadRequestException('لا توجد صورة لحذفها');
+
+    const filename = user.profileImage.split('/').pop();
+    const filePath = path.join(process.cwd(), 'uploads', 'profiles', userId.toString(), filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { profileImage: null },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profileImage: true
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        screen: 'Auth',
+        action: 'UPDATE',
+        description: `المستخدم ${user.name} قام بحذف صورته الشخصية`,
+      },
+    });
+
+    return {
+      message: 'تم حذف صورة البروفايل بنجاح',
       user: updatedUser
     };
   }

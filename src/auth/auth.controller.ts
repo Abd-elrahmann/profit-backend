@@ -3,6 +3,7 @@ import {
   Post,
   Body,
   Get,
+  Delete,
   UseGuards,
   Req,
   Res,
@@ -11,9 +12,11 @@ import {
   UseInterceptors,
   UploadedFile,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import multer from 'multer';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './strategy/jwt.guard';
 
@@ -108,9 +111,16 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('upload-profile-image')
-  @UseInterceptors(FileInterceptor('profileImage'))
+  @UseInterceptors(FileInterceptor('profileImage', { storage: multer.memoryStorage() }))
   uploadProfileImage(@Req() req, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('يرجى اختيار صورة');
     return this.authService.uploadProfileImage(req.user.id, file);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('profile-image')
+  deleteProfileImage(@Req() req) {
+    return this.authService.deleteProfileImage(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
