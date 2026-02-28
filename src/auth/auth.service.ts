@@ -257,6 +257,7 @@ export class AuthService {
     if (!user.profileImage) throw new BadRequestException('لا توجد صورة لحذفها');
 
     const filename = user.profileImage.split('/').pop();
+    if (!filename) throw new BadRequestException('مسار الصورة غير صالح');
     const filePath = path.join(process.cwd(), 'uploads', 'profiles', userId.toString(), filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
