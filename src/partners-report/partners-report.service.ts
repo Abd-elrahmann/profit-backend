@@ -207,4 +207,176 @@ export class PartnersReportService {
             },
         };
     }
+
+    /**
+     * Get partner data formatted for export (PDF/Excel) - ensures all values are complete
+     */
+    async getPartnerExportData(id: number) {
+        const partner = await this.prisma.partner.findUnique({
+            where: { id },
+            include: {
+                AccountPayable: true,
+                AccountEquity: true,
+                AccountSaving: true,
+                AccountNewCapital: true,
+                PartnerNewCapital: true,
+                loans: {
+                    include: {
+                        LoanPartnerShare: true,
+                    },
+                },
+                transactions: true,
+                profitAccruals: {
+                    include: {
+                        loan: true,
+                        repayment: true,
+                        period: true,
+                    },
+                },
+                PartnerPeriodProfit: {
+                    include: {
+                        savings: true,
+                    },
+                },
+                ZakatAccrual: true,
+                ZakatPayment: true,
+                PartnerSavingAccrual: {
+                    include: {
+                        accrual: true,
+                    },
+                },
+            },
+        });
+
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        // Calculate new capital amount
+        const newCapitalAmount = partner.PartnerNewCapital?.reduce(
+            (sum, nc) => sum + nc.remaining,
+            0,
+        ) || 0;
+
+        // Get total new capital for percent calculation
+        const allNewCapital = await this.prisma.partnerNewCapital.aggregate({
+            _sum: { remaining: true },
+        });
+        const totalNewCapital = allNewCapital._sum.remaining || 0;
+        const newCapitalPercent =
+            totalNewCapital > 0 && partner.joinDistribute
+                ? Number(((newCapitalAmount / totalNewCapital) * 100).toFixed(2))
+                : 0;
+
+        // Account balances
+        const totalSaving = Number(partner.AccountSaving?.credit ?? 0);
+        const totalAvilableSaving = Number(partner.AccountSaving?.balance ?? 0);
+        const totalWithdrawal = Number(partner.AccountSaving?.debit ?? 0);
+
+        // Totals
+        const total = newCapitalAmount + partner.totalAmount;
+
+        // Loan stats
+        const totalLoans = partner.loans.length;
+        const activeLoans = partner.loans.filter((l) => l.status === 'ACTIVE').length;
+        const completedLoans = partner.loans.filter((l) => l.status === 'COMPLETED').length;
+        const totalLoanAmount = partner.loans.reduce(
+            (sum, loan) => sum + (loan.newAmount ?? loan.totalAmount ?? 0),
+            0,
+        );
+
+        // Transaction stats
+        const totalDeposits = partner.transactions
+            .filter((t) => t.type === 'DEPOSIT')
+            .reduce((s, t) => s + t.amount, 0);
+        const totalWithdrawals = partner.transactions
+            .filter((t) => t.type === 'WITHDRAWAL')
+            .reduce((s, t) => s + t.amount, 0);
+
+        // Profit stats
+        const totalCompanyCut = partner.profitAccruals.reduce((s, a) => s + a.companyCut, 0);
+        const totalPartnerProfit = partner.profitAccruals.reduce((s, a) => s + a.partnerFinal, 0);
+        const distributedProfit = partner.profitAccruals
+            .filter((a) => a.isDistributed)
+            .reduce((s, a) => s + a.partnerFinal, 0);
+        const undistributedProfit = totalPartnerProfit - distributedProfit;
+
+        // Zakat
+        const totalZakatAccrued =
+            Math.round(partner.ZakatAccrual.reduce((s, a) => s + a.amount, 0) * 100) / 100;
+        const totalZakatPaid =
+            Math.round(partner.ZakatPayment.reduce((s, p) => s + p.amount, 0) * 100) / 100;
+        const zakatBalance = totalZakatAccrued - totalZakatPaid;
+
+        // Format transactions for export
+        const transactions = partner.transactions.map((t) => ({
+            id: t.id,
+            type: t.type,
+            amount: t.amount,
+            date: t.date,
+            reference: t.reference,
+        }));
+
+        // Format loans for export
+        const loans = partner.loans.map((l) => ({
+            id: l.id,
+            code: l.code,
+            amount: l.amount,
+            totalAmount: l.totalAmount,
+            newAmount: l.newAmount,
+            status: l.status,
+        }));
+
+        return {
+            id: partner.id,
+            name: partner.name,
+            nationalId: partner.nationalId,
+            phone: partner.phone || '-',
+            email: partner.email || 'لا يوجد',
+            address: partner.address || '-',
+            city: partner.city || '-',
+            capitalAmount: partner.capitalAmount,
+            newCapitalAmount,
+            newCapitalPercent,
+            total,
+            totalAmount: partner.totalAmount,
+            totalProfit: partner.totalProfit,
+            upcomingProfit: partner.upcomingProfit,
+            totalSaving,
+            totalAvilableSaving,
+            totalWithdrawal,
+            orgProfitPercent: partner.orgProfitPercent,
+            partnerProfitPercent: 100 - partner.orgProfitPercent,
+            yearlyZakatRequired: partner.yearlyZakatRequired ?? 0,
+            yearlyZakatPaid: partner.yearlyZakatPaid ?? 0,
+            yearlyZakatBalance: partner.yearlyZakatBalance ?? 0,
+            createdAt: partner.createdAt,
+            isActive: partner.isActive,
+            transactions,
+            loans,
+            AccountEquity: partner.AccountEquity,
+            AccountPayable: partner.AccountPayable,
+            summary: {
+                profits: {
+                    totalCompanyCut,
+                    totalPartnerProfit,
+                    distributedProfit,
+                    undistributedProfit,
+                },
+                transactions: {
+                    totalDeposits,
+                    totalWithdrawals,
+                },
+                zakat: {
+                    totalZakatAccrued,
+                    totalZakatPaid,
+                    zakatBalance,
+                },
+                loans: {
+                    totalLoans,
+                    activeLoans,
+                    completedLoans,
+                    totalLoanAmount,
+                },
+            },
+        };
+    }
 }

@@ -156,7 +156,9 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        profileImage: user.profileImage
+        profileImage: user.profileImage,
+        roleId: user.roleId,
+        role: user.role ? { id: user.role.id, name: user.role.name } : null
       }
     };
   }
@@ -491,7 +493,9 @@ export class AuthService {
           id: user.id,
           name: user.name,
           email: user.email,
-          profileImage: user.profileImage
+          profileImage: user.profileImage,
+          roleId: user.roleId,
+          role: user.role ? { id: user.role.id, name: user.role.name } : null
         }
       };
 

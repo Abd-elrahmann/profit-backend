@@ -17,6 +17,12 @@ export class PartnersReportController {
         return this.service.getAllPartners(page, limit);
     }
 
+    @Get('partner/:id/export')
+    @Permissions('partners', 'canView')
+    getPartnerExportData(@Param('id', ParseIntPipe) id: number) {
+        return this.service.getPartnerExportData(id);
+    }
+
     @Get('partner/:id')
     @Permissions('partners', 'canView')
     getPartnerDetails(@Param('id', ParseIntPipe) id: number) {
