@@ -211,7 +211,7 @@ export class LoansConversionService {
             throw new BadRequestException('المبلغ المطلوب أكبر من المتبقي على السلفة');
         }
 
-        // Calculate how many months needed based on amountToTransfer / paymentAmount
+
         const principal = new Decimal(amountToTransfer);
         const paymentAmountDecimal = new Decimal(paymentAmount);
         const fullMonths = principal.div(paymentAmountDecimal).floor().toNumber();
@@ -219,7 +219,7 @@ export class LoansConversionService {
         const hasRemainder = lastPayment.gt(0);
         const months = hasRemainder ? fullMonths + 1 : fullMonths;
 
-        // Calculate total interest based on original loan's interest rate
+
         const interestRate = new Decimal(loan.interestRate || 0).div(100);
         const totalInterest = principal.mul(interestRate);
         const totalAmount = principal.plus(totalInterest);
@@ -228,7 +228,7 @@ export class LoansConversionService {
             throw new BadRequestException('مبلغ الدفعة لا يمكن أن يكون أكبر من إجمالي المبلغ');
         }
 
-        // Distribute amountToTransfer across original repayments
+
         let remainingToTransfer = amountToTransfer;
         const splits: {
             repaymentId: number;
@@ -257,7 +257,7 @@ export class LoansConversionService {
 
             const takenMap = new Map<number, { principal: number; interest: number }>();
 
-            // Extract principal and interest from source repayments
+
             for (const split of splits) {
                 const rep = await tx.repayment.findUnique({ where: { id: split.repaymentId } });
                 if (!rep) continue;
@@ -279,7 +279,7 @@ export class LoansConversionService {
                     interest: Number(interestTaken),
                 });
 
-                // Update original repayment
+
                 await tx.repayment.update({
                     where: { id: rep.id },
                     data: {
@@ -297,7 +297,7 @@ export class LoansConversionService {
             actualInterest = Number(new Decimal(actualInterest).toDecimalPlaces(2));
             const totalTransferred = Number(new Decimal(actualPrincipal).plus(actualInterest).toDecimalPlaces(2));
 
-            // Create new loan with split repayments
+
             const newLoan = await tx.loan.create({
                 data: {
                     code: `SPLIT-${loan.code}-${Date.now()}`,
@@ -339,7 +339,7 @@ export class LoansConversionService {
                 },
             });
 
-            // Create repayments for new loan with proper distribution
+
             let remainingPrincipal = new Decimal(actualPrincipal);
             let remainingInterest = new Decimal(actualInterest);
             const newRepayments: Prisma.RepaymentCreateManyInput[] = [];
@@ -393,7 +393,7 @@ export class LoansConversionService {
 
             await tx.repayment.createMany({ data: newRepayments });
 
-            // Update original loan totals
+
             await tx.loan.update({
                 where: { id: loanId },
                 data: {
@@ -403,7 +403,7 @@ export class LoansConversionService {
                 },
             });
 
-            // Create journal entry
+
             const receivable = await tx.account.findFirst({
                 where: { accountBasicType: 'LOANS_RECEIVABLE' },
             });
