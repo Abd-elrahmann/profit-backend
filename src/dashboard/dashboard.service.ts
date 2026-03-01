@@ -144,7 +144,7 @@ export class DashboardService {
 
         const remainingResult = Math.max((totalDebitResult || 0) - (totalPaidResult._sum.paidAmount || 0), 0);
 
-        // Calculate client count trend based on filter
+
         const currentPeriodClients = await this.prisma.client.count({
             where: { createdAt: { gte: currentStart, lte: currentEnd } },
         });
@@ -232,7 +232,7 @@ export class DashboardService {
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
 
-        // Calculate capital trend based on filter
+
         const currentPeriodCapital = await this.prisma.partner.aggregate({
             _sum: { capitalAmount: true },
             where: { createdAt: { gte: currentStart, lte: currentEnd } },
@@ -253,7 +253,7 @@ export class DashboardService {
             capitalTrend = 100;
         }
 
-        // Calculate profit trend based on filter
+
         const currentPeriodProfit = await this.prisma.partnerWithdrawal.aggregate({
             _sum: { monthlyAmount: true },
             where: { createdAt: { gte: currentStart, lte: currentEnd } },
@@ -344,7 +344,7 @@ export class DashboardService {
 
         const bankBalance = bankAccounts?.balance || 0;
 
-        // Calculate active loans trend based on filter
+
         const currentPeriodActiveLoans = await this.prisma.loan.count({
             where: { 
                 status: 'ACTIVE',
@@ -366,7 +366,7 @@ export class DashboardService {
             activeLoansTrend = 100;
         }
 
-        // Calculate total amount trend based on filter
+
         const currentPeriodAmounts = await this.prisma.loan.aggregate({
             _sum: { totalAmount: true, newAmount: true },
             where: { createdAt: { gte: currentStart, lte: currentEnd } },
@@ -416,11 +416,11 @@ export class DashboardService {
         console.log('Month range:', startDate, 'to', endDate);
         console.log('Month name:', now.format('MMMM'), 'Year:', now.year());
 
-        // Use the actual month/year from moment for the response
-        const currentMonth = now.month(); // 0-indexed
+
+        const currentMonth = now.month(); 
         const currentYear = now.year();
 
-        // Last month dates for comparison
+
         const lastMonthStart = now.clone().subtract(1, 'month').startOf('month').toDate();
         const lastMonthEnd = now.clone().subtract(1, 'month').endOf('month').toDate();
 
@@ -513,7 +513,7 @@ export class DashboardService {
             collectionPercentage = 100;
         }
 
-        // Calculate last month's collection percentage for comparison
+
         const lastMonthDueAgg = await this.prisma.repayment.aggregate({
             _sum: { principalAmount: true, interestAmount: true },
             where: {
@@ -953,9 +953,9 @@ export class DashboardService {
 
         const result: { month: string; value: number }[] = [];
         
-        // Determine the start and end months based on period
-        const startMonth = period === 'first' ? 0 : 6; // 0 for Jan, 6 for Jul
-        const endMonth = period === 'first' ? 5 : 11; // 5 for Jun, 11 for Dec
+
+        const startMonth = period === 'first' ? 0 : 6; 
+        const endMonth = period === 'first' ? 5 : 11; 
         
         for (let m = startMonth; m <= endMonth; m++) {
             const monthMoment = moment.tz([currentYear, m, 1], 'Asia/Riyadh');
@@ -963,7 +963,7 @@ export class DashboardService {
             const end = monthMoment.clone().endOf('month').toDate();
             const range = { gte: start, lte: end };
 
-            // Get all repayments that are due in this month
+
             const dueAgg = await this.prisma.repayment.aggregate({
                 _sum: { principalAmount: true, interestAmount: true },
                 where: {
@@ -976,7 +976,7 @@ export class DashboardService {
             const totalDue =
                 (dueAgg._sum.principalAmount || 0) + (dueAgg._sum.interestAmount || 0);
 
-            // Get paid amount for repayments that were DUE in this month (regardless of when they were paid)
+
             const paidAgg = await this.prisma.repayment.aggregate({
                 _sum: { paidAmount: true },
                 where: {
@@ -984,7 +984,7 @@ export class DashboardService {
                         { newDueDate: range },
                         { dueDate: range },
                     ],
-                    status: { in: ['PAID', 'COMPLETED'] }, // Only count actually paid repayments
+                    status: { in: ['PAID', 'COMPLETED'] },
                 },
             });
             const totalPaid = paidAgg._sum.paidAmount || 0;
@@ -1145,14 +1145,14 @@ export class DashboardService {
         const { startDate, endDate } = this.parseDateRange(filter, from, to);
         const dateFilter = startDate && endDate ? { gte: startDate, lte: endDate } : undefined;
 
-        // إجمالي مصاريف الفترة
+
         const totalAgg = await this.prisma.expenseRecord.aggregate({
             _sum: { amount: true },
             where: dateFilter ? { createdAt: dateFilter } : undefined,
         });
         const totalExpenses = totalAgg._sum.amount || 0;
 
-        // المصاريف المعلقة (قيد صحيفة DRAFT)
+
         const pendingExpenses = await this.prisma.expenseRecord.aggregate({
             _sum: { amount: true },
             where: {
@@ -1162,7 +1162,7 @@ export class DashboardService {
         });
         const pendingAmount = pendingExpenses._sum.amount || 0;
 
-        // توزيع حسب النوع
+
         const byType = await this.prisma.expenseRecord.groupBy({
             by: ['type'],
             _sum: { amount: true },
@@ -1175,12 +1175,12 @@ export class DashboardService {
             percentage: totalExpenses > 0 ? Math.round(((t._sum.amount || 0) / totalExpenses) * 100) : 0,
         }));
 
-        // أعلى فئة صرف
+
         const topCategory = categoryBreakdown.length > 0
             ? categoryBreakdown.reduce((a, b) => (a.amount > b.amount ? a : b))
             : null;
 
-        // اتجاه المصاريف الشهرية (أول 6 أشهر أو آخر 6 أشهر من السنة)
+
         const now = moment().tz("Asia/Riyadh");
         const currentYear = now.year();
         const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -1200,7 +1200,7 @@ export class DashboardService {
             });
         }
 
-        // اتجاه النسبة المئوية (مقارنة بالفترة السابقة)
+
         const { currentStart, currentEnd, previousStart, previousEnd, trendLabel } = this.getTrendPeriods(filter, from, to);
         const currentPeriodAgg = await this.prisma.expenseRecord.aggregate({
             _sum: { amount: true },
@@ -1242,7 +1242,7 @@ export class DashboardService {
             pendingTrend = 100;
         }
 
-        // آخر المصاريف المسجلة
+
         const recentExpenses = await this.prisma.expenseRecord.findMany({
             where: dateFilter ? { createdAt: dateFilter } : undefined,
             include: {

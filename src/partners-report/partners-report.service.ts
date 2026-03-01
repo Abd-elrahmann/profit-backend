@@ -208,9 +208,6 @@ export class PartnersReportService {
         };
     }
 
-    /**
-     * Get partner data formatted for export (PDF/Excel) - ensures all values are complete
-     */
     async getPartnerExportData(id: number) {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
@@ -250,13 +247,13 @@ export class PartnersReportService {
 
         if (!partner) throw new NotFoundException('Partner not found');
 
-        // Calculate new capital amount
+
         const newCapitalAmount = partner.PartnerNewCapital?.reduce(
             (sum, nc) => sum + nc.remaining,
             0,
         ) || 0;
 
-        // Get total new capital for percent calculation
+
         const allNewCapital = await this.prisma.partnerNewCapital.aggregate({
             _sum: { remaining: true },
         });
@@ -266,15 +263,15 @@ export class PartnersReportService {
                 ? Number(((newCapitalAmount / totalNewCapital) * 100).toFixed(2))
                 : 0;
 
-        // Account balances
+
         const totalSaving = Number(partner.AccountSaving?.credit ?? 0);
         const totalAvilableSaving = Number(partner.AccountSaving?.balance ?? 0);
         const totalWithdrawal = Number(partner.AccountSaving?.debit ?? 0);
 
-        // Totals
+
         const total = newCapitalAmount + partner.totalAmount;
 
-        // Loan stats
+
         const totalLoans = partner.loans.length;
         const activeLoans = partner.loans.filter((l) => l.status === 'ACTIVE').length;
         const completedLoans = partner.loans.filter((l) => l.status === 'COMPLETED').length;
@@ -283,7 +280,7 @@ export class PartnersReportService {
             0,
         );
 
-        // Transaction stats
+
         const totalDeposits = partner.transactions
             .filter((t) => t.type === 'DEPOSIT')
             .reduce((s, t) => s + t.amount, 0);
@@ -291,7 +288,7 @@ export class PartnersReportService {
             .filter((t) => t.type === 'WITHDRAWAL')
             .reduce((s, t) => s + t.amount, 0);
 
-        // Profit stats
+
         const totalCompanyCut = partner.profitAccruals.reduce((s, a) => s + a.companyCut, 0);
         const totalPartnerProfit = partner.profitAccruals.reduce((s, a) => s + a.partnerFinal, 0);
         const distributedProfit = partner.profitAccruals
@@ -299,14 +296,14 @@ export class PartnersReportService {
             .reduce((s, a) => s + a.partnerFinal, 0);
         const undistributedProfit = totalPartnerProfit - distributedProfit;
 
-        // Zakat
+
         const totalZakatAccrued =
             Math.round(partner.ZakatAccrual.reduce((s, a) => s + a.amount, 0) * 100) / 100;
         const totalZakatPaid =
             Math.round(partner.ZakatPayment.reduce((s, p) => s + p.amount, 0) * 100) / 100;
         const zakatBalance = totalZakatAccrued - totalZakatPaid;
 
-        // Format transactions for export
+
         const transactions = partner.transactions.map((t) => ({
             id: t.id,
             type: t.type,
@@ -315,7 +312,7 @@ export class PartnersReportService {
             reference: t.reference,
         }));
 
-        // Format loans for export
+
         const loans = partner.loans.map((l) => ({
             id: l.id,
             code: l.code,

@@ -370,7 +370,7 @@ export class IncomeStatementService {
 
         const netProfit = totalRevenue - totalExpenses;
 
-        // Revenue line items for income statement table
+
         const revenueLineItems = [
             { label: 'فوائد السلف المحصلة', amount: Number((totalRevenueGeneral + totalRevenueNewCapital).toFixed(2)) },
         ];
@@ -379,7 +379,7 @@ export class IncomeStatementService {
             revenueLineItems.push({ label: 'إيرادات أخرى', amount: Number(otherRevenue.toFixed(2)) });
         }
 
-        // Expense breakdown by raw type for donut chart (مصروف بنزين، مصروفات انترنت، مصروفات كهرباء، etc.)
+
         const expenseByTypeMap = new Map<string, number>();
         for (const e of expenseRecords) {
             const rawType = e.type || 'أخرى';
@@ -391,7 +391,7 @@ export class IncomeStatementService {
             percentage: totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0,
         })).sort((a, b) => b.amount - a.amount);
 
-        // Monthly breakdown for bar chart - use same filters as main revenue (periodId + date intersection)
+
         const fromDt = DateTime.fromJSDate(from).setZone('Asia/Riyadh');
         const toDt = DateTime.fromJSDate(to).setZone('Asia/Riyadh');
         const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -400,7 +400,7 @@ export class IncomeStatementService {
         while (cursor <= toDt) {
             const monthStart = cursor.startOf('month').toUTC().toJSDate();
             const monthEnd = cursor.endOf('month').toUTC().toJSDate();
-            // Intersect month range with period range - only count data within the selected period
+
             const effectiveFrom = from > monthStart ? from : monthStart;
             const effectiveTo = to < monthEnd ? to : monthEnd;
             const dateFilter = { gte: effectiveFrom, lte: effectiveTo };
