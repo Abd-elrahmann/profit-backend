@@ -57,7 +57,8 @@ export class RepaymentService {
         loan: any,
         realizedInterest: number,
         partnerShares: any[],
-        repaymentId: number
+        repaymentId: number,
+        alreadyAccumulatedInterest?: number
     ) {
         const period = await tx.periodHeader.findFirst({
             where: { endDate: null },
@@ -90,54 +91,123 @@ export class RepaymentService {
 
         if (totalOriginalInterest === 0) return;
 
+        const bankerRound = (value: number, decimals: number = 2): number => {
+            const factor = Math.pow(10, decimals);
+            const shifted = value * factor;
+            const floor = Math.floor(shifted);
+            const remainder = shifted - floor;
+            if (remainder < 0.5) return floor / factor;
+            if (remainder > 0.5) return (floor + 1) / factor;
+            return (floor % 2 === 0 ? floor : floor + 1) / factor;
+        };
+
+        let totalInterestBeforeThisRepayment: number;
+
+        if (alreadyAccumulatedInterest !== undefined) {
+            totalInterestBeforeThisRepayment = alreadyAccumulatedInterest;
+        } else {
+            totalInterestBeforeThisRepayment = await tx.partnerShareAccrual.aggregate({
+                where: { loanId: loan.id },
+                _sum: { rawShare: true },
+            }).then((r: any) => Number(r._sum.rawShare || 0));
+        }
+
+        const totalInterestIncludingThis = Number(
+            (totalInterestBeforeThisRepayment + realizedInterest).toFixed(2)
+        );
+
         for (const source of sources) {
             if (source.shares.length === 0 || source.totalInterest <= 0) continue;
 
             const sourceRatio = source.totalInterest / totalOriginalInterest;
-            const sourceInterest = realizedInterest * sourceRatio;
+
+            const sourceInterestThisRepayment = Number((realizedInterest * sourceRatio).toFixed(2));
+
+            const sourceTotalSoFar = Number((totalInterestIncludingThis * sourceRatio).toFixed(2));
 
             const accruals = source.shares.map(s => {
                 const sharePercent = source.type === 'GENERAL'
                     ? Number(s.sharePercent || 0)
                     : Number(s.percent || 0);
-                const orgPercent = Number(s.orgProfitPercent || 0);
-
                 return {
                     partnerId: s.partnerId,
-                    orgPercent,
-                    rawShare: sourceInterest * (sharePercent / 100),
+                    orgPercent: Number(s.orgProfitPercent || 0),
+                    sharePercent,
                 };
             });
 
-            const exactTotalRaw = accruals.reduce((s, r) => s + r.rawShare, 0);
-            const rawShareRounded = accruals.map(r => Number(r.rawShare.toFixed(2)));
-            const rawShareSum = Number(rawShareRounded.reduce((a, b) => a + b, 0).toFixed(2));
-            const rawShareDiff = Number((exactTotalRaw - rawShareSum).toFixed(2));
-            const rawShareArr = [...rawShareRounded];
-            if (rawShareDiff !== 0 && rawShareArr.length > 0) {
-                const maxIndex = accruals.map(r => r.rawShare).indexOf(Math.max(...accruals.map(r => r.rawShare)));
-                rawShareArr[maxIndex] = Number((rawShareArr[maxIndex] + rawShareDiff).toFixed(2));
-            }
-
-            const bankerRound = (value: number, decimals: number = 2): number => {
-                const factor = Math.pow(10, decimals);
-                const shifted = value * factor;
-                const floor = Math.floor(shifted);
-                const remainder = shifted - floor;
-
-                if (remainder < 0.5) return floor / factor;
-                if (remainder > 0.5) return (floor + 1) / factor;
-                return (floor % 2 === 0 ? floor : floor + 1) / factor;
-            };
-
-            const companyCutArr = rawShareArr.map((raw, i) => {
-                const value = raw * (accruals[i].orgPercent / 100);
-                return bankerRound(value, 2);
+            const previousAccruals = await tx.partnerShareAccrual.groupBy({
+                by: ['partnerId'],
+                where: { loanId: loan.id, source: source.type },
+                _sum: { rawShare: true, companyCut: true, partnerFinal: true },
             });
 
-            const partnerFinalArr = rawShareArr.map((raw, i) =>
+            const previousRawMap = new Map<number, number>(
+                previousAccruals.map((p: any) => [p.partnerId, Number(p._sum.rawShare || 0)])
+            );
+            const previousCompanyCutMap = new Map<number, number>(
+                previousAccruals.map((p: any) => [p.partnerId, Number(p._sum.companyCut || 0)])
+            );
+            const previousPartnerFinalMap = new Map<number, number>(
+                previousAccruals.map((p: any) => [p.partnerId, Number(p._sum.partnerFinal || 0)])
+            );
+
+            const idealRawCumulative: number[] = [];
+            let idealRawSum = 0;
+            for (let i = 0; i < accruals.length; i++) {
+                if (i === accruals.length - 1) {
+                    idealRawCumulative.push(Number((sourceTotalSoFar - idealRawSum).toFixed(2)));
+                } else {
+                    const v = Number((sourceTotalSoFar * (accruals[i].sharePercent / 100)).toFixed(2));
+                    idealRawCumulative.push(v);
+                    idealRawSum += v;
+                }
+            }
+
+            const rawShareArr: number[] = idealRawCumulative.map((ideal, i) =>
+                Number((ideal - (previousRawMap.get(accruals[i].partnerId) || 0)).toFixed(2))
+            );
+
+            const rawSum = Number(rawShareArr.reduce((a, b) => a + b, 0).toFixed(2));
+            const rawDiff = Number((sourceInterestThisRepayment - rawSum).toFixed(2));
+            if (rawDiff !== 0) {
+                const idx = accruals
+                    .map((a, i) => ({
+                        i,
+                        underpaid: idealRawCumulative[i] - (previousRawMap.get(a.partnerId) || 0) - rawShareArr[i],
+                    }))
+                    .sort((a, b) => b.underpaid - a.underpaid)[0].i;
+                rawShareArr[idx] = Number((rawShareArr[idx] + rawDiff).toFixed(2));
+            }
+
+            const idealCompanyCutCumulative: number[] = idealRawCumulative.map((ideal, i) =>
+                bankerRound(ideal * (accruals[i].orgPercent / 100))
+            );
+
+            const companyCutArr: number[] = idealCompanyCutCumulative.map((ideal, i) =>
+                Number((ideal - (previousCompanyCutMap.get(accruals[i].partnerId) || 0)).toFixed(2))
+            );
+
+            const partnerFinalArr: number[] = rawShareArr.map((raw, i) =>
                 Number((raw - companyCutArr[i]).toFixed(2))
             );
+
+            const expectedNet = Number(
+                (sourceInterestThisRepayment - companyCutArr.reduce((a, b) => a + b, 0)).toFixed(2)
+            );
+            const netSum = Number(partnerFinalArr.reduce((a, b) => a + b, 0).toFixed(2));
+            const netDiff = Number((expectedNet - netSum).toFixed(2));
+            if (netDiff !== 0) {
+                const idx = accruals
+                    .map((a, i) => ({
+                        i,
+                        underpaid: (idealRawCumulative[i] - idealCompanyCutCumulative[i])
+                            - (previousPartnerFinalMap.get(a.partnerId) || 0)
+                            - partnerFinalArr[i],
+                    }))
+                    .sort((a, b) => b.underpaid - a.underpaid)[0].i;
+                partnerFinalArr[idx] = Number((partnerFinalArr[idx] + netDiff).toFixed(2));
+            }
 
             for (let i = 0; i < accruals.length; i++) {
                 await tx.partnerShareAccrual.create({
@@ -730,17 +800,12 @@ export class RepaymentService {
 
         const user = await this.prisma.user.findUnique({ where: { id: currentUserId } });
 
-        const paidRepayments = loan.repayments.filter(
-            r => r.status === 'PAID'
-        );
-
         const unpaidRepayments = loan.repayments.filter(
             r => r.status !== 'PAID' && r.status !== 'EARLY_PAID'
         );
 
         if (unpaidRepayments.length === 0)
             throw new BadRequestException('لا توجد دفعات للسداد');
-
 
         let totalRemainingPrincipal = 0;
         let totalRemainingInterest = 0;
@@ -765,9 +830,16 @@ export class RepaymentService {
             );
         }
 
-        let finalPayment = totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount);
-        let finalremainingInterest = totalRemainingInterest;
-        let finalremainingPrincipal = totalRemainingPrincipal;
+        const previouslyDistributedInterest = await this.prisma.partnerShareAccrual.aggregate({
+            where: { loanId: loan.id },
+            _sum: { rawShare: true },
+        }).then((r) => Number(r._sum.rawShare || 0));
+
+        const roundToTwo = (num) => Math.round(num * 100) / 100;
+
+        let finalPayment = roundToTwo(totalRemainingPrincipal + (totalRemainingInterest - earlyPaymentDiscount));
+        let finalremainingInterest = roundToTwo(totalRemainingInterest);
+        let finalremainingPrincipal = roundToTwo(totalRemainingPrincipal);
 
         const loansReceivable = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOANS_RECEIVABLE' } });
         const loanIncome = await this.prisma.account.findFirst({ where: { accountBasicType: 'LOAN_INCOME' } });
@@ -778,12 +850,6 @@ export class RepaymentService {
         const creditAccount = await this.prisma.account.findFirstOrThrow({
             where: { accountBasicType: 'BANK' },
         });
-
-        const roundToTwo = (num) => Math.round(num * 100) / 100;
-
-        finalPayment = roundToTwo(finalPayment);
-        finalremainingInterest = roundToTwo(finalremainingInterest);
-        finalremainingPrincipal = roundToTwo(finalremainingPrincipal);
 
         return await this.prisma.$transaction(async (tx) => {
 
@@ -797,7 +863,7 @@ export class RepaymentService {
                     lines: [
                         { accountId: creditAccount.id, debit: finalPayment, credit: 0, description: `استلام سداد مبكر من العميل ${loan.client.name}` },
                         { accountId: loansReceivable.id, debit: 0, credit: finalremainingPrincipal, description: 'سداد أصل السلفة بالكامل', clientId: loan.client.id },
-                        { accountId: loanIncome.id, debit: 0, credit: finalremainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر', clientId: loan.client.id, },
+                        { accountId: loanIncome.id, debit: 0, credit: finalremainingInterest - earlyPaymentDiscount, description: 'دخل الفائدة بعد خصم السداد المبكر', clientId: loan.client.id },
                         { accountId: loansReceivable.id, debit: earlyPaymentDiscount, credit: 0, description: 'خصم' },
                         { accountId: loansReceivable.id, debit: 0, credit: earlyPaymentDiscount, description: 'خصم', clientId: loan.client.id },
                     ],
@@ -821,7 +887,6 @@ export class RepaymentService {
                 const paidInterest = Math.max(alreadyPaid - rep.principalAmount, 0);
                 const remainingInterest = rep.amount - rep.principalAmount - paidInterest;
 
-
                 let interestDiscount = totalRemainingInterest > 0
                     ? parseFloat((remainingInterest * discountRatio).toFixed(2))
                     : 0;
@@ -830,7 +895,7 @@ export class RepaymentService {
                     : 0;
 
                 if (index === unpaidRepayments.length - 1) {
-                    interestPortion = parseFloat(((totalRemainingInterest) - earlyPaymentDiscount - interestDistributed).toFixed(2));
+                    interestPortion = parseFloat((totalRemainingInterest - earlyPaymentDiscount - interestDistributed).toFixed(2));
                     interestDiscount = remainingInterest - interestPortion;
                 } else {
                     interestDistributed += interestPortion;
@@ -865,11 +930,18 @@ export class RepaymentService {
                 include: { partner: { select: { orgProfitPercent: true } } },
             });
 
-
             const partnerShares = [...generalShares, ...newCapitalShares];
 
-            const realizedInterest = finalremainingInterest - earlyPaymentDiscount;
-            await this.updatePartnerShareAccruals(tx, loan, realizedInterest, partnerShares, unpaidRepayments[0].id,);
+            const realizedInterest = roundToTwo(finalremainingInterest - earlyPaymentDiscount);
+
+            await this.updatePartnerShareAccruals(
+                tx,
+                loan,
+                realizedInterest,
+                partnerShares,
+                unpaidRepayments[0].id,
+                previouslyDistributedInterest,
+            );
 
             await tx.loan.update({
                 where: { id: loan.id },
@@ -879,7 +951,6 @@ export class RepaymentService {
                     settlementJournalId: journal.journal.id,
                 },
             });
-
 
             await tx.auditLog.create({
                 data: {
