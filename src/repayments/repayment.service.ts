@@ -4,6 +4,7 @@ import { RepaymentDto } from './dto/repayment.dto';
 import { PaymentStatus, JournalSourceType, TemplateType, LoanStatus, LoanFundSource } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
 import { NotificationService } from '../notification/notification.service';
+import { ClientStatusService } from '../client/client-status.service';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -13,52 +14,8 @@ export class RepaymentService {
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
         private readonly notificationService: NotificationService,
-    ) { }
-
-    private async updateClientStatus(clientId: number) {
-        const loans = await this.prisma.loan.findMany({
-            where: {
-                clientId,
-                status: LoanStatus.ACTIVE,
-            },
-            include: {
-                repayments: true,
-            },
-        });
-
-        if (loans.length === 0) {
-            await this.prisma.client.update({
-                where: { id: clientId },
-                data: { status: 'منتهي' as any },
-            });
-            return;
-        }
-
-        const allRepayments = loans.flatMap(l => l.repayments);
-        const now = new Date();
-
-        const hasOverdue = allRepayments.some(r =>
-            r.status === 'OVERDUE' ||
-            (r.status === 'PENDING' && r.dueDate < now)
-        );
-
-        const allPaid = allRepayments.every(r =>
-            r.status === 'PAID' || r.status === 'EARLY_PAID'
-        );
-
-        let newStatus: any = 'نشط';
-
-        if (hasOverdue) {
-            newStatus = 'متعثر';
-        } else if (allPaid) {
-            newStatus = 'منتهي';
-        }
-
-        await this.prisma.client.update({
-            where: { id: clientId },
-            data: { status: newStatus },
-        });
-    }
+        private readonly clientStatusService: ClientStatusService,
+    ) {}
 
     private async updatePartnerShareAccruals(
         tx: any,
@@ -447,7 +404,7 @@ export class RepaymentService {
 
         }, { timeout: 20000 });
 
-        await this.updateClientStatus(loan.clientId);
+        await this.clientStatusService.updateClientStatus(loan.clientId);
 
         return {
             message: 'تم الموافقة على السداد بنجاح',
@@ -563,7 +520,7 @@ export class RepaymentService {
                 console.error('❌ Failed to send Telegram notification:', error.message);
             }
 
-            await this.updateClientStatus(loan.clientId);
+            await this.clientStatusService.updateClientStatus(loan.clientId);
 
             await tx.auditLog.create({
                 data: {
@@ -611,7 +568,7 @@ export class RepaymentService {
             },
         });
 
-        await this.updateClientStatus(loan.clientId);
+        await this.clientStatusService.updateClientStatus(loan.clientId);
 
 
         await this.prisma.auditLog.create({
@@ -768,7 +725,7 @@ export class RepaymentService {
                 },
             });
 
-            await this.updateClientStatus(loan.clientId);
+            await this.clientStatusService.updateClientStatus(loan.clientId);
 
 
             await tx.auditLog.create({
@@ -926,7 +883,7 @@ export class RepaymentService {
                 });
             }
 
-            await this.updateClientStatus(loan.clientId);
+            await this.clientStatusService.updateClientStatus(loan.clientId);
 
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },

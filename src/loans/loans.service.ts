@@ -4,6 +4,7 @@ import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
 import { JournalSourceType, LoanFundSource, LoanStatus, LoanType, Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { JournalService } from '../journal/journal.service';
+import { ClientStatusService } from '../client/client-status.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DateTime } from 'luxon';
@@ -17,52 +18,8 @@ export class LoansService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
-    ) { }
-
-    private async updateClientStatus(clientId: number) {
-        const loans = await this.prisma.loan.findMany({
-            where: {
-                clientId,
-                status: LoanStatus.ACTIVE,
-            },
-            include: {
-                repayments: true,
-            },
-        });
-
-        if (loans.length === 0) {
-            await this.prisma.client.update({
-                where: { id: clientId },
-                data: { status: 'منتهي' as any },
-            });
-            return;
-        }
-
-        const allRepayments = loans.flatMap(l => l.repayments);
-        const now = new Date();
-
-        const hasOverdue = allRepayments.some(r =>
-            r.status === 'OVERDUE' ||
-            (r.status === 'PENDING' && r.dueDate < now)
-        );
-
-        const allPaid = allRepayments.every(r =>
-            r.status === 'PAID' || r.status === 'EARLY_PAID'
-        );
-
-        let newStatus: any = 'نشط';
-
-        if (hasOverdue) {
-            newStatus = 'متعثر';
-        } else if (allPaid) {
-            newStatus = 'منتهي';
-        }
-
-        await this.prisma.client.update({
-            where: { id: clientId },
-            data: { status: newStatus },
-        });
-    }
+        private readonly clientStatusService: ClientStatusService,
+    ) {}
 
     private toHijri(date: Date) {
         return moment(date)
@@ -874,7 +831,7 @@ export class LoansService {
         });
 
 
-        await this.updateClientStatus(loan.clientId);
+        await this.clientStatusService.updateClientStatus(loan.clientId);
 
         await this.prisma.auditLog.create({
             data: {
@@ -1020,7 +977,7 @@ export class LoansService {
                 },
             });
 
-            await this.updateClientStatus(loan.clientId);
+            await this.clientStatusService.updateClientStatus(loan.clientId);
 
             await this.handleNewCapitalOnDeactivation(tx, id);
 

@@ -6,10 +6,12 @@ import { NotificationScheduler } from './notification.scheduler';
 import { WhatsappService } from './api/whatsapp.service';
 import { TelegramService } from './api/telegram.service';
 import { TelegramController } from './api/telegram.controller';
+import { ClientModule } from '../client/client.module';
 
 @Module({
-  controllers: [NotificationController , TelegramController],
-  providers: [NotificationService, PrismaService, NotificationScheduler , WhatsappService, TelegramService],
-  exports: [NotificationService , WhatsappService, TelegramService],
+  imports: [ClientModule],
+  controllers: [NotificationController, TelegramController],
+  providers: [NotificationService, PrismaService, NotificationScheduler, WhatsappService, TelegramService],
+  exports: [NotificationService, WhatsappService, TelegramService],
 })
-export class NotificationModule { }
+export class NotificationModule {}

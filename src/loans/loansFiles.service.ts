@@ -1,7 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { LoanStatus } from '@prisma/client';
 import { JournalService } from '../journal/journal.service';
+import { ClientStatusService } from '../client/client-status.service';
+import { LoanStatus } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -13,52 +14,8 @@ export class loansFilesService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
-    ) { }
-
-    private async updateClientStatus(clientId: number) {
-        const loans = await this.prisma.loan.findMany({
-            where: {
-                clientId,
-                status: LoanStatus.ACTIVE,
-            },
-            include: {
-                repayments: true,
-            },
-        });
-
-        if (loans.length === 0) {
-            await this.prisma.client.update({
-                where: { id: clientId },
-                data: { status: 'منتهي' as any },
-            });
-            return;
-        }
-
-        const allRepayments = loans.flatMap(l => l.repayments);
-        const now = new Date();
-
-        const hasOverdue = allRepayments.some(r =>
-            r.status === 'OVERDUE' ||
-            (r.status === 'PENDING' && r.dueDate < now)
-        );
-
-        const allPaid = allRepayments.every(r =>
-            r.status === 'PAID' || r.status === 'EARLY_PAID'
-        );
-
-        let newStatus: any = 'نشط';
-
-        if (hasOverdue) {
-            newStatus = 'متعثر';
-        } else if (allPaid) {
-            newStatus = 'منتهي';
-        }
-
-        await this.prisma.client.update({
-            where: { id: clientId },
-            data: { status: newStatus },
-        });
-    }
+        private readonly clientStatusService: ClientStatusService,
+    ) {}
 
     async uploadDebtAcknowledgmentFile(currentUser: number, loanId: number, file: Express.Multer.File, contractNumbers?: { debtAcknowledgmentNumber?: string }) {
         if (!file) throw new BadRequestException('No file uploaded');
@@ -201,7 +158,7 @@ export class loansFilesService {
             },
         });
 
-        await this.updateClientStatus(loan.clientId);
+        await this.clientStatusService.updateClientStatus(loan.clientId);
 
         await this.prisma.auditLog.create({
             data: {

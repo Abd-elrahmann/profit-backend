@@ -38,7 +38,8 @@ export class JournalService {
 
         const totalDebit = dto.lines.reduce((sum, l) => sum + (l.debit || 0), 0);
         const totalCredit = dto.lines.reduce((sum, l) => sum + (l.credit || 0), 0);
-        if (totalDebit !== totalCredit) {
+        const tolerance = 0.01;
+        if (Math.abs(totalDebit - totalCredit) > tolerance) {
             throw new BadRequestException('القيد غير متوازن: مجموع المدين لا يساوي مجموع الدائن');
         }
 

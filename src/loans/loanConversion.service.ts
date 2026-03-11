@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LoanStatus, LoanType, Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { JournalService } from '../journal/journal.service';
+import { ClientStatusService } from '../client/client-status.service';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -11,52 +12,8 @@ export class LoansConversionService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
-    ) { }
-
-    private async updateClientStatus(clientId: number) {
-        const loans = await this.prisma.loan.findMany({
-            where: {
-                clientId,
-                status: LoanStatus.ACTIVE,
-            },
-            include: {
-                repayments: true,
-            },
-        });
-
-        if (loans.length === 0) {
-            await this.prisma.client.update({
-                where: { id: clientId },
-                data: { status: 'منتهي' as any },
-            });
-            return;
-        }
-
-        const allRepayments = loans.flatMap(l => l.repayments);
-        const now = new Date();
-
-        const hasOverdue = allRepayments.some(r =>
-            r.status === 'OVERDUE' ||
-            (r.status === 'PENDING' && r.dueDate < now)
-        );
-
-        const allPaid = allRepayments.every(r =>
-            r.status === 'PAID' || r.status === 'EARLY_PAID'
-        );
-
-        let newStatus: any = 'نشط';
-
-        if (hasOverdue) {
-            newStatus = 'متعثر';
-        } else if (allPaid) {
-            newStatus = 'منتهي';
-        }
-
-        await this.prisma.client.update({
-            where: { id: clientId },
-            data: { status: newStatus },
-        });
-    }
+        private readonly clientStatusService: ClientStatusService,
+    ) {}
 
     async convertLoanClient(clientAId: number, clientBId: number, loanId: number, kafeelId: number | null, userId: number) {
         const clientA = await this.prisma.client.findUnique({ where: { id: clientAId } });
@@ -147,8 +104,8 @@ export class LoansConversionService {
         },);
 
 
-        await this.updateClientStatus(clientAId);
-        await this.updateClientStatus(clientBId);
+        await this.clientStatusService.updateClientStatus(clientAId);
+        await this.clientStatusService.updateClientStatus(clientBId);
 
         return {
             message: 'تم تحويل السلفة بنجاح',
@@ -432,8 +389,8 @@ export class LoansConversionService {
             return { newLoanId: newLoan.id };
         });
 
-        await this.updateClientStatus(fromClientId);
-        await this.updateClientStatus(toClientId);
+        await this.clientStatusService.updateClientStatus(fromClientId);
+        await this.clientStatusService.updateClientStatus(toClientId);
 
         return {
             message: 'تم تحويل جزء من السلفة بنجاح',

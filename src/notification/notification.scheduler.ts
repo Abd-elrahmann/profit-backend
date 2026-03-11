@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from './notification.service';
+import { ClientStatusService } from '../client/client-status.service';
 import { PaymentStatus, TemplateType, NotificationType, LoanStatus } from '@prisma/client';
 
 @Injectable()
@@ -11,7 +12,8 @@ export class NotificationScheduler {
     constructor(
         private readonly prisma: PrismaService,
         private readonly notificationService: NotificationService,
-    ) { }
+        private readonly clientStatusService: ClientStatusService,
+    ) {}
 
     private async createScheduledTelegramNotification(
         repaymentId: number,
@@ -48,71 +50,7 @@ export class NotificationScheduler {
     }
 
     private async updateClientStatus(clientId: number) {
-        const loans = await this.prisma.loan.findMany({
-            where: { clientId },
-            include: { repayments: true },
-        });
-
-        if (loans.length === 0) {
-            await this.prisma.client.update({
-                where: { id: clientId },
-                data: { status: 'منتهي' as any },
-            });
-            return;
-        }
-
-        const allRepayments = loans.flatMap(l => l.repayments);
-        const nowUtc = new Date();
-
-        const fullyPaidStatuses = ['PAID', 'EARLY_PAID', 'COMPLETED', 'PARTIAL_PAID'];
-
-        const unpaidRepayments = allRepayments.filter(r => !fullyPaidStatuses.includes(r.status));
-        const overdueRepayments = unpaidRepayments.filter(r => r.dueDate < nowUtc);
-
-        const hasSixOverdueRepayments = overdueRepayments.length >= 6;
-
-        const overdue = overdueRepayments.length > 0;
-
-        const paidRepayments = allRepayments.filter(
-            r => fullyPaidStatuses.includes(r.status) && r.paymentDate
-        );
-
-        // let hasSixMonthsDelay = false;
-
-        // if (paidRepayments.length > 0) {
-        //     const lastPaidDate = paidRepayments
-        //         .map(r => r.paymentDate!)
-        //         .sort((a, b) => b.getTime() - a.getTime())[0];
-
-        //     const sixMonthsAfterLastPaid = new Date(lastPaidDate);
-        //     sixMonthsAfterLastPaid.setUTCMonth(sixMonthsAfterLastPaid.getUTCMonth() + 6);
-
-        //     hasSixMonthsDelay = nowUtc >= sixMonthsAfterLastPaid;
-
-        // } else if (unpaidRepayments.length > 0) {
-        //     const firstDueDate = unpaidRepayments
-        //         .map(r => r.dueDate)
-        //         .sort((a, b) => a.getTime() - b.getTime())[0];
-
-        //     const sixMonthsAfterFirstDue = new Date(firstDueDate);
-        //     sixMonthsAfterFirstDue.setUTCMonth(sixMonthsAfterFirstDue.getUTCMonth() + 6);
-
-        //     hasSixMonthsDelay = nowUtc >= sixMonthsAfterFirstDue;
-        // }
-
-        let newStatus: any = 'نشط';
-
-        // if (hasSixOverdueRepayments || hasSixMonthsDelay) {
-        if (overdue) {
-            newStatus = 'متعثر';
-        } else if (unpaidRepayments.length === 0) {
-            newStatus = 'منتهي';
-        }
-
-        await this.prisma.client.update({
-            where: { id: clientId },
-            data: { status: newStatus },
-        });
+        await this.clientStatusService.updateClientStatus(clientId);
     }
 
 
@@ -186,14 +124,18 @@ export class NotificationScheduler {
         });
 
         for (const repayment of dueToday) {
+            try {
+                const loan = repayment.loan;
+                if (!loan) {
+                    this.logger.warn(`Loan not found for repayment ${repayment.id}`);
+                    continue;
+                }
+                if (loan.status === LoanStatus.PENDING) {
+                    this.logger.warn(`Loan ${loan.id} is pending, skipping notification`);
+                    continue;
+                }
 
-            const loan = repayment.loan;
-            if (!loan) throw new NotFoundException('Loan not found');
-
-            if (loan.status === LoanStatus.PENDING)
-                throw new BadRequestException('loan is pending');
-
-            await this.notificationService.sendNotification({
+                await this.notificationService.sendNotification({
                 templateType: TemplateType.REPAYMENT_DUE,
                 clientId: repayment.loan.clientId,
                 loanId: repayment.loanId,
@@ -204,11 +146,14 @@ export class NotificationScheduler {
             const telegramDate = new Date(todayUtc);
             telegramDate.setUTCDate(todayUtc.getUTCDate() + 2);
 
-            await this.createScheduledTelegramNotification(
-                repayment.id,
-                TemplateType.REPAYMENT_DUE,
-                telegramDate,
-            );
+                await this.createScheduledTelegramNotification(
+                    repayment.id,
+                    TemplateType.REPAYMENT_DUE,
+                    telegramDate,
+                );
+            } catch (err) {
+                this.logger.error(`Error processing dueToday repayment ${repayment.id}: ${err?.message || err}`, err?.stack);
+            }
         }
 
 
@@ -221,36 +166,43 @@ export class NotificationScheduler {
         });
 
         for (const repayment of overdueRepayments) {
+            try {
+                const loan = repayment.loan;
+                if (!loan) {
+                    this.logger.warn(`Loan not found for repayment ${repayment.id}`);
+                    continue;
+                }
+                if (loan.status === LoanStatus.PENDING) {
+                    this.logger.warn(`Loan ${loan.id} is pending, skipping notification`);
+                    continue;
+                }
 
-            const loan = repayment.loan;
-            if (!loan) throw new NotFoundException('Loan not found');
+                await this.prisma.repayment.update({
+                    where: { id: repayment.id },
+                    data: { status: PaymentStatus.OVERDUE },
+                });
 
-            if (loan.status === LoanStatus.PENDING)
-                throw new BadRequestException('loan is pending');
+                await this.updateClientStatus(repayment.clientId);
 
-            await this.prisma.repayment.update({
-                where: { id: repayment.id },
-                data: { status: PaymentStatus.OVERDUE },
-            });
+                await this.notificationService.sendNotification({
+                    templateType: TemplateType.REPAYMENT_LATE,
+                    clientId: repayment.loan.clientId,
+                    loanId: repayment.loanId,
+                    repaymentId: repayment.id,
+                    channel: 'TELEGRAM',
+                });
 
-            await this.updateClientStatus(repayment.clientId);
+                const telegramDate = new Date(todayUtc);
+                telegramDate.setUTCDate(todayUtc.getUTCDate() + 2);
 
-            await this.notificationService.sendNotification({
-                templateType: TemplateType.REPAYMENT_LATE,
-                clientId: repayment.loan.clientId,
-                loanId: repayment.loanId,
-                repaymentId: repayment.id,
-                channel: 'TELEGRAM',
-            });
-
-            const telegramDate = new Date(todayUtc);
-            telegramDate.setUTCDate(todayUtc.getUTCDate() + 2);
-
-            await this.createScheduledTelegramNotification(
-                repayment.id,
-                TemplateType.REPAYMENT_LATE,
-                telegramDate,
-            );
+                await this.createScheduledTelegramNotification(
+                    repayment.id,
+                    TemplateType.REPAYMENT_LATE,
+                    telegramDate,
+                );
+            } catch (err) {
+                this.logger.error(`Error processing overdue repayment ${repayment.id}: ${err?.message || err}`, err?.stack);
+            }
         }
     }
 
@@ -272,35 +224,44 @@ export class NotificationScheduler {
         });
 
         for (const notif of dueNotifications) {
-            if (!notif.client?.telegramChatId || !notif.repayment) continue;
+            try {
+                if (!notif.client?.telegramChatId || !notif.repayment) continue;
 
-            const loan = notif.loan;
-            if (!loan) throw new NotFoundException('Loan not found');
+                const loan = notif.loan;
+                if (!loan) {
+                    this.logger.warn(`Loan not found for notification ${notif.id}`);
+                    await this.prisma.notification.delete({ where: { id: notif.id } });
+                    continue;
+                }
+                if (loan.status === LoanStatus.PENDING) {
+                    this.logger.warn(`Loan ${loan.id} is pending, skipping notification ${notif.id}`);
+                    await this.prisma.notification.delete({ where: { id: notif.id } });
+                    continue;
+                }
 
-            if (loan.status === LoanStatus.PENDING)
-                throw new BadRequestException('loan is pending');
+                if (notif.repayment.status === 'PAID') {
+                    await this.prisma.notification.delete({ where: { id: notif.id } });
+                    continue;
+                }
 
-            if (notif.repayment.status === 'PAID') {
-                await this.prisma.notification.delete({ where: { id: notif.id } });
-                continue;
-            }
+                if (notif.repayment.status === 'PENDING' || notif.repayment.status === 'OVERDUE') {
+                    await this.notificationService.sendNotification({
+                        templateType:
+                            notif.type === NotificationType.REPAYMENT_LATE
+                                ? TemplateType.REPAYMENT_LATE
+                                : TemplateType.REPAYMENT_DUE,
+                        clientId: notif.clientId!,
+                        loanId: notif.loanId!,
+                        repaymentId: notif.repaymentId!,
+                        channel: 'TELEGRAM',
+                    });
 
-            if (notif.repayment.status === 'PENDING' || notif.repayment.status === 'OVERDUE') {
-                await this.notificationService.sendNotification({
-                    templateType:
-                        notif.type === NotificationType.REPAYMENT_LATE
-                            ? TemplateType.REPAYMENT_LATE
-                            : TemplateType.REPAYMENT_DUE,
-                    clientId: notif.clientId!,
-                    loanId: notif.loanId!,
-                    repaymentId: notif.repaymentId!,
-                    channel: 'TELEGRAM',
-                });
-
-                await this.prisma.notification.delete({ where: { id: notif.id } });
-
-            } else {
-                await this.prisma.notification.delete({ where: { id: notif.id } });
+                    await this.prisma.notification.delete({ where: { id: notif.id } });
+                } else {
+                    await this.prisma.notification.delete({ where: { id: notif.id } });
+                }
+            } catch (err) {
+                this.logger.error(`Error processing scheduled notification ${notif.id}: ${err?.message || err}`, err?.stack);
             }
         }
     }
