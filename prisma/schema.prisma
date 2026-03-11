@@ -461,6 +461,7 @@ model PartnerWithdrawalSchedule {
   isPaid Boolean @default(false)
   carryAmount Float?
   carryFromId Int?
+  voucherUrl String?
   createdAt DateTime @default(now())
   paidAt DateTime?
 
@@ -737,6 +738,7 @@ model JournalHeader {
   lines       JournalLine[]
   periodId    Int?
   createdAt   DateTime      @default(now())
+  voucherUrl  String?
   period      PeriodHeader? @relation(fields: [periodId], references: [id])
   ExpenseRecord ExpenseRecord[]
 }

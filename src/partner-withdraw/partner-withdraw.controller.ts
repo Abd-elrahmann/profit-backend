@@ -113,6 +113,23 @@ export class PartnerWithdrawController {
         return this.service.getNextPartnerCount();
     }
 
+    @Get('next-voucher-number')
+    @Permissions('partners-withdraw', 'canView')
+    async getNextVoucherNumber() {
+        return this.service.getNextWithdrawVoucherNumber();
+    }
+
+    @Post('upload-voucher/:scheduleId')
+    @Permissions('partners-withdraw', 'canPost')
+    @UseInterceptors(FileInterceptor('file'))
+    uploadWithdrawVoucher(
+        @Req() req,
+        @Param('scheduleId', ParseIntPipe) scheduleId: number,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        return this.service.uploadWithdrawVoucher(req.user.id, scheduleId, file);
+    }
+
     @Post('cancel/:partnerId')
     @Permissions('partners-withdraw', 'canPost')
     reverseWithdrawal(

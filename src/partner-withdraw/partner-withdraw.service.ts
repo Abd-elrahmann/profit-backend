@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { Decimal } from '@prisma/client/runtime/library';
+import { JournalSourceType } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -19,7 +20,12 @@ export class PartnerWithdrawService {
                 id: true,
                 name: true,
                 orgProfitPercent: true,
-                PartnerWithdrawal: { select: { monthlyAmount: true } }
+                PartnerWithdrawal: { select: { monthlyAmount: true } },
+                PartnerWithdrawalSchedule: {
+                    select: { year: true, month: true },
+                    orderBy: [{ year: 'asc' }, { month: 'asc' }],
+                    take: 1,
+                },
             },
         });
 
@@ -124,10 +130,19 @@ export class PartnerWithdrawService {
             (partnerDefaultsBase * partnerOperationalRatio).toFixed(2)
         );
 
+        const firstSchedule = partner.PartnerWithdrawalSchedule?.[0];
+        let firstPaymentDate: string | null = null;
+        if (firstSchedule) {
+            const year = firstSchedule.year;
+            const month = String(firstSchedule.month).padStart(2, '0');
+            firstPaymentDate = `${year}-${month}-01`;
+        }
+
         return {
             partnerId: partner.id,
             partnerName: partner.name,
             monthlyAmount: partner.PartnerWithdrawal?.[0]?.monthlyAmount || 0,
+            firstPaymentDate,
             defaultsBase: parseFloat(partnerDefaultsBase.toFixed(2)),
             orgProfitPercent: partner.orgProfitPercent,
             operationalRatio: partnerOperationalRatio,
@@ -1821,5 +1836,86 @@ export class PartnerWithdrawService {
                 },
             };
         });
+    }
+
+    async getNextWithdrawVoucherNumber(): Promise<number> {
+        const count = await this.prisma.partnerWithdrawalSchedule.count({
+            where: {
+                voucherUrl: { not: null },
+            },
+        });
+        return count + 1;
+    }
+
+    async uploadWithdrawVoucher(
+        currentUser: number,
+        scheduleId: number,
+        file: Express.Multer.File,
+    ) {
+        if (!file) throw new BadRequestException('لم يتم رفع أي ملف');
+
+        const schedule = await this.prisma.partnerWithdrawalSchedule.findUnique({
+            where: { id: scheduleId },
+            include: {
+                partner: true,
+            },
+        });
+
+        if (!schedule) throw new NotFoundException('جدول السحب غير موجود');
+
+        const partner = schedule.partner;
+        if (!partner) throw new NotFoundException('المساهم غير موجود');
+
+        const uploadDir = path.join(
+            process.cwd(),
+            'uploads',
+            'partners',
+            partner.nationalId,
+            'withdraw-vouchers',
+        );
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        if (schedule.voucherUrl) {
+            try {
+                let existingRelative = schedule.voucherUrl;
+                if (existingRelative.startsWith('http')) {
+                    existingRelative = decodeURI(
+                        existingRelative.replace(process.env.URL || '', ''),
+                    );
+                }
+                const existingFull = path.join(process.cwd(), existingRelative);
+                if (fs.existsSync(existingFull)) fs.unlinkSync(existingFull);
+            } catch (err) {
+                console.warn('Could not remove old voucher file:', err.message);
+            }
+        }
+
+        const fileExt = path.parse(file.originalname).ext || '.pdf';
+        const fileName = `سند_صرف_${schedule.month}_${schedule.year}_${Date.now()}${fileExt}`;
+        const filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, file.buffer);
+
+        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+
+        await this.prisma.partnerWithdrawalSchedule.update({
+            where: { id: scheduleId },
+            data: { voucherUrl: publicUrl },
+        });
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: currentUser },
+        });
+
+        await this.prisma.auditLog.create({
+            data: {
+                userId: currentUser,
+                screen: 'PartnerWithdrawals',
+                action: 'CREATE',
+                description: `قام المستخدم ${user?.name} بتحميل سند صرف للدفعة ${schedule.month}/${schedule.year} للمساهم ${partner.name}`,
+            },
+        });
+
+        return { message: 'تم رفع سند الصرف بنجاح', voucherUrl: publicUrl };
     }
 }

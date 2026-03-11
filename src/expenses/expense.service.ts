@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import * as path from 'path';
+import * as fs from 'fs';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { JournalStatus, JournalSourceType } from '@prisma/client';
@@ -24,9 +26,31 @@ export class ExpenseService {
         return bank;
     }
 
+    async uploadExpenseVoucher(currentUser: number, file: Express.Multer.File) {
+        if (!file) throw new BadRequestException('لم يتم رفع أي ملف');
+        const uploadDir = path.join(process.cwd(), 'uploads', 'expenses');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        const fileExt = path.parse(file.originalname).ext || '.pdf';
+        const fileName = `سند_صرف_${currentUser}_${Date.now()}${fileExt}`;
+        const filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, file.buffer);
+        const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        return { voucherUrl: publicUrl };
+    }
+
+    async getNextExpenseVoucherNumber(): Promise<number> {
+        const count = await this.prisma.journalHeader.count({
+            where: { sourceType: JournalSourceType.EXPENSES },
+        });
+        return count + 1;
+    }
+
     async createExpenseJournal(
         userId: number,
         expenses: { type: string; amount: number; description?: string; userId?: number }[],
+        voucherUrl?: string,
+        reference?: string,
     ) {
         if (!expenses || expenses.length === 0)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
@@ -77,13 +101,15 @@ export class ExpenseService {
             description: 'صرف المصروفات',
         });
 
+        const finalReference = reference || `EXP-${Date.now()}`;
         const journal = await this.journalService.createJournal(
             {
-                reference: `EXP-${Date.now()}`,
+                reference: finalReference,
                 description: 'صرف مصروفات متعددة الأنواع',
                 type: 'GENERAL',
                 sourceType: JournalSourceType.EXPENSES,
                 lines: journalLines,
+                voucherUrl: voucherUrl || undefined,
             },
             userId,
         );
@@ -183,10 +209,24 @@ export class ExpenseService {
         };
     }
 
-    async getExpensesRecords(page = 1, limit = 10) {
+    async getExpensesRecords(
+        page = 1,
+        limit = 10,
+        types?: string[],
+        employeeIds?: number[],
+    ) {
         const skip = (page - 1) * limit;
 
+        const where: Record<string, unknown> = {};
+        if (types && types.length > 0) {
+            where.type = { in: types };
+        }
+        if (employeeIds && employeeIds.length > 0) {
+            where.employeeId = { in: employeeIds };
+        }
+
         const expenses = await this.prisma.expenseRecord.findMany({
+            where,
             include: {
                 user: {
                     select: {
@@ -202,14 +242,20 @@ export class ExpenseService {
                         email: true,
                     },
                 },
+                journal: {
+                    select: {
+                        id: true,
+                        reference: true,
+                        voucherUrl: true,
+                    },
+                },
             },
             orderBy: { createdAt: 'desc' },
             skip,
             take: limit,
         });
 
-
-        const total = await this.prisma.expenseRecord.count();
+        const total = await this.prisma.expenseRecord.count({ where });
 
         return {
             total,
@@ -218,6 +264,8 @@ export class ExpenseService {
             expenses: expenses.map(e => ({
                 id: e.id,
                 journal: e.journalId,
+                journalReference: e.journal?.reference ?? null,
+                voucherUrl: e.journal?.voucherUrl ?? null,
                 type: e.type,
                 amount: e.amount,
                 description: e.description,
@@ -373,6 +421,7 @@ export class ExpenseService {
                 id: true,
                 name: true,
                 email: true,
+                phone: true,
                 expenseAccountId: true,
                 isActive: true,
             },

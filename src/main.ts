@@ -34,6 +34,7 @@ async function bootstrap() {
   ensureDirExists(path.join(uploadsPath, 'profiles'));
   ensureDirExists(path.join(uploadsPath, 'temp'));
   ensureDirExists(path.join(uploadsPath, 'zakat'));
+  ensureDirExists(path.join(uploadsPath, 'expenses'));
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
 
 

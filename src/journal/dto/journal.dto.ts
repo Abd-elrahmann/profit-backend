@@ -48,6 +48,10 @@ export class CreateJournalDto {
     @IsNumber()
     periodId?: number;
 
+    @IsOptional()
+    @IsString()
+    voucherUrl?: string;
+
     @IsNotEmpty()
     @IsArray()
     @ValidateNested({ each: true })

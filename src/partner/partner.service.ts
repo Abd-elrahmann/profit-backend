@@ -751,6 +751,20 @@ export class PartnerService {
                 loans: true,
                 transactions: true,
                 PartnerWithdrawal: true,
+                PartnerWithdrawalSchedule: {
+                    where: { voucherUrl: { not: null } },
+                    select: {
+                        id: true,
+                        month: true,
+                        year: true,
+                        amount: true,
+                        carryAmount: true,
+                        paidAmount: true,
+                        voucherUrl: true,
+                        paidAt: true,
+                    },
+                    orderBy: [{ year: 'desc' }, { month: 'desc' }],
+                },
             },
         });
 
@@ -821,6 +835,18 @@ export class PartnerService {
 
         const upcomingProfitData = await this.calculatePartnerUpcomingProfit(partner.id);
 
+        const withdrawalVouchers = partner.PartnerWithdrawalSchedule?.map(schedule => ({
+            id: schedule.id,
+            month: schedule.month,
+            year: schedule.year,
+            amount: schedule.amount,
+            carryAmount: schedule.carryAmount || 0,
+            paidAmount: schedule.paidAmount || 0,
+            totalAmount: (schedule.amount || 0) + (schedule.carryAmount || 0),
+            voucherUrl: schedule.voucherUrl,
+            paidAt: schedule.paidAt ? toSaudi(schedule.paidAt) : null,
+        })) || [];
+
         return {
             ...partner,
             createdAt: toSaudi(partner.createdAt),
@@ -836,6 +862,7 @@ export class PartnerService {
             totalWithdrawal: partner.AccountSaving?.debit ?? 0,
             duration,
             withdrawalReceipt: partner.PartnerWithdrawal?.[0]?.WITHDRAWAL_RECEIPT || null,
+            withdrawalVouchers,
             HIjriCreatedAt: toHijri(partner.createdAt),
             HIjriContractSignedAt: toHijri(partner.contractSignedAt),
             upcomingProfit: upcomingProfitData.upcomingProfit,

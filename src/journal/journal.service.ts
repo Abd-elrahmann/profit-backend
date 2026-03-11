@@ -57,6 +57,7 @@ export class JournalService {
                 sourceType: dto.sourceType,
                 sourceId: dto.sourceId,
                 postedById: null,
+                voucherUrl: dto.voucherUrl ?? null,
                 lines: {
                     create: dto.lines.map((line) => {
                         const account = accounts.find(a => a.id === line.accountId);
