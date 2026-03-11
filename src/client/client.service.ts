@@ -11,7 +11,6 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { PaymentStatus, LoanStatus, ClientStatus } from '@prisma/client';
 import { DateTime } from 'luxon';
-import { not } from 'rxjs/internal/util/not';
 
 @Injectable()
 export class ClientService {
@@ -334,6 +333,9 @@ export class ClientService {
         if (existingDocs) {
 
             if (deleteFields?.length) {
+                if (deleteFields.includes('clientIdImage')) {
+                    throw new BadRequestException('لا يمكن حذف بطاقة هوية العميل لأنها مطلوبة');
+                }
                 for (const field of deleteFields) {
                     const oldUrl = (existingDocs as any)[field];
                     if (oldUrl) deleteFile(oldUrl);
@@ -346,9 +348,13 @@ export class ClientService {
                 const newUrl = (docData as any)[key];
                 const oldUrl = (existingDocs as any)[key];
 
+                if (key === 'clientIdImage' && !newUrl) {
+                    throw new BadRequestException('بطاقة هوية العميل مطلوبة ولا يمكن إزالتها');
+                }
+
                 if (oldUrl && newUrl && oldUrl !== newUrl) deleteFile(oldUrl);
 
-                updateData[key] = newUrl ?? null;
+                updateData[key] = newUrl ?? (key === 'clientIdImage' ? (existingDocs as any)[key] : null);
             }
 
 
@@ -359,7 +365,7 @@ export class ClientService {
         } else {
 
             if (!docData?.clientIdImage) {
-                throw new BadRequestException('clientIdImage is required');
+                throw new BadRequestException('بطاقة هوية العميل مطلوبة');
             }
 
             await this.prisma.clientDocument.create({
