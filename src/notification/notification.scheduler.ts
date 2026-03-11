@@ -71,37 +71,39 @@ export class NotificationScheduler {
 
         const hasSixOverdueRepayments = overdueRepayments.length >= 6;
 
+        const overdue = overdueRepayments.length > 0;
 
         const paidRepayments = allRepayments.filter(
             r => fullyPaidStatuses.includes(r.status) && r.paymentDate
         );
 
-        let hasSixMonthsDelay = false;
+        // let hasSixMonthsDelay = false;
 
-        if (paidRepayments.length > 0) {
-            const lastPaidDate = paidRepayments
-                .map(r => r.paymentDate!)
-                .sort((a, b) => b.getTime() - a.getTime())[0];
+        // if (paidRepayments.length > 0) {
+        //     const lastPaidDate = paidRepayments
+        //         .map(r => r.paymentDate!)
+        //         .sort((a, b) => b.getTime() - a.getTime())[0];
 
-            const sixMonthsAfterLastPaid = new Date(lastPaidDate);
-            sixMonthsAfterLastPaid.setUTCMonth(sixMonthsAfterLastPaid.getUTCMonth() + 6);
+        //     const sixMonthsAfterLastPaid = new Date(lastPaidDate);
+        //     sixMonthsAfterLastPaid.setUTCMonth(sixMonthsAfterLastPaid.getUTCMonth() + 6);
 
-            hasSixMonthsDelay = nowUtc >= sixMonthsAfterLastPaid;
+        //     hasSixMonthsDelay = nowUtc >= sixMonthsAfterLastPaid;
 
-        } else if (unpaidRepayments.length > 0) {
-            const firstDueDate = unpaidRepayments
-                .map(r => r.dueDate)
-                .sort((a, b) => a.getTime() - b.getTime())[0];
+        // } else if (unpaidRepayments.length > 0) {
+        //     const firstDueDate = unpaidRepayments
+        //         .map(r => r.dueDate)
+        //         .sort((a, b) => a.getTime() - b.getTime())[0];
 
-            const sixMonthsAfterFirstDue = new Date(firstDueDate);
-            sixMonthsAfterFirstDue.setUTCMonth(sixMonthsAfterFirstDue.getUTCMonth() + 6);
+        //     const sixMonthsAfterFirstDue = new Date(firstDueDate);
+        //     sixMonthsAfterFirstDue.setUTCMonth(sixMonthsAfterFirstDue.getUTCMonth() + 6);
 
-            hasSixMonthsDelay = nowUtc >= sixMonthsAfterFirstDue;
-        }
+        //     hasSixMonthsDelay = nowUtc >= sixMonthsAfterFirstDue;
+        // }
 
         let newStatus: any = 'نشط';
 
-        if (hasSixOverdueRepayments || hasSixMonthsDelay) {
+        // if (hasSixOverdueRepayments || hasSixMonthsDelay) {
+        if (overdue) {
             newStatus = 'متعثر';
         } else if (unpaidRepayments.length === 0) {
             newStatus = 'منتهي';
@@ -111,7 +113,6 @@ export class NotificationScheduler {
             where: { id: clientId },
             data: { status: newStatus },
         });
-
     }
 
 
