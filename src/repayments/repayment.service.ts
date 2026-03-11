@@ -19,9 +19,11 @@ export class RepaymentService {
         const loans = await this.prisma.loan.findMany({
             where: {
                 clientId,
-                status: 'ACTIVE'
+                status: LoanStatus.ACTIVE,
             },
-            include: { repayments: true },
+            include: {
+                repayments: true,
+            },
         });
 
         if (loans.length === 0) {
@@ -33,16 +35,22 @@ export class RepaymentService {
         }
 
         const allRepayments = loans.flatMap(l => l.repayments);
-        const overdue = allRepayments.filter(
-            r => r.status === 'OVERDUE' || (r.status == 'PENDING' && r.dueDate < new Date()),
+        const now = new Date();
+
+        const hasOverdue = allRepayments.some(r =>
+            r.status === 'OVERDUE' ||
+            (r.status === 'PENDING' && r.dueDate < now)
         );
-        const unpaid = allRepayments.filter(r => r.status == 'PENDING');
+
+        const allPaid = allRepayments.every(r =>
+            r.status === 'PAID' || r.status === 'EARLY_PAID'
+        );
 
         let newStatus: any = 'نشط';
 
-        if (overdue.length > 0) {
+        if (hasOverdue) {
             newStatus = 'متعثر';
-        } else if (unpaid.length === 0) {
+        } else if (allPaid) {
             newStatus = 'منتهي';
         }
 

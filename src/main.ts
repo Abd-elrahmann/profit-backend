@@ -41,12 +41,10 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        'http://localhost:3001',
-        'http://72.61.101.53:3003',
         process.env.FRONT,
       ].filter(Boolean);
 
-      const cleanOrigins = allowedOrigins.map((url) => 
+      const cleanOrigins = allowedOrigins.map((url) =>
         url && url.endsWith('/') ? url.slice(0, -1) : url
       );
 
@@ -56,7 +54,7 @@ async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true, 
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language', 'page', 'Cookie'],
     exposedHeaders: ['Set-Cookie'],
@@ -80,9 +78,9 @@ async function bootstrap() {
     prefix: '/api/public',
   });
 
-  app.useStaticAssets(resolve('./uploads'), {
-    prefix: '/uploads',
-  });
+  // app.useStaticAssets(resolve('./uploads'), {
+  //   prefix: '/uploads',
+  // });
 
   app.setGlobalPrefix('/api');
 

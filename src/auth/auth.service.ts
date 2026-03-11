@@ -55,7 +55,7 @@ export class AuthService {
       throw new UnauthorizedException('ليس لديك أي صلاحيات أو أدوار للدخول على النظام. برجاء التواصل مع المدير لتعيين الصلاحية.');
     }
 
-    
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -63,7 +63,7 @@ export class AuthService {
       }
     })
 
-    
+
     await this.prisma.refreshToken.deleteMany({
       where: { userId: user.id }
     });
@@ -135,11 +135,6 @@ export class AuthService {
 
 
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY);
-
-
-    await this.prisma.refreshToken.deleteMany({
-      where: { userId: user.id }
-    });
 
     await this.prisma.refreshToken.create({
       data: {
@@ -325,6 +320,9 @@ export class AuthService {
     const hashedToken = crypto.createHash('sha256').update(randomToken).digest('hex');
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
+    await this.prisma.resetPasswordToken.deleteMany({
+      where: { userId: user.id }
+    });
 
     await this.prisma.resetPasswordToken.create({
       data: {
@@ -440,7 +438,7 @@ export class AuthService {
 
     user.role.permissions.forEach((permission) => {
       let moduleKey = permission.module;
-      
+
       switch (permission.module) {
         case 'messages-templates':
           moduleKey = 'messagesTemplates';
@@ -522,7 +520,7 @@ export class AuthService {
       }
 
 
-      
+
       const payload = { sub: user.id, email: user.email };
       const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 

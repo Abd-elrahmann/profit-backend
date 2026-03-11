@@ -32,9 +32,19 @@ import { SmallLoanModule } from './small-loan/small-loan.module';
 import { IncomeStatementModule } from './income-statement/income-statement.module';
 import { SettingsModule } from './settings/settings.module';
 import { PermissionsModule } from './common/permissions.module';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 5,
+        },
+      ],
+    }),
     PermissionsModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -67,7 +77,8 @@ import { PermissionsModule } from './common/permissions.module';
     SmallLoanModule,
     IncomeStatementModule,
     SettingsModule,
-    
+    FileModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],

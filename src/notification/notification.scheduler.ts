@@ -64,7 +64,7 @@ export class NotificationScheduler {
         const allRepayments = loans.flatMap(l => l.repayments);
         const nowUtc = new Date();
 
-        const fullyPaidStatuses = ['PAID', 'EARLY_PAID', 'COMPLETED' , 'PARTIAL_PAID'];
+        const fullyPaidStatuses = ['PAID', 'EARLY_PAID', 'COMPLETED', 'PARTIAL_PAID'];
 
         const unpaidRepayments = allRepayments.filter(r => !fullyPaidStatuses.includes(r.status));
         const overdueRepayments = unpaidRepayments.filter(r => r.dueDate < nowUtc);
@@ -145,11 +145,14 @@ export class NotificationScheduler {
         for (const repayment of upcomingRepayments) {
 
             const loan = repayment.loan;
-            if (!loan) throw new NotFoundException('Loan not found');
-
-            if (loan.status === LoanStatus.PENDING)
-                throw new BadRequestException('loan is pending');
-
+            if (!loan) {
+                this.logger.warn(`Loan not found for repayment ${repayment.id}`);
+                continue;
+            }
+            if (loan.status === LoanStatus.PENDING) {
+                this.logger.warn(`Loan ${loan.id} is pending, skipping notification`);
+                continue;
+            }
             await this.notificationService.sendNotification({
                 templateType: TemplateType.REPAYMENT_DUE,
                 clientId: repayment.loan.clientId,

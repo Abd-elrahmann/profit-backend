@@ -19,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import multer from 'multer';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './strategy/jwt.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -30,35 +31,36 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async login(
     @Body() body: { email: string; password: string },
     @Res({ passthrough: true }) res: Response
   ) {
     const result = await this.authService.login(body);
-    
+
     const isProduction = process.env.NODE_ENV === 'production';
-    
-    
+
+
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
-      secure: isProduction, 
+      secure: isProduction,
       sameSite: 'lax',
-      maxAge: 15 * 60 * 1000, 
+      maxAge: 15 * 60 * 1000,
       path: '/',
-      domain: undefined, 
+      domain: undefined,
     });
 
-    
+
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: isProduction, 
+      secure: isProduction,
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
-      domain: undefined, 
+      domain: undefined,
     });
 
-    
+
     return {
       user: result.user
     };
@@ -70,16 +72,16 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response
   ) {
     const refreshToken = req.cookies?.refreshToken;
-    
+
     if (refreshToken) {
       try {
         await this.authService.logoutByRefreshToken(refreshToken);
       } catch (error) {
-        
+
       }
     }
-    
-    
+
+
     res.clearCookie('accessToken', {
       httpOnly: true,
       secure: false,
@@ -170,37 +172,37 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response
   ) {
     const refreshToken = req.cookies?.refreshToken;
-    
+
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token provided');
     }
 
     try {
       const result = await this.authService.refreshAccessToken(refreshToken);
-      
+
       const isProduction = process.env.NODE_ENV === 'production';
-      
-      
+
+
       res.cookie('accessToken', result.accessToken, {
         httpOnly: true,
-        secure: isProduction, 
+        secure: isProduction,
         sameSite: 'lax',
-        maxAge: 15 * 60 * 1000, 
+        maxAge: 15 * 60 * 1000,
         path: '/',
-        domain: undefined, 
+        domain: undefined,
       });
 
-      
+
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: isProduction, 
+        secure: isProduction,
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
-        domain: undefined, 
+        domain: undefined,
       });
 
-      
+
       return {
         user: result.user
       };
