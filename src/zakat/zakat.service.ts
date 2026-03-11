@@ -126,21 +126,30 @@ export class ZakatService {
             const annualZakat = accruals.reduce((sum, acc) => sum + acc.amount, 0);
 
 
-            const payments = await this.prisma.zakatPayment.aggregate({
+            const paymentsAggregate = await this.prisma.zakatPayment.aggregate({
                 where: { partnerId, year: yr },
                 _sum: { amount: true },
             });
 
-            const totalPaid = payments._sum.amount || 0;
+            const paymentsWithVouchers = await this.prisma.zakatPayment.findMany({
+                where: { partnerId, year: yr },
+                select: { month: true, PAYMENT_VOUCHER: true, amount: true },
+            });
+
+            const totalPaid = paymentsAggregate._sum.amount || 0;
             const remaining = annualZakat - totalPaid;
             const currentAnnualZakat = Number((totalAmount * 0.025).toFixed(2));
 
 
-            const monthlyBreakdown = accruals.map((acc) => ({
-                ...acc,
-                status: totalPaid > 0 ? 'PAID' : 'NOT_PAID',
-                paymentVoucher: null,
-            }));
+            const monthlyBreakdown = accruals.map((acc) => {
+                const payment = paymentsWithVouchers.find(p => p.month === acc.month);
+                return {
+                    ...acc,
+                    status: payment ? 'PAID' : 'NOT_PAID',
+                    paymentVoucher: payment?.PAYMENT_VOUCHER || null,
+                    paidAmount: payment?.amount || 0,
+                };
+            });
 
             return {
                 partnerId,
