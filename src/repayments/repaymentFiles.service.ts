@@ -51,13 +51,15 @@ export class RepaymentFilesService {
 
         const fileUrls: string[] = [];
 
-        for (const file of files) {
-            const filename = `${id}-${file.originalname}`;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const ext = path.extname(file.originalname);
+            const filename = `REPAYMENT_${id}_${i}_${Date.now()}${ext}`;
             const filePath = path.join(uploadsDir, filename);
             fs.writeFileSync(filePath, file.buffer);
 
             const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-            const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+            const publicUrl = `${process.env.URL}${relPath}`;
             fileUrls.push(publicUrl);
         }
 
@@ -107,13 +109,8 @@ export class RepaymentFilesService {
             where: { repaymentId: id },
         });
 
-        let filename: string;
-        if (proofsCount > 0) {
-            const next = proofsCount + 1;
-            filename = `${id}-اثبات-سداد-${next}${path.extname(file.originalname)}`;
-        } else {
-            filename = `${id}-اثبات-السداد${path.extname(file.originalname)}`;
-        }
+        const ext = path.extname(file.originalname);
+        const filename = `PAYMENT_PROOF_${id}_${proofsCount + 1}_${Date.now()}${ext}`;
 
         const filePath = path.join(uploadDir, filename);
         fs.writeFileSync(filePath, file.buffer);
@@ -121,7 +118,7 @@ export class RepaymentFilesService {
         const prevFileUrl = typeof repayment.PaymentProof === 'string' ? repayment.PaymentProof : undefined;
         if (prevFileUrl) {
             try {
-                const urlPath = new URL(prevFileUrl).pathname;
+                const urlPath = decodeURIComponent(new URL(prevFileUrl).pathname);
                 const prevLocal = path.join(process.cwd(), urlPath.replace(/^\//, ''));
                 if (fs.existsSync(prevLocal)) fs.unlinkSync(prevLocal);
             } catch {
@@ -129,7 +126,7 @@ export class RepaymentFilesService {
         }
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
         await this.prisma.repayment.update({
             where: { id },
@@ -220,7 +217,8 @@ export class RepaymentFilesService {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
-        const filename = `اثبات-السداد-${ids[0]}${path.extname(file.originalname)}`;
+        const ext = path.extname(file.originalname);
+        const filename = `BULK_PAYMENT_PROOF_${ids[0]}_${Date.now()}${ext}`;
         const filePath = path.join(uploadDir, filename);
         fs.writeFileSync(filePath, file.buffer);
 
@@ -228,12 +226,12 @@ export class RepaymentFilesService {
             .relative(process.cwd(), filePath)
             .replace(/\\/g, '/');
 
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
         for (const repayment of repayments) {
             if (typeof repayment.PaymentProof === 'string') {
                 try {
-                    const urlPath = new URL(repayment.PaymentProof).pathname;
+                    const urlPath = decodeURIComponent(new URL(repayment.PaymentProof).pathname);
                     const prevLocal = path.join(
                         process.cwd(),
                         urlPath.replace(/^\//, ''),

@@ -31,11 +31,11 @@ export class ExpenseService {
         const uploadDir = path.join(process.cwd(), 'uploads', 'expenses');
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
         const fileExt = path.parse(file.originalname).ext || '.pdf';
-        const fileName = `سند_صرف_${currentUser}_${Date.now()}${fileExt}`;
+        const fileName = `EXPENSE_VOUCHER_${currentUser}_${Date.now()}${fileExt}`;
         const filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, file.buffer);
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
         return { voucherUrl: publicUrl };
     }
 

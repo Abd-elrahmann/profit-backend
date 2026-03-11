@@ -896,12 +896,14 @@ export class PartnerService {
         }
 
 
-        const filePath = path.join(uploadDir, file.originalname);
+        const ext = path.extname(file.originalname);
+        const fileName = `MUDARABAH_${id}_${Date.now()}${ext}`;
+        const filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, file.buffer);
 
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
 
         await this.prisma.partner.update({

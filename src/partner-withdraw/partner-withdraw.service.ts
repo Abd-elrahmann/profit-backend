@@ -1372,7 +1372,7 @@ export class PartnerWithdrawService {
 
 
         const fileExt = path.parse(file.originalname).ext || '.pdf';
-        const fileName = `مخالصة مالية${fileExt}`;
+        const fileName = `WITHDRAWAL_RECEIPT_${withdrawal.id}${fileExt}`;
 
 
         const filePath = path.join(uploadDir, fileName);
@@ -1380,7 +1380,7 @@ export class PartnerWithdrawService {
 
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
 
         await this.prisma.partnerWithdrawal.update({
@@ -1891,12 +1891,12 @@ export class PartnerWithdrawService {
         }
 
         const fileExt = path.parse(file.originalname).ext || '.pdf';
-        const fileName = `سند_صرف_${schedule.month}_${schedule.year}_${Date.now()}${fileExt}`;
+        const fileName = `VOUCHER_${schedule.id}_${schedule.month}_${schedule.year}${fileExt}`;
         const filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
         await this.prisma.partnerWithdrawalSchedule.update({
             where: { id: scheduleId },

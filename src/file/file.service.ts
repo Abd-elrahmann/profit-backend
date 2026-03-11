@@ -10,16 +10,66 @@ const FILE_PATH_TO_MODULE: Record<string, string> = {
   'uploads/profiles': 'files-clients',
 };
 
+const LOAN_FILE_PATTERNS = [
+  'DEBT_ACK_',
+  'PROMISSORY_',
+  'SETTLEMENT_',
+  'إقرار الدين',
+  'سند لأمر',
+  'تسوية',
+  'DEBT_ACKNOWLEDGMENT',
+  'PROMISSORY_NOTE',
+  'SETTLEMENT',
+  'LN%20-',
+  'LN -',
+  'LN-',
+];
+
+const REPAYMENT_FILE_PATTERNS = [
+  'REPAYMENT_',
+  'PAYMENT_PROOF_',
+  'BULK_PAYMENT_PROOF_',
+  'repayment',
+  'دفعة',
+  'سداد',
+  'اثبات',
+];
+
+const WITHDRAWAL_FILE_PATTERNS = [
+  'WITHDRAWAL_RECEIPT_',
+  'VOUCHER_',
+  'withdrawals',
+  'مخالصة',
+  'سند_صرف',
+];
+
 @Injectable()
 export class FileService {
   getFileModuleFromUrl(url: string): string | null {
     if (!url) return null;
     
+    const decodedUrl = decodeURIComponent(url);
+    
+    for (const pattern of LOAN_FILE_PATTERNS) {
+      if (decodedUrl.includes(pattern) || url.includes(pattern)) {
+        return 'files-loans';
+      }
+    }
+    
+    for (const pattern of REPAYMENT_FILE_PATTERNS) {
+      if (decodedUrl.toLowerCase().includes(pattern) || url.toLowerCase().includes(pattern)) {
+        return 'files-repayments';
+      }
+    }
+    
+    for (const pattern of WITHDRAWAL_FILE_PATTERNS) {
+      if (decodedUrl.includes(pattern) || url.includes(pattern)) {
+        return 'files-partners-withdraw';
+      }
+    }
+    
     for (const [pathPattern, module] of Object.entries(FILE_PATH_TO_MODULE)) {
       if (url.includes(pathPattern)) {
-        if (url.includes('repayments')) return 'files-repayments';
-        if (url.includes('withdrawals')) return 'files-partners-withdraw';
-        if (url.includes('loans') || url.includes('loan')) return 'files-loans';
         return module;
       }
     }
@@ -33,8 +83,15 @@ export class FileService {
 
     try {
       const parsed = new URL(url);
-      const filePath = path.join(process.cwd(), parsed.pathname);
-
+      let decodedPathname = parsed.pathname;
+      
+      try {
+        decodedPathname = decodeURIComponent(parsed.pathname);
+      } catch {
+        // If decoding fails, use original pathname
+      }
+      
+      const filePath = path.join(process.cwd(), decodedPathname);
       const normalizedPath = path.normalize(filePath);
       const projectRoot = path.normalize(process.cwd());
 
@@ -43,7 +100,7 @@ export class FileService {
       }
 
       if (!fs.existsSync(filePath)) {
-        throw new NotFoundException('File not found');
+        throw new NotFoundException('الملف غير موجود');
       }
 
       return filePath;

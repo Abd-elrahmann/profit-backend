@@ -76,12 +76,12 @@ export class loansFilesService {
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
         const ext = path.extname(file.originalname);
-        const fileName = `إقرار الدين - ${loan.code}${ext}`;
+        const fileName = `DEBT_ACK_${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
 
         await this.prisma.loan.update({
@@ -125,7 +125,7 @@ export class loansFilesService {
 
 
         const ext = path.extname(file.originalname);
-        const fileName = `سند لأمر - ${loan.code}${ext}`;
+        const fileName = `PROMISSORY_${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
 
 
@@ -133,7 +133,7 @@ export class loansFilesService {
 
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
 
         await this.prisma.loan.update({
@@ -178,13 +178,13 @@ export class loansFilesService {
         if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
         const ext = path.extname(file.originalname);
-        const fileName = `تسوية - ${loan.code}${ext}`;
+        const fileName = `SETTLEMENT_${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
 
         fs.writeFileSync(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-        const publicUrl = `${process.env.URL}${encodeURI(relPath)}`;
+        const publicUrl = `${process.env.URL}${relPath}`;
 
         const totalPaidAmount = await this.prisma.repayment.aggregate({
             where: { loanId: loan.id },

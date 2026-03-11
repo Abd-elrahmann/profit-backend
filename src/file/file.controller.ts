@@ -30,6 +30,7 @@ export class FileController {
         if (!url) throw new NotFoundException('URL is required');
 
         const fileModule = this.fileService.getFileModuleFromUrl(url);
+        
         if (!fileModule) {
             throw new ForbiddenException('نوع الملف غير معروف');
         }
@@ -48,13 +49,16 @@ export class FileController {
         );
 
         if (!hasPermission) {
-            throw new ForbiddenException('ليس لديك صلاحية لعرض ملفات هذا القسم');
+            throw new ForbiddenException(`ليس لديك صلاحية لعرض ملفات هذا القسم`);
         }
 
         try {
-            const filePath = await this.fileService.validateAndGetFilePath(url);
+            const filePath = this.fileService.validateAndGetFilePath(url);
             return res.sendFile(filePath);
         } catch (err) {
+            if (err instanceof NotFoundException) {
+                throw err;
+            }
             throw new NotFoundException('الملف غير موجود');
         }
     }
