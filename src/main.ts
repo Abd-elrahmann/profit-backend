@@ -78,10 +78,6 @@ async function bootstrap() {
     prefix: '/api/public',
   });
 
-  // app.useStaticAssets(resolve('./uploads'), {
-  //   prefix: '/uploads',
-  // });
-
   app.setGlobalPrefix('/api');
 
   const PORT = process.env.PORT || 3000;
