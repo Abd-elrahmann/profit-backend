@@ -26,7 +26,7 @@ async function bootstrap() {
 
   dotenv.config();
 
-  const uploadsPath = resolve('./uploads');
+  const uploadsPath = path.join(process.cwd(), 'uploads');
 
   ensureDirExists(uploadsPath);
 
