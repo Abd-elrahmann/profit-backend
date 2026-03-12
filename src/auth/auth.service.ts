@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuthCacheService } from './auth-cache.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -23,7 +24,8 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) { }
+    private authCache: AuthCacheService,
+  ) {}
 
 
   async register(data: { name: string; email: string; password: string; phone: string }) {
@@ -90,6 +92,7 @@ export class AuthService {
       data: { isActive: false },
     });
 
+    this.authCache.invalidate(userId);
 
     await this.prisma.auditLog.create({
       data: {
@@ -555,6 +558,7 @@ export class AuthService {
       data: { isActive: false },
     });
 
+    this.authCache.invalidate(userId);
 
     if (refreshToken) {
       const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
@@ -610,6 +614,7 @@ export class AuthService {
           data: { isActive: false },
         });
 
+        this.authCache.invalidate(tokenRecord.userId);
 
         await this.prisma.auditLog.create({
           data: {

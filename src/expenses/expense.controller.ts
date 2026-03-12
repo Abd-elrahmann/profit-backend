@@ -13,7 +13,7 @@ export class ExpenseController {
 
   @Post('upload-voucher')
   @Permissions('expenses', 'canAdd')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
   async uploadVoucher(
     @Req() req,
     @UploadedFile() file: Express.Multer.File,

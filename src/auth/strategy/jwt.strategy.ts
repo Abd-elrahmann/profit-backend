@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AuthCacheService } from '../auth-cache.service';
 import { Request } from 'express';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private readonly configService: ConfigService,
     private prisma: PrismaService,
+    private authCache: AuthCacheService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -27,11 +29,27 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: any) {
-    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    const userId = payload.sub;
+    const cached = this.authCache.get(userId);
+
+    if (cached) {
+      if (!cached.isActive) {
+        throw new UnauthorizedException('User logged out');
+      }
+      return { id: userId, email: payload.email };
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isActive: true },
+    });
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException('User logged out');
     }
-    return { id: payload.sub, email: payload.email };
+
+    this.authCache.set(userId, user.isActive);
+
+    return { id: userId, email: payload.email };
   }
 }

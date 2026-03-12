@@ -36,7 +36,7 @@ export class RepaymentController {
 
 
     @Post('upload/:id')
-    @UseInterceptors(FilesInterceptor('file'))
+    @UseInterceptors(FilesInterceptor('file', 10, { limits: { fileSize: 10 * 1024 * 1024 } }))
     uploadReceipts(
         @Req() req,
         @Param('id', ParseIntPipe) id: number,
@@ -81,7 +81,7 @@ export class RepaymentController {
 
     @Post('PaymentProof/:id')
     @Permissions('repayments', 'canPost')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
     uploadPaymentProof(
         @Req() req,
         @Param('id', ParseIntPipe) id: number,
@@ -141,7 +141,7 @@ export class RepaymentController {
 
     @Post('payment-proof-bulk')
     @Permissions('repayments', 'canPost')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
     uploadPaymentProofBulk(
         @Req() req,
         @UploadedFile() file: Express.Multer.File,

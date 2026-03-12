@@ -13,26 +13,34 @@ export class WhatsappService {
             return;
         }
 
-        try {
-            const response = await axios.post(
-                `${this.baseUrl}/messages`,
-                {
-                    recipient_type: 'individual',
-                    to,
-                    type: 'text',
-                    text: { body: message },
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.apiKey}`,
+        const maxAttempts = 3;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                const response = await axios.post(
+                    `${this.baseUrl}/messages`,
+                    {
+                        recipient_type: 'individual',
+                        to,
+                        type: 'text',
+                        text: { body: message },
                     },
-                }
-            );
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.apiKey}`,
+                        },
+                        timeout: 10000,
+                    }
+                );
 
-            return response.data;
-        } catch (error: any) {
-            throw new Error('Failed to send WhatsApp message');
+                return response.data;
+            } catch (error: any) {
+                if (attempt < maxAttempts) {
+                    await new Promise((r) => setTimeout(r, 500 * attempt));
+                } else {
+                    throw new Error('Failed to send WhatsApp message after 3 attempts');
+                }
+            }
         }
     }
 }

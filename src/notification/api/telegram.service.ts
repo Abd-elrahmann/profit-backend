@@ -20,18 +20,14 @@ export class TelegramService {
                     chat_id: chatId,
                     text: message,
                     parse_mode: 'HTML',
-                    ...extra, 
+                    ...extra,
                 };
 
-                const response = await axios.post(url, payload);
+                const response = await axios.post(url, payload, { timeout: 10000 });
                 return response.data;
             } catch (error: any) {
-                if (axios.isAxiosError(error)) {
-                } else {
-                }
-
                 if (attempt < 3) {
-                    await new Promise(res => setTimeout(res, 500));
+                    await new Promise((r) => setTimeout(r, 500 * attempt));
                 } else {
                     throw new Error(`Failed to send Telegram message to ${chatId} after 3 attempts`);
                 }

@@ -24,6 +24,7 @@ export class AccountsService {
         if (exists) throw new BadRequestException('رمز الحساب موجود بالفعل');
 
         const account = await this.prisma.account.create({ data: dto });
+        this.accountsTreeCache = null;
         return { message: 'تم انشاء الحساب بنجاح', account };
     }
 
@@ -36,6 +37,7 @@ export class AccountsService {
             data: dto,
         });
 
+        this.accountsTreeCache = null;
         return { message: 'تم تعديل الحساب بنجاح', account: updated };
     }
 
@@ -47,6 +49,7 @@ export class AccountsService {
         if (hasChildren) throw new BadRequestException('لا يمكن حذف حساب لديه حسابات فرعية');
 
         await this.prisma.account.delete({ where: { id } });
+        this.accountsTreeCache = null;
         return { message: 'تم حذف الحساب بنجاح' };
     }
 
@@ -222,23 +225,48 @@ export class AccountsService {
         };
     }
 
+    private accountsTreeCache: { data: any[]; expiresAt: number } | null = null;
+
     async getAccountsTree() {
-        const accounts = await this.prisma.account.findMany({ orderBy: { code: 'asc' } });
+        const now = Date.now();
+        if (this.accountsTreeCache && this.accountsTreeCache.expiresAt > now) {
+            return this.accountsTreeCache.data;
+        }
+
+        const accounts = await this.prisma.account.findMany({
+            orderBy: { code: 'asc' },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                parentId: true,
+                nature: true,
+                debit: true,
+                credit: true,
+                balance: true,
+            },
+        });
 
         const map = new Map<number, any>();
         const roots: any[] = [];
 
-        accounts.forEach(acc => {
+        accounts.forEach((acc) => {
             map.set(acc.id, { ...acc, children: [] });
         });
 
-        accounts.forEach(acc => {
+        accounts.forEach((acc) => {
             if (acc.parentId) {
-                map.get(acc.parentId).children.push(map.get(acc.id));
+                const parent = map.get(acc.parentId);
+                if (parent) parent.children.push(map.get(acc.id));
             } else {
                 roots.push(map.get(acc.id));
             }
         });
+
+        this.accountsTreeCache = {
+            data: roots,
+            expiresAt: now + 5 * 60 * 1000,
+        };
 
         return roots;
     }

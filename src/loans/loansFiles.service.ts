@@ -3,8 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
 import { ClientStatusService } from '../client/client-status.service';
 import { LoanStatus } from '@prisma/client';
-import * as fs from 'fs';
 import * as path from 'path';
+import { mkdir, writeFile } from 'fs/promises';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -30,12 +30,12 @@ export class loansFilesService {
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        await mkdir(uploadDir, { recursive: true });
 
         const ext = path.extname(file.originalname);
         const fileName = `DEBT_ACK_${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
-        fs.writeFileSync(filePath, file.buffer);
+        await writeFile(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${relPath}`;
@@ -78,15 +78,13 @@ export class loansFilesService {
 
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
+        await mkdir(uploadDir, { recursive: true });
 
         const ext = path.extname(file.originalname);
         const fileName = `PROMISSORY_${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
 
-
-        fs.writeFileSync(filePath, file.buffer);
+        await writeFile(filePath, file.buffer);
 
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
@@ -132,13 +130,13 @@ export class loansFilesService {
         const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
 
         const uploadDir = path.join(process.cwd(), 'uploads', 'clients', client.nationalId);
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        await mkdir(uploadDir, { recursive: true });
 
         const ext = path.extname(file.originalname);
         const fileName = `SETTLEMENT_${loan.code}${ext}`;
         const filePath = path.join(uploadDir, fileName);
 
-        fs.writeFileSync(filePath, file.buffer);
+        await writeFile(filePath, file.buffer);
 
         const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
         const publicUrl = `${process.env.URL}${relPath}`;

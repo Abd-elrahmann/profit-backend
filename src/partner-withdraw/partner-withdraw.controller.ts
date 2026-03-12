@@ -98,7 +98,7 @@ export class PartnerWithdrawController {
     }
 
     @Post('upload-receipt/:partnerId')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
     uploadWithdrawalReceipt(
         @Req() req,
         @Param('partnerId', ParseIntPipe) partnerId: number,
@@ -121,7 +121,7 @@ export class PartnerWithdrawController {
 
     @Post('upload-voucher/:scheduleId')
     @Permissions('partners-withdraw', 'canPost')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
     uploadWithdrawVoucher(
         @Req() req,
         @Param('scheduleId', ParseIntPipe) scheduleId: number,

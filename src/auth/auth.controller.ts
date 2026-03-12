@@ -113,7 +113,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('upload-profile-image')
-  @UseInterceptors(FileInterceptor('profileImage', { storage: multer.memoryStorage() }))
+  @UseInterceptors(FileInterceptor('profileImage', { storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }))
   uploadProfileImage(@Req() req, @UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('يرجى اختيار صورة');
     return this.authService.uploadProfileImage(req.user.id, file);

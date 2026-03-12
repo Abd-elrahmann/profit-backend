@@ -115,7 +115,7 @@ export class ZakatController {
 
   @Post('upload')
   @Permissions('zakat', 'canPost')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
   uploadMudarabahFile(
     @Req() req,
     @UploadedFile() file: Express.Multer.File,

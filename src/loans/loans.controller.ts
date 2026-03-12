@@ -140,7 +140,7 @@ export class LoansController {
     }
 
     @Post(':id/upload-Settlement')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
     async uploadSettlementFile(
         @Req() req,
         @Param('id') id: number,

@@ -223,46 +223,52 @@ export class NotificationScheduler {
             },
         });
 
-        for (const notif of dueNotifications) {
-            try {
-                if (!notif.client?.telegramChatId || !notif.repayment) continue;
+        const BATCH_SIZE = 5;
+        for (let i = 0; i < dueNotifications.length; i += BATCH_SIZE) {
+            const batch = dueNotifications.slice(i, i + BATCH_SIZE);
+            await Promise.all(
+                batch.map(async (notif) => {
+                    try {
+                        if (!notif.client?.telegramChatId || !notif.repayment) return;
 
-                const loan = notif.loan;
-                if (!loan) {
-                    this.logger.warn(`Loan not found for notification ${notif.id}`);
-                    await this.prisma.notification.delete({ where: { id: notif.id } });
-                    continue;
-                }
-                if (loan.status === LoanStatus.PENDING) {
-                    this.logger.warn(`Loan ${loan.id} is pending, skipping notification ${notif.id}`);
-                    await this.prisma.notification.delete({ where: { id: notif.id } });
-                    continue;
-                }
+                        const loan = notif.loan;
+                        if (!loan) {
+                            this.logger.warn(`Loan not found for notification ${notif.id}`);
+                            await this.prisma.notification.delete({ where: { id: notif.id } });
+                            return;
+                        }
+                        if (loan.status === LoanStatus.PENDING) {
+                            this.logger.warn(`Loan ${loan.id} is pending, skipping notification ${notif.id}`);
+                            await this.prisma.notification.delete({ where: { id: notif.id } });
+                            return;
+                        }
 
-                if (notif.repayment.status === 'PAID') {
-                    await this.prisma.notification.delete({ where: { id: notif.id } });
-                    continue;
-                }
+                        if (notif.repayment.status === 'PAID') {
+                            await this.prisma.notification.delete({ where: { id: notif.id } });
+                            return;
+                        }
 
-                if (notif.repayment.status === 'PENDING' || notif.repayment.status === 'OVERDUE') {
-                    await this.notificationService.sendNotification({
-                        templateType:
-                            notif.type === NotificationType.REPAYMENT_LATE
-                                ? TemplateType.REPAYMENT_LATE
-                                : TemplateType.REPAYMENT_DUE,
-                        clientId: notif.clientId!,
-                        loanId: notif.loanId!,
-                        repaymentId: notif.repaymentId!,
-                        channel: 'TELEGRAM',
-                    });
+                        if (notif.repayment.status === 'PENDING' || notif.repayment.status === 'OVERDUE') {
+                            await this.notificationService.sendNotification({
+                                templateType:
+                                    notif.type === NotificationType.REPAYMENT_LATE
+                                        ? TemplateType.REPAYMENT_LATE
+                                        : TemplateType.REPAYMENT_DUE,
+                                clientId: notif.clientId!,
+                                loanId: notif.loanId!,
+                                repaymentId: notif.repaymentId!,
+                                channel: 'TELEGRAM',
+                            });
 
-                    await this.prisma.notification.delete({ where: { id: notif.id } });
-                } else {
-                    await this.prisma.notification.delete({ where: { id: notif.id } });
-                }
-            } catch (err) {
-                this.logger.error(`Error processing scheduled notification ${notif.id}: ${err?.message || err}`, err?.stack);
-            }
+                            await this.prisma.notification.delete({ where: { id: notif.id } });
+                        } else {
+                            await this.prisma.notification.delete({ where: { id: notif.id } });
+                        }
+                    } catch (err) {
+                        this.logger.error(`Error processing scheduled notification ${notif.id}: ${err?.message || err}`, err?.stack);
+                    }
+                }),
+            );
         }
     }
 }

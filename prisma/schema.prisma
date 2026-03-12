@@ -45,6 +45,10 @@ model ExpenseRecord {
   user        User?     @relation("UserExpenses", fields: [userId], references: [id])
   employee    User?     @relation("EmployeeExpenses", fields: [employeeId], references: [id])
   journal     JournalHeader? @relation(fields: [journalId], references: [id])
+
+  @@index([userId])
+  @@index([journalId])
+  @@index([createdAt])
 }
 
 model Role {
@@ -81,6 +85,11 @@ model AuditLog {
   description String?
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([screen])
+  @@index([action])
+  @@index([createdAt])
 }
 
 model ResetPasswordToken {
@@ -132,6 +141,10 @@ model Client {
   JournalLine    JournalLine[]
   clientsClosing clientsClosing[]
   Notification   Notification[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([nationalId])
 }
 
 model Kafeel {
@@ -222,6 +235,10 @@ model Loan {
   LoanPartnerShare LoanPartnerShare[]
   LoanNewCapitalShare LoanNewCapitalShare[]
   LoanCount  LoanCount[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([startDate])
 }
 
 model LoanCount {
@@ -305,6 +322,11 @@ model Repayment {
   profitAccruals PartnerShareAccrual[]
   RepaymentCount RepaymentCount[]
   RepaymentPayment RepaymentPayment[]
+
+  @@index([loanId])
+  @@index([clientId])
+  @@index([dueDate])
+  @@index([status])
 }
 
 model RepaymentPayment {
@@ -351,6 +373,10 @@ model Notification {
   client   Client?   @relation(fields: [clientId], references: [id])
   loan     Loan?     @relation(fields: [loanId], references: [id])
   repayment Repayment? @relation(fields: [repaymentId], references: [id])
+
+  @@index([channel])
+  @@index([scheduledAt])
+  @@index([sentAt])
 }
 
 enum NotificationType {
@@ -535,6 +561,10 @@ model PartnerShareAccrual {
   partner     Partner   @relation(fields: [partnerId], references: [id])
   loan        Loan?     @relation(fields: [loanId], references: [id])
   repayment   Repayment? @relation(fields: [repaymentId], references: [id])
+
+  @@index([loanId])
+  @@index([partnerId])
+  @@index([isClosed])
 }
 
 model ZakatAccrual {
@@ -741,6 +771,12 @@ model JournalHeader {
   voucherUrl  String?
   period      PeriodHeader? @relation(fields: [periodId], references: [id])
   ExpenseRecord ExpenseRecord[]
+
+  @@index([status])
+  @@index([sourceType])
+  @@index([sourceId])
+  @@index([date])
+  @@index([periodId])
 }
 
 model JournalLine {
@@ -756,6 +792,10 @@ model JournalLine {
   client      Client?       @relation(fields: [clientId], references: [id])
   journal     JournalHeader @relation(fields: [journalId], references: [id])
   account     Account       @relation(fields: [accountId], references: [id])
+
+  @@index([journalId])
+  @@index([accountId])
+  @@index([clientId])
 }
 
 enum JournalType {

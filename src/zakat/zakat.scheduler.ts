@@ -24,20 +24,23 @@ export class ZakatSchedulerService {
     async runYearEndZakatSettlement() {
         const year = moment().tz('Asia/Riyadh').year();
 
-        const partners = await this.prisma.partner.findMany();
+        const [partners, zakat, paidByPartner] = await Promise.all([
+            this.prisma.partner.findMany(),
+            this.prisma.account.findUnique({ where: { code: '20001' } }),
+            this.prisma.zakatPayment.groupBy({
+                by: ['partnerId'],
+                where: { year },
+                _sum: { amount: true },
+            }),
+        ]);
 
-        const zakat = await this.prisma.account.findUnique({ where: { code: '20001' } });
         if (!zakat) throw new BadRequestException('zakat account (20001) must exist');
+
+        const paidMap = new Map(paidByPartner.map((x) => [x.partnerId, this.round2(x._sum.amount || 0)]));
 
         for (const p of partners) {
             const annualZakat = this.round2(p.totalAmount * 0.025);
-
-            const paid = await this.prisma.zakatPayment.aggregate({
-                where: { partnerId: p.id, year },
-                _sum: { amount: true },
-            });
-
-            const paidAmount = this.round2(paid._sum.amount || 0);
+            const paidAmount = paidMap.get(p.id) ?? 0;
             const diff = this.round2(annualZakat - paidAmount);
 
             if (diff !== 0) {
@@ -100,9 +103,11 @@ export class ZakatSchedulerService {
     async runNextYearZakatAccruals() {
         const year = moment().tz('Asia/Riyadh').year();
 
-        const partners = await this.prisma.partner.findMany();
+        const [partners, zakatAccount] = await Promise.all([
+            this.prisma.partner.findMany(),
+            this.prisma.account.findUnique({ where: { code: '20001' } }),
+        ]);
 
-        const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
         if (!zakatAccount) throw new BadRequestException('Zakat account (20001) must exist');
 
         for (const partner of partners) {

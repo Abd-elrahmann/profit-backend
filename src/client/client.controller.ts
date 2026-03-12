@@ -42,6 +42,7 @@ export class ClientController {
             ],
             {
                 storage: multer.memoryStorage(),
+                limits: { fileSize: 10 * 1024 * 1024 },
             },
         ),
     )
@@ -86,6 +87,7 @@ export class ClientController {
             ],
             {
                 storage: memoryStorage(),
+                limits: { fileSize: 10 * 1024 * 1024 },
             },
         ),
     )
@@ -113,7 +115,8 @@ export class ClientController {
                 { name: 'simaReport', maxCount: 1 },
             ],
             {
-                storage: memoryStorage(), 
+                storage: memoryStorage(),
+                limits: { fileSize: 10 * 1024 * 1024 },
             },
         ),
     )
@@ -217,6 +220,7 @@ export class ClientController {
             ],
             {
                 storage: memoryStorage(),
+                limits: { fileSize: 10 * 1024 * 1024 },
             },
         ),
     )

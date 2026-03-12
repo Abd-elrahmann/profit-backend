@@ -70,7 +70,7 @@ export class ZakatService {
 
     private async generatePdfFromHtml(html: string, filename: string): Promise<string> {
         const dir = path.join(process.cwd(), 'uploads', 'zakat');
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        await fs.promises.mkdir(dir, { recursive: true });
         const filePath = path.join(dir, filename);
 
         const browser = await puppeteer.launch({
@@ -80,12 +80,16 @@ export class ZakatService {
                 '--disable-setuid-sandbox',
             ],
         });
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: 'networkidle0' });
-        await page.pdf({ path: filePath, format: 'A4', printBackground: true });
-        await browser.close();
 
-        return filePath;
+        try {
+            const page = await browser.newPage();
+            await page.setDefaultTimeout(30000);
+            await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
+            await page.pdf({ path: filePath, format: 'A4', printBackground: true });
+            return filePath;
+        } finally {
+            await browser.close();
+        }
     }
 
     private toHijri(date: Date) {

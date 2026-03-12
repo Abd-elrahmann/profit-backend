@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -34,14 +34,36 @@ import { SettingsModule } from './settings/settings.module';
 import { PermissionsModule } from './common/permissions.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { FileModule } from './file/file.module';
+import { CacheModule } from './cache/cache.module';
+import { TimeoutMiddleware } from './common/middleware/timeout.middleware';
+import { BullModule } from '@nestjs/bull';
+
+const redisUrl = process.env.REDIS_URL;
+const bullModule =
+  redisUrl && redisUrl.length > 0
+    ? [
+        BullModule.forRootAsync({
+          useFactory: () => ({
+            redis: redisUrl,
+            defaultJobOptions: {
+              removeOnComplete: 100,
+              attempts: 3,
+              backoff: { type: 'exponential' as const, delay: 1000 },
+            },
+          }),
+        }),
+        BullModule.registerQueue({ name: 'zakat' }, { name: 'notifications' }),
+      ]
+    : [];
 
 @Module({
   imports: [
+    ...bullModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {
           ttl: 60000,
-          limit: 5,
+          limit: 100,
         },
       ],
     }),
@@ -49,6 +71,7 @@ import { FileModule } from './file/file.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    CacheModule,
     ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
@@ -83,4 +106,8 @@ import { FileModule } from './file/file.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TimeoutMiddleware).forRoutes('*');
+  }
+}

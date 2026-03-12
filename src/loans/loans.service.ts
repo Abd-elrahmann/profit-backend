@@ -43,38 +43,64 @@ export class LoansService {
             orderBy: { id: 'asc' },
         });
 
-        const items: { id: number; reference: string | null; sourceType: string; loanCode?: string; clientName?: string }[] = [];
-
+        const loanIds = new Set<number>();
+        const repaymentIds = new Set<number>();
         for (const j of unpostedJournals) {
+            if (!j.sourceId) continue;
+            if (j.sourceType === 'LOAN' || j.sourceType === 'LOAN_INTEREST' || j.sourceType === 'LOAN_CONVERSION') {
+                loanIds.add(j.sourceId);
+            } else if (j.sourceType === 'REPAYMENT') {
+                repaymentIds.add(j.sourceId);
+            }
+        }
+
+        const [loans, repayments] = await Promise.all([
+            loanIds.size > 0
+                ? this.prisma.loan.findMany({
+                    where: { id: { in: [...loanIds] } },
+                    select: { id: true, code: true, client: { select: { name: true } } },
+                })
+                : [],
+            repaymentIds.size > 0
+                ? this.prisma.repayment.findMany({
+                    where: { id: { in: [...repaymentIds] } },
+                    select: { id: true, loan: { select: { code: true, client: { select: { name: true } } } } },
+                })
+                : [],
+        ]);
+
+        type LoanInfo = { code?: string; clientName?: string };
+        const loanMap = new Map<number, LoanInfo>();
+        for (const l of loans) {
+            loanMap.set(l.id, { code: l.code, clientName: l.client?.name });
+        }
+        const repaymentMap = new Map<number, LoanInfo>();
+        for (const r of repayments) {
+            repaymentMap.set(r.id, { code: r.loan?.code, clientName: r.loan?.client?.name });
+        }
+
+        const items = unpostedJournals.map((j) => {
             let loanCode: string | undefined;
             let clientName: string | undefined;
-
-            if (j.sourceType === 'LOAN' || j.sourceType === 'LOAN_INTEREST' || j.sourceType === 'LOAN_CONVERSION') {
-                if (j.sourceId) {
-                    const loan = await this.prisma.loan.findUnique({
-                        where: { id: j.sourceId },
-                        include: { client: { select: { name: true } } },
-                    });
-                    loanCode = loan?.code;
-                    clientName = loan?.client?.name;
+            if (j.sourceId) {
+                if (j.sourceType === 'LOAN' || j.sourceType === 'LOAN_INTEREST' || j.sourceType === 'LOAN_CONVERSION') {
+                    const info = loanMap.get(j.sourceId);
+                    loanCode = info?.code;
+                    clientName = info?.clientName;
+                } else if (j.sourceType === 'REPAYMENT') {
+                    const info = repaymentMap.get(j.sourceId);
+                    loanCode = info?.code;
+                    clientName = info?.clientName;
                 }
-            } else if (j.sourceType === 'REPAYMENT' && j.sourceId) {
-                const repayment = await this.prisma.repayment.findUnique({
-                    where: { id: j.sourceId },
-                    include: { loan: { include: { client: { select: { name: true } } } } },
-                });
-                loanCode = repayment?.loan?.code;
-                clientName = repayment?.loan?.client?.name;
             }
-
-            items.push({
+            return {
                 id: j.id,
                 reference: j.reference,
                 sourceType: j.sourceType ?? '',
                 loanCode,
                 clientName,
-            });
-        }
+            };
+        });
 
         return {
             count: items.length,
@@ -94,18 +120,6 @@ export class LoansService {
             },
         });
 
-        for (const acc of accruals) {
-
-            const partner = await tx.partner.findUniqueOrThrow({
-                where: { id: acc.partnerId },
-                select: { upcomingProfit: true },
-            });
-
-            const newProfit = new Decimal(partner.upcomingProfit || 0)
-                .plus(acc.partnerFinal)
-                .toDecimalPlaces(2);
-        }
-
         if (
             loan.source !== LoanFundSource.NEW_CAPITAL &&
             loan.source !== LoanFundSource.MIX
@@ -117,15 +131,27 @@ export class LoansService {
             where: { loanId: loan.id },
         });
 
+        const sharePartnerIds = shares
+            .filter((s) => Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2)) > 0)
+            .map((s) => s.partnerId);
+        const partnersMap =
+            sharePartnerIds.length > 0
+                ? new Map(
+                    (await tx.partner.findMany({
+                        where: { id: { in: sharePartnerIds } },
+                        select: { id: true, accountNewCapitalId: true, accountEquityId: true },
+                    })).map((p) => [p.id, p]),
+                )
+                : new Map();
+
         const lines: JournalLineDto[] = [];
 
         for (const s of shares) {
             const used = Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2));
             if (used <= 0) continue;
 
-            const partner = await tx.partner.findUniqueOrThrow({
-                where: { id: s.partnerId },
-            });
+            const partner = partnersMap.get(s.partnerId);
+            if (!partner) continue;
 
             await tx.partner.update({
                 where: { id: s.partnerId },
@@ -138,13 +164,13 @@ export class LoansService {
 
             lines.push(
                 {
-                    accountId: partner.accountNewCapitalId,
+                    accountId: partner.accountNewCapitalId!,
                     debit: used,
                     credit: 0,
                     description: `تحويل رأس مال شريك إلى العام (قرض ${loan.id})`,
                 },
                 {
-                    accountId: partner.accountEquityId,
+                    accountId: partner.accountEquityId!,
                     debit: 0,
                     credit: used,
                     description: `إثبات رأس مال الشريك`,
@@ -192,25 +218,25 @@ export class LoansService {
             },
         });
 
-        for (const acc of accruals) {
-            const partner = await tx.partner.findUnique({
-                where: { id: acc.partnerId },
-                select: { upcomingProfit: true },
-            });
+        const accrualPartnerIds = accruals.map((a) => a.partnerId);
+        const accrualPartnersMap =
+            accrualPartnerIds.length > 0
+                ? new Map(
+                    (await tx.partner.findMany({
+                        where: { id: { in: accrualPartnerIds } },
+                        select: { id: true, upcomingProfit: true },
+                    })).map((p) => [p.id, p]),
+                )
+                : new Map();
 
+        for (const acc of accruals) {
+            const partner = accrualPartnersMap.get(acc.partnerId);
             const current = new Decimal(partner?.upcomingProfit || 0);
             const decrement = new Decimal(acc.partnerFinal || 0);
-
-            const updated = Decimal.max(
-                new Decimal(0),
-                current.minus(decrement)
-            ).toDecimalPlaces(2);
-
+            const updated = Decimal.max(new Decimal(0), current.minus(decrement)).toDecimalPlaces(2);
             await tx.partner.update({
                 where: { id: acc.partnerId },
-                data: {
-                    upcomingProfit: Number(updated),
-                },
+                data: { upcomingProfit: Number(updated) },
             });
         }
 
@@ -221,15 +247,24 @@ export class LoansService {
             return;
         }
 
+        const sharePartnerIds = loan.LoanNewCapitalShare
+            .filter((s) => Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2)) > 0)
+            .map((s) => s.partnerId);
+        const partnersMap =
+            sharePartnerIds.length > 0
+                ? new Map(
+                    (await tx.partner.findMany({
+                        where: { id: { in: sharePartnerIds } },
+                        select: { id: true, capitalAmount: true },
+                    })).map((p) => [p.id, p]),
+                )
+                : new Map();
+
         for (const s of loan.LoanNewCapitalShare) {
             const used = Number(new Decimal(s.amountUsed || 0).toDecimalPlaces(2));
             if (used <= 0) continue;
 
-            const partner = await tx.partner.findUnique({
-                where: { id: s.partnerId },
-                select: { capitalAmount: true },
-            });
-
+            const partner = partnersMap.get(s.partnerId);
             const remainingCapital = Number(partner?.capitalAmount || 0) - used;
 
             await tx.partner.update({

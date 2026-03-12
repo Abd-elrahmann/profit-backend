@@ -71,7 +71,7 @@ export class RolesService {
             },
         });
 
-        this.permissionsGuard.clearCache();
+        await this.permissionsGuard.clearCache();
 
         return { message: 'تم انشاء الدور بنجاح', role };
     }
@@ -200,7 +200,7 @@ export class RolesService {
             },
         });
 
-        this.permissionsGuard.clearCache();
+        await this.permissionsGuard.clearCache();
 
         return { message: 'تم تعديل الدور بنجاح', role: updatedRole };
     }
@@ -229,7 +229,7 @@ export class RolesService {
             },
         });
 
-        this.permissionsGuard.clearCache();
+        await this.permissionsGuard.clearCache();
 
         return { message: 'تم حذف الدور بنجاح' };
     }
@@ -283,7 +283,7 @@ export class RolesService {
                 },
             });
 
-            this.permissionsGuard.clearCache();
+            await this.permissionsGuard.clearCache();
 
             return {
                 message: 'تم تحديث صلاحيات الداشبورد بنجاح',

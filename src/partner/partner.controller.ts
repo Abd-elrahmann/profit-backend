@@ -84,7 +84,7 @@ export class PartnerController {
 
     @Post('upload/:id')
     @Permissions('partners', 'canUpdate')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
     uploadMudarabahFile(
         @Req() req,
         @Param('id', ParseIntPipe) id: number,
