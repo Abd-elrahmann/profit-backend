@@ -15,7 +15,7 @@ export class RepaymentService {
         private readonly journalService: JournalService,
         private readonly notificationService: NotificationService,
         private readonly clientStatusService: ClientStatusService,
-    ) {}
+    ) { }
 
     private async updatePartnerShareAccruals(
         tx: any,
@@ -546,7 +546,7 @@ export class RepaymentService {
         const loan = repayment.loan;
         if (!loan) throw new NotFoundException('Loan not found');
 
-        if (loan.status === LoanStatus.PENDING || LoanStatus.COMPLETED)
+        if (loan.status === LoanStatus.PENDING || loan.status === LoanStatus.COMPLETED)
             throw new BadRequestException('السلفة غير نشطة');
 
         if (!dto.newDueDate)
