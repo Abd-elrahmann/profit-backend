@@ -323,9 +323,19 @@ export class DashboardService {
 
 
         const loansByStatus: Record<string, number> = {};
+        let delinquentOverdueRepaymentsCount = 0;
+        let delinquentDefaultedLoansCount = 0;
         loans.forEach(loan => {
             const finalStatus = computeLoanStatus(loan);
             loansByStatus[finalStatus] = (loansByStatus[finalStatus] || 0) + 1;
+            if (finalStatus === 'OVERDUE' || finalStatus === 'DEFAULTED') {
+                delinquentOverdueRepaymentsCount += loan.repayments.filter(
+                    (r) => r.status === 'OVERDUE',
+                ).length;
+            }
+            if (finalStatus === 'DEFAULTED') {
+                delinquentDefaultedLoansCount += 1;
+            }
         });
 
 
@@ -391,6 +401,10 @@ export class DashboardService {
             loans: {
                 count: loansCount,
                 byStatus: loansByStatus,
+                delinquentDetail: {
+                    overdueRepaymentsCount: delinquentOverdueRepaymentsCount,
+                    defaultedLoansCount: delinquentDefaultedLoansCount,
+                },
                 totalAmount:
                     loanAmounts._sum.newAmount
                         ? loanAmounts._sum.newAmount

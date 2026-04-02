@@ -450,37 +450,15 @@ export class AccountsService {
             },
         });
 
-        const currentPaidMonthRepayments = await this.prisma.repayment.findMany({
-            where: {
-                OR: [
-                    {
-                        dueDate: {
-                            gte: currentMonthStart,
-                            lte: currentMonthEnd,
-                        },
-                    },
-                    {
-                        paymentDate: {
-                            gte: currentMonthStart,
-                            lte: currentMonthEnd,
-                        },
-                    },
-                ],
-                loan: {
-                    status: 'ACTIVE',
-                },
-            },
-            select: {
-                paidAmount: true,
-            },
-        });
-
         const currentMonthTotalAmount = currentMonthRepayments.reduce(
             (sum, x) => sum + Number(x.amount),
             0
         );
 
-        const currentMonthPaidUntilNow = currentPaidMonthRepayments.reduce(
+        // Must use the same cohort as totalAmount / remaining (due this month only).
+        // Summing paidAmount across "paid this month OR due this month" inflates the figure
+        // (e.g. full paidAmount for installments due in prior months but settled this month).
+        const currentMonthPaidUntilNow = currentMonthRepayments.reduce(
             (sum, x) => sum + Number(x.paidAmount),
             0
         );
