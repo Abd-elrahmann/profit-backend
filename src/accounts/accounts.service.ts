@@ -418,13 +418,7 @@ export class AccountsService {
         );
 
         const repaymentFilter: any = {};
-        if (monthStart && monthEnd) {
-            repaymentFilter.dueDate = {
-                gte: monthStart,
-                lte: monthEnd,
-            };
-            repaymentFilter.loan = { status: "ACTIVE" };
-        }
+        repaymentFilter.loan = { status: "ACTIVE" };
 
         const now = DateTime.now().setZone("Asia/Riyadh");
 
@@ -455,9 +449,6 @@ export class AccountsService {
             0
         );
 
-        // Must use the same cohort as totalAmount / remaining (due this month only).
-        // Summing paidAmount across "paid this month OR due this month" inflates the figure
-        // (e.g. full paidAmount for installments due in prior months but settled this month).
         const currentMonthPaidUntilNow = currentMonthRepayments.reduce(
             (sum, x) => sum + Number(x.paidAmount),
             0
@@ -656,14 +647,7 @@ export class AccountsService {
         );
 
         const repaymentFilter: any = {};
-        if (monthStart && monthEnd) {
-            repaymentFilter.dueDate = {
-                gte: monthStart,
-                lte: monthEnd,
-            };
-
-            repaymentFilter.loan = { source: "NEW_CAPITAL" }
-        }
+        repaymentFilter.loan = { source: "NEW_CAPITAL" };
 
         const now = DateTime.now().setZone("Asia/Riyadh");
 
