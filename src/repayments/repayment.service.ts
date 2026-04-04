@@ -376,7 +376,7 @@ export class RepaymentService {
                     channel: 'WHATSAPP',
                 });
             } catch (error) {
-                console.error('❌ Failed to send WhatsApp notification:', error.message);
+                console.error('❌ Failed to send WhatsApp notification:', error);
             }
 
 
@@ -389,7 +389,7 @@ export class RepaymentService {
                     channel: 'TELEGRAM',
                 });
             } catch (error) {
-                console.error('❌ Failed to send Telegram notification:', error.message);
+                console.error('❌ Failed to send Telegram notification:', error);
             }
 
 
@@ -505,7 +505,7 @@ export class RepaymentService {
                     channel: 'WHATSAPP',
                 });
             } catch (error) {
-                console.error('❌ Failed to send WhatsApp notification:', error.message);
+                console.error('❌ Failed to send WhatsApp notification:', error);
             }
 
             try {
@@ -517,7 +517,7 @@ export class RepaymentService {
                     channel: 'TELEGRAM',
                 });
             } catch (error) {
-                console.error('❌ Failed to send Telegram notification:', error.message);
+                console.error('❌ Failed to send Telegram notification:', error);
             }
 
             await this.clientStatusService.updateClientStatus(loan.clientId);

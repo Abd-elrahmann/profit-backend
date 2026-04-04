@@ -23,7 +23,54 @@ export class AccountsService {
         const exists = await this.prisma.account.findUnique({ where: { code: dto.code } });
         if (exists) throw new BadRequestException('رمز الحساب موجود بالفعل');
 
-        const account = await this.prisma.account.create({ data: dto });
+        const accountData: any = { ...dto };
+
+        if (dto.amount) {
+            if (dto.nature === 'DEBIT') {
+                accountData.debit = dto.amount;
+                accountData.credit = 0;
+                accountData.balance = dto.amount;
+            } else if (dto.nature === 'CREDIT') {
+                accountData.credit = dto.amount;
+                accountData.debit = 0;
+                accountData.balance = dto.amount;
+            }
+
+            // Add amount to parent account if parentId exists
+            if (dto.parentId) {
+                const parent = await this.prisma.account.findUnique({ where: { id: dto.parentId } });
+                if (parent) {
+                    let newDebit = parent.debit || 0;
+                    let newCredit = parent.credit || 0;
+
+                    if (dto.nature === 'DEBIT') {
+                        newDebit = Number(newDebit) + dto.amount;
+                    } else if (dto.nature === 'CREDIT') {
+                        newCredit = Number(newCredit) + dto.amount;
+                    }
+
+                    let newBalance = 0;
+                    if (parent.nature === 'DEBIT') {
+                        newBalance = newDebit - newCredit;
+                    } else {
+                        newBalance = newCredit - newDebit;
+                    }
+
+                    await this.prisma.account.update({
+                        where: { id: dto.parentId },
+                        data: {
+                            debit: newDebit,
+                            credit: newCredit,
+                            balance: newBalance,
+                        },
+                    });
+                }
+            }
+
+            delete accountData.amount;
+        }
+
+        const account = await this.prisma.account.create({ data: accountData });
         this.accountsTreeCache = null;
         return { message: 'تم انشاء الحساب بنجاح', account };
     }
@@ -32,9 +79,62 @@ export class AccountsService {
         const account = await this.prisma.account.findUnique({ where: { id } });
         if (!account) throw new NotFoundException('Account not found');
 
+        const updateData: any = { ...dto };
+
+        if (dto.amount !== undefined) {
+            const nature = dto.nature || account.nature;
+            
+            // Calculate old amount based on account nature
+            const oldAmount = account.nature === 'DEBIT' ? (account.debit || 0) : (account.credit || 0);
+            const amountDifference = dto.amount - oldAmount;
+
+            if (nature === 'DEBIT') {
+                updateData.debit = dto.amount;
+                updateData.credit = 0;
+                updateData.balance = dto.amount;
+            } else if (nature === 'CREDIT') {
+                updateData.credit = dto.amount;
+                updateData.debit = 0;
+                updateData.balance = dto.amount;
+            }
+
+            // Update parent account if it exists
+            if (account.parentId && amountDifference !== 0) {
+                const parent = await this.prisma.account.findUnique({ where: { id: account.parentId } });
+                if (parent) {
+                    let newDebit = parent.debit || 0;
+                    let newCredit = parent.credit || 0;
+
+                    if (nature === 'DEBIT') {
+                        newDebit = Number(newDebit) + amountDifference;
+                    } else if (nature === 'CREDIT') {
+                        newCredit = Number(newCredit) + amountDifference;
+                    }
+
+                    let newBalance = 0;
+                    if (parent.nature === 'DEBIT') {
+                        newBalance = newDebit - newCredit;
+                    } else {
+                        newBalance = newCredit - newDebit;
+                    }
+
+                    await this.prisma.account.update({
+                        where: { id: account.parentId },
+                        data: {
+                            debit: newDebit,
+                            credit: newCredit,
+                            balance: newBalance,
+                        },
+                    });
+                }
+            }
+
+            delete updateData.amount;
+        }
+
         const updated = await this.prisma.account.update({
             where: { id },
-            data: dto,
+            data: updateData,
         });
 
         this.accountsTreeCache = null;
@@ -47,6 +147,38 @@ export class AccountsService {
 
         const hasChildren = await this.prisma.account.findFirst({ where: { parentId: id } });
         if (hasChildren) throw new BadRequestException('لا يمكن حذف حساب لديه حسابات فرعية');
+
+        // Update parent account if it exists
+        if (account.parentId) {
+            const parent = await this.prisma.account.findUnique({ where: { id: account.parentId } });
+            if (parent) {
+                let newDebit = parent.debit || 0;
+                let newCredit = parent.credit || 0;
+
+                // Subtract the deleted account's amount from parent
+                if (account.nature === 'DEBIT') {
+                    newDebit = Number(newDebit) - (account.debit || 0);
+                } else if (account.nature === 'CREDIT') {
+                    newCredit = Number(newCredit) - (account.credit || 0);
+                }
+
+                let newBalance = 0;
+                if (parent.nature === 'DEBIT') {
+                    newBalance = newDebit - newCredit;
+                } else {
+                    newBalance = newCredit - newDebit;
+                }
+
+                await this.prisma.account.update({
+                    where: { id: account.parentId },
+                    data: {
+                        debit: newDebit,
+                        credit: newCredit,
+                        balance: newBalance,
+                    },
+                });
+            }
+        }
 
         await this.prisma.account.delete({ where: { id } });
         this.accountsTreeCache = null;
