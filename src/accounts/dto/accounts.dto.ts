@@ -3,19 +3,19 @@ import { AccountType, AccountNature, AccountBasicType } from '@prisma/client';
 
 export class CreateAccountDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
-  code: string;
+  code!: string;
 
   @IsEnum(AccountType)
-  type: AccountType;
+  type!: AccountType;
 
   @IsEnum(AccountBasicType)
-  accountBasicType: AccountBasicType;
+  accountBasicType!: AccountBasicType;
 
   @IsEnum(AccountNature)
-  nature: AccountNature;
+  nature!: AccountNature;
 
   @IsOptional()
   @IsInt()
@@ -28,6 +28,10 @@ export class CreateAccountDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  amount?: number;
 }
 
 export class UpdateAccountDto {
@@ -54,4 +58,8 @@ export class UpdateAccountDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  amount?: number;
 }
