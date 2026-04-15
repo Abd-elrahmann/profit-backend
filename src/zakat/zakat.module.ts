@@ -8,6 +8,7 @@ import { JournalModule } from '../journal/journal.module';
 @Module({
   imports: [JournalModule],
   controllers: [ZakatController],
-  providers: [ZakatService, PrismaService , ZakatSchedulerService],
+  providers: [ZakatService, PrismaService, ZakatSchedulerService],
+  exports: [ZakatService],
 })
-export class ZakatModule {}
+export class ZakatModule { }

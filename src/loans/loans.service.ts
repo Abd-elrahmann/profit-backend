@@ -973,12 +973,22 @@ export class LoansService {
                 select: { id: true },
             });
 
+            const adjustmentJournal = await tx.journalHeader.findFirst({
+                where: {
+                    sourceType: 'LOAN',
+                    sourceId: loan.id,
+                    reference: { contains: 'ADJ' },
+                },
+                select: { id: true },
+            });
+
 
             const allJournalIds = [
                 ...loanJournalIds,
                 ...repaymentJournalIds,
                 ...(interestJournal ? [interestJournal.id] : []),
                 ...(activateJournal ? [activateJournal.id] : []),
+                ...(adjustmentJournal ? [adjustmentJournal.id] : []),
             ];
 
             if (allJournalIds.length > 0) {
@@ -1556,6 +1566,21 @@ export class LoansService {
                     },
                 });
             }
+
+            const interestRate = new Decimal(updated.interestRate || 0);
+            const interestRatio = interestRate.div(100);
+            const newCapitalAmount = principal;
+            const newCapitalInterestAmount = newCapitalAmount.mul(interestRatio);
+
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    generalAmount: 0,
+                    newCapitalAmount: Number(newCapitalAmount.toFixed(2)),
+                    generalInterestAmount: 0,
+                    newCapitalInterestAmount: Number(newCapitalInterestAmount.toFixed(2)),
+                },
+            });
         }
 
         if (sourceChanged && loan.source === LoanFundSource.NEW_CAPITAL && dto.source === LoanFundSource.GENERAL) {
@@ -1596,6 +1621,22 @@ export class LoansService {
                     },
                 });
             }
+
+            const principal = new Decimal(dto.amount ? dto.amount : loan.amount);
+            const interestRate = new Decimal(updated.interestRate || 0);
+            const interestRatio = interestRate.div(100);
+            const generalAmount = principal;
+            const generalInterestAmount = generalAmount.mul(interestRatio);
+
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    generalAmount: Number(generalAmount.toFixed(2)),
+                    newCapitalAmount: 0,
+                    generalInterestAmount: Number(generalInterestAmount.toFixed(2)),
+                    newCapitalInterestAmount: 0,
+                },
+            });
         }
 
 
@@ -1625,12 +1666,51 @@ export class LoansService {
                 throw new BadRequestException('يجب ادخال مبلغ او نسبة الفائدة');
             }
 
+            let generalAmount = new Decimal(0);
+            let newCapitalAmount = new Decimal(0);
+
+            const loanSource = dto.source || updated.source;
+
+            if (loanSource === LoanFundSource.GENERAL) {
+                generalAmount = principal;
+            } else if (loanSource === LoanFundSource.NEW_CAPITAL) {
+                newCapitalAmount = principal;
+            } else if (loanSource === LoanFundSource.MIX) {
+                const bankAccount = await this.prisma.account.findFirst({
+                    where: { accountBasicType: 'BANK' },
+                });
+                if (!bankAccount) {
+                    throw new NotFoundException('Bank account not found');
+                }
+
+                const bankBalance = new Decimal(bankAccount.balance);
+
+                if (bankBalance.gte(principal)) {
+                    generalAmount = principal;
+                } else {
+                    generalAmount = bankBalance;
+                    newCapitalAmount = principal.minus(bankBalance);
+                }
+            }
+
+            const interestRatio = interestRate.div(100);
+            const generalInterestAmount = generalAmount.gt(0)
+                ? generalAmount.mul(interestRatio)
+                : new Decimal(0);
+
+            const newCapitalInterestAmount = newCapitalAmount.gt(0)
+                ? newCapitalAmount.mul(interestRatio)
+                : new Decimal(0);
 
             const financialUpdateData: any = {
                 amount: Number(principal.toFixed(2)),
                 interestRate: Number(interestRate.toFixed(2)),
                 interestAmount: Number(totalInterest.toFixed(2)),
                 totalAmount: Number(totalAmount.toFixed(2)),
+                generalAmount: Number(generalAmount.toFixed(2)),
+                newCapitalAmount: Number(newCapitalAmount.toFixed(2)),
+                generalInterestAmount: Number(generalInterestAmount.toFixed(2)),
+                newCapitalInterestAmount: Number(newCapitalInterestAmount.toFixed(2)),
                 startDate: dto.startDate ? new Date(dto.startDate) : loan.startDate,
             };
 
@@ -1789,15 +1869,27 @@ export class LoansService {
                         remaining: newRemaining,
                     },
                 });
-
-                await this.prisma.loan.update({
-                    where: { id },
-                    data: {
-                        DEBT_ACKNOWLEDGMENT: null,
-                        PROMISSORY_NOTE: null,
-                    },
-                });
             }
+
+            let generalAmount = new Decimal(0);
+            let newCapitalAmount = principal;
+            const interestRate = new Decimal(updated.interestRate || 0);
+            const interestRatio = interestRate.div(100);
+
+            const generalInterestAmount = new Decimal(0);
+            const newCapitalInterestAmount = newCapitalAmount.mul(interestRatio);
+
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    generalAmount: Number(generalAmount.toFixed(2)),
+                    newCapitalAmount: Number(newCapitalAmount.toFixed(2)),
+                    generalInterestAmount: Number(generalInterestAmount.toFixed(2)),
+                    newCapitalInterestAmount: Number(newCapitalInterestAmount.toFixed(2)),
+                    DEBT_ACKNOWLEDGMENT: null,
+                    PROMISSORY_NOTE: null,
+                },
+            });
         }
 
 

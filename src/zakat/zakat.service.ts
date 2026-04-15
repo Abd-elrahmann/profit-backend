@@ -584,6 +584,7 @@ export class ZakatService {
     async withdrawZakat(
         amount: number,
         userId: number,
+        opening?: Boolean,
     ) {
         if (amount <= 0) {
             throw new BadRequestException("المبلغ يجب أن يكون أكبر من صفر");
@@ -620,34 +621,36 @@ export class ZakatService {
 
         const reference = `ZAKAT-WITHDRAW-${zakatWithdraw.id}-${year}-${month}`;
 
-        const journal = await this.journalService.createJournal(
-            {
-                reference,
-                description: `سحب مبلغ زكاة قدره ${amount}`,
-                type: 'GENERAL',
-                sourceType: 'ZAKAT',
-                sourceId: zakatWithdraw.id,
-                lines: [
-                    {
-                        accountId: zakatAccount.id,
-                        debit: amount,
-                        credit: 0,
-                        description: 'سحب مبلغ الزكاة من حساب الزكاة',
-                    },
-                    {
-                        accountId: bankAccount.id,
-                        debit: 0,
-                        credit: amount,
-                        description: 'سحب مبلغ الزكاة من الحساب البنكي',
-                    },
-                ],
-            },
-            userId,
-        );
+        if (!opening) {
+            const journal = await this.journalService.createJournal(
+                {
+                    reference,
+                    description: `سحب مبلغ زكاة قدره ${amount}`,
+                    type: 'GENERAL',
+                    sourceType: 'ZAKAT',
+                    sourceId: zakatWithdraw.id,
+                    lines: [
+                        {
+                            accountId: zakatAccount.id,
+                            debit: amount,
+                            credit: 0,
+                            description: 'سحب مبلغ الزكاة من حساب الزكاة',
+                        },
+                        {
+                            accountId: bankAccount.id,
+                            debit: 0,
+                            credit: amount,
+                            description: 'سحب مبلغ الزكاة من الحساب البنكي',
+                        },
+                    ],
+                },
+                userId,
+            );
 
-        const autoPostSetting = await this.prisma.settings.findFirst();
-        if (autoPostSetting?.autoPost) {
-            await this.journalService.postJournal(journal.journal.id, userId);
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, userId);
+            }
         }
 
         const partners = await this.prisma.partner.findMany({
@@ -764,7 +767,6 @@ export class ZakatService {
 
         return {
             message: "تم سحب مبلغ الزكاة بنجاح",
-            journalId: journal.journal.id,
             zakatWithdrawId: zakatWithdraw.id,
         };
     }

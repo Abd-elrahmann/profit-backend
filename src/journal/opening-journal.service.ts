@@ -3,11 +3,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateJournalDto } from './dto/journal.dto';
 import { JournalStatus, JournalSourceType, JournalType, AccountBasicType } from '@prisma/client';
 import { LoansService } from '../loans/loans.service';
+import { ZakatService } from '../zakat/zakat.service';
 
 @Injectable()
 export class OpeningJournalService {
     constructor(private readonly prisma: PrismaService,
-        private readonly LoansService: LoansService
+        private readonly LoansService: LoansService,
+        private readonly zakatservice: ZakatService
     ) { }
 
     private async handleClientAccount(
@@ -163,6 +165,23 @@ export class OpeningJournalService {
         ];
     }
 
+    private async handleZakatWithdrawAccount(
+        tx: any,
+        line: any,
+        account: any,
+        journalDto: CreateJournalDto,
+        userId: number,
+    ) {
+        if (journalDto.type !== JournalType.OPENING) return;
+
+        const amount = line.debit || 0;
+        if (amount <= 0) return;
+
+        let opening = true;
+
+        await this.zakatservice.withdrawZakat(amount, userId, opening);
+    }
+
     async createJournal(dto: CreateJournalDto, userId: number) {
 
         const user = await this.prisma.user.findUnique({ where: { id: userId } })
@@ -180,15 +199,6 @@ export class OpeningJournalService {
             }
 
             periodId = currentPeriod.id;
-        }
-
-        const totalDebit = dto.lines.reduce((sum, l) => sum + (l.debit || 0), 0);
-        const totalCredit = dto.lines.reduce((sum, l) => sum + (l.credit || 0), 0);
-
-        const tolerance = 0.01;
-
-        if (Math.abs(totalDebit - totalCredit) > tolerance) {
-            throw new BadRequestException('القيد غير متوازن: مجموع المدين لا يساوي مجموع الدائن');
         }
 
         const accountIds = dto.lines.map(l => l.accountId);
@@ -323,6 +333,16 @@ export class OpeningJournalService {
 
                     case AccountBasicType.PARTNER_EQUITY:
                         break;
+
+                    case AccountBasicType.ZAKAT_EXPENSES:
+                        await this.handleZakatWithdrawAccount(
+                            tx,
+                            createdLine,
+                            account,
+                            dto,
+                            userId
+                        );
+                        break;
                 }
             }
 
@@ -341,6 +361,6 @@ export class OpeningJournalService {
                 message: 'تم انشاء القيد بنجاح',
                 journal,
             };
-        });
+        }, { timeout: 20000 });
     }
 }
