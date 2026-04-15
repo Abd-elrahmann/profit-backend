@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLoanDto, UpdateLoanDto } from './dto/loan.dto';
-import { JournalSourceType, LoanFundSource, LoanStatus, LoanType, Prisma } from '@prisma/client';
+import { AccountBasicType, JournalSourceType, LoanFundSource, LoanStatus, LoanType, Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { JournalService } from '../journal/journal.service';
 import { ClientStatusService } from '../client/client-status.service';
@@ -19,7 +19,7 @@ export class LoansService {
         private readonly prisma: PrismaService,
         private readonly journalService: JournalService,
         private readonly clientStatusService: ClientStatusService,
-    ) {}
+    ) { }
 
     private toHijri(date: Date) {
         return moment(date)
@@ -471,6 +471,8 @@ export class LoansService {
                 partnerId: dto.partnerId,
                 issuanceCity: dto.issuanceCity,
                 paymentCity: dto.paymentCity,
+                isOpening: dto.isOpening ?? false,
+                isOpeningJournalId: dto.isOpeningJournalId ?? null
             },
         });
 
@@ -694,7 +696,7 @@ export class LoansService {
             where: { id },
             include: {
                 repayments: true,
-                client: { select: { id: true, name: true } },
+                client: { select: { id: true, name: true, accountId: true, interestAccountId: true } },
                 LoanPartnerShare: { include: { partner: true } },
                 LoanNewCapitalShare: true,
             },
@@ -771,12 +773,12 @@ export class LoansService {
             await this.prisma.repayment.createMany({ data: repayments });
         }
 
-        const receivable = await this.prisma.account.findFirst({
-            where: { accountBasicType: 'LOANS_RECEIVABLE' },
-        });
+        let clientAccountId = loan.client.accountId;
+        let clientInterestAccountId = loan.client.interestAccountId;
 
-        if (!receivable)
-            throw new BadRequestException('Loan receivable account must exist');
+        if (!clientAccountId || !clientInterestAccountId) {
+            throw new BadRequestException('حساب العميل غير موجود');
+        }
 
         let creditAccount;
         let journalLines: any[] = [];
@@ -786,7 +788,7 @@ export class LoansService {
                 where: { accountBasicType: 'BANK' },
             });
             journalLines = [
-                { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
+                { accountId: clientAccountId, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
                 { accountId: creditAccount.id, debit: 0, credit: loan.amount, description: 'سلفة عميل' },
             ];
         } else if (loan.source === LoanFundSource.NEW_CAPITAL) {
@@ -794,7 +796,7 @@ export class LoansService {
                 where: { accountBasicType: 'NEW_CAPITAL_BANK' },
             });
             journalLines = [
-                { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
+                { accountId: clientAccountId, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
                 { accountId: creditAccount.id, debit: 0, credit: loan.amount, description: 'سلفة عميل' },
             ];
         } else if (loan.source === LoanFundSource.MIX) {
@@ -811,7 +813,7 @@ export class LoansService {
             );
 
             journalLines.push(
-                { accountId: receivable.id, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
+                { accountId: clientAccountId, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
                 { accountId: generalBank.id, debit: 0, credit: loan.amount, description: 'سلفة عميل' },
             );
 
@@ -819,43 +821,77 @@ export class LoansService {
         }
 
         const clientName = loan.client?.name ?? `العميل ${loan.clientId}`;
-        const { journal } = await this.journalService.createJournal(
-            {
-                reference: `LN - ${loan.id}`,
-                description: `صرف سلفة للعميل ${clientName}`,
-                type: 'GENERAL',
-                sourceType: JournalSourceType.LOAN,
-                sourceId: loan.id,
-                lines: journalLines,
-            },
-            userId,
-        );
-
-        const clientjournal = await this.journalService.createJournal({
-            reference: `int - ${loan.id}`,
-            description: `تحويل فوائد سلفة للعميل ${clientName} إلى حسابه`,
-            type: 'GENERAL',
-            sourceType: 'LOAN_INTEREST',
-            sourceId: loan.id,
-            lines: [
-                { accountId: receivable.id, debit: loan.interestAmount, credit: 0, clientId: loan.clientId },
-                { accountId: receivable.id, debit: 0, credit: loan.interestAmount },
-            ],
-        }, userId);
 
         const autoPostSetting = await this.prisma.settings.findFirst();
-        if (autoPostSetting?.autoPost) {
-            await this.journalService.postJournal(journal.id, userId);
-            await this.journalService.postJournal(clientjournal.journal.id, userId);
-        }
 
-        await this.prisma.loan.update({
-            where: { id },
-            data: {
-                status: LoanStatus.ACTIVE,
-                disbursementJournalId: journal.id,
-            },
-        });
+        if (!loan.isOpening) {
+            const { journal } = await this.journalService.createJournal(
+                {
+                    reference: `LN - ${loan.id}`,
+                    description: `صرف سلفة للعميل ${clientName}`,
+                    type: 'GENERAL',
+                    sourceType: JournalSourceType.LOAN,
+                    sourceId: loan.id,
+                    lines: journalLines,
+                },
+                userId,
+            );
+
+            const clientjournal = await this.journalService.createJournal({
+                reference: `int - ${loan.id}`,
+                description: `تحويل فوائد سلفة للعميل ${clientName} إلى حسابه`,
+                type: 'GENERAL',
+                sourceType: 'LOAN_INTEREST',
+                sourceId: loan.id,
+                lines: [
+                    { accountId: clientAccountId, debit: loan.interestAmount, credit: 0, clientId: loan.clientId },
+                    { accountId: clientInterestAccountId, debit: 0, credit: loan.interestAmount },
+                ],
+            }, userId);
+
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.id, userId);
+                await this.journalService.postJournal(clientjournal.journal.id, userId);
+            }
+
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    status: LoanStatus.ACTIVE,
+                    disbursementJournalId: journal.id,
+                },
+            });
+        } else if (loan.isOpening && loan.interestAmount > 0) {
+            const clientjournal = await this.journalService.createJournal({
+                reference: `int - ${loan.id}`,
+                description: `تحويل فوائد سلفة للعميل ${clientName} إلى حسابه`,
+                type: 'GENERAL',
+                sourceType: 'LOAN_INTEREST',
+                sourceId: loan.id,
+                lines: [
+                    { accountId: clientAccountId, debit: loan.interestAmount, credit: 0, clientId: loan.clientId },
+                    { accountId: clientInterestAccountId, debit: 0, credit: loan.interestAmount },
+                ],
+            }, userId);
+
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(clientjournal.journal.id, userId);
+            }
+
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    status: LoanStatus.ACTIVE,
+                },
+            });
+        } else {
+            await this.prisma.loan.update({
+                where: { id },
+                data: {
+                    status: LoanStatus.ACTIVE,
+                },
+            });
+        }
 
         await this.prisma.$transaction(async (tx) => {
             await this.handleNewCapitalOnActivation(
@@ -864,7 +900,6 @@ export class LoansService {
                 userId,
             );
         });
-
 
         await this.clientStatusService.updateClientStatus(loan.clientId);
 
@@ -880,7 +915,6 @@ export class LoansService {
         return {
             message: 'تم تفعيل السلفة بنجاح',
             loanId: id,
-            journalId: journal.id,
         };
     }
 
@@ -1374,6 +1408,97 @@ export class LoansService {
             data: loanUpdateData,
         });
 
+        if (loan.isOpeningJournalId && dto.amount !== undefined) {
+            const newAmount = new Decimal(dto.amount);
+            const oldAmount = new Decimal(loan.amount);
+
+            const diff = oldAmount.minus(newAmount);
+
+            if (!diff.isZero()) {
+                const openingJournal = await this.prisma.journalHeader.findUnique({
+                    where: { id: loan.isOpeningJournalId },
+                    include: {
+                        lines: {
+                            include: {
+                                account: true,
+                            },
+                        },
+                    },
+                });
+
+                if (!openingJournal) {
+                    throw new BadRequestException('Opening journal not found');
+                }
+
+                const clientLine = openingJournal.lines.find(
+                    (l) => l.account.accountBasicType === AccountBasicType.CLIENT,
+                );
+
+                const bankLine = openingJournal.lines.find(
+                    (l) =>
+                        l.account.accountBasicType === AccountBasicType.BANK ||
+                        l.account.id === loan.bankAccountId,
+                );
+
+                if (!clientLine || !bankLine) {
+                    throw new BadRequestException('Invalid opening journal structure');
+                }
+
+                const adjustmentLines = [] as any;
+
+                if (diff.gt(0)) {
+                    adjustmentLines.push({
+                        accountId: clientLine.accountId,
+                        debit: 0,
+                        credit: Number(diff.toFixed(2)),
+                        description: 'تعديل سلفة عميل',
+                        clientId: loan.clientId,
+                    });
+
+                    adjustmentLines.push({
+                        accountId: bankLine.accountId,
+                        debit: Number(diff.toFixed(2)),
+                        credit: 0,
+                        description: 'تعديل سلفة بنك',
+                    });
+                } else {
+                    const absDiff = diff.abs();
+
+                    adjustmentLines.push({
+                        accountId: clientLine.accountId,
+                        debit: Number(absDiff.toFixed(2)),
+                        credit: 0,
+                        description: 'تعديل سلفة عميل',
+                        clientId: loan.clientId,
+                    });
+
+                    adjustmentLines.push({
+                        accountId: bankLine.accountId,
+                        debit: 0,
+                        credit: Number(absDiff.toFixed(2)),
+                        description: 'تعديل سلفة بنك',
+                    });
+                }
+
+                const adjustmentJournal = await this.journalService.createJournal(
+                    {
+                        reference: `LN-ADJ-${loan.id}`,
+                        description: `تعديل سلفة رقم ${loan.code}`,
+                        type: 'ADJUSTMENT',
+                        sourceType: JournalSourceType.LOAN,
+                        sourceId: loan.id,
+                        lines: adjustmentLines,
+                    },
+                    currentUser,
+                );
+
+                const settings = await this.prisma.settings.findFirst();
+                if (settings?.autoPost) {
+                    await this.journalService.postJournal(adjustmentJournal.journal.id, currentUser);
+                }
+            }
+        }
+
         const sourceChanged =
             dto.source !== undefined &&
             dto.source !== loan.source;
@@ -1695,7 +1820,7 @@ export class LoansService {
                 client: { select: { name: true } },
             },
         });
-        
+
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('فقط السلف المعلقة يمكن حذفها');

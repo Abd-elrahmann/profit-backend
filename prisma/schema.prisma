@@ -39,15 +39,18 @@ model ExpenseRecord {
   amount      Float
   description String?
   employeeId  Int?     
-  journalId   Int?      
+  journalId   Int?
+  openingJournalLineId Int?
   createdAt   DateTime  @default(now())
 
   user        User?     @relation("UserExpenses", fields: [userId], references: [id])
   employee    User?     @relation("EmployeeExpenses", fields: [employeeId], references: [id])
   journal     JournalHeader? @relation(fields: [journalId], references: [id])
+  openingJournalLine JournalLine? @relation(fields: [openingJournalLineId], references: [id])
 
   @@index([userId])
   @@index([journalId])
+  @@index([openingJournalLineId])
   @@index([createdAt])
 }
 
@@ -127,6 +130,8 @@ model Client {
   salary         Float
   obligations    Float
   creationReason String
+  accountId         Int?          @unique
+  interestAccountId Int?          @unique
   debit          Float            @default(0)
   credit         Float            @default(0)
   balance        Float            @default(0)
@@ -141,6 +146,8 @@ model Client {
   JournalLine    JournalLine[]
   clientsClosing clientsClosing[]
   Notification   Notification[]
+  ClientAccount  Account? @relation(name: "account_client", references: [id], fields: [accountId])
+  ClientInterestAccount  Account? @relation(name: "account_client_interest", references: [id], fields: [interestAccountId])
 
   @@index([status])
   @@index([createdAt])
@@ -201,6 +208,9 @@ model Loan {
   newCapitalInterestAmount Float?
   durationMonths Int
   type           LoanType
+  isOpening      Boolean @default(false)
+  isOpeningJournalId Int?
+  openingJournal JournalHeader? @relation("LoanOpeningJournal", fields: [isOpeningJournalId], references: [id])
   source         LoanFundSource
   status         LoanStatus  @default(PENDING)
   startDate      DateTime
@@ -227,7 +237,7 @@ model Loan {
   debtAcknowledgmentNumber String?
   promissoryNoteNumber     String?
   issuanceCity            String?  
-  paymentCity             String? 
+  paymentCity             String?   
   earlyPaidAmount       Float?      @default(0)
   earlyPaymentDiscount  Float?      @default(0)
   newAmount             Int?        @default(0)
@@ -650,6 +660,8 @@ model Account {
   children         Account[]         @relation("AccountHierarchy")
   entries          JournalLine[]
   createdAt        DateTime          @default(now())
+  ClientAccount    Client?           @relation("account_client")
+  ClientInterestAccount Client?      @relation("account_client_interest")
   partnerPayable   Partner?          @relation("account_payable")
   partnerEquity    Partner?          @relation("account_equity")
   partnerSaving    Partner?          @relation("account_saving")
@@ -665,6 +677,8 @@ enum AccountBasicType {
   CASH
   EXPENSES
   LOANS_RECEIVABLE
+  CLIENT
+  CLIENT_INTEREST
   SMALL_LOANS_RECEIVABLE
   PARTNER_PAYABLE
   PARTNER_EQUITY
@@ -771,6 +785,7 @@ model JournalHeader {
   voucherUrl  String?
   period      PeriodHeader? @relation(fields: [periodId], references: [id])
   ExpenseRecord ExpenseRecord[]
+  loansFromOpening Loan[] @relation("LoanOpeningJournal")
 
   @@index([status])
   @@index([sourceType])
@@ -792,6 +807,7 @@ model JournalLine {
   client      Client?       @relation(fields: [clientId], references: [id])
   journal     JournalHeader @relation(fields: [journalId], references: [id])
   account     Account       @relation(fields: [accountId], references: [id])
+  expenseRecords ExpenseRecord[] @relation()
 
   @@index([journalId])
   @@index([accountId])
@@ -823,6 +839,7 @@ enum JournalSourceType {
   SMALL_LOAN
   LOAN_CONVERSION
   LOAN_INTEREST
+  CLIENT
   OTHER
 }
 

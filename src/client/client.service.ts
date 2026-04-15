@@ -16,6 +16,15 @@ import { DateTime } from 'luxon';
 export class ClientService {
     constructor(private prisma: PrismaService) { }
 
+    private async generateNextCode(prefix: string): Promise<string> {
+        const latest = await this.prisma.account.findFirst({
+            where: { code: { startsWith: prefix } },
+            orderBy: { code: 'desc' },
+        });
+
+        const nextCode = latest ? (parseInt(latest.code) + 1).toString() : `${prefix}000`;
+        return nextCode;
+    }
 
     async createClient(
         currentUser: number,
@@ -38,28 +47,57 @@ export class ClientService {
         const client = await this.prisma.$transaction(async (tx) => {
             const { kafeel: kafeelList, documents: docDto, ...clientData } = dto;
 
+            const LOANS_RECEIVABLE = await this.prisma.account.findUnique({ where: { code: '12000' } });
+
+            if (!LOANS_RECEIVABLE) {
+                throw new BadRequestException('Base account (12000) must exist first');
+            }
+
+            const clientAccount = await this.prisma.account.create({
+                data: {
+                    name: `العميل - ${dto.name}`,
+                    code: await this.generateNextCode('12'),
+                    parentId: LOANS_RECEIVABLE.id,
+                    type: 'ASSET',
+                    nature: 'DEBIT',
+                    accountBasicType: 'CLIENT',
+                    level: 3,
+                },
+            });
+
+            const clientInterestAccount = await this.prisma.account.create({
+                data: {
+                    name: `فوائد العميل - ${dto.name}`,
+                    code: await this.generateNextCode('12'),
+                    parentId: LOANS_RECEIVABLE.id,
+                    type: 'ASSET',
+                    nature: 'DEBIT',
+                    accountBasicType: 'CLIENT_INTEREST',
+                    level: 3,
+                },
+            });
 
             const newClient = await tx.client.create({
                 data: {
                     ...clientData,
                     birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
                     status: dto.status ?? ClientStatus.نشط,
+                    accountId: clientAccount.id,
+                    interestAccountId: clientInterestAccount.id,
                 },
                 select: { id: true, name: true, nationalId: true },
             });
-
 
             const prefixMap: Record<string, string> = {
                 clientIdImage: 'client_id',
                 clientWorkCard: 'client_workcard',
                 salaryReport: 'salary_report',
                 simaReport: 'sima_report',
-                kafeelIdImage: 'kafeel', 
+                kafeelIdImage: 'kafeel',
                 kafeelWorkCard: 'kafeel_workcard',
             };
 
             const uploadedFiles = await this.mapUploadedFiles(files, newClient.nationalId, prefixMap);
-
 
             if (uploadedFiles.clientIdImage?.length) {
                 await tx.clientDocument.create({
@@ -72,7 +110,6 @@ export class ClientService {
                     },
                 });
             }
-
 
             if (Array.isArray(kafeelList) && kafeelList.length > 0) {
                 for (let i = 0; i < kafeelList.length; i++) {
@@ -103,7 +140,6 @@ export class ClientService {
 
             return newClient;
         });
-
 
         await this.prisma.auditLog.create({
             data: {
@@ -148,7 +184,7 @@ export class ClientService {
             let nextIndex = 1;
             const getNextIndex = () => {
                 while (existingIndices.includes(nextIndex)) nextIndex++;
-                existingIndices.push(nextIndex); 
+                existingIndices.push(nextIndex);
                 return nextIndex++;
             };
 
@@ -244,7 +280,7 @@ export class ClientService {
 
             uploadedFiles = await this.mapUploadedFiles(
                 files,
-                kafeel.client.nationalId, 
+                kafeel.client.nationalId,
                 prefixMap
             );
         }
@@ -309,7 +345,7 @@ export class ClientService {
 
         const docData = this.cleanDocumentData(
             Object.fromEntries(
-                Object.entries(uploadedFiles).map(([k, v]) => [k, v[0]]) 
+                Object.entries(uploadedFiles).map(([k, v]) => [k, v[0]])
             )
         );
 
@@ -324,7 +360,7 @@ export class ClientService {
                 const fullPath = path.join(process.cwd(), relativePath);
                 if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
             } catch (err) {
-                console.warn('⚠️ Could not delete old file:', err.message);
+                console.warn('⚠️ Could not delete old file:', err);
             }
         };
 
@@ -392,7 +428,6 @@ export class ClientService {
         return { message: 'تم تحديث مستندات العميل بنجاح' };
     }
 
-
     async deleteClient(currentUser: number, clientId: number) {
         const client = await this.prisma.client.findUnique({
             where: { id: clientId },
@@ -420,6 +455,10 @@ export class ClientService {
                 await tx.kafeel.deleteMany({ where: { id: { in: kafeelIds } } });
             }
 
+            if (client.accountId && client.interestAccountId) {
+                await tx.account.deleteMany({ where: { id: { in: [client.accountId, client.interestAccountId] } } });
+            }
+
             await tx.client.delete({ where: { id: clientId } });
         });
 
@@ -445,7 +484,6 @@ export class ClientService {
 
         return { message: `تم حذف العميل ${client.name} بنجاح` }
     }
-
 
     async getClients(
         page: number = 1,
@@ -480,8 +518,8 @@ export class ClientService {
             take: limit,
             orderBy: { id: 'desc' },
             include: {
-                kafeelS: true,       
-                documents: true,     
+                kafeelS: true,
+                documents: true,
             },
         });
 
@@ -859,7 +897,7 @@ export class ClientService {
             where: { id: kafeelId },
             include: {
                 client: true,
-                loans: true, 
+                loans: true,
             },
         });
         if (!kafeel) throw new NotFoundException('Kafeel not found');

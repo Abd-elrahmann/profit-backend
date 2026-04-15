@@ -1,5 +1,6 @@
 import { Controller, Post, Patch, Delete, Get, Body, Param, ParseIntPipe, Query, Req, UseGuards, Put } from '@nestjs/common';
 import { JournalService } from './journal.service';
+import { OpeningJournalService } from './opening-journal.service';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
@@ -8,12 +9,14 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('journals')
 export class JournalController {
-    constructor(private readonly journalService: JournalService) { }
+    constructor(private readonly journalService: JournalService,
+        private readonly openingJournalService: OpeningJournalService
+    ) { }
 
     @Post()
     @Permissions('journals', 'canAdd')
     create(@Req() req, @Body() dto: CreateJournalDto) {
-        return this.journalService.createJournal(dto, req.user.id);
+        return this.openingJournalService.createJournal(dto, req.user.id);
     }
 
     @Put(':id')
@@ -97,4 +100,9 @@ export class JournalController {
         return this.journalService.unpostMultipleJournals(ids, req.user.id);
     }
 
+    @Post()
+    @Permissions('journals', 'canAdd')
+    add(@Req() req, @Body() dto: CreateJournalDto) {
+        return this.openingJournalService.createJournal(dto, req.user.id);
+    }
 }

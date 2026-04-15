@@ -11,5 +11,6 @@ import { ClientModule } from '../client/client.module';
   imports: [ClientModule],
   controllers: [LoansController],
   providers: [LoansService, PrismaService, JournalService, LoansConversionService, loansFilesService],
+  exports: [LoansService],
 })
 export class LoansModule {}

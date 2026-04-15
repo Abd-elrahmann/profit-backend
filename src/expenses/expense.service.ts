@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { PrismaService } from '../prisma/prisma.service';
 import { JournalService } from '../journal/journal.service';
-import { JournalStatus, JournalSourceType } from '@prisma/client';
+import { JournalStatus, JournalSourceType, AccountBasicType, JournalType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import moment from "moment-hijri";
 
@@ -24,6 +24,12 @@ export class ExpenseService {
         const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
         if (!bank) throw new BadRequestException('حساب الصندوق غير موجود');
         return bank;
+    }
+
+    private async getExpenseAccountId(): Promise<number> {
+        const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
+        if (!expenseAccount) throw new BadRequestException('حساب المصروفات العامة غير موجود');
+        return expenseAccount.id;
     }
 
     async uploadExpenseVoucher(currentUser: number, file: Express.Multer.File) {
@@ -48,7 +54,7 @@ export class ExpenseService {
 
     async createExpenseJournal(
         userId: number,
-        expenses: { type: string; amount: number; description?: string; userId?: number }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number }[],
         voucherUrl?: string,
         reference?: string,
     ) {
@@ -57,9 +63,6 @@ export class ExpenseService {
 
         const bank = await this.getBankAccount();
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
-
-
-
 
         const journalLines = await Promise.all(
             expenses.map(async (e) => {
@@ -128,6 +131,7 @@ export class ExpenseService {
                     description: e.description || e.type,
                     employeeId: e.userId || null,
                     journalId: journal.journal.id,
+                    openingJournalLineId: e.openingJournalLineId || null,
                 },
             });
         }));
@@ -154,7 +158,7 @@ export class ExpenseService {
             },
             include: {
                 journal: true,
-                account: true, 
+                account: true,
             },
             skip: (page - 1) * limit,
             take: limit,
@@ -182,7 +186,7 @@ export class ExpenseService {
                 amount: line.debit || line.credit,
                 debit: line.debit,
                 credit: line.credit,
-                accountName: line.account?.name, 
+                accountName: line.account?.name,
                 accountCode: line.account?.code,
             });
 
@@ -249,6 +253,13 @@ export class ExpenseService {
                         voucherUrl: true,
                     },
                 },
+                openingJournalLine: {
+                    select: {
+                        id: true,
+                        journalId: true,
+                        accountId: true,
+                    },
+                },
             },
             orderBy: { createdAt: 'desc' },
             skip,
@@ -266,6 +277,7 @@ export class ExpenseService {
                 journal: e.journalId,
                 journalReference: e.journal?.reference ?? null,
                 voucherUrl: e.journal?.voucherUrl ?? null,
+                openingJournalLineId: e.openingJournalLineId,
                 type: e.type,
                 amount: e.amount,
                 description: e.description,
@@ -280,106 +292,123 @@ export class ExpenseService {
     async updateExpense(
         userId: number,
         journalId: number,
-        expenses: { type: string; amount: number; description?: string; userId?: number }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number }[],
     ) {
-        if (!expenses || expenses.length === 0)
+        if (!expenses?.length)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
 
         const journal = await this.prisma.journalHeader.findUnique({
             where: { id: journalId },
-            include: { lines: true },
+            include: { lines: { include: { account: true } } },
         });
 
-        if (!journal) throw new BadRequestException('القيد غير موجود');
-        if (journal.sourceType !== 'EXPENSES')
+        if (!journal)
+            throw new BadRequestException('القيد غير موجود');
+
+        if (journal.sourceType !== JournalSourceType.EXPENSES)
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
         const bank = await this.getBankAccount();
+        const expenseAccountId = await this.getExpenseAccountId();
 
-        const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
+        const oldExpenses = await this.prisma.expenseRecord.findMany({
+            where: { journalId },
+        });
 
-        const currentCreditInBank = journal.lines
-            .filter((l) => l.accountId === bank.id)
-            .reduce((sum, l) => sum + l.credit, 0);
+        const adjustmentLines: any[] = [];
+        let netBankEffect = 0;
 
-        const effectiveBankBalance = bank.balance + currentCreditInBank;
-        if (totalAmount > effectiveBankBalance)
-            throw new BadRequestException('رصيد الصندوق غير كافي بعد التعديل');
+        // Old total per type
+        const oldMap = new Map<string, number>();
+        for (const oldExp of oldExpenses) {
+            oldMap.set(oldExp.type, new Decimal(oldExp.amount).toNumber());
+        }
 
-        const isPosted = journal.status === JournalStatus.POSTED;
-        if (isPosted) await this.journalService.unpostJournal(userId, journalId);
+        // New total per type
+        const newMap = new Map<string, number>();
+        for (const newExp of expenses) {
+            const existing = newMap.get(newExp.type) || 0;
+            newMap.set(newExp.type, new Decimal(existing).plus(new Decimal(newExp.amount)).toNumber());
+        }
 
-        const journalLines = await Promise.all(
-            expenses.map(async (e) => {
-                let expenseAccountId: number;
-                let description = e.description || e.type;
+        // Collect all unique types from both old and new
+        const allTypes = new Set([...oldMap.keys(), ...newMap.keys()]);
 
-                if (e.type === 'مصروف رواتب') {
-                    if (!e.userId) throw new BadRequestException('يجب تحديد الموظف عند إضافة مصروف رواتب');
+        for (const type of allTypes) {
+            const oldAmount = oldMap.get(type) || 0;
+            const newAmount = newMap.get(type) || 0;
+            const diff = new Decimal(newAmount).minus(new Decimal(oldAmount)).toNumber();
 
-                    const employee = await this.prisma.user.findUnique({
-                        where: { id: e.userId },
-                        select: { name: true, expenseAccountId: true },
-                    });
+            if (diff === 0) continue;
 
-                    if (!employee?.expenseAccountId)
-                        throw new BadRequestException(`لا يوجد حساب مصروفات للموظف ${employee?.name}`);
-
-                    expenseAccountId = employee.expenseAccountId;
-                    description = `${description} - ${employee.name}`;
-                } else {
-                    const expenseAccount = await this.prisma.account.findUnique({ where: { code: '51000' } });
-                    if (!expenseAccount) throw new BadRequestException('حساب المصروفات العامة غير موجود');
-
-                    expenseAccountId = expenseAccount.id;
-                }
-
-                return {
+            if (diff > 0) {
+                // Increased or new expense → debit expense
+                adjustmentLines.push({
                     accountId: expenseAccountId,
-                    debit: e.amount,
+                    debit: diff,
                     credit: 0,
-                    description,
-                };
-            }),
-        );
+                    description: `تعديل مصروف (زيادة) - ${type}`,
+                });
+                netBankEffect += diff;
+            } else {
+                // Decreased or removed expense → credit expense
+                adjustmentLines.push({
+                    accountId: expenseAccountId,
+                    debit: 0,
+                    credit: Math.abs(diff),
+                    description: `تعديل مصروف (نقص) - ${type}`,
+                });
+                netBankEffect -= Math.abs(diff);
+            }
+        }
 
-        journalLines.push({
-            accountId: bank.id,
-            debit: 0,
-            credit: totalAmount,
-            description: 'صرف المصروفات',
-        });
-
-        await this.prisma.journalHeader.update({
-            where: { id: journalId },
-            data: {
-                description: 'صرف مصروفات متعددة الأنواع',
-                reference: `EXP-${journalId}-${Date.now()}`,
-                lines: { deleteMany: {}, create: journalLines },
-            },
-        });
-
-        await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
-
-        await Promise.all(expenses.map(async (e) => {
-            await this.prisma.expenseRecord.create({
-                data: {
-                    userId,
-                    type: e.type,
-                    amount: e.amount,
-                    description: e.description || e.type,
-                    employeeId: e.userId || null,
-                    journalId,
-                },
+        if (adjustmentLines.length > 0) {
+            // Single bank counter-entry
+            adjustmentLines.push({
+                accountId: bank.id,
+                debit: netBankEffect < 0 ? Math.abs(netBankEffect) : 0,
+                credit: netBankEffect > 0 ? netBankEffect : 0,
+                description: 'تعديل بنكي للمصروفات',
             });
-        }));
+
+            const adjustmentJournal = await this.journalService.createJournal(
+                {
+                    reference: `EXP-ADJ-${journalId}-${Date.now()}`,
+                    description: 'تعديل مصروفات',
+                    type: JournalType.ADJUSTMENT,
+                    sourceType: JournalSourceType.EXPENSES,
+                    sourceId: journalId,
+                    lines: adjustmentLines,
+                },
+                userId,
+            );
+
+            const settings = await this.prisma.settings.findFirst();
+            if (settings?.autoPost) {
+                await this.journalService.postJournal(adjustmentJournal.journal.id, userId);
+            }
+        }
+
+        // Replace expense records
+        await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
+        await this.prisma.expenseRecord.createMany({
+            data: expenses.map(e => ({
+                userId,
+                type: e.type,
+                amount: e.amount,
+                description: e.description || e.type,
+                employeeId: e.userId || null,
+                journalId,
+                openingJournalLineId: e.openingJournalLineId || null,
+            })),
+        });
 
         await this.prisma.auditLog.create({
             data: {
                 userId,
                 screen: 'Expenses',
                 action: 'UPDATE',
-                description: `تم تعديل قيد مصروفات ${journalId} بمبلغ ${totalAmount}`,
+                description: `تم تعديل قيد مصروفات ${journalId}`,
             },
         });
 
@@ -387,28 +416,76 @@ export class ExpenseService {
     }
 
     async deleteExpense(userId: number, journalId: number) {
-        const journal = await this.prisma.journalHeader.findUnique({ where: { id: journalId } });
+        const journal = await this.prisma.journalHeader.findUnique({
+            where: { id: journalId },
+            include: { lines: { include: { account: true } } },
+        });
+
         if (!journal) throw new BadRequestException('القيد غير موجود');
         if (journal.sourceType !== 'EXPENSES')
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
-        if (journal.status == 'POSTED') {
-            await this.journalService.unpostJournal(userId, journalId);
+        const isOpeningJournal = journal.type === JournalType.OPENING;
+
+        const expenseLines = journal.lines.filter(
+            l => l.account.accountBasicType === AccountBasicType.EXPENSES
+        );
+        const nonExpenseLines = journal.lines.filter(
+            l => l.account.accountBasicType !== AccountBasicType.EXPENSES
+        );
+
+        if (isOpeningJournal && nonExpenseLines.length > 0) {
+
+            if (journal.status === 'POSTED') {
+                await this.journalService.unpostJournal(userId, journalId);
+            }
+            const bank = await this.getBankAccount();
+            const totalExpenseAmount = expenseLines.reduce(
+                (sum, l) => new Decimal(sum).plus(new Decimal(l.debit || 0)).toNumber(),
+                0
+            );
+
+            await this.prisma.journalLine.createMany({
+                data: [
+                    ...expenseLines.map(l => ({
+                        journalId,
+                        accountId: l.accountId,
+                        debit: 0,
+                        credit: l.debit,
+                        description: `عكس - ${l.description || ''}`,
+                    })),
+                    {
+                        journalId,
+                        accountId: bank.id,
+                        debit: totalExpenseAmount,
+                        credit: 0,
+                        description: 'عكس بنكي للمصروفات الافتتاحية',
+                    },
+                ],
+            });
+            
+            if (journal.status === 'POSTED') {
+                await this.journalService.postJournal(journalId, userId);
+            }
+
+            await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
+        } else {
+            // Safe to delete the whole journal
+            if (journal.status === 'POSTED') {
+                await this.journalService.unpostJournal(userId, journalId);
+            }
+
+            await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
+            await this.prisma.journalLine.deleteMany({ where: { journalId } });
+            await this.prisma.journalHeader.delete({ where: { id: journalId } });
         }
-
-
-        await this.prisma.expenseRecord.deleteMany({ where: { journalId } });
-
-        await this.prisma.journalLine.deleteMany({ where: { journalId } });
-        await this.prisma.journalHeader.delete({ where: { id: journalId } });
-
 
         await this.prisma.auditLog.create({
             data: {
                 userId,
                 screen: 'Expenses',
                 action: 'DELETE',
-                description: `تم حذف قيد مصروفات ${journalId}`,
+                description: `تم حذف مصروفات القيد ${journalId}`,
             },
         });
 

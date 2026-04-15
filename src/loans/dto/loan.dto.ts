@@ -3,31 +3,31 @@ import { LoanType, LoanStatus, LoanFundSource } from '@prisma/client';
 
 export class CreateLoanDto {
     @IsNumber()
-    clientId: number;
+    clientId!: number;
 
     @IsOptional()
     @IsNumber()
     kafeelId?: number;
 
     @IsNumber()
-    amount: number;
+    amount!: number;
 
     @IsNumber()
-    paymentAmount: number;
-
-    @IsOptional()
-    @IsNumber()
-    InterestPercentage: number;
+    paymentAmount!: number;
 
     @IsOptional()
     @IsNumber()
-    TotalInterest: number;
+    InterestPercentage!: number;
+
+    @IsOptional()
+    @IsNumber()
+    TotalInterest!: number;
 
     @IsEnum(LoanType)
-    type: LoanType;
+    type!: LoanType;
 
     @IsEnum(LoanFundSource)
-    source: LoanFundSource;
+    source!: LoanFundSource;
 
     @IsOptional()
     @IsDateString()
@@ -54,6 +54,13 @@ export class CreateLoanDto {
     @IsOptional()
     @IsString()
     paymentCity?: string;
+
+    @IsOptional()
+    isOpening?: boolean;
+
+    @IsOptional()
+    @IsNumber()
+    isOpeningJournalId?: number;
 }
 
 export class UpdateLoanDto {
@@ -71,7 +78,7 @@ export class UpdateLoanDto {
 
     @IsOptional()
     @IsNumber()
-    TotalInterest: number;
+    TotalInterest?: number;
 
     @IsOptional()
     @IsEnum(LoanStatus)
@@ -79,11 +86,11 @@ export class UpdateLoanDto {
 
     @IsOptional()
     @IsEnum(LoanType)
-    type: LoanType;
+    type?: LoanType;
 
     @IsOptional()
     @IsEnum(LoanFundSource)
-    source: LoanFundSource;
+    source?: LoanFundSource;
 
     @IsOptional()
     @IsDateString()
