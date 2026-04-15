@@ -1820,7 +1820,7 @@ export class LoansService {
                 client: { select: { name: true } },
             },
         });
-
+        
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('فقط السلف المعلقة يمكن حذفها');
