@@ -44,7 +44,8 @@ export class OpeningJournalService {
             repaymentDay: new Date().toISOString(),
             isOpening: true,
             isOpeningJournalId: journalId,
-        });
+        }
+            , tx);
     }
 
     private async handleExpenseAccount(
@@ -69,6 +70,97 @@ export class OpeningJournalService {
                 journalId: line.journalId,
             },
         });
+    }
+
+    private async handlePartnerAccount(
+        tx: any,
+        line: any,
+        account: any,
+        journalDto: CreateJournalDto,
+        userId: number
+    ) {
+        if (journalDto.type !== JournalType.OPENING) return;
+
+        const amount = line.credit || 0;
+        if (amount <= 0) return;
+
+        const partner = await tx.partner.findFirst({
+            where: { accountEquityId: account.id },
+        });
+
+        if (!partner) {
+            throw new NotFoundException('لا يوجد شريك مرتبط بهذا الحساب');
+        }
+
+        await tx.partner.update({
+            where: { id: partner.id },
+            data: {
+                capitalAmount: amount,
+                totalAmount: amount,
+            },
+        });
+
+        if (amount <= 0) return;
+
+        const zakatBase = amount;
+        const annualZakat = Number((zakatBase * 0.025).toFixed(2));
+
+        const currentYear = new Date().getFullYear();
+
+        const startMonth = new Date().getMonth() + 1;
+        const remainingMonths = 12 - startMonth + 1;
+
+        const totalCents = Math.round(annualZakat * 100);
+        const monthlyCents = Math.floor(totalCents / remainingMonths);
+        const remainderCents = totalCents - monthlyCents * remainingMonths;
+
+        for (let month = startMonth; month <= 12; month++) {
+            let amountCents = monthlyCents;
+
+            if (month === 12) {
+                amountCents += remainderCents;
+            }
+
+            await tx.zakatAccrual.create({
+                data: {
+                    partnerId: partner.id,
+                    year: currentYear,
+                    month,
+                    amount: amountCents / 100,
+                },
+            });
+        }
+
+        await tx.partner.update({
+            where: { id: partner.id },
+            data: {
+                yearlyZakatRequired: annualZakat,
+                yearlyZakatBalance: annualZakat,
+            },
+        });
+
+        const zakatAccount = await tx.account.findUnique({
+            where: { code: '20001' },
+        });
+
+        if (!zakatAccount) {
+            throw new BadRequestException('zakat Account (20001) must exist first');
+        }
+
+        return [
+            {
+                accountId: partner.accountEquityId,
+                debit: annualZakat,
+                credit: 0,
+                description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+            },
+            {
+                accountId: zakatAccount.id,
+                debit: 0,
+                credit: annualZakat,
+                description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+            },
+        ];
     }
 
     async createJournal(dto: CreateJournalDto, userId: number) {
@@ -118,6 +210,52 @@ export class OpeningJournalService {
 
         return await this.prisma.$transaction(async (tx) => {
 
+            const zakatAccount = await tx.account.findUnique({
+                where: { code: '20001' },
+            });
+
+            if (!zakatAccount) {
+                throw new BadRequestException('zakat Account (20001) must exist first');
+            }
+
+            const accountsMap = new Map(accounts.map(a => [a.id, a]));
+            accountsMap.set(zakatAccount.id, zakatAccount);
+
+            let extraLines: any[] = [];
+
+            for (const line of dto.lines) {
+                const account = accountsMap.get(line.accountId);
+                if (!account) continue;
+
+                if (account.accountBasicType === AccountBasicType.PARTNER_EQUITY) {
+                    const zakatLines = await this.handlePartnerAccount(
+                        tx,
+                        line,
+                        account,
+                        dto,
+                        userId
+                    );
+
+                    extraLines.push(...(zakatLines || []));
+                }
+            }
+
+            const finalLines = [...dto.lines, ...extraLines];
+
+            const totalDebit = finalLines.reduce(
+                (sum, l) => sum + Math.round((l.debit || 0) * 100),
+                0
+            );
+
+            const totalCredit = finalLines.reduce(
+                (sum, l) => sum + Math.round((l.credit || 0) * 100),
+                0
+            );
+
+            if (totalDebit !== totalCredit) {
+                throw new BadRequestException('القيد غير متوازن: مجموع المدين لا يساوي مجموع الدائن');
+            }
+
             const journal = await tx.journalHeader.create({
                 data: {
                     periodId,
@@ -129,8 +267,8 @@ export class OpeningJournalService {
                     postedById: null,
                     voucherUrl: dto.voucherUrl ?? null,
                     lines: {
-                        create: dto.lines.map((line) => {
-                            const account = accounts.find(a => a.id === line.accountId);
+                        create: finalLines.map((line) => {
+                            const account = accountsMap.get(line.accountId);
 
                             if (!account) {
                                 throw new BadRequestException(`الحساب ${line.accountId} غير موجود`);
@@ -162,11 +300,28 @@ export class OpeningJournalService {
 
                 switch (account.accountBasicType) {
                     case AccountBasicType.CLIENT:
-                        await this.handleClientAccount(tx, createdLine, account, dto, clients, userId, journal.id);
+                        await this.handleClientAccount(
+                            tx,
+                            createdLine,
+                            account,
+                            dto,
+                            clients,
+                            userId,
+                            journal.id
+                        );
                         break;
 
                     case AccountBasicType.EXPENSES:
-                        await this.handleExpenseAccount(tx, createdLine, account, dto, userId);
+                        await this.handleExpenseAccount(
+                            tx,
+                            createdLine,
+                            account,
+                            dto,
+                            userId
+                        );
+                        break;
+
+                    case AccountBasicType.PARTNER_EQUITY:
                         break;
                 }
             }
@@ -174,10 +329,10 @@ export class OpeningJournalService {
             if (userId) {
                 await tx.auditLog.create({
                     data: {
-                        userId: userId,
+                        userId,
                         screen: 'Journals',
                         action: 'CREATE',
-                        description: `قام المستخدم ${user?.name || 'غير معروف'} بإنشاء قيد افتتاحي برقم ${journal.reference}`,
+                        description: `قام المستخدم ${user?.name || 'غير معروف'} بإنشاء قيد افتتاحي برقم ${dto.reference}`,
                     },
                 });
             }

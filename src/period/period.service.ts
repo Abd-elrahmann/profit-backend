@@ -318,12 +318,18 @@ export class PeriodService {
         return await this.prisma.$transaction(async (tx) => {
             const period = await tx.periodHeader.findUnique({
                 where: { id: periodId },
+                include: { PartnerShareAccrual: { select: { isDistributed: true } } },
             });
             if (!period) throw new NotFoundException("Period not found");
 
             if (period.isClosed === false) {
                 throw new BadRequestException("الفترة مفتوحة بالفعل.");
             }
+
+            if (period.PartnerShareAccrual.some(a => a.isDistributed)) {
+                throw new BadRequestException("لا يمكن عكس إغلاق فترة تحتوي على أرباح موزعة بالفعل.");
+            };
+
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
             });

@@ -130,116 +130,118 @@ export class PartnerService {
             },
         });
 
-
-        let zakatBase = dto.capitalAmount;
-
-        const startMonth = partner.createdAt
-            ? new Date(partner.createdAt).getMonth() + 1
-            : new Date().getMonth() + 1;
-
-        const remainingMonths = 12 - startMonth + 1;
-
-        const annualZakat = Number((zakatBase * 0.025).toFixed(2));
-
-        const currentYear = new Date().getFullYear();
-
-        const totalCents = Math.round(annualZakat * 100);
-        const monthlyCents = Math.floor(totalCents / remainingMonths);
-        const remainderCents = totalCents - monthlyCents * remainingMonths;
-
-        for (let month = startMonth; month <= 12; month++) {
-            let amountCents = monthlyCents;
-            if (month === 12) {
-                amountCents += remainderCents;
-            }
-            await this.prisma.zakatAccrual.create({
-                data: {
-                    partnerId: partner.id,
-                    year: currentYear,
-                    month,
-                    amount: amountCents / 100,
-                },
-            });
-        }
-
-        const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
-
-        if (!zakatAccount) {
-            throw new BadRequestException('zakat Account (20001) must exist first');
-        }
-
         const isNew = partner.isNewPartner;
-        const journalLines = isNew
-            ? [
-                {
-                    accountId: newCapitalBank.id,
-                    debit: dto.capitalAmount,
-                    credit: 0,
-                    description: 'إيداع رأس مال (مساهم جديد)',
-                },
-                {
-                    accountId: newCapitalAccount.id,
-                    debit: 0,
-                    credit: dto.capitalAmount,
-                    description: `رأس مال جديد - ${partner.name}`,
-                },
-                {
-                    accountId: partner.accountEquityId,
-                    debit: annualZakat,
-                    credit: 0,
-                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
-                },
-                {
-                    accountId: zakatAccount.id,
-                    debit: 0,
-                    credit: annualZakat,
-                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
-                },
-            ]
-            : [
-                {
-                    accountId: bank.id,
-                    debit: dto.capitalAmount,
-                    credit: 0,
-                    description: 'إيداع رأس مال (مساهم قديم)',
-                },
-                {
-                    accountId: equityAccount.id,
-                    debit: 0,
-                    credit: dto.capitalAmount,
-                    description: `رأس مال ${partner.name}`,
-                },
-                {
-                    accountId: partner.accountEquityId,
-                    debit: annualZakat,
-                    credit: 0,
-                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
-                },
-                {
-                    accountId: zakatAccount.id,
-                    debit: 0,
-                    credit: annualZakat,
-                    description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
-                },
-            ];
 
-        const journal = await this.journalService.createJournal(
-            {
-                reference: `CAP-${partner.id}`,
-                description: isNew
-                    ? `إيداع رأس مال مساهم جديد ${partner.name}`
-                    : `إيداع رأس مال مساهم قديم ${partner.name}`,
-                type: JournalType.OPENING,
-                sourceType: JournalSourceType.PARTNER,
-                sourceId: partner.id,
-                lines: journalLines,
-            },
-            currentUser,
-        );
+        if (dto.capitalAmount > 0) {
+            let zakatBase = dto.capitalAmount;
 
-        const autoPostSetting = await this.prisma.settings.findFirst();
-        if (autoPostSetting?.autoPost) {
-            await this.journalService.postJournal(journal.journal.id, currentUser);
+            const startMonth = partner.createdAt
+                ? new Date(partner.createdAt).getMonth() + 1
+                : new Date().getMonth() + 1;
+
+            const remainingMonths = 12 - startMonth + 1;
+
+            const annualZakat = Number((zakatBase * 0.025).toFixed(2));
+
+            const currentYear = new Date().getFullYear();
+
+            const totalCents = Math.round(annualZakat * 100);
+            const monthlyCents = Math.floor(totalCents / remainingMonths);
+            const remainderCents = totalCents - monthlyCents * remainingMonths;
+
+            for (let month = startMonth; month <= 12; month++) {
+                let amountCents = monthlyCents;
+                if (month === 12) {
+                    amountCents += remainderCents;
+                }
+                await this.prisma.zakatAccrual.create({
+                    data: {
+                        partnerId: partner.id,
+                        year: currentYear,
+                        month,
+                        amount: amountCents / 100,
+                    },
+                });
+            }
+
+            const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
+
+            if (!zakatAccount) {
+                throw new BadRequestException('zakat Account (20001) must exist first');
+            }
+
+            const journalLines = isNew
+                ? [
+                    {
+                        accountId: newCapitalBank.id,
+                        debit: dto.capitalAmount,
+                        credit: 0,
+                        description: 'إيداع رأس مال (مساهم جديد)',
+                    },
+                    {
+                        accountId: newCapitalAccount.id,
+                        debit: 0,
+                        credit: dto.capitalAmount,
+                        description: `رأس مال جديد - ${partner.name}`,
+                    },
+                    {
+                        accountId: partner.accountEquityId,
+                        debit: annualZakat,
+                        credit: 0,
+                        description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                    },
+                    {
+                        accountId: zakatAccount.id,
+                        debit: 0,
+                        credit: annualZakat,
+                        description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                    },
+                ]
+                : [
+                    {
+                        accountId: bank.id,
+                        debit: dto.capitalAmount,
+                        credit: 0,
+                        description: 'إيداع رأس مال (مساهم قديم)',
+                    },
+                    {
+                        accountId: equityAccount.id,
+                        debit: 0,
+                        credit: dto.capitalAmount,
+                        description: `رأس مال ${partner.name}`,
+                    },
+                    {
+                        accountId: partner.accountEquityId,
+                        debit: annualZakat,
+                        credit: 0,
+                        description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                    },
+                    {
+                        accountId: zakatAccount.id,
+                        debit: 0,
+                        credit: annualZakat,
+                        description: `إستحقاق زكاة لعام ${currentYear} - ${partner.name}`,
+                    },
+                ];
+
+            const journal = await this.journalService.createJournal(
+                {
+                    reference: `CAP-${partner.id}`,
+                    description: isNew
+                        ? `إيداع رأس مال مساهم جديد ${partner.name}`
+                        : `إيداع رأس مال مساهم قديم ${partner.name}`,
+                    type: JournalType.OPENING,
+                    sourceType: JournalSourceType.PARTNER,
+                    sourceId: partner.id,
+                    lines: journalLines,
+                },
+                currentUser,
+            );
+
+            const autoPostSetting = await this.prisma.settings.findFirst();
+            if (autoPostSetting?.autoPost) {
+                await this.journalService.postJournal(journal.journal.id, currentUser);
+            }
         }
 
         if (isNew) {

@@ -287,11 +287,13 @@ export class LoansService {
         return loanCount;
     }
 
-    async createLoan(currentUser, dto: CreateLoanDto) {
-        const client = await this.prisma.client.findUnique({ where: { id: dto.clientId } });
+    async createLoan(currentUser, dto: CreateLoanDto, tx?: Prisma.TransactionClient) {
+        const prisma = tx ?? this.prisma;
+
+        const client = await prisma.client.findUnique({ where: { id: dto.clientId } });
         if (!client) throw new NotFoundException('Client not found');
 
-        const user = await this.prisma.user.findUnique({ where: { id: currentUser } });
+        const user = await prisma.user.findUnique({ where: { id: currentUser } });
 
         const principal = new Decimal(dto.amount);
         let totalInterest: Decimal;
@@ -326,7 +328,7 @@ export class LoansService {
         }
 
         if (fundSource === LoanFundSource.MIX) {
-            const bankAccount = await this.prisma.account.findFirst({
+            const bankAccount = await prisma.account.findFirst({
                 where: { accountBasicType: 'BANK' },
             });
             if (!bankAccount) {
@@ -344,7 +346,7 @@ export class LoansService {
         }
 
         if (generalAmount.gt(0)) {
-            const generalPartners = await this.prisma.partner.findMany({
+            const generalPartners = await prisma.partner.findMany({
                 where: {
                     isActive: true,
                     joinDistribute: true,
@@ -352,7 +354,7 @@ export class LoansService {
                 },
             });
 
-            const bank = await this.prisma.account.findFirst({
+            const bank = await prisma.account.findFirst({
                 where: { accountBasicType: 'BANK' },
             });
             if (!bank) throw new NotFoundException('Bank account not found');
@@ -368,7 +370,7 @@ export class LoansService {
 
         if (newCapitalAmount.gt(0)) {
 
-            const newCapitalBank = await this.prisma.account.findUnique({
+            const newCapitalBank = await prisma.account.findUnique({
                 where: { code: '11001' },
             });
 
@@ -386,7 +388,7 @@ export class LoansService {
         }
 
         if (fundSource === LoanFundSource.GENERAL) {
-            const bank = await this.prisma.account.findFirst({
+            const bank = await prisma.account.findFirst({
                 where: { accountBasicType: 'BANK' },
             });
             if (!bank) throw new NotFoundException('Bank account not found');
@@ -396,7 +398,7 @@ export class LoansService {
         }
 
         if (dto.partnerId) {
-            const partnerCheck = await this.prisma.partner.findUnique({
+            const partnerCheck = await prisma.partner.findUnique({
                 where: { id: dto.partnerId },
                 select: { joinDistribute: true },
             });
@@ -416,7 +418,7 @@ export class LoansService {
 
         const paymentAmount = new Decimal(dto.paymentAmount);
 
-        const bankAccount = await this.prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
+        const bankAccount = await prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
         if (!bankAccount) throw new NotFoundException('Bank account not found');
         if (bankAccount.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
 
@@ -428,7 +430,7 @@ export class LoansService {
 
 
         if (dto.kafeelId) {
-            const kafeel = await this.prisma.kafeel.findUnique({
+            const kafeel = await prisma.kafeel.findUnique({
                 where: { id: dto.kafeelId },
                 include: { loans: true },
             });
@@ -445,7 +447,7 @@ export class LoansService {
         const code = `LN - ${datePart} - ${clientIdStr}`;
 
 
-        const loan = await this.prisma.loan.create({
+        const loan = await prisma.loan.create({
             data: {
                 code,
                 clientId: dto.clientId,
@@ -476,13 +478,13 @@ export class LoansService {
             },
         });
 
-        const lastLoanCount = await this.prisma.loanCount.findFirst({
+        const lastLoanCount = await prisma.loanCount.findFirst({
             orderBy: { count: 'desc' },
         });
 
         const newCount = lastLoanCount ? lastLoanCount.count + 1 : 1;
 
-        await this.prisma.loanCount.create({
+        await prisma.loanCount.create({
             data: {
                 loanId: loan.id,
                 count: newCount,
@@ -493,7 +495,7 @@ export class LoansService {
             (fundSource === LoanFundSource.GENERAL || fundSource === LoanFundSource.MIX) &&
             generalAmount.gt(0)
         ) {
-            const partners = await this.prisma.partner.findMany({
+            const partners = await prisma.partner.findMany({
                 where: {
                     isActive: true,
                     joinDistribute: true,
@@ -513,7 +515,7 @@ export class LoansService {
                         ? (p.totalAmount / totalCapital) * 100
                         : 0;
 
-                await this.prisma.loanPartnerShare.create({
+                await prisma.loanPartnerShare.create({
                     data: {
                         loanId: loan.id,
                         partnerId: p.id,
@@ -529,7 +531,7 @@ export class LoansService {
             (fundSource === LoanFundSource.NEW_CAPITAL || fundSource === LoanFundSource.MIX) &&
             newCapitalAmount.gt(0)
         ) {
-            const partners = await this.prisma.partnerNewCapital.findMany({
+            const partners = await prisma.partnerNewCapital.findMany({
                 where: { remaining: { gt: 0 } },
                 include: { Partner: true },
                 orderBy: { remaining: 'desc' },
@@ -563,7 +565,7 @@ export class LoansService {
 
                 distributed = distributed.plus(usedAmount);
 
-                await this.prisma.loanNewCapitalShare.create({
+                await prisma.loanNewCapitalShare.create({
                     data: {
                         loanId: loan.id,
                         partnerId: p.partnerId,
@@ -575,7 +577,7 @@ export class LoansService {
                     },
                 });
 
-                const currentPartner = await this.prisma.partnerNewCapital.findUnique({
+                const currentPartner = await prisma.partnerNewCapital.findUnique({
                     where: { id: p.id },
                     select: { remaining: true },
                 });
@@ -585,7 +587,7 @@ export class LoansService {
                 const newRemaining = Decimal.max(0, currentRemaining.minus(usedDecimal))
                     .toDecimalPlaces(2);
 
-                await this.prisma.partnerNewCapital.update({
+                await prisma.partnerNewCapital.update({
                     where: { id: p.id },
                     data: {
                         remaining: Number(newRemaining),
@@ -594,13 +596,13 @@ export class LoansService {
             }
         }
 
-        const account = await this.prisma.bANK_accounts.update({
+        const account = await prisma.bANK_accounts.update({
             where: { id: dto.bankAccountId },
             data: { limit: { decrement: 1 } },
             select: { limit: true },
         });
         if (account.limit <= 0) {
-            await this.prisma.bANK_accounts.update({
+            await prisma.bANK_accounts.update({
                 where: { id: dto.bankAccountId },
                 data: { status: 'Expired' },
             });
@@ -663,10 +665,10 @@ export class LoansService {
             });
         }
 
-        await this.prisma.repayment.createMany({ data: repayments });
+        await prisma.repayment.createMany({ data: repayments });
 
 
-        await this.prisma.auditLog.create({
+        await prisma.auditLog.create({
             data: {
                 userId: currentUser,
                 screen: 'Loans',
@@ -676,7 +678,7 @@ export class LoansService {
         });
 
 
-        const loanWithIncludes = await this.prisma.loan.findUnique({
+        const loanWithIncludes = await prisma.loan.findUnique({
             where: { id: loan.id },
             include: {
                 client: true,
@@ -1820,7 +1822,7 @@ export class LoansService {
                 client: { select: { name: true } },
             },
         });
-        
+
         if (!loan) throw new NotFoundException('Loan not found');
         if (loan.status !== LoanStatus.PENDING)
             throw new BadRequestException('فقط السلف المعلقة يمكن حذفها');
