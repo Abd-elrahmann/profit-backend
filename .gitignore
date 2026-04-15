@@ -1,5 +1,6 @@
 # Node
 node_modules
+.env
 coverage
 npm-debug.log
 .DS_Store
@@ -14,5 +15,3 @@ uploads/
 .vscode
 .idea
 config.bat
-temp_auto_push.bat
-temp_interactive_push.bat
