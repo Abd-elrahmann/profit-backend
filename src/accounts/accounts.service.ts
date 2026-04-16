@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto, UpdateAccountDto } from './dto/accounts.dto';
 import { DateTime } from 'luxon';
 import moment from "moment-hijri";
+import { AccountBasicType } from '@prisma/client';
 
 @Injectable()
 export class AccountsService {
@@ -83,7 +84,7 @@ export class AccountsService {
 
         if (dto.amount !== undefined) {
             const nature = dto.nature || account.nature;
-            
+
             // Calculate old amount based on account nature
             const oldAmount = account.nature === 'DEBIT' ? (account.debit || 0) : (account.credit || 0);
             const amountDifference = dto.amount - oldAmount;
@@ -850,6 +851,117 @@ export class AccountsService {
                 totalAmount: currentMonthTotalAmount,
                 paidUntilNow: currentMonthPaidUntilNow,
             },
+        };
+    }
+
+    async getTrialBalance(options: {
+        from?: string;
+        to?: string;
+        accountId?: number;
+        accountBasicType?: AccountBasicType;
+    }) {
+        const { from, to, accountId, accountBasicType } = options;
+
+        const dateFilter: any = {};
+
+        if (from) {
+            dateFilter.gte = DateTime.fromISO(from, { zone: 'Asia/Riyadh' })
+                .startOf('day')
+                .toJSDate();
+        }
+
+        if (to) {
+            dateFilter.lte = DateTime.fromISO(to, { zone: 'Asia/Riyadh' })
+                .endOf('day')
+                .toJSDate();
+        }
+
+        const accounts = await this.prisma.account.findMany({
+            where: {
+                ...(accountId && { id: accountId }),
+                ...(accountBasicType && { accountBasicType }),
+            },
+            select: {
+                id: true,
+                name: true,
+                code: true,
+                nature: true,
+                accountBasicType: true,
+            },
+            orderBy: { code: 'asc' },
+        });
+
+        const accountIds = accounts.map(a => a.id);
+
+        const lines = await this.prisma.journalLine.findMany({
+            where: {
+                accountId: { in: accountIds },
+                journal: {
+                    status: 'POSTED',
+                    ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
+                },
+            },
+            select: {
+                accountId: true,
+                debit: true,
+                credit: true,
+            },
+        });
+
+        const map = new Map<number, { debit: number; credit: number }>();
+
+        for (const line of lines) {
+            if (!map.has(line.accountId)) {
+                map.set(line.accountId, { debit: 0, credit: 0 });
+            }
+
+            const acc = map.get(line.accountId)!;
+            acc.debit += Number(line.debit || 0);
+            acc.credit += Number(line.credit || 0);
+        }
+
+        const result = accounts.map(acc => {
+            const totals = map.get(acc.id) || { debit: 0, credit: 0 };
+
+            let balance = 0;
+
+            if (acc.nature === 'DEBIT') {
+                balance = totals.debit - totals.credit;
+            } else {
+                balance = totals.credit - totals.debit;
+            }
+
+            return {
+                accountId: acc.id,
+                code: acc.code,
+                name: acc.name,
+                type: acc.accountBasicType,
+                debit: totals.debit,
+                credit: totals.credit,
+                balance,
+            };
+        });
+
+        const filteredResult = result.filter(
+            acc => acc.debit !== 0 || acc.credit !== 0
+        );
+
+        const totalDebit = filteredResult.reduce((sum, r) => sum + r.debit, 0);
+        const totalCredit = filteredResult.reduce((sum, r) => sum + r.credit, 0);
+
+        return {
+            filters: {
+                from,
+                to,
+                accountId,
+                accountBasicType,
+            },
+            totals: {
+                totalDebit,
+                totalCredit,
+                isBalanced: totalDebit === totalCredit,
+            },
+            accounts: filteredResult,
         };
     }
 }

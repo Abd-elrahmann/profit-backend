@@ -15,6 +15,7 @@ import { CreateAccountDto, UpdateAccountDto } from './dto/accounts.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
+import { AccountBasicType } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('accounts')
@@ -68,6 +69,22 @@ export class AccountsController {
         @Query('limit') limit = 10,
     ) {
         return this.accountsService.getNEWBankAccountReport(month, page, +limit);
+    }
+
+    @Get('trial-balance')
+    @Permissions('general-ledger', 'canView')
+    getTrialBalance(
+        @Query('from') from?: string,
+        @Query('to') to?: string,
+        @Query('accountId') accountId?: string,
+        @Query('accountBasicType') accountBasicType?: string,
+    ) {
+        return this.accountsService.getTrialBalance({
+            from,
+            to,
+            accountId: accountId ? Number(accountId) : undefined,
+            accountBasicType: accountBasicType as AccountBasicType | undefined,
+        });
     }
 
     @Get(':id')
