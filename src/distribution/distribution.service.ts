@@ -16,8 +16,7 @@ export class DistributionService {
             .format('iDD iMMMM iYYYY')
     }
 
-
-    async postClosing(periodId: number, userId: number, savingAmountInput?: number) {
+    async postClosing(periodId: number, userId: number, savingAmountInput?: number, selectedPartnerIds?: number[]) {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
 
@@ -38,6 +37,13 @@ export class DistributionService {
 
         if (!accruals.length) throw new BadRequestException('لا توجد أرباح لتوزيعها لهذه الفترة');
 
+        const selectedAccruals = selectedPartnerIds?.length
+            ? accruals.filter(a => selectedPartnerIds.includes(a.partnerId))
+            : accruals;
+
+        if (!selectedAccruals.length) {
+            throw new BadRequestException('لا يوجد شركاء صالحين لعملية الادخار');
+        }
 
         const closingJournal = await this.prisma.journalHeader.findUnique({
             where: { id: closingJournalId },
@@ -47,7 +53,6 @@ export class DistributionService {
                 },
             },
         });
-
 
         const partnerAmountMap = new Map<number, number>();
         if (closingJournal && closingJournal.lines.length > 0) {
@@ -66,7 +71,6 @@ export class DistributionService {
             }
         }
 
-
         for (const [partnerId, amount] of partnerAmountMap) {
             await this.prisma.partner.update({
                 where: { id: partnerId },
@@ -84,7 +88,7 @@ export class DistributionService {
         if (!Bank) throw new BadRequestException('bank is not existed');
 
         if (savingAmountInput && savingAmountInput > 0) {
-            const totalPartnersProfit = accruals.reduce(
+            const totalPartnersProfit = selectedAccruals.reduce(
                 (sum, a) => sum + Number(a.totalProfit),
                 0,
             );
@@ -95,12 +99,12 @@ export class DistributionService {
             let remainingAmount = savingAmountInput;
             const partnerSavingAmounts: { partnerId: number; amount: number }[] = [];
 
-            for (const acc of accruals) {
+            for (const acc of selectedAccruals) {
                 const partner = acc.partner;
                 const totalProfit = Number(acc.totalProfit);
 
                 let amount = (savingAmountInput * totalProfit) / totalPartnersProfit;
-                amount = Math.floor(amount * 100) / 100; 
+                amount = Math.floor(amount * 100) / 100;
                 partnerSavingAmounts.push({ partnerId: partner.id, amount });
                 remainingAmount -= amount;
             }
@@ -111,7 +115,7 @@ export class DistributionService {
                 remainingAmount -= 0.01;
             }
 
-            for (const acc of accruals) {
+            for (const acc of selectedAccruals) {
                 const partner = acc.partner;
                 const partnerAmountObj = partnerSavingAmounts.find(p => p.partnerId === partner.id);
                 if (!partnerAmountObj) continue;
@@ -203,7 +207,6 @@ export class DistributionService {
 
         return { message: 'تم توزيع الارباح بنجاح', closingJournalId };
     }
-
 
     async reverseClosing(periodId: number, userId: number) {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
