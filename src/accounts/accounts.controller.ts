@@ -72,7 +72,7 @@ export class AccountsController {
     }
 
     @Get('trial-balance')
-    @Permissions('general-ledger', 'canView')
+    @Permissions('trial-balance', 'canView')
     getTrialBalance(
         @Query('from') from?: string,
         @Query('to') to?: string,

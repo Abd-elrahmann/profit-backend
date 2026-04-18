@@ -119,6 +119,7 @@ export class JournalService {
             data: {
                 description: dto.description,
                 type: dto.type,
+                ...(dto.sourceType !== undefined && { sourceType: dto.sourceType }),
                 status: dto.status,
                 lines: dto.lines
                     ? {

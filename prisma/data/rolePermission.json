@@ -492,5 +492,18 @@
     "canExport": false,
     "createdAt": "2026-03-11T17:34:18.543Z",
     "updatedAt": "2026-03-11T17:34:18.543Z"
+  },
+  {
+    "id": 161,
+    "roleId": 1,
+    "module": "trial-balance",
+    "canView": true,
+    "canAdd": false,
+    "canUpdate": false,
+    "canDelete": false,
+    "canPost": false,
+    "canExport": true,
+    "createdAt": "2026-04-18T00:00:00.000Z",
+    "updatedAt": "2026-04-18T00:00:00.000Z"
   }
 ]

@@ -69,6 +69,10 @@ export class UpdateJournalDto {
     type?: JournalType;
 
     @IsOptional()
+    @IsEnum(JournalSourceType)
+    sourceType?: JournalSourceType;
+
+    @IsOptional()
     @IsEnum(JournalStatus)
     status?: JournalStatus;
 
