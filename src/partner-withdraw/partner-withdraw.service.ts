@@ -1366,7 +1366,7 @@ export class PartnerWithdrawService {
                 const existingFull = path.join(process.cwd(), existingRelative);
                 if (fs.existsSync(existingFull)) fs.unlinkSync(existingFull);
             } catch (err) {
-                console.warn('Could not remove old withdrawal receipt file:', err.message);
+                console.warn('Could not remove old withdrawal receipt file:', err);
             }
         }
 
@@ -1886,7 +1886,7 @@ export class PartnerWithdrawService {
                 const existingFull = path.join(process.cwd(), existingRelative);
                 if (fs.existsSync(existingFull)) fs.unlinkSync(existingFull);
             } catch (err) {
-                console.warn('Could not remove old voucher file:', err.message);
+                console.warn('Could not remove old voucher file:', err);
             }
         }
 

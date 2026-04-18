@@ -1,0 +1,16 @@
+[
+  {
+    "id": 67,
+    "userId": 2,
+    "token": "95786d0ca5cadab167badf5fa1dc57cded3633a949d2bd10248b68481d0d1446",
+    "expiresAt": "2026-04-23T12:56:46.173Z",
+    "createdAt": "2026-04-16T12:56:46.181Z"
+  },
+  {
+    "id": 68,
+    "userId": 1,
+    "token": "d722b6bc7b3e80a05509d1724be857caa6d09acf5fb7f95033270f3cfe1f09f8",
+    "expiresAt": "2026-04-23T13:34:01.962Z",
+    "createdAt": "2026-04-16T13:34:01.964Z"
+  }
+]

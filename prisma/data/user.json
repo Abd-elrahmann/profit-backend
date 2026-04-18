@@ -1,0 +1,28 @@
+[
+  {
+    "id": 2,
+    "name": "youssef",
+    "email": "youssef.khaled8666@gmail.com",
+    "password": "$2b$10$HOR7mzkDxIoZLoF2FVCzGOPWBY.s6CbLHcKL/yFJfLThT.kz9iNbW",
+    "phone": "01223563376",
+    "profileImage": null,
+    "isActive": true,
+    "roleId": 1,
+    "createdAt": "2026-04-13T14:20:51.799Z",
+    "updatedAt": "2026-04-16T12:56:46.113Z",
+    "expenseAccountId": 171
+  },
+  {
+    "id": 1,
+    "name": "ادمن",
+    "email": "admin@gmail.com",
+    "password": "$2b$10$m9E44lK8kR7rmEcZxDStOuXtgL5RNYYvkQ6AbUDipJbG.RHmmE3Ry",
+    "phone": "0123456789",
+    "profileImage": null,
+    "isActive": true,
+    "roleId": 1,
+    "createdAt": "2025-10-27T18:31:51.832Z",
+    "updatedAt": "2026-04-16T13:34:01.952Z",
+    "expenseAccountId": 16
+  }
+]

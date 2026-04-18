@@ -1,0 +1,58 @@
+[
+  {
+    "id": 324,
+    "reference": "CAP-24",
+    "description": "إيداع رأس مال مساهم جديد mohamed",
+    "date": "2026-02-01T17:32:59.556Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 24,
+    "sourceType": "PARTNER",
+    "postedById": 2,
+    "periodId": 1,
+    "createdAt": "2026-02-01T17:32:59.556Z",
+    "voucherUrl": null
+  },
+  {
+    "id": 325,
+    "reference": "CAP-25",
+    "description": "إيداع رأس مال مساهم جديد test1",
+    "date": "2026-02-01T17:33:41.158Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 25,
+    "sourceType": "PARTNER",
+    "postedById": 2,
+    "periodId": 1,
+    "createdAt": "2026-02-01T17:33:41.158Z",
+    "voucherUrl": null
+  },
+  {
+    "id": 323,
+    "reference": "CAP-23",
+    "description": "إيداع رأس مال مساهم جديد youssef",
+    "date": "2026-02-01T17:32:36.358Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": 23,
+    "sourceType": "PARTNER",
+    "postedById": 2,
+    "periodId": 1,
+    "createdAt": "2026-02-01T17:32:36.358Z",
+    "voucherUrl": null
+  },
+  {
+    "id": 1097,
+    "reference": "JV-003",
+    "description": "Test Journal Entry",
+    "date": "2026-04-15T12:40:01.727Z",
+    "type": "OPENING",
+    "status": "POSTED",
+    "sourceId": null,
+    "sourceType": "PARTNER",
+    "postedById": 2,
+    "periodId": 1,
+    "createdAt": "2026-04-15T12:40:01.727Z",
+    "voucherUrl": null
+  }
+]

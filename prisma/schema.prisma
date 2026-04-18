@@ -432,6 +432,7 @@ model Partner {
   accountEquityId  Int       @unique
   accountSavingId  Int       @unique
   accountNewCapitalId Int @unique
+  bankAccountId    Int?
   yearlyZakatRequired Float? @default(0)
   yearlyZakatPaid     Float? @default(0)
   yearlyZakatBalance  Float? @default(0)
@@ -440,6 +441,7 @@ model Partner {
   AccountEquity  Account @relation(name: "account_equity", references: [id], fields: [accountEquityId])
   AccountSaving  Account @relation(name: "account_saving", references: [id], fields: [accountSavingId])
   AccountNewCapital  Account @relation(name: "account_newCapital", references: [id], fields: [accountNewCapitalId])
+  bankAccount    BANK_accounts? @relation(fields: [bankAccountId], references: [id])
   loans Loan[]
   transactions PartnerTransaction[]
   profitAccruals PartnerShareAccrual[]
@@ -634,7 +636,11 @@ model BANK_accounts {
   IBAN           String
   limit          Int
   status         AccountStatus @default(Active)
+  accountId      Int?      @unique
+  
+  account        Account?  @relation(fields: [accountId], references: [id])
   loans          Loan[]
+  partners       Partner[]
 }
 
 enum AccountStatus {
@@ -667,6 +673,7 @@ model Account {
   partnerSaving    Partner?          @relation("account_saving")
   PartnerNewCapital   Partner?       @relation("account_newCapital")
   userExpenses     User?             @relation("account_expenses")
+  bankAccount      BANK_accounts?    @relation()
   accountsClosing  accountsClosing[]
 
   @@index([accountBasicType, code])
