@@ -26,13 +26,22 @@ export class SmallLoanService {
     }
 
     async create(body: any, currentUser: number) {
-        const { Name, amount, notes } = body;
+        const { Name, amount, notes, bankId } = body;
 
         if (!Name || !amount || amount <= 0)
             throw new BadRequestException('بيانات غير صحيحة');
 
-        const bank = await this.prisma.account.findFirst({
-            where: { accountBasicType: 'BANK' },
+
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankId },
+        });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bank = await this.prisma.account.findUnique({
+            where: { id: bankAccount.accountId },
         });
 
         const smallLoanAccount = await this.prisma.account.findFirst({
@@ -53,6 +62,7 @@ export class SmallLoanService {
                     amount,
                     remaining: amount,
                     notes,
+                    bankAccountId: bankId,
                 },
             });
 
@@ -173,6 +183,13 @@ export class SmallLoanService {
 
         const loan = await this.prisma.smallLoan.findUnique({
             where: { id },
+            include: {
+                bankAccount: {
+                    include: {
+                        account: true,
+                    },
+                },
+            }
         });
 
         if (!loan) throw new NotFoundException('السلفة غير موجودة');
@@ -181,8 +198,10 @@ export class SmallLoanService {
 
         const payAmount = Math.min(amount, loan.remaining);
 
-        const bank = await this.prisma.account.findFirst({
-            where: { accountBasicType: 'BANK' },
+        let bankAccountId = loan.bankAccount?.accountId || undefined;
+
+        const bank = await this.prisma.account.findUnique({
+            where: { id: bankAccountId },
         });
 
         const smallLoanAccount = await this.prisma.account.findFirst({
@@ -328,7 +347,7 @@ export class SmallLoanService {
     }
 
     async update(id: number, body: any, currentUser: number) {
-        const { Name, amount, notes } = body;
+        const { Name, amount, notes, bankId } = body;
 
         const loan = await this.prisma.smallLoan.findUnique({
             where: { id },
@@ -354,9 +373,9 @@ export class SmallLoanService {
                     amount: amount ?? loan.amount,
                     remaining: amount ?? loan.amount,
                     notes: notes ?? loan.notes,
+                    bankAccountId: bankId ?? loan.bankAccountId,
                 },
             });
-
 
             const journal = await tx.journalHeader.findFirst({
                 where: {
@@ -370,7 +389,6 @@ export class SmallLoanService {
             if (!journal)
                 throw new BadRequestException('قيد السلفة غير موجود');
 
-
             if (journal.status === 'POSTED') {
                 await this.journalService.unpostJournal(
                     currentUser,
@@ -378,13 +396,22 @@ export class SmallLoanService {
                 );
             }
 
-
             await tx.journalLine.deleteMany({
                 where: { journalId: journal.id },
             });
 
-            const bank = await tx.account.findFirst({
-                where: { accountBasicType: 'BANK' },
+            let bankAccountId = bankId ?? loan.bankAccountId;
+
+            const bankAccount = await this.prisma.bANK_accounts.findUnique({
+                where: { id: bankAccountId },
+            });
+
+            if (!bankAccount || !bankAccount.accountId) {
+                throw new BadRequestException('حساب البنك غير موجود');
+            };
+
+            const bank = await this.prisma.account.findUnique({
+                where: { id: bankAccount.accountId },
             });
 
             const smallLoanAccount = await tx.account.findFirst({

@@ -18,13 +18,22 @@ export class CompanyService {
     }
 
 
-    async withdrawProfit(amount: number, userId: number) {
+    async withdrawProfit(amount: number, userId: number, bankAccountId?: number) {
         if (amount <= 0) throw new BadRequestException('المبلغ يجب أن يكون أكبر من صفر');
 
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankAccountId },
+        });
 
-        const bank = await this.prisma.account.findUnique({ where: { code: "11000" } });
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bank = await this.prisma.account.findUnique({
+            where: { id: bankAccount.accountId },
+        });
+
         if (!bank) throw new NotFoundException('لم يتم العثور على حساب البنك');
-
 
         const companyProfitAccount = await this.prisma.account.findFirst({
             where: { accountBasicType: 'COMPANY_SHARES' },
@@ -80,7 +89,6 @@ export class CompanyService {
 
         return { message: 'تم سحب الأرباح بنجاح' };
     }
-
 
     async getProfitReport(
         page: number,

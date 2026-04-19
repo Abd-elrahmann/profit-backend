@@ -440,8 +440,16 @@ export class AccountsService {
             }
         }
 
-        const bankAccount = await this.prisma.account.findUnique({
+        const parentBankAccount = await this.prisma.account.findUnique({
             where: { code: "11000" },
+        });
+
+        if (!parentBankAccount)
+            throw new NotFoundException("Bank account 11000 not found");
+
+        // Get all child accounts of 11000
+        const childAccounts = await this.prisma.account.findMany({
+            where: { parentId: parentBankAccount.id },
             include: {
                 entries: {
                     where: {
@@ -468,12 +476,10 @@ export class AccountsService {
             },
         });
 
-        if (!bankAccount)
-            throw new NotFoundException("Bank account 11000 not found");
-
+        // Calculate total journals across all child accounts
         const totalJournals = await this.prisma.journalLine.count({
             where: {
-                accountId: bankAccount.id,
+                accountId: { in: childAccounts.map(a => a.id) },
                 journal: {
                     status: "POSTED",
                     ...(monthStart &&
@@ -510,45 +516,58 @@ export class AccountsService {
             Number(interestAgg._sum.companyCut || 0) +
             Number(interestAgg._sum.cents || 0);
 
-        const groupedByMonth = bankAccount.entries.reduce(
-            (acc, line) => {
-                const date = DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
-                const monthKey = date.toFormat("yyyy-LL");
+        // Organize entries by child account and month
+        const accountsByChild: Record<string, any> = {};
 
-                if (!acc[monthKey]) {
-                    acc[monthKey] = {
-                        entries: [],
-                        totalDebit: 0,
-                        totalCredit: 0,
-                        totalBalance: 0,
-                    };
-                }
+        childAccounts.forEach(account => {
+            accountsByChild[account.id] = {
+                accountId: account.id,
+                accountCode: account.code,
+                accountName: account.name,
+                debit: account.debit,
+                credit: account.credit,
+                balance: account.balance,
+                journalsByMonth: account.entries.reduce(
+                    (acc, line) => {
+                        const date = DateTime.fromJSDate(line.journal.date).setZone("Asia/Riyadh");
+                        const monthKey = date.toFormat("yyyy-LL");
 
-                acc[monthKey].entries.push({
-                    id: line.journal.id,
-                    date: date.toISO(),
-                    reference: line.journal.reference,
-                    description: line.description ?? line.journal.description,
-                    debit: line.debit,
-                    credit: line.credit,
-                    balance: line.balance,
-                    client: line.client ? line.client.name : null,
-                    postedBy: line.journal.postedBy?.name ?? null,
-                    status: line.journal.status,
-                    type: line.journal.type,
-                });
+                        if (!acc[monthKey]) {
+                            acc[monthKey] = {
+                                entries: [],
+                                totalDebit: 0,
+                                totalCredit: 0,
+                                totalBalance: 0,
+                            };
+                        }
 
-                acc[monthKey].totalDebit += line.debit ?? 0;
-                acc[monthKey].totalCredit += line.credit ?? 0;
-                acc[monthKey].totalBalance += line.balance ?? 0;
+                        acc[monthKey].entries.push({
+                            id: line.journal.id,
+                            date: date.toISO(),
+                            reference: line.journal.reference,
+                            description: line.description ?? line.journal.description,
+                            debit: line.debit,
+                            credit: line.credit,
+                            balance: line.balance,
+                            client: line.client ? line.client.name : null,
+                            postedBy: line.journal.postedBy?.name ?? null,
+                            status: line.journal.status,
+                            type: line.journal.type,
+                        });
 
-                return acc;
-            },
-            {} as Record<
-                string,
-                { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number }
-            >
-        );
+                        acc[monthKey].totalDebit += line.debit ?? 0;
+                        acc[monthKey].totalCredit += line.credit ?? 0;
+                        acc[monthKey].totalBalance += line.balance ?? 0;
+
+                        return acc;
+                    },
+                    {} as Record<
+                        string,
+                        { entries: any[]; totalDebit: number; totalCredit: number; totalBalance: number }
+                    >
+                ),
+            };
+        });
 
         const repaymentFilter: any = {};
         repaymentFilter.loan = { status: "ACTIVE" };
@@ -613,6 +632,11 @@ export class AccountsService {
         const remaining = repayments.reduce((sum, x) => sum + Number(x.remaining), 0);
         const discount = repayments.reduce((sum, x) => sum + Number(x.discount), 0);
 
+        // Calculate totals for all child accounts
+        const totalDebit = childAccounts.reduce((sum, acc) => sum + (acc.debit || 0), 0);
+        const totalCredit = childAccounts.reduce((sum, acc) => sum + (acc.credit || 0), 0);
+        const totalBalance = childAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+
         const loansWithInterest =
             Number(loansAccount.balance || 0) + totalInterest;
 
@@ -624,19 +648,19 @@ export class AccountsService {
                 totalPages,
             },
             account: {
-                id: bankAccount.id,
-                name: bankAccount.name,
-                code: bankAccount.code,
-                debit: bankAccount.debit,
-                credit: bankAccount.credit,
-                balance: bankAccount.balance,
+                id: parentBankAccount.id,
+                name: parentBankAccount.name,
+                code: parentBankAccount.code,
+                debit: totalDebit,
+                credit: totalCredit,
+                balance: totalBalance,
             },
+            childAccounts: Object.values(accountsByChild),
             loansBalance: loansAccount.balance,
             loansInterest: totalInterest,
-            total: bankAccount.balance + loansAccount.balance,
+            total: totalBalance + loansAccount.balance,
 
             totalJournalEntries: totalJournals,
-            journalsByMonth: groupedByMonth,
             repayments: {
                 totalAmount,
                 paidUntilNow,

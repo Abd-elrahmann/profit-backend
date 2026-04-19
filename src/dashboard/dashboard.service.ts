@@ -55,7 +55,7 @@ export class DashboardService {
             const start = moment(from, 'YYYY-MM-DD').tz("Asia/Riyadh").startOf('day');
             const end = moment(to, 'YYYY-MM-DD').tz("Asia/Riyadh").endOf('day');
             const duration = end.diff(start, 'days') + 1;
-            
+
             currentStart = start.toDate();
             currentEnd = end.toDate();
             previousStart = start.clone().subtract(duration, 'days').toDate();
@@ -356,16 +356,16 @@ export class DashboardService {
 
 
         const currentPeriodActiveLoans = await this.prisma.loan.count({
-            where: { 
+            where: {
                 status: 'ACTIVE',
-                createdAt: { gte: currentStart, lte: currentEnd } 
+                createdAt: { gte: currentStart, lte: currentEnd }
             },
         });
 
         const previousPeriodActiveLoans = await this.prisma.loan.count({
-            where: { 
+            where: {
                 status: 'ACTIVE',
-                createdAt: { gte: previousStart, lte: previousEnd } 
+                createdAt: { gte: previousStart, lte: previousEnd }
             },
         });
 
@@ -431,7 +431,7 @@ export class DashboardService {
         console.log('Month name:', now.format('MMMM'), 'Year:', now.year());
 
 
-        const currentMonth = now.month(); 
+        const currentMonth = now.month();
         const currentYear = now.year();
 
 
@@ -550,7 +550,7 @@ export class DashboardService {
         });
         const lastMonthPaid = lastMonthPaidAgg._sum.paidAmount || 0;
         const lastMonthPercentage = lastMonthTotalDue > 0 ? Math.round((lastMonthPaid / lastMonthTotalDue) * 100) : 0;
-        
+
         const changeFromLastMonth = collectionPercentages - lastMonthPercentage;
 
         return {
@@ -966,11 +966,11 @@ export class DashboardService {
         ];
 
         const result: { month: string; value: number }[] = [];
-        
 
-        const startMonth = period === 'first' ? 0 : 6; 
-        const endMonth = period === 'first' ? 5 : 11; 
-        
+
+        const startMonth = period === 'first' ? 0 : 6;
+        const endMonth = period === 'first' ? 5 : 11;
+
         for (let m = startMonth; m <= endMonth; m++) {
             const monthMoment = moment.tz([currentYear, m, 1], 'Asia/Riyadh');
             const start = monthMoment.clone().startOf('month').toDate();
@@ -1004,15 +1004,15 @@ export class DashboardService {
             const totalPaid = paidAgg._sum.paidAmount || 0;
 
             const pct = totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
-            
+
             console.log(`[Repayment Trend] ${monthNames[m]} ${currentYear}: Due=${totalDue}, Paid=${totalPaid}, Percentage=${pct}%`);
-            
+
             result.push({
                 month: monthNames[m],
                 value: Math.min(pct, 100),
             });
         }
-        
+
         return result;
     }
 

@@ -5,6 +5,16 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BankService {
     constructor(private prisma: PrismaService) { }
 
+    private async generateNextCode(prefix: string): Promise<string> {
+        const latest = await this.prisma.account.findFirst({
+            where: { code: { startsWith: prefix } },
+            orderBy: { code: 'desc' },
+        });
+
+        const nextCode = latest ? (parseInt(latest.code) + 10).toString() : `${prefix}000`;
+        return nextCode;
+    }
+
     async createBankAccount(currentUser, data: { name: string; owner: string; accountNumber: string, IBAN: string, limit: number }) {
         const existing = await this.prisma.bANK_accounts.findFirst({
             where: { accountNumber: data.accountNumber },
@@ -18,12 +28,27 @@ export class BankService {
             where: { id: currentUser },
         });
 
+        const ParentBank = await this.prisma.account.findUniqueOrThrow({ where: { code: '11000' } });
 
-        const createData: any = {
-            ...data,
-            status: data.limit > 0 ? 'Active' : 'Expired'
-        };
+        const account = await this.prisma.account.create({
+            data: {
+                name: data.name,
+                code: await this.generateNextCode('11'),
+                parentId: ParentBank.id,
+                type: 'ASSET',
+                accountBasicType: 'BANK',
+                nature: 'DEBIT',
+                level: 3,
+            },
+        });
 
+        const bank = await this.prisma.bANK_accounts.create({
+            data: {
+                ...data,
+                status: data.limit > 0 ? 'Active' : 'Expired',
+                accountId: account.id,
+            },
+        });
 
         await this.prisma.auditLog.create({
             data: {
@@ -34,7 +59,7 @@ export class BankService {
             },
         });
 
-        return this.prisma.bANK_accounts.create({ data: createData });
+        return bank;
     }
 
     async getAllBankAccounts(page: number = 1, limit = 10, filters?: any) {
@@ -70,6 +95,7 @@ export class BankService {
         const bankAccount = await this.prisma.bANK_accounts.findUnique({
             where: { id },
             include: {
+                account: true,
                 loans: {
                     include: {
                         client: { select: { name: true, phone: true } },
@@ -111,6 +137,14 @@ export class BankService {
             updateData.status = data.limit > 0 ? 'Active' : 'Expired';
         }
 
+        if (data.name && existing.accountId) {
+            await this.prisma.account.update({
+                where: { id: existing.accountId },
+                data: {
+                    name: data.name,
+                },
+            });
+        }
 
         await this.prisma.auditLog.create({
             data: {
@@ -144,6 +178,11 @@ export class BankService {
             where: { id: currentUser },
         });
 
+        if (bankAccount.accountId) {
+            await this.prisma.account.delete({
+                where: { id: bankAccount.accountId },
+            });
+        }
 
         await this.prisma.auditLog.create({
             data: {

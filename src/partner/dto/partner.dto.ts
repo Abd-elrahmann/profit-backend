@@ -2,13 +2,13 @@ import { IsString, IsNumber, IsBoolean, IsOptional, IsDateString } from 'class-v
 
 export class CreatePartnerDto {
     @IsString()
-    name: string;
+    name!: string;
 
     @IsString()
-    nationalId: string;
+    nationalId!: string;
 
     @IsString()
-    address: string;
+    address!: string;
 
     @IsOptional()
     @IsString()
@@ -23,10 +23,10 @@ export class CreatePartnerDto {
     email?: string;
 
     @IsNumber()
-    orgProfitPercent: number;
+    orgProfitPercent!: number;
 
     @IsNumber()
-    capitalAmount: number;
+    capitalAmount!: number;
 
     @IsOptional()
     @IsDateString()
@@ -51,6 +51,10 @@ export class CreatePartnerDto {
     @IsOptional()
     @IsBoolean()
     joinDistribute?: boolean;
+
+    @IsOptional()
+    @IsNumber()
+    bankId?: number;
 }
 
 export class UpdatePartnerDto {
@@ -80,7 +84,7 @@ export class UpdatePartnerDto {
 
     @IsOptional()
     @IsNumber()
-    capitalAmount: number;
+    capitalAmount?: number;
 
     @IsOptional()
     @IsNumber()
@@ -105,4 +109,8 @@ export class UpdatePartnerDto {
     @IsOptional()
     @IsBoolean()
     joinDistribute?: boolean;
+
+    @IsOptional()
+    @IsNumber()
+    bankId?: number
 }

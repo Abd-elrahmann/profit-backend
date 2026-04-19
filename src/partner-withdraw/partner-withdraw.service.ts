@@ -154,7 +154,8 @@ export class PartnerWithdrawService {
         partnerId: number,
         monthlyAmount: number,
         userId: number,
-        firstPaymentDate?: string
+        firstPaymentDate?: string,
+        bankId?: number,
     ) {
         if (!monthlyAmount || monthlyAmount <= 0) {
             throw new BadRequestException("قيمة السداد الشهري غير صحيحة");
@@ -407,8 +408,21 @@ export class PartnerWithdrawService {
             }
         }
 
-        const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
-        if (!bankAccount) throw new BadRequestException('BANK account not found');
+        let bankIdToUse = bankId ?? partner.bankAccountId ?? undefined;
+
+        const bank = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankIdToUse },
+        });
+
+        if (!bank || !bank.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { id: bank.accountId },
+        });
+
+        if (!bankAccount) throw new BadRequestException('حساب الصندوق غير موجود');
 
         const newCapitalBank = await this.prisma.account.findFirst({ where: { accountBasicType: 'NEW_CAPITAL_BANK' } });
         if (!newCapitalBank) throw new BadRequestException('NEW_CAPITAL_BANK account not found');
@@ -672,6 +686,7 @@ export class PartnerWithdrawService {
                 remainingCapital,
                 savingAmount: savingsAmount,
                 createdById: userId,
+                bankAccountId: bankIdToUse,
             },
         });
 
@@ -785,7 +800,7 @@ export class PartnerWithdrawService {
                 partner: {
                     include: {
                         PartnerWithdrawal: {
-                            select: { id: true },
+                            select: { id: true, bankAccountId: true },
                             take: 1,
                             orderBy: { createdAt: 'desc' },
                         },
@@ -802,18 +817,31 @@ export class PartnerWithdrawService {
 
         const withdrawalId = schedule.partner.PartnerWithdrawal?.[0]?.id;
 
+        const bankId = schedule.partner.PartnerWithdrawal?.[0]?.bankAccountId ?? partner.bankAccountId ?? undefined;
+
         if (!withdrawalId) {
             throw new NotFoundException('لا يوجد طلب انسحاب مرتبط بهذا المستثمر');
         }
-
 
         const carry = parseFloat((schedule.carryAmount || 0).toFixed(2));
         const ownRemaining = parseFloat((schedule.remaining ?? schedule.amount ?? 0).toFixed(2));
         const totalToPay = parseFloat((carry + ownRemaining).toFixed(2));
         if (totalToPay <= 0) throw new BadRequestException('لا يوجد مبلغ للدفع');
 
-        const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
-        if (!bankAccount) throw new BadRequestException('BANK account not found');
+        const bank = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankId },
+        });
+
+        if (!bank || !bank.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { id: bank.accountId },
+        });
+
+        if (!bankAccount) throw new BadRequestException('حساب الصندوق غير موجود');
+
 
         if (!partner.accountEquityId) throw new BadRequestException('Partner equity account not configured');
 
@@ -1091,7 +1119,7 @@ export class PartnerWithdrawService {
                 partner: {
                     include: {
                         PartnerWithdrawal: {
-                            select: { id: true },
+                            select: { id: true, bankAccountId: true },
                             take: 1,
                             orderBy: { createdAt: 'desc' },
                         },
@@ -1102,8 +1130,23 @@ export class PartnerWithdrawService {
         if (!schedule) throw new NotFoundException('جدول السحب غير موجود');
         if (schedule.isPaid) throw new BadRequestException('الدفعة مدفوعة بالفعل');
 
-        const bankAccount = await this.prisma.account.findFirst({ where: { accountBasicType: 'BANK' } });
-        if (!bankAccount) throw new BadRequestException('BANK account not found');
+
+        const bankId = schedule.partner.PartnerWithdrawal?.[0]?.bankAccountId ?? undefined;
+
+        const bank = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankId },
+        });
+
+        if (!bank || !bank.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { id: bank.accountId },
+        });
+
+        if (!bankAccount) throw new BadRequestException('حساب الصندوق غير موجود');
+
         if (!schedule.partner?.accountEquityId) throw new BadRequestException('Partner equity account not configured');
 
         const withdrawalId = schedule.partner.PartnerWithdrawal?.[0]?.id;

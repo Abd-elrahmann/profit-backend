@@ -25,7 +25,7 @@ export class ExpenseController {
   @Permissions('expenses', 'canAdd')
   async createJournal(
     @Req() req,
-    @Body() body: { expenses: { type: string; amount: number; description?: string; userId?: number }[]; voucherUrl?: string; reference?: string }
+    @Body() body: { expenses: { type: string; amount: number; description?: string; userId?: number; bankAccountId?: number }[]; voucherUrl?: string; reference?: string }
   ) {
     return this.expenseService.createExpenseJournal(
       req.user.id,
@@ -63,8 +63,8 @@ export class ExpenseController {
       : undefined;
     const employeeIds = employeeId
       ? (Array.isArray(employeeId) ? employeeId : typeof employeeId === 'string' ? employeeId.split(',').map((s) => s.trim()) : [employeeId])
-          .map((id) => parseInt(String(id), 10))
-          .filter((id) => !isNaN(id))
+        .map((id) => parseInt(String(id), 10))
+        .filter((id) => !isNaN(id))
       : undefined;
     return this.expenseService.getExpensesRecords(page, +limit, types, employeeIds);
   }
@@ -74,7 +74,7 @@ export class ExpenseController {
   async updateExpense(
     @Req() req,
     @Param('journalId', ParseIntPipe) journalId: number,
-    @Body() body: { expenses: { type: string; amount: number; description?: string; userId?: number }[] },
+    @Body() body: { expenses: { type: string; amount: number; description?: string; userId?: number; bankAccountId?: number }[] },
   ) {
     return this.expenseService.updateExpense(
       req.user.id,

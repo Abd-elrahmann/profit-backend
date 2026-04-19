@@ -34,9 +34,17 @@ export class PartnerService {
             where: { id: currentUser },
         });
 
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: dto.bankId },
+        });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
         const liabilities = await this.prisma.account.findUnique({ where: { code: '20000' } });
         const equity = await this.prisma.account.findUnique({ where: { code: '30000' } });
-        const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        const bank = await this.prisma.account.findUnique({ where: { id: bankAccount.accountId } });
         const newCapitalBank = await this.prisma.account.findUnique({ where: { code: '11001' } });
 
         if (!liabilities || !equity || !bank || !newCapitalBank) {
@@ -123,6 +131,7 @@ export class PartnerService {
                 yearlyZakatRequired: Number((dto.capitalAmount * 0.025).toFixed(2)),
                 yearlyZakatPaid: 0,
                 yearlyZakatBalance: Number((dto.capitalAmount * 0.025).toFixed(2)),
+                bankAccountId: dto.bankId,
             },
             include: {
                 AccountPayable: true,
@@ -288,16 +297,28 @@ export class PartnerService {
             ? new Date(dto.createdAt)
             : partner.createdAt;
 
-        const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        let bankAccountId = dto.bankId ?? partner.bankAccountId ?? undefined;
+
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankAccountId },
+        });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bank = await this.prisma.account.findUnique({ where: { id: bankAccount.accountId } });
         const newCapitalBank = await this.prisma.account.findUnique({ where: { code: '11001' } });
+
+        let amount = dto.capitalAmount || partner.capitalAmount;
 
         const updated = await this.prisma.$transaction(async (tx) => {
             const partnerUpdateData: any = {
                 ...dto,
                 contractSignedAt,
                 createdAt,
-                yearlyZakatRequired: Number((dto.capitalAmount * 0.025).toFixed(2)),
-                yearlyZakatBalance: Number((dto.capitalAmount * 0.025).toFixed(2)),
+                yearlyZakatRequired: Number((amount * 0.025).toFixed(2)),
+                yearlyZakatBalance: Number((amount * 0.025).toFixed(2)),
             };
 
             if (partner.isNewPartner) {
@@ -684,6 +705,7 @@ export class PartnerService {
             take: limit,
             orderBy: { id: 'asc' },
             include: {
+                bankAccount: true,
                 AccountPayable: true,
                 AccountEquity: true,
                 AccountSaving: true,
@@ -746,6 +768,7 @@ export class PartnerService {
         const partner = await this.prisma.partner.findUnique({
             where: { id },
             include: {
+                bankAccount: true,
                 AccountPayable: true,
                 AccountEquity: true,
                 AccountSaving: true,

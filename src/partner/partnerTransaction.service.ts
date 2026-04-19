@@ -73,7 +73,17 @@ export class partnerTransactionService {
             },
         });
 
-        const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+        let bankAccountId = partner.bankAccountId || undefined;
+
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankAccountId },
+        });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bank = await this.prisma.account.findUnique({ where: { id: bankAccount.accountId } });
         if (!bank) throw new BadRequestException('Bank account (11000) must exist');
 
         const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });

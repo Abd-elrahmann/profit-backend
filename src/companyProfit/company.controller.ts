@@ -14,10 +14,14 @@ export class CompanyController {
     @Permissions('company', 'canPost')
     async withdrawProfit(
         @Req() req,
-        @Body("amount") amount: number) {
-        return this.companyService.withdrawProfit(+amount, req.user.id);
-    }
+        @Body("amount") amount: number,
+        @Body('BankId') BankId: number,
+    ) {
 
+        console.log("amount:", amount);
+        console.log("BankId:", BankId);
+        return this.companyService.withdrawProfit(+amount, req.user.id, +BankId);
+    }
 
     @Get('profit-report/:page')
     @Permissions('company', 'canView')

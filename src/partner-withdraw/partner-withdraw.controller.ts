@@ -21,8 +21,9 @@ export class PartnerWithdrawController {
         @Param('partnerId', ParseIntPipe) partnerId: number,
         @Body('amount') amount: number,
         @Body('firstPaymentDate') firstPaymentDate?: string,
+        @Body('bankId') bankId?: number,
     ) {
-        return this.service.withdrawPartner(partnerId, amount, req.user.id, firstPaymentDate);
+        return this.service.withdrawPartner(partnerId, amount, req.user.id, firstPaymentDate, bankId);
     }
 
     @Get('preview/:partnerId')

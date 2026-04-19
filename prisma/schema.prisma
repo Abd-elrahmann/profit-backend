@@ -41,16 +41,19 @@ model ExpenseRecord {
   employeeId  Int?     
   journalId   Int?
   openingJournalLineId Int?
+  bankAccountId Int?
   createdAt   DateTime  @default(now())
 
   user        User?     @relation("UserExpenses", fields: [userId], references: [id])
   employee    User?     @relation("EmployeeExpenses", fields: [employeeId], references: [id])
   journal     JournalHeader? @relation(fields: [journalId], references: [id])
   openingJournalLine JournalLine? @relation(fields: [openingJournalLineId], references: [id])
+  bankAccount BANK_accounts? @relation(fields: [bankAccountId], references: [id])
 
   @@index([userId])
   @@index([journalId])
   @@index([openingJournalLineId])
+  @@index([bankAccountId])
   @@index([createdAt])
 }
 
@@ -357,9 +360,14 @@ model SmallLoan {
   remaining   Float
   status      SmallLoanStatus @default(OPEN)
   notes       String?
+  bankAccountId Int?
   createdAt   DateTime @default(now())
   closedAt    DateTime?
+  
+  bankAccount BANK_accounts? @relation(fields: [bankAccountId], references: [id])
+  
   @@index([status])
+  @@index([bankAccountId])
 }
 
 enum SmallLoanStatus {
@@ -514,12 +522,16 @@ model PartnerWithdrawal {
   defaultShare Float
   remainingCapital Float
   savingAmount Float
+  bankAccountId Int?
   WITHDRAWAL_RECEIPT String?
   createdById Int?
   createdAt DateTime @default(now())
   PartnerWithdrawalBackup PartnerWithdrawalBackup[]
   partner Partner @relation(fields: [partnerId], references: [id])
   createdBy User? @relation("WithdrawalCreatedBy", fields: [createdById], references: [id])
+  bankAccount BANK_accounts? @relation(fields: [bankAccountId], references: [id])
+
+  @@index([bankAccountId])
 }
 
 model PartnerWithdrawalBackup {
@@ -641,6 +653,9 @@ model BANK_accounts {
   account        Account?  @relation(fields: [accountId], references: [id])
   loans          Loan[]
   partners       Partner[]
+  smallLoans     SmallLoan[]
+  expenses       ExpenseRecord[]
+  PartnerWithdrawal PartnerWithdrawal[]
 }
 
 enum AccountStatus {

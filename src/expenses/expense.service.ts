@@ -20,8 +20,19 @@ export class ExpenseService {
             .format('iDD iMMMM iYYYY')
     }
 
-    private async getBankAccount() {
-        const bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
+    private async getBankAccount(bankId?: number) {
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankId },
+        });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bank = await this.prisma.account.findUnique({
+            where: { id: bankAccount.accountId },
+        });
+
         if (!bank) throw new BadRequestException('حساب الصندوق غير موجود');
         return bank;
     }
@@ -54,15 +65,15 @@ export class ExpenseService {
 
     async createExpenseJournal(
         userId: number,
-        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number, bankAccountId?: number }[],
         voucherUrl?: string,
         reference?: string,
     ) {
         if (!expenses || expenses.length === 0)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
 
-        const bank = await this.getBankAccount();
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
+        const bank = await this.getBankAccount(expenses[0].bankAccountId);
 
         const journalLines = await Promise.all(
             expenses.map(async (e) => {
@@ -132,6 +143,7 @@ export class ExpenseService {
                     employeeId: e.userId || null,
                     journalId: journal.journal.id,
                     openingJournalLineId: e.openingJournalLineId || null,
+                    bankAccountId: e.bankAccountId || null,
                 },
             });
         }));
@@ -260,6 +272,13 @@ export class ExpenseService {
                         accountId: true,
                     },
                 },
+                bankAccount: {
+                    select: {
+                        id: true,
+                        name: true,
+                        accountId: true,
+                    },
+                },
             },
             orderBy: { createdAt: 'desc' },
             skip,
@@ -278,6 +297,7 @@ export class ExpenseService {
                 journalReference: e.journal?.reference ?? null,
                 voucherUrl: e.journal?.voucherUrl ?? null,
                 openingJournalLineId: e.openingJournalLineId,
+                bankAccount: e.bankAccount ? { id: e.bankAccount.id, name: e.bankAccount.name } : null,
                 type: e.type,
                 amount: e.amount,
                 description: e.description,
@@ -292,7 +312,7 @@ export class ExpenseService {
     async updateExpense(
         userId: number,
         journalId: number,
-        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number, bankAccountId?: number }[],
     ) {
         if (!expenses?.length)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
@@ -308,7 +328,7 @@ export class ExpenseService {
         if (journal.sourceType !== JournalSourceType.EXPENSES)
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
-        const bank = await this.getBankAccount();
+        const bank = await this.getBankAccount(expenses[0].bankAccountId);
         const expenseAccountId = await this.getExpenseAccountId();
 
         const oldExpenses = await this.prisma.expenseRecord.findMany({
@@ -347,7 +367,7 @@ export class ExpenseService {
                     accountId: expenseAccountId,
                     debit: diff,
                     credit: 0,
-                    description: `تعديل مصروف (زيادة) - ${type}`,
+                    description: `تعديل مصروف (زيادة)`,
                 });
                 netBankEffect += diff;
             } else {
@@ -356,7 +376,7 @@ export class ExpenseService {
                     accountId: expenseAccountId,
                     debit: 0,
                     credit: Math.abs(diff),
-                    description: `تعديل مصروف (نقص) - ${type}`,
+                    description: `تعديل مصروف (نقص)`,
                 });
                 netBankEffect -= Math.abs(diff);
             }
@@ -400,6 +420,7 @@ export class ExpenseService {
                 employeeId: e.userId || null,
                 journalId,
                 openingJournalLineId: e.openingJournalLineId || null,
+                bankAccountId: e.bankAccountId || null,
             })),
         });
 
@@ -416,14 +437,47 @@ export class ExpenseService {
     }
 
     async deleteExpense(userId: number, journalId: number) {
-        const journal = await this.prisma.journalHeader.findUnique({
-            where: { id: journalId },
-            include: { lines: { include: { account: true } } },
+        const relatedJournals = await this.prisma.journalHeader.findMany({
+            where: {
+                OR: [
+                    { id: journalId },
+                    {
+                        sourceType: JournalSourceType.EXPENSES,
+                        sourceId: journalId,
+                    },
+                ],
+            },
+            include: {
+                lines: {
+                    include: { account: true },
+                },
+            },
         });
 
-        if (!journal) throw new BadRequestException('القيد غير موجود');
-        if (journal.sourceType !== 'EXPENSES')
+        if (!relatedJournals.length)
+            throw new BadRequestException('القيد غير موجود');
+
+        const journal = relatedJournals.find(j => j.id === journalId);
+        if (!journal)
+            throw new BadRequestException('القيد الأساسي غير موجود');
+
+        if (journal.sourceType !== JournalSourceType.EXPENSES)
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
+
+        const adjustmentJournals = relatedJournals.filter(j => j.id !== journalId);
+        for (const adj of adjustmentJournals) {
+            if (adj.status === JournalStatus.POSTED) {
+                await this.journalService.unpostJournal(userId, adj.id);
+            }
+
+            await this.prisma.journalLine.deleteMany({
+                where: { journalId: adj.id },
+            });
+
+            await this.prisma.journalHeader.delete({
+                where: { id: adj.id },
+            });
+        }
 
         const isOpeningJournal = journal.type === JournalType.OPENING;
 
@@ -439,7 +493,16 @@ export class ExpenseService {
             if (journal.status === 'POSTED') {
                 await this.journalService.unpostJournal(userId, journalId);
             }
-            const bank = await this.getBankAccount();
+
+            const bankAccount = await this.prisma.bANK_accounts.findFirst({
+            });
+
+            if (!bankAccount) {
+                throw new BadRequestException('حساب البنك غير موجود');
+            }
+
+            const bank = await this.getBankAccount(bankAccount.id);
+
             const totalExpenseAmount = expenseLines.reduce(
                 (sum, l) => new Decimal(sum).plus(new Decimal(l.debit || 0)).toNumber(),
                 0
@@ -463,7 +526,7 @@ export class ExpenseService {
                     },
                 ],
             });
-            
+
             if (journal.status === 'POSTED') {
                 await this.journalService.postJournal(journalId, userId);
             }
