@@ -20,4 +20,8 @@ export class RepaymentDto {
   @IsOptional()
   @IsNumber()
   discount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  BankId?: number;
 }

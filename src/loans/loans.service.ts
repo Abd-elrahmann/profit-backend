@@ -327,14 +327,21 @@ export class LoansService {
             newCapitalAmount = principal;
         }
 
-        if (fundSource === LoanFundSource.MIX) {
-            const bankAccount = await prisma.account.findFirst({
-                where: { accountBasicType: 'BANK' },
-            });
-            if (!bankAccount) {
-                throw new NotFoundException('Bank account not found');
-            }
+        const bank = await this.prisma.bANK_accounts.findUnique({
+            where: { id: dto.bankAccountId },
+        });
 
+        if (!bank || !bank.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { id: bank.accountId },
+        });
+
+        if (!bankAccount) throw new BadRequestException('حساب الصندوق غير موجود');
+
+        if (fundSource === LoanFundSource.MIX) {
             const bankBalance = new Decimal(bankAccount.balance);
 
             if (bankBalance.gte(principal)) {
@@ -354,12 +361,7 @@ export class LoansService {
                 },
             });
 
-            const bank = await prisma.account.findFirst({
-                where: { accountBasicType: 'BANK' },
-            });
-            if (!bank) throw new NotFoundException('Bank account not found');
-
-            const balance = new Decimal(bank.balance);
+            const balance = new Decimal(bankAccount.balance);
 
             if (balance.lt(generalAmount)) {
                 throw new BadRequestException(
@@ -388,11 +390,7 @@ export class LoansService {
         }
 
         if (fundSource === LoanFundSource.GENERAL) {
-            const bank = await prisma.account.findFirst({
-                where: { accountBasicType: 'BANK' },
-            });
-            if (!bank) throw new NotFoundException('Bank account not found');
-            if (principal.gt(new Decimal(bank.balance))) {
+            if (principal.gt(new Decimal(bankAccount.balance))) {
                 throw new BadRequestException('السلفة أكبر من رصيد البنك المتاح');
             }
         }
@@ -418,16 +416,12 @@ export class LoansService {
 
         const paymentAmount = new Decimal(dto.paymentAmount);
 
-        const bankAccount = await prisma.bANK_accounts.findUnique({ where: { id: dto.bankAccountId } });
-        if (!bankAccount) throw new NotFoundException('Bank account not found');
-        if (bankAccount.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
-
+        if (bank.limit <= 0) throw new BadRequestException('انتهى الحد المسموح للحساب البنكي');
 
         const fullMonths = totalAmount.div(paymentAmount).floor().toNumber();
         const lastPayment = totalAmount.minus(paymentAmount.mul(fullMonths));
         let months = fullMonths;
         const hasRemainder = lastPayment.gt(0);
-
 
         if (dto.kafeelId) {
             const kafeel = await prisma.kafeel.findUnique({
@@ -782,12 +776,20 @@ export class LoansService {
             throw new BadRequestException('حساب العميل غير موجود');
         }
 
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: loan.bankAccountId || undefined },
+        });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
         let creditAccount;
         let journalLines: any[] = [];
 
         if (loan.source === LoanFundSource.GENERAL) {
             creditAccount = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'BANK' },
+                where: { id: bankAccount.accountId },
             });
             journalLines = [
                 { accountId: clientAccountId, debit: loan.amount, credit: 0, description: 'سلفة عميل', clientId: loan.clientId },
@@ -806,7 +808,7 @@ export class LoansService {
                 where: { accountBasicType: 'NEW_CAPITAL_BANK' },
             });
             const generalBank = await this.prisma.account.findFirstOrThrow({
-                where: { accountBasicType: 'BANK' },
+                where: { id: bankAccount.accountId },
             });
 
             journalLines.push(
@@ -1676,8 +1678,19 @@ export class LoansService {
             } else if (loanSource === LoanFundSource.NEW_CAPITAL) {
                 newCapitalAmount = principal;
             } else if (loanSource === LoanFundSource.MIX) {
+
+                let bankAccountId = dto.bankAccountId || updated.bankAccountId || undefined;
+
+                const bank = await this.prisma.bANK_accounts.findUnique({
+                    where: { id: bankAccountId },
+                });
+
+                if (!bank || !bank.accountId) {
+                    throw new BadRequestException('حساب البنك غير موجود');
+                };
+
                 const bankAccount = await this.prisma.account.findFirst({
-                    where: { accountBasicType: 'BANK' },
+                    where: { id: bank.accountId },
                 });
                 if (!bankAccount) {
                     throw new NotFoundException('Bank account not found');

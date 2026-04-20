@@ -282,9 +282,19 @@ export class RepaymentService {
         if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounts setup');
 
-        const creditAccount = await this.prisma.account.findFirstOrThrow({
-            where: { accountBasicType: 'BANK' },
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: dto.BankId },
         });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const creditAccount = await this.prisma.account.findUnique({
+            where: { id: bankAccount.accountId },
+        });
+
+        if (!creditAccount) throw new BadRequestException('حساب الصندوق غير موجود');
 
         await this.prisma.$transaction(async (tx) => {
 
@@ -583,7 +593,7 @@ export class RepaymentService {
         return { message: 'تم تأجيل سداد الدفعة بنجاح', repaymentId: id };
     }
 
-    async markAsPartialPaid(currentUser: number, id: number, paidAmount: number) {
+    async markAsPartialPaid(currentUser: number, id: number, paidAmount: number, bankAccountId?: number) {
         const repayment = await this.prisma.repayment.findUnique({
             where: { id },
             include: { loan: { include: { client: true } } },
@@ -617,9 +627,19 @@ export class RepaymentService {
         if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounting accounts');
 
-        const creditAccount = await this.prisma.account.findFirstOrThrow({
-            where: { accountBasicType: 'BANK' },
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankAccountId },
         });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const creditAccount = await this.prisma.account.findUnique({
+            where: { id: bankAccount.accountId },
+        });
+
+        if (!creditAccount) throw new BadRequestException('حساب الصندوق غير موجود');
 
         return await this.prisma.$transaction(async tx => {
 
@@ -752,6 +772,7 @@ export class RepaymentService {
         loanId: number,
         earlyPaymentDiscount: number,
         currentUserId: number,
+        bankAccountId?: number
     ) {
         const loan = await this.prisma.loan.findUnique({
             where: { id: loanId },
@@ -812,9 +833,19 @@ export class RepaymentService {
         if (!loansReceivable || !loanIncome)
             throw new BadRequestException('Missing required accounts setup');
 
-        const creditAccount = await this.prisma.account.findFirstOrThrow({
-            where: { accountBasicType: 'BANK' },
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankAccountId },
         });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const creditAccount = await this.prisma.account.findUnique({
+            where: { id: bankAccount.accountId },
+        });
+
+        if (!creditAccount) throw new BadRequestException('حساب الصندوق غير موجود');
 
         return await this.prisma.$transaction(async (tx) => {
 

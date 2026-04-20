@@ -97,8 +97,9 @@ export class RepaymentController {
         @Req() req,
         @Param('id') id: string,
         @Body('paidAmount') paidAmount: number,
+        @Body('BankId') BankId?: number,
     ) {
-        return this.repaymentService.markAsPartialPaid(req.user.id, Number(id), Number(paidAmount));
+        return this.repaymentService.markAsPartialPaid(req.user.id, Number(id), Number(paidAmount), Number(BankId));
     }
 
     @Patch('early-pay/:id')
@@ -107,11 +108,13 @@ export class RepaymentController {
         @Req() req,
         @Param('id', ParseIntPipe) id: number,
         @Body('discount') earlyPaymentDiscount: number,
+        @Body('BankId') BankId?: number,
     ) {
         const result = await this.repaymentService.markLoanAsEarlyPaid(
             id,
             earlyPaymentDiscount,
             req.user.id,
+            BankId
         );
         return result;
     }
