@@ -61,6 +61,10 @@ export class CreateLoanDto {
     @IsOptional()
     @IsNumber()
     isOpeningJournalId?: number;
+
+    @IsOptional()
+    @IsNumber()
+    advancePayment?: number;
 }
 
 export class UpdateLoanDto {
@@ -127,4 +131,8 @@ export class UpdateLoanDto {
     @IsOptional()
     @IsString()
     paymentCity?: string;
+
+    @IsOptional()
+    @IsNumber()
+    advancePayment?: number;
 }

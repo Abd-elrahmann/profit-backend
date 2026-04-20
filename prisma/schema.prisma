@@ -210,6 +210,7 @@ model Loan {
   generalInterestAmount Float? 
   newCapitalInterestAmount Float?
   durationMonths Int
+  advancePayment Float? @default(0)
   type           LoanType
   isOpening      Boolean @default(false)
   isOpeningJournalId Int?
