@@ -82,18 +82,20 @@ export class ZakatController {
   @Permissions('zakat', 'canPost')
   async withdrawZakat(
     @Body('amount') amount: number,
+    @Body('BankId') BankId: number,
     @Req() req: any,
   ) {
-    return this.zakatService.withdrawZakat(amount, req.user.id);
+    return this.zakatService.withdrawZakat(amount, req.user.id, false, BankId);
   }
 
   @Post('reverseWithdraw/:id')
   @Permissions('zakat', 'canPost')
   async rereverseZakatWithdrawal(
     @Param('id', ParseIntPipe) id: number,
+    @Body('BankId') BankId: number,
     @Req() req: any,
   ) {
-    return this.zakatService.reverseZakatWithdrawal(id, req.user.id);
+    return this.zakatService.reverseZakatWithdrawal(id, req.user.id, BankId);
   }
 
   @Get('account')

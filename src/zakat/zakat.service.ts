@@ -485,6 +485,7 @@ export class ZakatService {
     async reverseZakatWithdrawal(
         zakatWithdrawId: number,
         userId: number,
+        bankAccountId?: number,
     ) {
         const zakatWithdraw = await this.prisma.zakatWithdraw.findUnique({
             where: { id: zakatWithdrawId },
@@ -501,9 +502,19 @@ export class ZakatService {
         const zakatAccount = await this.prisma.account.findUnique({ where: { code: '20001' } });
         if (!zakatAccount) throw new BadRequestException('zakat account (20001) must exist');
 
-        const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
-        if (!bankAccount) throw new NotFoundException("Bank account not found");
+        const bank = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankAccountId },
+        });
 
+        if (!bank || !bank.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { id: bank.accountId },
+        });
+
+        if (!bankAccount) throw new NotFoundException('لم يتم العثور على حساب البنك');
 
         const year = zakatWithdraw.createdAt.getFullYear();
         const month = zakatWithdraw.createdAt.getMonth() + 1;
@@ -585,6 +596,7 @@ export class ZakatService {
         amount: number,
         userId: number,
         opening?: Boolean,
+        bankAccountId?: number,
     ) {
         if (amount <= 0) {
             throw new BadRequestException("المبلغ يجب أن يكون أكبر من صفر");
@@ -597,8 +609,19 @@ export class ZakatService {
             throw new BadRequestException("الرصيد في حساب الزكاة غير كافٍ للسحب");
         }
 
-        const bankAccount = await this.prisma.account.findUnique({ where: { code: '11000' } });
-        if (!bankAccount) throw new NotFoundException("Bank account not found");
+        const bank = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankAccountId },
+        });
+
+        if (!bank || !bank.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const bankAccount = await this.prisma.account.findUnique({
+            where: { id: bank.accountId },
+        });
+
+        if (!bankAccount) throw new NotFoundException('لم يتم العثور على حساب البنك');
 
         if (bankAccount.balance < amount) {
             throw new BadRequestException("الرصيد في الصندوق غير كافٍ للسحب");

@@ -22,9 +22,10 @@ export class SavingController {
     withdrawFromAllPartnersSavings(
         @Body('amount', ParseFloatPipe) amount: number,
         @Body('description') description: string,
+        @Body('BankId') BankId: number,
         @Req() req
     ) {
-        return this.savingService.withdrawFromAllPartnersSavings(req.user.id, amount, description);
+        return this.savingService.withdrawFromAllPartnersSavings(req.user.id, amount, description, BankId);
     }
 
     @Get('partner/:id')

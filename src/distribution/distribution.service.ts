@@ -16,7 +16,7 @@ export class DistributionService {
             .format('iDD iMMMM iYYYY')
     }
 
-    async postClosing(periodId: number, userId: number, savingAmountInput?: number, selectedPartnerIds?: number[]) {
+    async postClosing(periodId: number, userId: number, savingAmountInput?: number, bankId?: number, selectedPartnerIds?: number[]) {
         const period = await this.prisma.periodHeader.findUnique({ where: { id: periodId } });
         if (!period) throw new NotFoundException('Period not found');
 
@@ -84,8 +84,20 @@ export class DistributionService {
         const savingAccount = await this.prisma.account.findUnique({ where: { code: '20002' } });
         if (!savingAccount) throw new BadRequestException('حساب الادخار (20002) يجب ان يكون موجود');
 
-        const Bank = await this.prisma.account.findUnique({ where: { code: '11000' } });
-        if (!Bank) throw new BadRequestException('bank is not existed');
+
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id: bankId },
+        });
+
+        if (!bankAccount || !bankAccount.accountId) {
+            throw new BadRequestException('حساب البنك غير موجود');
+        };
+
+        const Bank = await this.prisma.account.findUnique({
+            where: { id: bankAccount.accountId },
+        });
+
+        if (!Bank) throw new BadRequestException('حساب الصندوق غير موجود');
 
         if (savingAmountInput && savingAmountInput > 0) {
             const totalPartnersProfit = selectedAccruals.reduce(

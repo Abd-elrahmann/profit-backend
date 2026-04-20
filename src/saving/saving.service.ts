@@ -354,14 +354,10 @@ export class SavingService {
     async withdrawFromAllPartnersSavings(
         currentUser: number,
         amount: number,
-        description?: string
+        description?: string,
+        bankAccountId?: number
     ) {
         const preview = await this.previewGlobalSavingWithdrawal(amount);
-
-        const bank = await this.prisma.account.findUnique({
-            where: { code: '11000' },
-        });
-        if (!bank) throw new NotFoundException('Bank not found');
 
         const savingAccount = await this.prisma.account.findFirst({
             where: { accountBasicType: 'SAVINGS' },

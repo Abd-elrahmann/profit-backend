@@ -16,9 +16,11 @@ export class DistributionController {
         @Param('periodId') periodId: string,
         @Body('savingAmount') savingAmount?: number,
         @Body('partnerIds') partnerIds?: number[],
+        @Body('BankId') BankId?: number,
+
     ) {
         const savingAmountInput = savingAmount ? Number(savingAmount) : undefined;
-        return this.distributionService.postClosing(Number(periodId), req.user.id, savingAmountInput, partnerIds);;
+        return this.distributionService.postClosing(Number(periodId), req.user.id, savingAmountInput, BankId, partnerIds);;
     }
 
     @Post('unpost/:periodId')
