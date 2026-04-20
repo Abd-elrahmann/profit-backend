@@ -35,7 +35,7 @@ export class PartnerService {
         });
 
         const bankAccount = await this.prisma.bANK_accounts.findUnique({
-            where: { id: dto.bankId },
+            where: { id: dto.BankId },
         });
 
         if (!bankAccount || !bankAccount.accountId) {
@@ -131,7 +131,7 @@ export class PartnerService {
                 yearlyZakatRequired: Number((dto.capitalAmount * 0.025).toFixed(2)),
                 yearlyZakatPaid: 0,
                 yearlyZakatBalance: Number((dto.capitalAmount * 0.025).toFixed(2)),
-                bankAccountId: dto.bankId,
+                bankAccountId: dto.BankId,
             },
             include: {
                 AccountPayable: true,
@@ -297,7 +297,7 @@ export class PartnerService {
             ? new Date(dto.createdAt)
             : partner.createdAt;
 
-        let bankAccountId = dto.bankId ?? partner.bankAccountId ?? undefined;
+        let bankAccountId = dto.BankId ?? partner.bankAccountId ?? undefined;
 
         const bankAccount = await this.prisma.bANK_accounts.findUnique({
             where: { id: bankAccountId },

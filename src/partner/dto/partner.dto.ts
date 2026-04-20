@@ -54,7 +54,7 @@ export class CreatePartnerDto {
 
     @IsOptional()
     @IsNumber()
-    bankId?: number;
+    BankId?: number;
 }
 
 export class UpdatePartnerDto {
@@ -112,5 +112,5 @@ export class UpdatePartnerDto {
 
     @IsOptional()
     @IsNumber()
-    bankId?: number
+    BankId?: number
 }

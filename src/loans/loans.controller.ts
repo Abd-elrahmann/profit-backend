@@ -59,6 +59,12 @@ export class LoansController {
         return this.loansService.getUnpostedJournalsForLoans();
     }
 
+    @Get('balance/:id')
+    @Permissions('loans', 'canView')
+    getBankAccountBalance(@Param('id') id: string) {
+        return this.loansService.getBankAccountBalance(Number(id));
+    }
+
     @Get('all/:page')
     @Permissions('loans', 'canView')
     getAll(

@@ -1765,4 +1765,17 @@ export class LoansService {
             return { message: 'تم حذف السلفة بنجاح' };
         });
     }
+
+    async getBankAccountBalance(id: number) {
+        const bankAccount = await this.prisma.bANK_accounts.findUnique({
+            where: { id },
+            include: {
+                account: true,
+            },
+        });
+
+        if (!bankAccount) throw new NotFoundException('Bank account not found.');
+
+        return bankAccount.account?.balance || 0;
+    }
 }

@@ -24,7 +24,7 @@ export class BankController {
 
     @Post()
     @Permissions('banks', 'canAdd')
-    createBankAccount(@Req() req, @Body() body: { name: string, owner: string, accountNumber: string , IBAN: string , limit: number}) {
+    createBankAccount(@Req() req, @Body() body: { name: string, owner: string, accountNumber: string, IBAN: string, limit: number }) {
         return this.bankService.createBankAccount(req.user.id, body);
     }
 
@@ -49,7 +49,7 @@ export class BankController {
     updateBankAccount(
         @Req() req,
         @Param('id') id: string,
-        @Body() body: { name?: string, owner: string, accountNumber?: string , IBAN?: string , limit?: number },
+        @Body() body: { name?: string, owner: string, accountNumber?: string, IBAN?: string, limit?: number },
     ) {
         return this.bankService.updateBankAccount(req.user.id, Number(id), body);
     }

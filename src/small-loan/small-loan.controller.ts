@@ -77,7 +77,7 @@ export class SmallLoanController {
             Name?: string;
             amount?: number;
             notes?: string;
-            bankId?: number;
+            BankId?: number;
         },
     ) {
         return this.service.update(

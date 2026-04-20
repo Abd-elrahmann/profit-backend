@@ -26,14 +26,14 @@ export class SmallLoanService {
     }
 
     async create(body: any, currentUser: number) {
-        const { Name, amount, notes, bankId } = body;
+        const { Name, amount, notes, BankId } = body;
 
         if (!Name || !amount || amount <= 0)
             throw new BadRequestException('بيانات غير صحيحة');
 
 
         const bankAccount = await this.prisma.bANK_accounts.findUnique({
-            where: { id: bankId },
+            where: { id: BankId },
         });
 
         if (!bankAccount || !bankAccount.accountId) {
@@ -62,7 +62,7 @@ export class SmallLoanService {
                     amount,
                     remaining: amount,
                     notes,
-                    bankAccountId: bankId,
+                    bankAccountId: BankId,
                 },
             });
 
