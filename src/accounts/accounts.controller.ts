@@ -51,6 +51,12 @@ export class AccountsController {
         return this.accountsService.getAccountsTree();
     }
 
+    /** بحث بكود أو اسم: يُرجع شجرة تتضمن المطابقين وكل الحسابات التابعة لهم */
+    @Get('search')
+    searchTree(@Query('q') q?: string) {
+        return this.accountsService.searchAccountsTree(q ?? '');
+    }
+
     @Get('bank/:page')
     @Permissions('treasury', 'canView')
     getBankAccountReport(

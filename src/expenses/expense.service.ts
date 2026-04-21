@@ -65,7 +65,7 @@ export class ExpenseService {
 
     async createExpenseJournal(
         userId: number,
-        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number, bankAccountId?: number }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number, bankAccountId?: number, BankId?: number }[],
         voucherUrl?: string,
         reference?: string,
     ) {
@@ -73,7 +73,8 @@ export class ExpenseService {
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
 
         const totalAmount = expenses.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
-        const bank = await this.getBankAccount(expenses[0].bankAccountId);
+        const firstBankId = expenses[0].bankAccountId ?? expenses[0].BankId;
+        const bank = await this.getBankAccount(firstBankId);
 
         const journalLines = await Promise.all(
             expenses.map(async (e) => {
@@ -143,7 +144,7 @@ export class ExpenseService {
                     employeeId: e.userId || null,
                     journalId: journal.journal.id,
                     openingJournalLineId: e.openingJournalLineId || null,
-                    bankAccountId: e.bankAccountId || null,
+                    bankAccountId: e.bankAccountId ?? e.BankId ?? null,
                 },
             });
         }));
@@ -312,7 +313,7 @@ export class ExpenseService {
     async updateExpense(
         userId: number,
         journalId: number,
-        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number, bankAccountId?: number }[],
+        expenses: { type: string; amount: number; description?: string; userId?: number; openingJournalLineId?: number, bankAccountId?: number, BankId?: number }[],
     ) {
         if (!expenses?.length)
             throw new BadRequestException('يجب إضافة نوع واحد على الأقل من المصروفات');
@@ -328,7 +329,8 @@ export class ExpenseService {
         if (journal.sourceType !== JournalSourceType.EXPENSES)
             throw new BadRequestException('هذا القيد ليس من نوع المصروفات');
 
-        const bank = await this.getBankAccount(expenses[0].bankAccountId);
+        const firstBankIdUpdate = expenses[0].bankAccountId ?? expenses[0].BankId;
+        const bank = await this.getBankAccount(firstBankIdUpdate);
         const expenseAccountId = await this.getExpenseAccountId();
 
         const oldExpenses = await this.prisma.expenseRecord.findMany({
@@ -420,7 +422,7 @@ export class ExpenseService {
                 employeeId: e.userId || null,
                 journalId,
                 openingJournalLineId: e.openingJournalLineId || null,
-                bankAccountId: e.bankAccountId || null,
+                bankAccountId: e.bankAccountId ?? e.BankId ?? null,
             })),
         });
 

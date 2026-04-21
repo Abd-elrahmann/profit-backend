@@ -19,6 +19,13 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class PartnerLossController {
     constructor(private readonly service: PartnerLossService) { }
 
+    /** قائمة المساهمين الذين لديهم سجل تعثر (للفلترة في الواجهة) — يجب أن يسبق المسار :page */
+    @Get('partners')
+    @Permissions('loss', 'canView')
+    getPartnersWithLosses() {
+        return this.service.getDistinctPartnersWithLosses();
+    }
+
     @Get(':page')
     @Permissions('loss', 'canView')
     getLosses(

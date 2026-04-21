@@ -12,6 +12,60 @@ export class PartnerLossService {
         private journalService: JournalService,
     ) { }
 
+    /** مساهمون لديهم على الأقل سجل PartnerLoss */
+    async getDistinctPartnersWithLosses() {
+        const grouped = await this.prisma.partnerLoss.groupBy({
+            by: ['partnerId'],
+        });
+        const partnerIds = grouped.map((g) => g.partnerId);
+        if (partnerIds.length === 0) {
+            return { partners: [] as { id: number; name: string }[] };
+        }
+        const partners = await this.prisma.partner.findMany({
+            where: { id: { in: partnerIds } },
+            select: { id: true, name: true },
+            orderBy: { name: 'asc' },
+        });
+        return { partners };
+    }
+
+    /** إحصائيات عامة (بدون ميجريشن — من بيانات PartnerLoss الحالية) */
+    private async getLossAggregateStats() {
+        const rows = await this.prisma.partnerLoss.findMany({
+            select: {
+                partnerId: true,
+                amount: true,
+                paidAmount: true,
+            },
+        });
+
+        let totalLossAmount = 0;
+        let totalRemainingAmount = 0;
+        const delinquentPartnerIds = new Set<number>();
+
+        for (const r of rows) {
+            totalLossAmount += r.amount;
+            const paid = r.paidAmount ?? 0;
+            const remaining = Math.max(0, r.amount - paid);
+            totalRemainingAmount += remaining;
+            if (remaining > 0.0001) {
+                delinquentPartnerIds.add(r.partnerId);
+            }
+        }
+
+        const overallDelinquencyRatePercent =
+            totalLossAmount > 0
+                ? Math.round((totalRemainingAmount / totalLossAmount) * 10000) / 100
+                : 0;
+
+        return {
+            totalLossAmount: Math.round(totalLossAmount * 100) / 100,
+            totalRemainingAmount: Math.round(totalRemainingAmount * 100) / 100,
+            delinquentInvestorsCount: delinquentPartnerIds.size,
+            overallDelinquencyRatePercent,
+        };
+    }
+
     async getLosses(page: number = 1, limit: number = 10, search?: string) {
         const safePage = page > 0 ? page : 1;
         const safeLimit = limit > 0 ? limit : 10;
@@ -31,7 +85,7 @@ export class PartnerLossService {
             }
             : {};
 
-        const [losses, total] = await Promise.all([
+        const [losses, total, stats] = await Promise.all([
             this.prisma.partnerLoss.findMany({
                 where,
                 include: {
@@ -49,6 +103,7 @@ export class PartnerLossService {
                 take: safeLimit,
             }),
             this.prisma.partnerLoss.count({ where }),
+            this.getLossAggregateStats(),
         ]);
 
         return {
@@ -57,6 +112,7 @@ export class PartnerLossService {
             limit: safeLimit,
             count: total,
             losses,
+            stats,
         };
     }
 

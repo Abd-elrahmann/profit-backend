@@ -404,6 +404,89 @@ export class AccountsService {
         return roots;
     }
 
+    /**
+     * بحث في دليل الحسابات: أي حساب يطابق الاسم/الكود يُعرض مع جميع أبنائه (وأحفادِه) في الشجرة.
+     */
+    async searchAccountsTree(q: string) {
+        const search = (q ?? '').trim();
+        if (!search) {
+            return this.getAccountsTree();
+        }
+
+        const allAccounts = await this.prisma.account.findMany({
+            orderBy: { code: 'asc' },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                parentId: true,
+                nature: true,
+                debit: true,
+                credit: true,
+                balance: true,
+            },
+        });
+
+        const lower = search.toLowerCase();
+        const matchesRow = (a: (typeof allAccounts)[number]) =>
+            (a.code && a.code.toLowerCase().includes(lower)) ||
+            (a.name && a.name.toLowerCase().includes(lower));
+
+        const childrenByParent = new Map<number, number[]>();
+        for (const a of allAccounts) {
+            if (a.parentId != null) {
+                if (!childrenByParent.has(a.parentId)) {
+                    childrenByParent.set(a.parentId, []);
+                }
+                childrenByParent.get(a.parentId)!.push(a.id);
+            }
+        }
+
+        const included = new Set<number>();
+        const queue: number[] = [];
+        for (const a of allAccounts) {
+            if (matchesRow(a)) {
+                included.add(a.id);
+                queue.push(a.id);
+            }
+        }
+
+        while (queue.length > 0) {
+            const id = queue.shift()!;
+            for (const kid of childrenByParent.get(id) ?? []) {
+                if (!included.has(kid)) {
+                    included.add(kid);
+                    queue.push(kid);
+                }
+            }
+        }
+
+        const filtered = allAccounts.filter((a) => included.has(a.id));
+        const map = new Map<number, any>();
+        for (const acc of filtered) {
+            map.set(acc.id, { ...acc, children: [] });
+        }
+        const roots: any[] = [];
+        for (const acc of filtered) {
+            const node = map.get(acc.id)!;
+            if (acc.parentId != null && map.has(acc.parentId)) {
+                map.get(acc.parentId)!.children.push(node);
+            } else {
+                roots.push(node);
+            }
+        }
+        const sortRecursive = (nodes: any[]) => {
+            nodes.sort((a, b) =>
+                String(a.code).localeCompare(String(b.code), undefined, { numeric: true }),
+            );
+            for (const n of nodes) {
+                if (n.children?.length) sortRecursive(n.children);
+            }
+        };
+        sortRecursive(roots);
+        return roots;
+    }
+
     async getBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
         const skip = (page - 1) * limit;
 

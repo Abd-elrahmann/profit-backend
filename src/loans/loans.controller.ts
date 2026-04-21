@@ -60,7 +60,6 @@ export class LoansController {
     }
 
     @Get('balance/:id')
-    @Permissions('loans', 'canView')
     getBankAccountBalance(@Param('id') id: string) {
         return this.loansService.getBankAccountBalance(Number(id));
     }

@@ -347,7 +347,8 @@ export class SmallLoanService {
     }
 
     async update(id: number, body: any, currentUser: number) {
-        const { Name, amount, notes, bankId } = body;
+        const { Name, amount, notes, bankId, BankId } = body;
+        const resolvedBankIdFromBody = bankId ?? BankId;
 
         const loan = await this.prisma.smallLoan.findUnique({
             where: { id },
@@ -373,7 +374,7 @@ export class SmallLoanService {
                     amount: amount ?? loan.amount,
                     remaining: amount ?? loan.amount,
                     notes: notes ?? loan.notes,
-                    bankAccountId: bankId ?? loan.bankAccountId,
+                    bankAccountId: resolvedBankIdFromBody ?? loan.bankAccountId,
                 },
             });
 
@@ -400,7 +401,7 @@ export class SmallLoanService {
                 where: { journalId: journal.id },
             });
 
-            let bankAccountId = bankId ?? loan.bankAccountId;
+            let bankAccountId = resolvedBankIdFromBody ?? loan.bankAccountId;
 
             const bankAccount = await this.prisma.bANK_accounts.findUnique({
                 where: { id: bankAccountId },
