@@ -91,7 +91,7 @@
     "updatedAt": "2026-03-11T17:34:03.543Z"
   },
   {
-    "id": 130,
+    "id": 161,
     "roleId": 1,
     "module": "dashboard",
     "canView": true,
@@ -100,11 +100,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 131,
+    "id": 162,
     "roleId": 1,
     "module": "logs",
     "canView": true,
@@ -113,11 +113,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 132,
+    "id": 163,
     "roleId": 1,
     "module": "settings",
     "canView": true,
@@ -126,11 +126,11 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 133,
+    "id": 164,
     "roleId": 1,
     "module": "users",
     "canView": true,
@@ -139,11 +139,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 134,
+    "id": 165,
     "roleId": 1,
     "module": "roles",
     "canView": true,
@@ -152,11 +152,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 135,
+    "id": 166,
     "roleId": 1,
     "module": "clients",
     "canView": true,
@@ -165,11 +165,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 136,
+    "id": 167,
     "roleId": 1,
     "module": "client-report",
     "canView": true,
@@ -178,11 +178,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 137,
+    "id": 168,
     "roleId": 1,
     "module": "partners",
     "canView": true,
@@ -191,11 +191,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 138,
+    "id": 169,
     "roleId": 1,
     "module": "partners-withdraw",
     "canView": true,
@@ -204,11 +204,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 139,
+    "id": 170,
     "roleId": 1,
     "module": "expenses",
     "canView": true,
@@ -217,11 +217,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 140,
+    "id": 171,
     "roleId": 1,
     "module": "income-statement",
     "canView": true,
@@ -230,11 +230,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 141,
+    "id": 172,
     "roleId": 1,
     "module": "accounts",
     "canView": true,
@@ -243,11 +243,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 142,
+    "id": 173,
     "roleId": 1,
     "module": "journals",
     "canView": true,
@@ -256,11 +256,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 143,
+    "id": 174,
     "roleId": 1,
     "module": "general-ledger",
     "canView": true,
@@ -269,11 +269,24 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 144,
+    "id": 175,
+    "roleId": 1,
+    "module": "trial-balance",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "canExport": true,
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
+  },
+  {
+    "id": 176,
     "roleId": 1,
     "module": "period",
     "canView": true,
@@ -282,11 +295,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 145,
+    "id": 177,
     "roleId": 1,
     "module": "loans",
     "canView": true,
@@ -295,11 +308,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 146,
+    "id": 178,
     "roleId": 1,
     "module": "banks",
     "canView": true,
@@ -308,11 +321,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 147,
+    "id": 179,
     "roleId": 1,
     "module": "repayments",
     "canView": true,
@@ -321,11 +334,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 148,
+    "id": 180,
     "roleId": 1,
     "module": "treasury",
     "canView": true,
@@ -334,11 +347,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 149,
+    "id": 181,
     "roleId": 1,
     "module": "company",
     "canView": true,
@@ -347,11 +360,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 150,
+    "id": 182,
     "roleId": 1,
     "module": "distribution",
     "canView": true,
@@ -360,11 +373,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 151,
+    "id": 183,
     "roleId": 1,
     "module": "zakat",
     "canView": true,
@@ -373,11 +386,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 152,
+    "id": 184,
     "roleId": 1,
     "module": "saving",
     "canView": true,
@@ -386,11 +399,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 153,
+    "id": 185,
     "roleId": 1,
     "module": "templates",
     "canView": true,
@@ -399,11 +412,11 @@
     "canDelete": true,
     "canPost": true,
     "canExport": true,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 154,
+    "id": 186,
     "roleId": 1,
     "module": "files-clients",
     "canView": true,
@@ -412,11 +425,11 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 155,
+    "id": 187,
     "roleId": 1,
     "module": "files-partners",
     "canView": true,
@@ -425,11 +438,11 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 156,
+    "id": 188,
     "roleId": 1,
     "module": "files-loans",
     "canView": true,
@@ -438,11 +451,11 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 157,
+    "id": 189,
     "roleId": 1,
     "module": "files-repayments",
     "canView": true,
@@ -451,11 +464,11 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 158,
+    "id": 190,
     "roleId": 1,
     "module": "files-expenses",
     "canView": true,
@@ -464,11 +477,11 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 159,
+    "id": 191,
     "roleId": 1,
     "module": "files-partners-withdraw",
     "canView": true,
@@ -477,11 +490,11 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 160,
+    "id": 192,
     "roleId": 1,
     "module": "files-zakat",
     "canView": true,
@@ -490,20 +503,20 @@
     "canDelete": false,
     "canPost": false,
     "canExport": false,
-    "createdAt": "2026-03-11T17:34:18.543Z",
-    "updatedAt": "2026-03-11T17:34:18.543Z"
+    "createdAt": "2026-04-18T12:59:13.263Z",
+    "updatedAt": "2026-04-18T12:59:13.263Z"
   },
   {
-    "id": 161,
+    "id": 193,
     "roleId": 1,
-    "module": "trial-balance",
+    "module": "loss",
     "canView": true,
-    "canAdd": false,
-    "canUpdate": false,
-    "canDelete": false,
-    "canPost": false,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
     "canExport": true,
-    "createdAt": "2026-04-18T00:00:00.000Z",
-    "updatedAt": "2026-04-18T00:00:00.000Z"
+    "createdAt": "2026-04-21T14:32:22.158Z",
+    "updatedAt": "2026-04-21T14:33:13.264Z"
   }
 ]

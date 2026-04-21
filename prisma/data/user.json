@@ -9,7 +9,7 @@
     "isActive": true,
     "roleId": 1,
     "createdAt": "2026-04-13T14:20:51.799Z",
-    "updatedAt": "2026-04-16T12:56:46.113Z",
+    "updatedAt": "2026-04-19T11:41:45.505Z",
     "expenseAccountId": 171
   },
   {
@@ -22,7 +22,7 @@
     "isActive": true,
     "roleId": 1,
     "createdAt": "2025-10-27T18:31:51.832Z",
-    "updatedAt": "2026-04-16T13:34:01.952Z",
+    "updatedAt": "2026-04-21T14:31:36.106Z",
     "expenseAccountId": 16
   }
 ]

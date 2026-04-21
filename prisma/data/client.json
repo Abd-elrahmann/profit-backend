@@ -41,8 +41,8 @@
     "accountId": 174,
     "interestAccountId": 175,
     "debit": 0,
-    "credit": 10000,
-    "balance": -10000,
+    "credit": 0,
+    "balance": 0,
     "status": "نشط",
     "notes": null,
     "createdAt": "2026-04-13T17:09:15.360Z"
