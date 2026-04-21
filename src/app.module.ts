@@ -37,6 +37,7 @@ import { FileModule } from './file/file.module';
 import { CacheModule } from './cache/cache.module';
 import { TimeoutMiddleware } from './common/middleware/timeout.middleware';
 import { BullModule } from '@nestjs/bull';
+import { PartnerLossModule } from './partner-loss/partner-loss.module';
 
 const redisUrl = process.env.REDIS_URL;
 const bullModule =
@@ -101,6 +102,7 @@ const bullModule =
     IncomeStatementModule,
     SettingsModule,
     FileModule,
+    PartnerLossModule,
 
   ],
   controllers: [AppController],

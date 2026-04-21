@@ -2,15 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoanStatus } from '@prisma/client';
 
-/**
- * خدمة موحدة لتحديث حالة العميل (نشط / متعثر / منتهي)
- * تُستخدم من جميع الوحدات لضمان اتساق المنطق
- */
 @Injectable()
 export class ClientStatusService {
     private static readonly FULLY_PAID_STATUSES = ['PAID', 'EARLY_PAID', 'COMPLETED', 'PARTIAL_PAID'];
 
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async updateClientStatus(clientId: number): Promise<void> {
         const loans = await this.prisma.loan.findMany({
@@ -29,18 +25,18 @@ export class ClientStatusService {
         const allRepayments = loans.flatMap((l) => l.repayments);
         const now = new Date();
 
-        const hasOverdue = allRepayments.some(
+        const unpaidOverdueCount = allRepayments.filter(
             (r) =>
-                r.status === 'OVERDUE' ||
-                (r.status === 'PENDING' && r.dueDate < now),
-        );
+                !ClientStatusService.FULLY_PAID_STATUSES.includes(r.status) &&
+                r.dueDate < now
+        ).length;
 
         const allPaid = allRepayments.every((r) =>
             ClientStatusService.FULLY_PAID_STATUSES.includes(r.status),
         );
 
         let newStatus: any = 'نشط';
-        if (hasOverdue) {
+        if (unpaidOverdueCount >= 6) {
             newStatus = 'متعثر';
         } else if (allPaid) {
             newStatus = 'منتهي';

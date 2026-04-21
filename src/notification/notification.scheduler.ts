@@ -152,7 +152,7 @@ export class NotificationScheduler {
                     telegramDate,
                 );
             } catch (err) {
-                this.logger.error(`Error processing dueToday repayment ${repayment.id}: ${err?.message || err}`, err?.stack);
+                this.logger.error(`Error processing dueToday repayment ${repayment.id}: ${err}`, err);
             }
         }
 
@@ -201,7 +201,7 @@ export class NotificationScheduler {
                     telegramDate,
                 );
             } catch (err) {
-                this.logger.error(`Error processing overdue repayment ${repayment.id}: ${err?.message || err}`, err?.stack);
+                this.logger.error(`Error processing overdue repayment ${repayment.id}: ${err}`, err);
             }
         }
     }
@@ -265,7 +265,7 @@ export class NotificationScheduler {
                             await this.prisma.notification.delete({ where: { id: notif.id } });
                         }
                     } catch (err) {
-                        this.logger.error(`Error processing scheduled notification ${notif.id}: ${err?.message || err}`, err?.stack);
+                        this.logger.error(`Error processing scheduled notification ${notif.id}: ${err}`, err);
                     }
                 }),
             );

@@ -464,6 +464,7 @@ model Partner {
   PartnerNewCapital PartnerNewCapital[]
   LoanNewCapitalShare LoanNewCapitalShare[]
   PartnerCount PartnerCount[]
+  losses PartnerLoss[]
 
   createdAt DateTime @default(now())
 }
@@ -533,6 +534,20 @@ model PartnerWithdrawal {
   bankAccount BANK_accounts? @relation(fields: [bankAccountId], references: [id])
 
   @@index([bankAccountId])
+}
+
+model PartnerLoss {
+  id        Int      @id @default(autoincrement())
+  partnerId Int
+  amount    Float
+  paidAmount Float @default(0)
+  isPaid    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  partner   Partner  @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId])
+  @@index([createdAt])
 }
 
 model PartnerWithdrawalBackup {

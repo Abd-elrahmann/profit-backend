@@ -408,6 +408,13 @@ export class PartnerWithdrawService {
             }
         }
 
+        const loss = await this.prisma.partnerLoss.create({
+            data: {
+                partnerId,
+                amount: partnerDefaultShare,
+            },
+        });
+
         let bankIdToUse = bankId ?? partner.bankAccountId ?? undefined;
 
         const bank = await this.prisma.bANK_accounts.findUnique({
