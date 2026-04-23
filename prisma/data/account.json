@@ -90,6 +90,21 @@
     "createdAt": "2026-02-01T17:32:59.476Z"
   },
   {
+    "id": 180,
+    "name": "ALEX",
+    "code": "11011",
+    "parentId": 6,
+    "type": "ASSET",
+    "level": 3,
+    "isActive": true,
+    "credit": 0,
+    "debit": 40000,
+    "balance": 40000,
+    "nature": "DEBIT",
+    "accountBasicType": "BANK",
+    "createdAt": "2026-04-18T13:33:14.550Z"
+  },
+  {
     "id": 16,
     "name": "مصروفات - ادمن",
     "code": "52010",
@@ -150,6 +165,21 @@
     "createdAt": "2026-02-01T17:32:59.468Z"
   },
   {
+    "id": 189,
+    "name": "عهدة خارجية",
+    "code": "10001",
+    "parentId": 1,
+    "type": "ASSET",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "DEBIT",
+    "accountBasicType": "EXTERNAL_INVESTMENT",
+    "createdAt": "2026-04-23T12:40:40.716Z"
+  },
+  {
     "id": 109,
     "name": "رأس مال جديد - youssef",
     "code": "30020",
@@ -193,6 +223,21 @@
     "nature": "CREDIT",
     "accountBasicType": "PARTNER_SAVING",
     "createdAt": "2026-02-01T17:33:41.093Z"
+  },
+  {
+    "id": 1,
+    "name": "الأصول",
+    "code": "10000",
+    "parentId": null,
+    "type": "ASSET",
+    "level": 1,
+    "isActive": true,
+    "credit": 0,
+    "debit": 40000,
+    "balance": 40000,
+    "nature": "DEBIT",
+    "accountBasicType": "OTHER",
+    "createdAt": "2025-10-27T18:28:55.794Z"
   },
   {
     "id": 12,
@@ -240,21 +285,6 @@
     "createdAt": "2025-12-11T13:30:34.335Z"
   },
   {
-    "id": 180,
-    "name": "ALEX",
-    "code": "11011",
-    "parentId": 6,
-    "type": "ASSET",
-    "level": 3,
-    "isActive": true,
-    "credit": 0,
-    "debit": 40000,
-    "balance": 40000,
-    "nature": "DEBIT",
-    "accountBasicType": "BANK",
-    "createdAt": "2026-04-18T13:33:14.550Z"
-  },
-  {
     "id": 3,
     "name": "حقوق الملكية",
     "code": "30000",
@@ -283,21 +313,6 @@
     "nature": "DEBIT",
     "accountBasicType": "SMALL_LOANS_RECEIVABLE",
     "createdAt": "2025-12-19T17:57:52.537Z"
-  },
-  {
-    "id": 1,
-    "name": "الأصول",
-    "code": "10000",
-    "parentId": null,
-    "type": "ASSET",
-    "level": 1,
-    "isActive": true,
-    "credit": 0,
-    "debit": 40000,
-    "balance": 40000,
-    "nature": "DEBIT",
-    "accountBasicType": "OTHER",
-    "createdAt": "2025-10-27T18:28:55.794Z"
   },
   {
     "id": 11,
@@ -360,6 +375,36 @@
     "createdAt": "2025-10-27T18:28:55.794Z"
   },
   {
+    "id": 6,
+    "name": "النقد في الصندوق",
+    "code": "11000",
+    "parentId": 1,
+    "type": "ASSET",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 40000,
+    "balance": 40000,
+    "nature": "DEBIT",
+    "accountBasicType": "BANK",
+    "createdAt": "2025-10-27T18:38:07.619Z"
+  },
+  {
+    "id": 190,
+    "name": "أرباح خارجية",
+    "code": "40001",
+    "parentId": 4,
+    "type": "REVENUE",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "CREDIT",
+    "accountBasicType": "EXTERNAL_PROFIT",
+    "createdAt": "2026-04-23T12:41:25.139Z"
+  },
+  {
     "id": 17,
     "name": "صندوق رؤوس أموال المساهمين الجدد",
     "code": "11001",
@@ -420,21 +465,6 @@
     "createdAt": "2025-10-28T12:36:29.413Z"
   },
   {
-    "id": 6,
-    "name": "النقد في الصندوق",
-    "code": "11000",
-    "parentId": 1,
-    "type": "ASSET",
-    "level": 2,
-    "isActive": true,
-    "credit": 0,
-    "debit": 40000,
-    "balance": 40000,
-    "nature": "DEBIT",
-    "accountBasicType": "BANK",
-    "createdAt": "2025-10-27T18:38:07.619Z"
-  },
-  {
     "id": 171,
     "name": "مصروفات - youssef",
     "code": "52020",
@@ -463,36 +493,6 @@
     "nature": "CREDIT",
     "accountBasicType": "LOAN_INCOME",
     "createdAt": "2025-10-28T12:36:47.784Z"
-  },
-  {
-    "id": 4,
-    "name": "الإيرادات",
-    "code": "40000",
-    "parentId": null,
-    "type": "REVENUE",
-    "level": 1,
-    "isActive": true,
-    "credit": 0,
-    "debit": 0,
-    "balance": 0,
-    "nature": "CREDIT",
-    "accountBasicType": "OTHER",
-    "createdAt": "2025-10-27T18:28:55.794Z"
-  },
-  {
-    "id": 9,
-    "name": "إيراد الشركة من نسب المساهمين",
-    "code": "42000",
-    "parentId": 4,
-    "type": "REVENUE",
-    "level": 2,
-    "isActive": true,
-    "credit": 0,
-    "debit": 0,
-    "balance": 0,
-    "nature": "CREDIT",
-    "accountBasicType": "COMPANY_SHARES",
-    "createdAt": "2025-10-28T12:36:55.726Z"
   },
   {
     "id": 106,
@@ -550,6 +550,36 @@
     "credit": 1000,
     "debit": 0,
     "balance": 1000,
+    "nature": "CREDIT",
+    "accountBasicType": "OTHER",
+    "createdAt": "2025-10-27T18:28:55.794Z"
+  },
+  {
+    "id": 9,
+    "name": "إيراد الشركة من نسب المساهمين",
+    "code": "42000",
+    "parentId": 4,
+    "type": "REVENUE",
+    "level": 2,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
+    "nature": "CREDIT",
+    "accountBasicType": "COMPANY_SHARES",
+    "createdAt": "2025-10-28T12:36:55.726Z"
+  },
+  {
+    "id": 4,
+    "name": "الإيرادات",
+    "code": "40000",
+    "parentId": null,
+    "type": "REVENUE",
+    "level": 1,
+    "isActive": true,
+    "credit": 0,
+    "debit": 0,
+    "balance": 0,
     "nature": "CREDIT",
     "accountBasicType": "OTHER",
     "createdAt": "2025-10-27T18:28:55.794Z"

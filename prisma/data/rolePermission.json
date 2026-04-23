@@ -518,5 +518,18 @@
     "canExport": true,
     "createdAt": "2026-04-21T14:32:22.158Z",
     "updatedAt": "2026-04-21T14:33:13.264Z"
+  },
+  {
+    "id": 194,
+    "roleId": 1,
+    "module": "external-investments",
+    "canView": true,
+    "canAdd": true,
+    "canUpdate": true,
+    "canDelete": true,
+    "canPost": true,
+    "canExport": true,
+    "createdAt": "2026-04-23T13:33:13.042Z",
+    "updatedAt": "2026-04-23T13:33:00.909Z"
   }
 ]

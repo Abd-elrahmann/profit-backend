@@ -25,6 +25,7 @@ model User {
   ExpenseRecord  ExpenseRecord[]      @relation("UserExpenses")
   EmployeeExpenses ExpenseRecord[]    @relation("EmployeeExpenses")
   zakatWithdraw    zakatWithdraw[]
+  ExternalInvestment ExternalInvestment[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
   expenseAccountId  Int?               @unique
@@ -465,6 +466,7 @@ model Partner {
   LoanNewCapitalShare LoanNewCapitalShare[]
   PartnerCount PartnerCount[]
   losses PartnerLoss[]
+  externalInvestmentShares ExternalInvestmentPartnerShare[]
 
   createdAt DateTime @default(now())
 }
@@ -672,6 +674,7 @@ model BANK_accounts {
   smallLoans     SmallLoan[]
   expenses       ExpenseRecord[]
   PartnerWithdrawal PartnerWithdrawal[]
+  ExternalInvestment ExternalInvestment[]
 }
 
 enum AccountStatus {
@@ -729,6 +732,8 @@ enum AccountBasicType {
   ZAKAT_EXPENSES
   SAVINGS
   LOSSES
+  EXTERNAL_INVESTMENT 
+  EXTERNAL_PROFIT 
   OTHER
 }
 
@@ -878,6 +883,7 @@ enum JournalSourceType {
   LOAN_CONVERSION
   LOAN_INTEREST
   CLIENT
+  EXTERNAL_PROFIT 
   OTHER
 }
 
@@ -918,4 +924,39 @@ model Settings {
   autoPost  Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ExternalInvestment {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  amount      Float  
+  returnedAmount Float? 
+  profit      Float? 
+  status      ExternalInvestmentStatus @default(OPEN)
+  isDistributed Boolean @default(false)
+  bankAccountId Int?
+  createdAt   DateTime @default(now())
+  returnedAt  DateTime?
+  partnerShares ExternalInvestmentPartnerShare[]
+
+  user        User @relation(fields: [userId], references: [id])
+  bankAccount BANK_accounts? @relation(fields: [bankAccountId], references: [id])
+}
+
+enum ExternalInvestmentStatus {
+  OPEN
+  CLOSED
+}
+
+model ExternalInvestmentPartnerShare {
+  id                   Int                @id @default(autoincrement())
+  externalInvestmentId Int
+  partnerId            Int
+  sharePercent         Float
+  orgProfitPercent     Float              @default(0)
+
+  externalInvestment   ExternalInvestment @relation(fields: [externalInvestmentId], references: [id])
+  partner              Partner            @relation(fields: [partnerId], references: [id])
+
+  @@unique([externalInvestmentId, partnerId])
 }
