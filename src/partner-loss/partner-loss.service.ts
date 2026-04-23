@@ -12,7 +12,6 @@ export class PartnerLossService {
         private journalService: JournalService,
     ) { }
 
-    /** مساهمون لديهم على الأقل سجل PartnerLoss */
     async getDistinctPartnersWithLosses() {
         const grouped = await this.prisma.partnerLoss.groupBy({
             by: ['partnerId'],
@@ -29,7 +28,6 @@ export class PartnerLossService {
         return { partners };
     }
 
-    /** إحصائيات عامة (بدون ميجريشن — من بيانات PartnerLoss الحالية) */
     private async getLossAggregateStats() {
         const rows = await this.prisma.partnerLoss.findMany({
             select: {
