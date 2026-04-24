@@ -81,6 +81,7 @@ export class BankService {
 
         const accounts = await this.prisma.bANK_accounts.findMany({
             where,
+            include: { account: { select: { balance: true } } },
             skip: (page - 1) * limit,
             take: limit,
             orderBy: { id: 'desc' },
@@ -95,7 +96,7 @@ export class BankService {
         const bankAccount = await this.prisma.bANK_accounts.findUnique({
             where: { id },
             include: {
-                account: true,
+                account: { select: { balance: true } },
                 loans: {
                     include: {
                         client: { select: { name: true, phone: true } },
