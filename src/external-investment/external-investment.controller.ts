@@ -68,6 +68,7 @@ export class ExternalInvestmentController {
     }
 
     @Delete(':id')
+    @Permissions('external-investments', 'canDelete')
     deleteRecord(
         @Param('id', ParseIntPipe) id: number,
         @Req() req,
