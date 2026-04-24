@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto, UpdateAccountDto } from './dto/accounts.dto';
 import { DateTime } from 'luxon';
 import moment from "moment-hijri";
-import { AccountBasicType } from '@prisma/client';
+import { AccountBasicType, JournalSourceType, JournalType } from '@prisma/client';
 
 @Injectable()
 export class AccountsService {
@@ -13,6 +13,132 @@ export class AccountsService {
         return moment(date)
             .locale('ar-SA')
             .format('iDD iMMMM iYYYY')
+    }
+
+    private getJournalTypeArabic(type?: JournalType | null) {
+        switch (type) {
+            case JournalType.OPENING:
+                return 'قيد افتتاحي';
+            case JournalType.CLOSING:
+                return 'قيد إقفال';
+            case JournalType.ADJUSTMENT:
+                return 'قيد تسوية';
+            case JournalType.GENERAL:
+            default:
+                return 'قيد عام';
+        }
+    }
+
+    private getJournalSourceArabic(sourceType?: JournalSourceType | null) {
+        switch (sourceType) {
+            case JournalSourceType.LOAN:
+                return 'عملية سلفة';
+            case JournalSourceType.REPAYMENT:
+                return 'عملية سداد';
+            case JournalSourceType.PARTNER:
+                return 'عملية مساهم';
+            case JournalSourceType.PARTNER_TRANSACTION_WITHDRAWAL:
+                return 'سحب مساهم';
+            case JournalSourceType.PARTNER_TRANSACTION_DEPOSIT:
+                return 'إيداع مساهم';
+            case JournalSourceType.PARTNER_PROFIT_WITHDRAWAL:
+                return 'سحب أرباح مساهم';
+            case JournalSourceType.PARTNER_SAVING_WITHDRAWAL:
+                return 'سحب مدخرات مساهم';
+            case JournalSourceType.PERIOD_CLOSING:
+                return 'إقفال فترة';
+            case JournalSourceType.ZAKAT:
+                return 'عملية زكاة';
+            case JournalSourceType.SAVING:
+                return 'عملية ادخار';
+            case JournalSourceType.COMPANY_PROFIT_WITHDRAWAL:
+                return 'سحب أرباح الشركة';
+            case JournalSourceType.EXPENSES:
+                return 'مصروف';
+            case JournalSourceType.LOSSES:
+                return 'إثبات خسارة';
+            case JournalSourceType.PARTNER_WITHDRAWING:
+                return 'سحب من حساب مساهم';
+            case JournalSourceType.SMALL_LOAN:
+                return 'سلفة صغيرة';
+            case JournalSourceType.LOAN_CONVERSION:
+                return 'تحويل سلفة';
+            case JournalSourceType.LOAN_INTEREST:
+                return 'فائدة سلفة';
+            case JournalSourceType.CLIENT:
+                return 'عملية عميل';
+            case JournalSourceType.EXTERNAL_PROFIT:
+                return 'أرباح استثمار خارجي';
+            case JournalSourceType.OTHER:
+            default:
+                return null;
+        }
+    }
+
+    private resolveJournalDescription(params: {
+        lineDescription?: string | null;
+        journalDescription?: string | null;
+        journalReference?: string | null;
+        journalType?: JournalType | null;
+        sourceType?: JournalSourceType | null;
+        clientName?: string | null;
+        partnerName?: string | null;
+    }) {
+        const {
+            lineDescription,
+            journalDescription,
+            journalReference,
+            journalType,
+            sourceType,
+            clientName,
+            partnerName,
+        } = params;
+        const lineText = lineDescription?.trim();
+        const journalText = journalDescription?.trim();
+        const sourceText = this.getJournalSourceArabic(sourceType);
+        const typeText = this.getJournalTypeArabic(journalType);
+
+        const relationParts: string[] = [];
+        const clientText = clientName?.trim();
+        if (clientText) relationParts.push(`العميل: ${clientText}`);
+        const partnerText = partnerName?.trim();
+        if (partnerText) relationParts.push(`المساهم: ${partnerText}`);
+
+        const relationSuffix = relationParts.length ? ` (${relationParts.join(' - ')})` : '';
+        const operationBase = sourceText || typeText;
+
+        if (lineText) return `${operationBase}: ${lineText}${relationSuffix}`;
+        if (journalText) return `${operationBase}: ${journalText}${relationSuffix}`;
+
+        const referenceText = journalReference?.trim();
+        if (referenceText) return `${operationBase}: قيد رقم ${referenceText}${relationSuffix}`;
+
+        return `${operationBase}${relationSuffix}`;
+    }
+
+    private async getPartnerNamesByJournalSources(
+        sources: Array<{ sourceType?: JournalSourceType | null; sourceId?: number | null }>,
+    ) {
+        const partnerIds = Array.from(
+            new Set(
+                sources
+                    .filter(
+                        (s) =>
+                            s.sourceType === JournalSourceType.PARTNER &&
+                            typeof s.sourceId === 'number',
+                    )
+                    .map((s) => Number(s.sourceId)),
+            ),
+        );
+
+        if (partnerIds.length === 0) return new Map<number, string>();
+
+        const partners = await this.prisma.partner.findMany({
+            where: { id: { in: partnerIds } },
+            select: { id: true, name: true },
+        });
+
+        return new Map<number, string>(partners.map((p) => [p.id, p.name]));
     }
 
     async createAccount(dto: CreateAccountDto) {
@@ -286,6 +412,9 @@ export class AccountsService {
             skip: (page - 1) * limit,
             take: limit,
         });
+        const partnerNamesById = await this.getPartnerNamesByJournalSources(
+            journals.map((j) => ({ sourceType: j.sourceType, sourceId: j.sourceId })),
+        );
 
 
         const periodTotals = await this.prisma.journalLine.aggregate({
@@ -327,7 +456,18 @@ export class AccountsService {
             postedBy: j.postedBy?.name ?? null,
             lines: j.lines.map((l) => ({
                 id: l.id,
-                description: l.description,
+                    description: this.resolveJournalDescription({
+                        lineDescription: l.description,
+                        journalDescription: j.description,
+                        journalReference: j.reference,
+                        journalType: j.type,
+                        sourceType: j.sourceType,
+                        clientName: l.client?.name ?? null,
+                        partnerName:
+                            j.sourceType === JournalSourceType.PARTNER && j.sourceId
+                                ? partnerNamesById.get(j.sourceId) ?? null
+                                : null,
+                    }),
                 debit: l.debit,
                 credit: l.credit,
                 balance: l.balance,
@@ -558,6 +698,14 @@ export class AccountsService {
                 },
             },
         });
+        const partnerNamesById = await this.getPartnerNamesByJournalSources(
+            childAccounts.flatMap((account) =>
+                account.entries.map((line) => ({
+                    sourceType: line.journal.sourceType,
+                    sourceId: line.journal.sourceId,
+                })),
+            ),
+        );
 
         // Calculate total journals across all child accounts
         const totalJournals = await this.prisma.journalLine.count({
@@ -628,7 +776,19 @@ export class AccountsService {
                             id: line.journal.id,
                             date: date.toISO(),
                             reference: line.journal.reference,
-                            description: line.description ?? line.journal.description,
+                            description: this.resolveJournalDescription({
+                                lineDescription: line.description,
+                                journalDescription: line.journal.description,
+                                journalReference: line.journal.reference,
+                                journalType: line.journal.type,
+                                sourceType: line.journal.sourceType,
+                                clientName: line.client?.name ?? null,
+                                partnerName:
+                                    line.journal.sourceType === JournalSourceType.PARTNER &&
+                                        line.journal.sourceId
+                                        ? partnerNamesById.get(line.journal.sourceId) ?? null
+                                        : null,
+                            }),
                             debit: line.debit,
                             credit: line.credit,
                             balance: line.balance,
@@ -759,7 +919,12 @@ export class AccountsService {
         };
     }
 
-    async getNEWBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
+    async getNEWBankAccountReport(
+        month?: string,
+        page: number = 1,
+        limit: number = 20,
+        accountId?: number,
+    ) {
         const skip = (page - 1) * limit;
 
         let monthStart: Date | undefined;
@@ -796,7 +961,7 @@ export class AccountsService {
         }
 
         const bankAccount = await this.prisma.account.findUnique({
-            where: { code: "11001" },
+            where: accountId ? { id: accountId } : { code: "11001" },
             include: {
                 entries: {
                     where: {
@@ -822,9 +987,20 @@ export class AccountsService {
                 },
             },
         });
+        const partnerNamesById = await this.getPartnerNamesByJournalSources(
+            bankAccount?.entries?.map((line) => ({
+                sourceType: line.journal.sourceType,
+                sourceId: line.journal.sourceId,
+            })) ?? [],
+        );
 
-        if (!bankAccount)
-            throw new NotFoundException("Bank account 11001 not found");
+        if (!bankAccount) {
+            throw new NotFoundException(
+                accountId
+                    ? `Bank account ${accountId} not found`
+                    : "Bank account 11001 not found",
+            );
+        }
 
         const totalJournals = await this.prisma.journalLine.count({
             where: {
@@ -864,7 +1040,19 @@ export class AccountsService {
                     id: line.journal.id,
                     date: date.toISO(),
                     reference: line.journal.reference,
-                    description: line.description ?? line.journal.description,
+                    description: this.resolveJournalDescription({
+                        lineDescription: line.description,
+                        journalDescription: line.journal.description,
+                        journalReference: line.journal.reference,
+                        journalType: line.journal.type,
+                        sourceType: line.journal.sourceType,
+                        clientName: line.client?.name ?? null,
+                        partnerName:
+                            line.journal.sourceType === JournalSourceType.PARTNER &&
+                                line.journal.sourceId
+                                ? partnerNamesById.get(line.journal.sourceId) ?? null
+                                : null,
+                    }),
                     debit: line.debit,
                     credit: line.credit,
                     balance: line.balance,

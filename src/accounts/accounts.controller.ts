@@ -73,8 +73,14 @@ export class AccountsController {
         @Param('page', ParseIntPipe) page: number,
         @Query('month') month?: string,
         @Query('limit') limit = 10,
+        @Query('accountId') accountId?: string,
     ) {
-        return this.accountsService.getNEWBankAccountReport(month, page, +limit);
+        return this.accountsService.getNEWBankAccountReport(
+            month,
+            page,
+            +limit,
+            accountId ? Number(accountId) : undefined,
+        );
     }
 
     @Get('trial-balance')
