@@ -247,4 +247,10 @@ export class ClientController {
     ) {
         return this.clientService.createMissingClientAccounts();
     }
+
+    @Post('create-missing-Banks')
+    async createMissingBankAccounts(
+    ) {
+        return this.clientService.createMissingBankAccounts();
+    }
 }
