@@ -1017,4 +1017,55 @@ export class ClientService {
             message: `تم إنشاء حسابات لعدد ${createdCount} عميل`,
         };
     }
+
+    async createMissingBankAccounts() {
+        const parentBank = await this.prisma.account.findUnique({
+            where: { code: '11000' },
+        });
+
+        if (!parentBank) {
+            throw new BadRequestException('Base account (11000) must exist first');
+        }
+
+        const banks = await this.prisma.bANK_accounts.findMany({
+            where: {
+                OR: [
+                    { accountId: null },
+                ],
+            },
+        });
+
+        let createdCount = 0;
+
+        for (const bank of banks) {
+            await this.prisma.$transaction(async (tx) => {
+                if (!bank.accountId) {
+                    const account = await tx.account.create({
+                        data: {
+                            name: bank.name,
+                            code: await this.generateNextCode('11'),
+                            parentId: parentBank.id,
+                            type: 'ASSET',
+                            accountBasicType: 'BANK',
+                            nature: 'DEBIT',
+                            level: 3,
+                        },
+                    });
+
+                    await tx.bANK_accounts.update({
+                        where: { id: bank.id },
+                        data: {
+                            accountId: account.id,
+                        },
+                    });
+
+                    createdCount++;
+                }
+            });
+        }
+
+        return {
+            message: `تم إنشاء حسابات لعدد ${createdCount} بنك`,
+        };
+    }
 }
