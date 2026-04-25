@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config();
-import { PaymentStatus, LoanStatus, ClientStatus } from '@prisma/client';
+import { ClientStatus } from '@prisma/client';
 import { DateTime } from 'luxon';
 
 @Injectable()
@@ -153,7 +153,6 @@ export class ClientService {
         return { message: 'تم اضافة عميل جديد', client };
     }
 
-
     private async mapUploadedFiles(
         files: Record<string, Express.Multer.File[]> | undefined,
         clientId: string,
@@ -204,7 +203,6 @@ export class ClientService {
         return fileMap;
     }
 
-
     private cleanDocumentData(data: Record<string, any>) {
         if (!data) return null;
         const cleaned: Record<string, any> = {};
@@ -215,7 +213,6 @@ export class ClientService {
         }
         return cleaned;
     }
-
 
     async updateClientData(currentUser: number, id: number, dto: UpdateClientDto) {
         const client = await this.prisma.client.findUnique({ where: { id } });
@@ -252,7 +249,6 @@ export class ClientService {
 
         return { message: 'تم تحديث بيانات العميل بنجاح', client: updatedClient };
     }
-
 
     async updateKafeelData(
         currentUser: number,
@@ -316,7 +312,6 @@ export class ClientService {
 
         return { message: 'تم تحديث بيانات الكفيل بنجاح', kafeel: updatedKafeel };
     }
-
 
     async updateClientDocuments(
         currentUser: number,
@@ -550,7 +545,6 @@ export class ClientService {
             clients: formatted,
         };
     }
-
 
     async getClientById(id: number) {
         const client = await this.prisma.client.findUnique({
@@ -890,7 +884,6 @@ export class ClientService {
         return { message: 'تم اضافة كفيل جديد', kafeel: newKafeel };
     }
 
-
     async deleteKafeel(currentUser: number, kafeelId: number) {
 
         const kafeel = await this.prisma.kafeel.findUnique({
@@ -948,5 +941,80 @@ export class ClientService {
         });
 
         return { message: 'تم حذف الكفيل بنجاح' };
+    }
+
+    async createMissingClientAccounts() {
+        const LOANS_RECEIVABLE = await this.prisma.account.findUnique({
+            where: { code: '12000' },
+        });
+
+        if (!LOANS_RECEIVABLE) {
+            throw new BadRequestException('Base account (12000) must exist first');
+        }
+
+        const clients = await this.prisma.client.findMany({
+            where: {
+                OR: [
+                    { accountId: null },
+                    { interestAccountId: null },
+                ],
+            },
+        });
+
+        let createdCount = 0;
+
+        for (const client of clients) {
+            await this.prisma.$transaction(async (tx) => {
+
+                let accountId = client.accountId;
+                let interestAccountId = client.interestAccountId;
+
+                if (!accountId) {
+                    const clientAccount = await tx.account.create({
+                        data: {
+                            name: `العميل - ${client.name}`,
+                            code: await this.generateNextCode('12'),
+                            parentId: LOANS_RECEIVABLE.id,
+                            type: 'ASSET',
+                            nature: 'DEBIT',
+                            accountBasicType: 'CLIENT',
+                            level: 3,
+                        },
+                    });
+
+                    accountId = clientAccount.id;
+                }
+
+                if (!interestAccountId) {
+                    const interestAccount = await tx.account.create({
+                        data: {
+                            name: `فوائد العميل - ${client.name}`,
+                            code: await this.generateNextCode('12'),
+                            parentId: LOANS_RECEIVABLE.id,
+                            type: 'ASSET',
+                            nature: 'DEBIT',
+                            accountBasicType: 'CLIENT_INTEREST',
+                            level: 3,
+                        },
+                    });
+
+                    interestAccountId = interestAccount.id;
+                }
+
+                await tx.client.update({
+                    where: { id: client.id },
+                    data: {
+                        accountId,
+                        interestAccountId,
+                    },
+                });
+
+                createdCount++;
+            });
+        }
+
+        return {
+            message: `تم إنشاء حسابات لعدد ${createdCount} عميل`,
+        };
     }
 }
