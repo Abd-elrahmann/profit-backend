@@ -961,6 +961,18 @@ export class ClientService {
             },
         });
 
+        const existingAccounts = await this.prisma.account.findMany({
+            where: { code: { startsWith: '12' } },
+            select: { code: true },
+        });
+
+        let maxCode = Math.max(
+            ...existingAccounts.map(a => parseInt(a.code) || 0),
+            12000
+        );
+
+        const nextCode = () => (maxCode += 10).toString();
+
         let createdCount = 0;
 
         for (const client of clients) {
@@ -973,7 +985,7 @@ export class ClientService {
                     const clientAccount = await tx.account.create({
                         data: {
                             name: `العميل - ${client.name}`,
-                            code: await this.generateNextCode('12'),
+                            code: nextCode(),
                             parentId: LOANS_RECEIVABLE.id,
                             type: 'ASSET',
                             nature: 'DEBIT',
@@ -989,7 +1001,7 @@ export class ClientService {
                     const interestAccount = await tx.account.create({
                         data: {
                             name: `فوائد العميل - ${client.name}`,
-                            code: await this.generateNextCode('12'),
+                            code: nextCode(),
                             parentId: LOANS_RECEIVABLE.id,
                             type: 'ASSET',
                             nature: 'DEBIT',
@@ -1029,11 +1041,21 @@ export class ClientService {
 
         const banks = await this.prisma.bANK_accounts.findMany({
             where: {
-                OR: [
-                    { accountId: null },
-                ],
+                accountId: null,
             },
         });
+
+        const existingAccounts = await this.prisma.account.findMany({
+            where: { code: { startsWith: '11' } },
+            select: { code: true },
+        });
+
+        let maxCode = Math.max(
+            ...existingAccounts.map(a => parseInt(a.code) || 0),
+            11000
+        );
+
+        const nextCode = () => (maxCode += 10).toString();
 
         let createdCount = 0;
 
@@ -1043,7 +1065,7 @@ export class ClientService {
                     const account = await tx.account.create({
                         data: {
                             name: bank.name,
-                            code: await this.generateNextCode('11'),
+                            code: nextCode(),
                             parentId: parentBank.id,
                             type: 'ASSET',
                             accountBasicType: 'BANK',
