@@ -14,61 +14,61 @@ ALTER TYPE "JournalSourceType" ADD VALUE 'CLIENT';
 ALTER TABLE "Client" ADD COLUMN     "accountId" INTEGER;
 
 -- CreateIndex
-CREATE INDEX "AuditLog_userId_idx" ON "AuditLog"("userId");
+CREATE INDEX IF NOT EXISTS "AuditLog_userId_idx" ON "AuditLog"("userId");
 
 -- CreateIndex
-CREATE INDEX "AuditLog_screen_idx" ON "AuditLog"("screen");
+CREATE INDEX IF NOT EXISTS "AuditLog_screen_idx" ON "AuditLog"("screen");
 
 -- CreateIndex
-CREATE INDEX "AuditLog_action_idx" ON "AuditLog"("action");
+CREATE INDEX IF NOT EXISTS "AuditLog_action_idx" ON "AuditLog"("action");
 
 -- CreateIndex
-CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
+CREATE INDEX IF NOT EXISTS "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Client_accountId_key" ON "Client"("accountId");
+CREATE UNIQUE INDEX IF NOT EXISTS "Client_accountId_key" ON "Client"("accountId");
 
 -- CreateIndex
-CREATE INDEX "ExpenseRecord_userId_idx" ON "ExpenseRecord"("userId");
+CREATE INDEX IF NOT EXISTS "ExpenseRecord_userId_idx" ON "ExpenseRecord"("userId");
 
 -- CreateIndex
-CREATE INDEX "ExpenseRecord_journalId_idx" ON "ExpenseRecord"("journalId");
+CREATE INDEX IF NOT EXISTS "ExpenseRecord_journalId_idx" ON "ExpenseRecord"("journalId");
 
 -- CreateIndex
-CREATE INDEX "ExpenseRecord_createdAt_idx" ON "ExpenseRecord"("createdAt");
+CREATE INDEX IF NOT EXISTS "ExpenseRecord_createdAt_idx" ON "ExpenseRecord"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "JournalHeader_status_idx" ON "JournalHeader"("status");
+CREATE INDEX IF NOT EXISTS "JournalHeader_status_idx" ON "JournalHeader"("status");
 
 -- CreateIndex
-CREATE INDEX "JournalHeader_sourceType_idx" ON "JournalHeader"("sourceType");
+CREATE INDEX IF NOT EXISTS "JournalHeader_sourceType_idx" ON "JournalHeader"("sourceType");
 
 -- CreateIndex
-CREATE INDEX "JournalHeader_sourceId_idx" ON "JournalHeader"("sourceId");
+CREATE INDEX IF NOT EXISTS "JournalHeader_sourceId_idx" ON "JournalHeader"("sourceId");
 
 -- CreateIndex
-CREATE INDEX "JournalHeader_date_idx" ON "JournalHeader"("date");
+CREATE INDEX IF NOT EXISTS "JournalHeader_date_idx" ON "JournalHeader"("date");
 
 -- CreateIndex
-CREATE INDEX "JournalHeader_periodId_idx" ON "JournalHeader"("periodId");
+CREATE INDEX IF NOT EXISTS "JournalHeader_periodId_idx" ON "JournalHeader"("periodId");
 
 -- CreateIndex
-CREATE INDEX "JournalLine_journalId_idx" ON "JournalLine"("journalId");
+CREATE INDEX IF NOT EXISTS "JournalLine_journalId_idx" ON "JournalLine"("journalId");
 
 -- CreateIndex
-CREATE INDEX "JournalLine_accountId_idx" ON "JournalLine"("accountId");
+CREATE INDEX IF NOT EXISTS "JournalLine_accountId_idx" ON "JournalLine"("accountId");
 
 -- CreateIndex
-CREATE INDEX "JournalLine_clientId_idx" ON "JournalLine"("clientId");
+CREATE INDEX IF NOT EXISTS "JournalLine_clientId_idx" ON "JournalLine"("clientId");
 
 -- CreateIndex
-CREATE INDEX "PartnerShareAccrual_loanId_idx" ON "PartnerShareAccrual"("loanId");
+CREATE INDEX IF NOT EXISTS "PartnerShareAccrual_loanId_idx" ON "PartnerShareAccrual"("loanId");
 
 -- CreateIndex
-CREATE INDEX "PartnerShareAccrual_partnerId_idx" ON "PartnerShareAccrual"("partnerId");
+CREATE INDEX IF NOT EXISTS "PartnerShareAccrual_partnerId_idx" ON "PartnerShareAccrual"("partnerId");
 
 -- CreateIndex
-CREATE INDEX "PartnerShareAccrual_isClosed_idx" ON "PartnerShareAccrual"("isClosed");
+CREATE INDEX IF NOT EXISTS "PartnerShareAccrual_isClosed_idx" ON "PartnerShareAccrual"("isClosed");
 
 -- AddForeignKey
 ALTER TABLE "Client" ADD CONSTRAINT "Client_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;

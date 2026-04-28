@@ -27,7 +27,6 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 export class ClientController {
     constructor(private readonly clientService: ClientService) { }
 
-
     @Post()
     @Permissions('clients', 'canAdd')
     @UseInterceptors(
@@ -56,7 +55,7 @@ export class ClientController {
         const normalizedFiles: Record<string, Express.Multer.File[]> = {};
 
         Object.entries(files).forEach(([key, value]) => {
-            const cleanKey = key.replace(/\[\d+\]$/, ''); 
+            const cleanKey = key.replace(/\[\d+\]$/, '');
             if (!normalizedFiles[cleanKey]) normalizedFiles[cleanKey] = [];
             normalizedFiles[cleanKey].push(...value);
         });
@@ -243,4 +242,15 @@ export class ClientController {
         return this.clientService.deleteKafeel(req.user.id, kafeelId);
     }
 
+    @Post('create-missing-accounts')
+    async createMissingClientAccounts(
+    ) {
+        return this.clientService.createMissingClientAccounts();
+    }
+
+    @Post('create-missing-Banks')
+    async createMissingBankAccounts(
+    ) {
+        return this.clientService.createMissingBankAccounts();
+    }
 }

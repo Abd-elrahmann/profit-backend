@@ -187,7 +187,7 @@ export class ExternalInvestmentService {
             if (toDate) where.createdAt.lte = new Date(toDate);
         }
 
-        const [data, total] = await Promise.all([
+        const [data, total, allRecords] = await Promise.all([
             this.prisma.externalInvestment.findMany({
                 where,
                 include: {
@@ -199,7 +199,38 @@ export class ExternalInvestmentService {
                 take: limit,
             }),
             this.prisma.externalInvestment.count({ where }),
+            this.prisma.externalInvestment.findMany({
+                where,
+                include: {
+                    partnerShares: true,
+                },
+            }),
         ]);
+
+        // Calculate totals
+        let totalWithdrawn = 0;
+        let totalPaid = 0;
+        let totalProfit = 0;
+        let totalPartnerProfit = 0;
+        let totalCompanyProfit = 0;
+
+        for (const record of allRecords) {
+            totalWithdrawn += record.amount || 0;
+            totalPaid += record.returnedAmount || 0;
+            totalProfit += record.profit || 0;
+
+            // Calculate partner profit and company profit
+            if (record.status === 'CLOSED' && record.profit) {
+                for (const share of record.partnerShares) {
+                    const rawProfitShare = (record.profit * share.sharePercent) / 100;
+                    const orgCut = (rawProfitShare * share.orgProfitPercent) / 100;
+                    const partnerFinal = rawProfitShare - orgCut;
+
+                    totalPartnerProfit += partnerFinal;
+                    totalCompanyProfit += orgCut;
+                }
+            }
+        }
 
         return {
             totalPages: Math.ceil(total / limit),
@@ -207,6 +238,13 @@ export class ExternalInvestmentService {
             limit,
             count: total,
             data,
+            totals: {
+                totalWithdrawn,
+                totalPaid,
+                totalProfit,
+                totalPartnerProfit,
+                totalCompanyProfit,
+            },
         };
     }
 
