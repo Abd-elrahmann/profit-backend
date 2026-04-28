@@ -57,6 +57,14 @@ export class AccountsController {
         return this.accountsService.searchAccountsTree(q ?? '');
     }
 
+    @Get('lookup')
+    lookupAccounts(
+        @Query('q') q?: string,
+        @Query('limit') limit = '50',
+    ) {
+        return this.accountsService.lookupAccounts(q ?? '', Number(limit));
+    }
+
     @Get('bank/:page')
     @Permissions('treasury', 'canView')
     getBankAccountReport(

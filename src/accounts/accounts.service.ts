@@ -9,6 +9,20 @@ import { AccountBasicType, JournalSourceType, JournalType } from '@prisma/client
 export class AccountsService {
     constructor(private readonly prisma: PrismaService) { }
 
+    private normalizeArabicSearchText(input: string) {
+        return (input ?? '')
+            .toLowerCase()
+            .normalize('NFKD')
+            .replace(/[\u064B-\u065F\u0670]/g, '') // remove tashkeel
+            .replace(/[أإآٱ]/g, 'ا')
+            .replace(/[ؤئ]/g, 'ء')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/ء/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
     private toHijri(date: Date) {
         return moment(date)
             .locale('ar-SA')
@@ -625,6 +639,40 @@ export class AccountsService {
         };
         sortRecursive(roots);
         return roots;
+    }
+
+    async lookupAccounts(q: string, limit = 50) {
+        const search = (q ?? '').trim();
+        const take = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 200) : 50;
+
+        const allAccounts = await this.prisma.account.findMany({
+            orderBy: { code: 'asc' },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                nature: true,
+                balance: true,
+                parentId: true,
+            },
+        });
+
+        if (!search) {
+            return allAccounts.slice(0, take);
+        }
+
+        const normalizedSearch = this.normalizeArabicSearchText(search);
+
+        return allAccounts
+            .filter((account) => {
+                const normalizedName = this.normalizeArabicSearchText(account.name ?? '');
+                const normalizedCode = this.normalizeArabicSearchText(account.code ?? '');
+                return (
+                    normalizedName.includes(normalizedSearch) ||
+                    normalizedCode.includes(normalizedSearch)
+                );
+            })
+            .slice(0, take);
     }
 
     async getBankAccountReport(month?: string, page: number = 1, limit: number = 20) {
