@@ -134,7 +134,6 @@ export class ClientReportService {
                 0
             );
 
-
             const pendingRepayments = loansForFinancials.flatMap(loan =>
                 loan.repayments.filter(r => r.status === 'PENDING')
             );
