@@ -149,6 +149,18 @@ export class ClientReportService {
 
             const averageMonthlyInstallment = monthlyInstallment;
 
+            const dueRepayments = loansForFinancials.flatMap(loan =>
+                loan.repayments.filter(r =>
+                    (r.status === 'PENDING' || r.status === 'OVERDUE') && DateTime.fromJSDate(r.dueDate) <= DateTime.now()
+                )
+            );
+
+            const dueAmount = dueRepayments.reduce((sum, r) => {
+                const repaymentTotal = (r.principalAmount ?? 0) + (r.interestAmount ?? 0);
+                const repaymentRemaining = Math.round((repaymentTotal - (r.paidAmount ?? 0)) * 100) / 100;
+                return Math.round((sum + repaymentRemaining) * 100) / 100;
+            }, 0);
+
             return {
                 id: c.id,
                 name: c.name,
@@ -177,6 +189,7 @@ export class ClientReportService {
                     totalDiscounts,
                     totalInterestPaid,
                     averageMonthlyInstallment,
+                    dueAmount,
                 },
             };
         });
@@ -274,6 +287,15 @@ export class ClientReportService {
                 ) / 100
             ) || 0;
 
+        const dueRepayments = allRepayments.filter(r =>
+            (r.status === 'PENDING' || r.status === 'OVERDUE') && DateTime.fromJSDate(r.dueDate) <= DateTime.now()
+        );
+
+        const dueAmount = dueRepayments.reduce((sum, r) => {
+            const repaymentTotal = (r.principalAmount ?? 0) + (r.interestAmount ?? 0);
+            const repaymentRemaining = Math.round((repaymentTotal - (r.paidAmount ?? 0)) * 100) / 100;
+            return Math.round((sum + repaymentRemaining) * 100) / 100;
+        }, 0);
 
         const loans = client.loans.map((loan) => {
             const loanTotalPaid = loan.repayments.reduce(
@@ -341,6 +363,7 @@ export class ClientReportService {
                 totalDiscounts,
                 totalPrincipalPaid,
                 totalInterestPaid,
+                dueAmount,
             },
 
             loans,
