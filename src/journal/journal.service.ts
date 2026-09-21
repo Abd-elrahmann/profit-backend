@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
-import { JournalStatus, JournalSourceType } from '@prisma/client';
+import { JournalStatus, JournalSourceType, JournalType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { DateTime } from 'luxon';
 import moment from "moment-hijri";
@@ -97,7 +97,6 @@ export class JournalService {
 
         return { message: 'تم انشاء القيد بنجاح', journal };
     }
-
 
     async updateJournal(currentUser, id: number, dto: UpdateJournalDto) {
         const journal = await this.prisma.journalHeader.findUnique({ where: { id }, include: { lines: true } });
@@ -414,7 +413,6 @@ export class JournalService {
 
         return { message: 'تم اعتماد القيد بنجاح', journalId: id };
     }
-
 
     async unpostJournal(currentUser, id: number) {
         const journal = await this.prisma.journalHeader.findUnique({

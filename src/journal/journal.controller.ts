@@ -5,6 +5,8 @@ import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
+import { BadRequestException } from '@nestjs/common';
+import { JournalStatus, JournalType } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('journals')
@@ -83,9 +85,18 @@ export class JournalController {
     @Post(':id/unpost')
     @Permissions('journals', 'canPost')
     async unpostJournal(@Req() req, @Param('id', ParseIntPipe) id: number) {
+        const journal = await this.journalService.getJournalById(id);
+
+        if (journal.status !== JournalStatus.POSTED) {
+            throw new BadRequestException('الفيد غير معتمد بالفعل');
+        }
+
+        if (journal.type === JournalType.OPENING) {
+            await this.openingJournalService.reverseOpeningJournal(id, req.user.id);
+        }
+
         return this.journalService.unpostJournal(req.user.id, id);
     }
-
 
     @Post('post-multiple')
     @Permissions('journals', 'canPost')

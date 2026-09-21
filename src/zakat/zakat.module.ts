@@ -12,3 +12,4 @@ import { JournalModule } from '../journal/journal.module';
   exports: [ZakatService],
 })
 export class ZakatModule { }
+

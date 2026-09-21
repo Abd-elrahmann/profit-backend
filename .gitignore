@@ -6,6 +6,7 @@ npm-debug.log
 dist/
 tsconfig.build.tsconfig.json
 tsconfig.build.tsbuildinfo
+.env
 
 # Uploads
 uploads/

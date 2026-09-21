@@ -40,14 +40,14 @@ export class OpeningJournalService {
             type: 'MONTHLY',
             source: 'GENERAL',
             InterestPercentage: 0,
-            bankAccountId: 1,
+            bankAccountId: 10,
             startDate: new Date().toISOString(),
             promissionaryDate: new Date().toISOString(),
             repaymentDay: new Date().toISOString(),
             isOpening: true,
             isOpeningJournalId: journalId,
         }
-            , tx);
+            , tx, true);
     }
 
     private async handleExpenseAccount(
@@ -362,5 +362,108 @@ export class OpeningJournalService {
                 journal,
             };
         }, { timeout: 20000 });
+    }
+
+    async reverseOpeningJournal(journalId: number, userId?: number) {
+        const journal = await this.prisma.journalHeader.findUnique({
+            where: { id: journalId },
+            include: { lines: true },
+        });
+
+        if (!journal) {
+            throw new NotFoundException('Journal not found');
+        }
+
+        if (journal.type !== JournalType.OPENING) {
+            throw new BadRequestException('Only opening journals can be reversed by this method');
+        }
+
+        const openingLoans = await this.prisma.loan.findMany({ where: { isOpeningJournalId: journalId } });
+
+        for (const loan of openingLoans) {
+            try {
+                await this.LoansService.deleteLoan(userId || 0, loan.id);
+            } catch (e) {
+            }
+        }
+
+        const lineIds = journal.lines.map(l => l.id).filter(Boolean) as number[];
+
+        await this.prisma.$transaction(async (tx) => {
+            if (lineIds.length > 0) {
+                await tx.expenseRecord.deleteMany({ where: { openingJournalLineId: { in: lineIds } } });
+            }
+
+            const partnerLines = journal.lines.filter(l => l.accountId && l.credit && l.credit > 0);
+
+            for (const line of partnerLines) {
+                const account = await tx.account.findUnique({ where: { id: line.accountId } });
+                if (!account) continue;
+                if (account.accountBasicType !== AccountBasicType.PARTNER_EQUITY) continue;
+
+                const partner = await tx.partner.findFirst({ where: { accountEquityId: account.id } });
+                if (!partner) continue;
+
+                const amount = line.credit || 0;
+                if (amount > 0) {
+                    const annualZakat = Number((amount * 0.025).toFixed(2));
+
+                    await tx.partner.update({
+                        where: { id: partner.id },
+                        data: {
+                            capitalAmount: { decrement: amount },
+                            totalAmount: { decrement: amount },
+                            yearlyZakatRequired: { decrement: annualZakat },
+                            yearlyZakatBalance: { decrement: annualZakat },
+                        },
+                    });
+
+                    if (journal.createdAt) {
+                        await tx.zakatAccrual.deleteMany({
+                            where: {
+                                partnerId: partner.id,
+                                year: journal.createdAt.getFullYear(),
+                            },
+                        });
+                    }
+                }
+            }
+        });
+
+        for (const line of journal.lines) {
+            const account = await this.prisma.account.findUnique({ where: { id: line.accountId } });
+            if (!account) continue;
+            if (account.accountBasicType !== AccountBasicType.ZAKAT_EXPENSES) continue;
+
+            const amount = line.debit || 0;
+            if (amount <= 0) continue;
+
+            const possibleWithdraws = await this.prisma.zakatWithdraw.findMany({
+                where: {
+                    amount,
+                    userId: userId || undefined,
+                    createdAt: { gte: journal.createdAt },
+                },
+                orderBy: { createdAt: 'asc' },
+            });
+
+            for (const w of possibleWithdraws) {
+                try {
+                    await this.zakatservice.reverseZakatWithdrawal(w.id, userId || 0);
+                } catch (e) {
+                }
+            }
+        }
+
+        await this.prisma.auditLog.create({
+            data: {
+                userId: userId || 0,
+                screen: 'Journals',
+                action: 'DELETE',
+                description: `قام المستخدم بعكس مخرجات قيد افتتاحي برقم مرجعي ${journal.reference}`,
+            },
+        });
+
+        return { message: 'تم عكس مخرجات القيد الافتتاحي (بقدر الإمكان)' };
     }
 }

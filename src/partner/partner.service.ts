@@ -239,7 +239,7 @@ export class PartnerService {
                     description: isNew
                         ? `إيداع رأس مال مساهم جديد ${partner.name}`
                         : `إيداع رأس مال مساهم قديم ${partner.name}`,
-                    type: JournalType.OPENING,
+                    type: JournalType.GENERAL,
                     sourceType: JournalSourceType.PARTNER,
                     sourceId: partner.id,
                     lines: journalLines,

