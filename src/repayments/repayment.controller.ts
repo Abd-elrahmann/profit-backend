@@ -120,16 +120,28 @@ export class RepaymentController {
     }
 
 
+
     @Post('approve-many')
     @Permissions('repayments', 'canPost')
     async approveMany(
         @Req() req,
-        @Body() body: { ids: number[]; notes?: string },
+        @Body() body: { ids: number[] } & RepaymentDto,
     ) {
-        const dto: RepaymentDto = { notes: body.notes };
-        return this.repaymentService.approveMany(req.user.id, body.ids, dto);
-    }
+        const dto: RepaymentDto = {
+            notes: body.notes,
+            BankId: body.BankId,
+            paidAmount: body.paidAmount,
+            discount: body.discount,
+            postponeReason: body.postponeReason,
+            newDueDate: body.newDueDate,
+        };
 
+        return this.repaymentService.approveMany(
+            req.user.id,
+            body.ids,
+            dto,
+        );
+    }
 
     @Post('reject-many')
     @Permissions('repayments', 'canPost')

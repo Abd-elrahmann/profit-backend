@@ -360,13 +360,8 @@ export class LoansService {
 
         if (fundSource === LoanFundSource.MIX) {
             const bankBalance = new Decimal(bankAccount.balance);
-
-            if (bankBalance.gte(principal)) {
-                generalAmount = principal;
-            } else {
                 generalAmount = bankBalance;
                 newCapitalAmount = principal.minus(bankBalance);
-            }
         }
 
         if (generalAmount.gt(0)) {

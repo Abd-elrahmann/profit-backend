@@ -352,7 +352,6 @@ export class RepaymentService {
                 },
             });
 
-
             const generalShares = await tx.loanPartnerShare.findMany({
                 where: { loanId: loan.id },
                 include: { partner: { select: { orgProfitPercent: true } } },
