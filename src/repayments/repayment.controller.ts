@@ -134,6 +134,7 @@ export class RepaymentController {
             discount: body.discount,
             postponeReason: body.postponeReason,
             newDueDate: body.newDueDate,
+            paymentMethod: body.paymentMethod,
         };
 
         return this.repaymentService.approveMany(

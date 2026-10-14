@@ -327,6 +327,7 @@ model Repayment {
   reviewStatus String?
   notes        String?  
   discount     Float?
+  paymentMethod PaymentMethod?
   postponeApproved  Boolean?   
   postponeReason    String?   
   newDueDate        DateTime?
@@ -416,6 +417,11 @@ enum PaymentStatus {
   EARLY_PAID
   COMPLETED
   OVERDUE
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
 }
 
 model Partner {

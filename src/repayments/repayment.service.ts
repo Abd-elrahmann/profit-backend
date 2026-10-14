@@ -348,7 +348,8 @@ export class RepaymentService {
                     reviewStatus: 'APPROVED',
                     remaining: 0,
                     interestAmount: netInterest,
-                    discount: discount
+                    discount: discount,
+                    paymentMethod: dto.paymentMethod
                 },
             });
 

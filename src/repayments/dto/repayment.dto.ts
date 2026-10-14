@@ -1,4 +1,5 @@
-import { IsOptional, IsNumber, IsString, IsDateString } from 'class-validator';
+import { IsOptional, IsNumber, IsString, IsDateString, IsEnum } from 'class-validator';
+import { PaymentMethod } from '@prisma/client';
 
 export class RepaymentDto {
   @IsOptional()
@@ -24,4 +25,8 @@ export class RepaymentDto {
   @IsOptional()
   @IsNumber()
   BankId?: number;
+
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
 }
